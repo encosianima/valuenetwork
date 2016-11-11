@@ -28,37 +28,45 @@
      <div>
 
         <legend>
-            {% trans "Invoice Number" %}
+            {% trans "Invoice Number" %} 
         </legend>
     </div>
-    <div>
-        <h3>{% trans "Create a new Invoice Number" %}</h3>
-        <form id="invoiceNumberForm" action="." method="POST">
-            {% csrf_token %}
-            {{ form|as_bootstrap }}
-            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create" %}' />
-        </form>
-        
-        {% if invoice_numbers %}
-            <h3>{% trans "Your previous Invoice Numbers" %}</h3>
-            <table class="table table-hover table-condensed" >
-                <thead>
-                    <th>{% trans "Invoice Number" %}</th>
-                    <th>{% trans "For Member" %}</th>
-                    <th>{% trans "Description" %}</th>
-                    <th>{% trans "Date Created" %}</th>
-                </thead>
-                <tbody>
-                {% for nbr in invoice_numbers %}
-                    <tr>
-                        <td> {{ nbr.invoice_number }} </td>
-                        <td>{{ nbr.member }} </td>
-                        <td>{{ nbr.description }} </td>
-                        <td>{{ nbr.created_date }} </td>
-                    </tr>
-                {% endfor %}
-            </table>
-        {% endif %}
+    <div class="row-fluid">
+
+        <div class="span8">
+            <h3>{% trans "Create a new Invoice Number" %}</h3>
+            <form id="invoiceNumberForm" action="." method="POST">
+                {% csrf_token %}
+                {{ form|as_bootstrap }}
+                <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create" %}' />
+            </form>
+            
+            {% if invoice_numbers %}
+                <h3>{% trans "Your previous Invoice Numbers" %}</h3>
+                <table class="table table-hover table-condensed" >
+                    <thead>
+                        <th>{% trans "Invoice Number" %}</th>
+                        <th>{% trans "For Member" %}</th>
+                        <th>{% trans "Description" %}</th>
+                        <th>{% trans "Date Created" %}</th>
+                    </thead>
+                    <tbody>
+                    {% for nbr in invoice_numbers %}
+                        <tr>
+                            <td> {{ nbr.invoice_number }} </td>
+                            <td>{{ nbr.member }} </td>
+                            <td>{{ nbr.description }} </td>
+                            <td>{{ nbr.created_date }} </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+        <div class="span4">
+            <h3>
+            <a class="btn btn-large" href="{% static 'Invoice_blueprint.xls' %}"><i class="icon-download"></i>{% trans "Download Invoice Blueprint" %}</a>
+            </h3>
+        <div>
     </div>
 </div>
 {% endblock %}
