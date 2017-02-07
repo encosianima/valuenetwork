@@ -1197,6 +1197,7 @@ def transfer_faircoins(request, resource_id):
             data = send_coins_form.cleaned_data
             address_end = data["to_address"]
             quantity = data["quantity"]
+            notes = data["description"]
             address_origin = resource.digital_currency_address
             if address_origin and address_end:
                 from_agent = resource.owner()
@@ -1215,6 +1216,7 @@ def transfer_faircoins(request, resource_id):
                         use_case=xt.use_case,
                         name="Transfer Faircoins",
                         start_date=date,
+                        notes=notes,
                         )
                     exchange.save()
                     transfer = Transfer(
@@ -1222,6 +1224,7 @@ def transfer_faircoins(request, resource_id):
                         exchange=exchange,
                         transfer_date=date,
                         name="Transfer Faircoins",
+                        notes=notes,
                         )
                     transfer.save()
                 else:
@@ -1233,6 +1236,7 @@ def transfer_faircoins(request, resource_id):
                         use_case=xt.use_case,
                         name="Send Faircoins",
                         start_date=date,
+                        notes=notes,
                         )
                     exchange.save()
                     transfer = Transfer(
@@ -1240,6 +1244,7 @@ def transfer_faircoins(request, resource_id):
                         exchange=exchange,
                         transfer_date=date,
                         name="Send Faircoins",
+                        notes=notes,
                         )
                     transfer.save()
 
@@ -1258,6 +1263,7 @@ def transfer_faircoins(request, resource_id):
                     quantity = quantity,
                     transfer=transfer,
                     event_reference=address_end,
+                    description=notes,
                     )
                 event.save()
                 if to_agent:
@@ -1275,6 +1281,7 @@ def transfer_faircoins(request, resource_id):
                         quantity = quantity,
                         transfer=transfer,
                         event_reference=address_end,
+                        description=notes,
                         )
                     event.save()
                     #print "receive event:", event
@@ -1420,13 +1427,15 @@ def faircoin_history(request, resource_id):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         events = paginator.page(paginator.num_pages)
-
-    return render_to_response("work/faircoin_history.html", {
-        "resource": resource,
-        "agent": agent,
-        "unit": unit,
-        "events": events,
-    }, context_instance=RequestContext(request))
+    if resource.owner() == agent or resource.owner() in agent.managed_projects() or agent.is_staff():
+        return render_to_response("work/faircoin_history.html", {
+            "resource": resource,
+            "agent": agent,
+            "unit": unit,
+            "events": events,
+        }, context_instance=RequestContext(request))
+    else:
+        return render_to_response('work/no_permission.html')
 
 def membership_request(request):
     membership_form = MembershipRequestForm(data=request.POST or None)
@@ -1544,7 +1553,7 @@ def membership_discussion(request, membership_request_id):
         if user_agent.membership_request() == mbr_req or request.user.is_staff:
             allowed = True
     if not allowed:
-        return render_to_response('valueaccounting/no_permission.html')
+        return render_to_response('work/no_permission.html')
 
     return render_to_response("work/membership_request_with_comments.html", {
         "help": get_help("membership_request"),
@@ -2940,6 +2949,22 @@ def invoice_number(request):
         "form": form,
         "invoice_numbers": invoice_numbers,
     }, context_instance=RequestContext(request))
+
+
+@login_required
+def edit_faircoin_event_description(request, resource_id):
+    agent = get_agent(request)
+    resource = EconomicResource.objects.get(id=resource_id)
+    if request.method == "POST":
+        data = request.POST
+        evid = data['id']
+        ntext = data['value']
+        event = EconomicEvent.objects.get(id=evid)
+        event.description = ntext
+        event.save()
+        return HttpResponse("Ok", content_type="text/plain")
+    return HttpResponse("Fail", content_type="text/plain")
+
 
 '''
 @login_required
