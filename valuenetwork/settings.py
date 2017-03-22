@@ -1,4 +1,4 @@
-import os
+import os, sys
 from django.utils.translation import ugettext_lazy as _
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -7,6 +7,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+# settings.TESTING will be True in a testing enviroment.
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
 ADMINS = (
     # ("Your Name", "your_email@example.com"),
@@ -187,14 +189,16 @@ INSTALLED_APPS = [
     #'work.fobi_form_callbacks',
 
     # project
-    'valuenetwork.valueaccounting',
+    'valuenetwork.valueaccounting.apps.ValueAccountingAppConfig',
     'valuenetwork.equipment',
     'valuenetwork.board',
     'valuenetwork.api',
     'account',
-    'work',
+    'work.apps.WorkAppConfig',
 
-
+    # general
+    'general',
+    'mptt', # This provide Tree management in a 'nested set' style
 ]
 
 REST_FRAMEWORK = {
