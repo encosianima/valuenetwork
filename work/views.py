@@ -4419,6 +4419,9 @@ def my_tasks(request):
 @login_required
 def take_new_tasks(request):
     #import pdb; pdb.set_trace()
+    #task_bugs change
+    # this method needs some serious house cleaning...
+    # to do later, see github issue cited below
     #my_work = []
     my_skillz = []
     other_wip = []
@@ -4432,7 +4435,9 @@ def take_new_tasks(request):
     my_skillz = Commitment.objects.unfinished().filter(
         from_agent=None,
         context_agent__id__in=context_ids,
-        event_type__relationship="work",
+        #task_bugs change
+        #event_type__relationship="work",
+        event_type__relationship="todo",
         resource_type__id__in=skill_ids)
     #other_unassigned = Commitment.objects.unfinished().filter(
     #    from_agent=None,
@@ -4456,9 +4461,14 @@ def take_new_tasks(request):
     else:
         todo_form = WorkTodoForm(agent=agent, initial=init)
     #work_now = settings.USE_WORK_NOW
+    #task_bugs change
+    # see https://github.com/FreedomCoop/valuenetwork/issues/263
+    # process_tasks shd be filled
+    process_tasks = []
     return render_to_response("work/take_new_tasks.html", {
         "agent": agent,
         #"my_work": my_work,
+        "process_tasks": process_tasks,
         "my_skillz": my_skillz,
         #"other_unassigned": other_unassigned,
         #"my_todos": my_todos,
@@ -4521,7 +4531,8 @@ def add_todo(request):
 def project_work(request):
     #import pdb; pdb.set_trace()
     agent = get_agent(request)
-    projects = agent.managed_projects()  #related_contexts()
+    #task_bugs change
+    projects = agent.related_contexts() #managed_projects()
     if not agent or agent.is_participant_candidate():
         return render_to_response('work/no_permission.html')
     next = "/work/project-work/"
@@ -4933,7 +4944,12 @@ def work_todo_change(request, todo_id):
         if todo:
             agent = get_agent(request)
             prefix = todo.form_prefix()
-            form = WorkTodoForm(data=request.POST, agent=agent, instance=todo, prefix=prefix)
+            patterns = PatternUseCase.objects.filter(use_case__identifier='todo')
+            if patterns:
+                pattern = patterns[0].pattern
+                form = WorkTodoForm(data=request.POST, pattern=pattern, agent=agent, instance=todo, prefix=prefix)
+            else:
+                form = WorkTodoForm(data=request.POST, agent=agent, instance=todo, prefix=prefix)
             if form.is_valid():
                 todo = form.save()
 
@@ -4969,14 +4985,17 @@ def work_todo_time(request):
                 qty = Decimal(hours)
             else:
                 qty = Decimal("0.0")
+            #task_bugs change
+            # was creating zero qty events
             event = todo.todo_event()
             if event:
                 event.quantity = qty
                 event.save()
             else:
-                event = create_event_from_todo(todo)
-                event.quantity = qty
-                event.save()
+                if qty:
+                    event = create_event_from_todo(todo)
+                    event.quantity = qty
+                    event.save()
     return HttpResponse("Ok", content_type="text/plain")
 
 @login_required
@@ -4991,6 +5010,8 @@ def work_todo_mine(request, todo_id):
             agent = get_agent(request)
             todo.from_agent = agent
             todo.save()
+            #task_bugs change
+            # was creating an event here
     next = request.POST.get("next")
     if next:
         return HttpResponseRedirect(next)
@@ -5012,10 +5033,7 @@ def work_todo_description(request):
             if event:
                 event.description = did
                 event.save()
-            else:
-                event = create_event_from_todo(todo)
-                event.description = did
-                event.save()
+
     return HttpResponse("Ok", content_type="text/plain")
 
 @login_required
