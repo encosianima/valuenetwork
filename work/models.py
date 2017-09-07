@@ -202,8 +202,8 @@ class Project(models.Model):
             rts = self.rts_with_clas()
             shr_rt = None
             for rt in rts:
-                if rt.ocp_artwork_type.ocpArtworkType_unit_type:
-                    if rt.ocp_artwork_type.ocpArtworkType_unit_type.clas == 'share':
+                if rt.ocp_artwork_type.general_unit_type:
+                    if rt.ocp_artwork_type.general_unit_type.clas == 'share':
                         shr_rt = rt
             if shr_rt:
                 shares_res = EconomicResource.objects.filter(resource_type=shr_rt)
@@ -987,13 +987,13 @@ class Ocp_Artwork_TypeManager(TreeManager):
 
 
 class Ocp_Artwork_Type(Artwork_Type):
-    ocpArtworkType_artwork_type = models.OneToOneField(
+    general_artwork_type = models.OneToOneField(
       Artwork_Type,
       on_delete=models.CASCADE,
       primary_key=True,
       parent_link=True
     )
-    ocpArtworkType_material_type = TreeForeignKey(
+    general_material_type = TreeForeignKey(
       Material_Type,
       on_delete=models.CASCADE,
       verbose_name=_('general material_type'),
@@ -1001,7 +1001,7 @@ class Ocp_Artwork_Type(Artwork_Type):
       blank=True, null=True,
       help_text=_("a related General Material Type")
     )
-    ocpArtworkType_nonmaterial_type = TreeForeignKey(
+    general_nonmaterial_type = TreeForeignKey(
       Nonmaterial_Type,
       on_delete=models.CASCADE,
       verbose_name=_('general nonmaterial_type'),
@@ -1040,7 +1040,7 @@ class Ocp_Artwork_Type(Artwork_Type):
       blank=True, null=True,
       help_text=_("a related OCP context EconomicAgent")
     )
-    ocpArtworkType_unit_type = TreeForeignKey(
+    general_unit_type = TreeForeignKey(
         Unit_Type,
         on_delete=models.CASCADE,
         verbose_name=_('general unit_type'),
@@ -1078,7 +1078,7 @@ class Ocp_Skill_TypeManager(TreeManager):
 
 
 class Ocp_Skill_Type(Job):
-    job = models.OneToOneField(
+    general_job = models.OneToOneField(
       Job,
       on_delete=models.CASCADE,
       primary_key=True,
@@ -1150,7 +1150,7 @@ class Ocp_Record_TypeManager(TreeManager):
 
 
 class Ocp_Record_Type(Record_Type):
-    ocpRecordType_record_type = models.OneToOneField(
+    general_record_type = models.OneToOneField(
         Record_Type,
         on_delete=models.CASCADE,
         primary_key=True,
@@ -1271,13 +1271,13 @@ class Ocp_Unit_TypeManager(TreeManager):
 
 
 class Ocp_Unit_Type(Unit_Type):
-    ocpUnitType_unit_type = models.OneToOneField(
+    general_unit_type = models.OneToOneField(
         Unit_Type,
         on_delete=models.CASCADE,
         primary_key=True,
         parent_link=True
     )
-    ocpUnitType_ocp_unit =  models.OneToOneField(
+    ocp_unit =  models.OneToOneField(
         Unit,
         on_delete=models.CASCADE,
         verbose_name=_('ocp unit'),
@@ -1285,7 +1285,7 @@ class Ocp_Unit_Type(Unit_Type):
         blank=True, null=True,
         help_text=_("a related OCP Unit")
     )
-    ocpUnitType_unit = models.OneToOneField(
+    general_unit = models.OneToOneField(
         Gen_Unit,
         on_delete=models.CASCADE,
         verbose_name=_('general unit'),
@@ -1302,12 +1302,12 @@ class Ocp_Unit_Type(Unit_Type):
 
     def __unicode__(self):
       if self.children.count():
-        if self.ocpUnitType_ocp_unit:
+        if self.ocp_unit:
           return self.name+': <' #+'  ('+self.resource_type.name+')'
         else:
           return self.name+': '
       else:
-        if self.ocpUnitType_ocp_unit:
+        if self.ocp_unit:
           return self.name+' <' #+'  ('+self.resource_type.name+')'
         else:
           return self.name

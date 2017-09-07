@@ -1132,12 +1132,12 @@ class EconomicAgent(models.Model):
                       if an.clas == "currency":
                         cur = True
                     if cur:
-                      if hasattr(rt.ocp_artwork_type, 'ocpArtworkType_unit_type') and rt.ocp_artwork_type.ocpArtworkType_unit_type.id:
-                        if rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type:
-                          if not rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type.id in uids:
-                            uids.append(rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type.id)
+                      if hasattr(rt.ocp_artwork_type, 'general_unit_type') and rt.ocp_artwork_type.general_unit_type.id:
+                        if rt.ocp_artwork_type.general_unit_type.ocp_unit_type:
+                          if not rt.ocp_artwork_type.general_unit_type.ocp_unit_type.id in uids:
+                            uids.append(rt.ocp_artwork_type.general_unit_type.ocp_unit_type.id)
                         #pass
-                      #raise ValidationError("The RT:"+str(rt.ocp_artwork_type)+" unit:"+str(rt.ocp_artwork_type.ocpArtworkType_unit_type))
+                      #raise ValidationError("The RT:"+str(rt.ocp_artwork_type)+" unit:"+str(rt.ocp_artwork_type.general_unit_type))
             else:
               rt = tx.resource_type()
               rtun = None
