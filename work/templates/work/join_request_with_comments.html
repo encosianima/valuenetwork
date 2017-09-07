@@ -155,10 +155,13 @@ th
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
                 {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
                     {% if req.payment_url %}
+                        {% if req.payment_fees and req.payment_fees_payer == req.agent %}
+                           (+ {{ req.payment_fees }} {% trans "gateway fees" %})
+                        {% endif %}
                         <form action="{{ req.payment_url }}" method="POST" style="display:inline">
                             {% csrf_token %}
                             <input type="hidden" name="order_id" id="order_id" value="{{ req.pk }}" />
-                            <input type="hidden" name="amount" id="amount" value="{{ req.pending_shares }}" />
+                            <input type="hidden" name="amount" id="amount" value="{{ req.payment_total_with_fees }}" />
                             <input type="hidden" name="email" id="email" value="{{ req.email_address }}" />
                             <input type="hidden" name="first_name" id="first_name" value="{{ req.name }}" />
                             <input type="hidden" name="last_name" id="last_name" value="{{ req.surname }}" />

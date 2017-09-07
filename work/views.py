@@ -1661,7 +1661,7 @@ def project_update_payment_status(request, project_slug=None):
             req = get_object_or_404(JoinRequest, id=req_id*1)
         except:
             raise ValidationError("Can't find a join request with id: "+str(req_id))
-            return HttpResponse('error')
+            #return HttpResponse('error')
 
         if req:
             #return HttpResponse(str(req))
@@ -1671,23 +1671,23 @@ def project_update_payment_status(request, project_slug=None):
 
             if not token == req.payment_token():
                 raise ValidationError("The token is not valid! "+str(token))
-                return HttpResponse('error')
+                #return HttpResponse('error')
 
             if not project == req.project:
                 raise ValidationError("The project is not the request project! "+str(project)+" != "+str(req.project))
-                return HttpResponse('error')
+                #return HttpResponse('error')
 
             if not str(amount) == str(price):
                 raise ValidationError("The payment amount and the request amount are not equal! price:"+str(price)+" amount:"+str(amount))
-                return HttpResponse('error')
+                #return HttpResponse('error')
 
             if not email == req.email_address:
                 raise ValidationError("The payment email and the request email are not equal! email:"+str(email)+" reqemail:"+str(req.email_address))
-                return HttpResponse('error')
+                #return HttpResponse('error')
 
             if not account_type:
                 raise ValidationError("The payment is not related any account type!")
-                return HttpResponse('error')
+                #return HttpResponse('error')
 
             if status:
                 if not req.exchange:

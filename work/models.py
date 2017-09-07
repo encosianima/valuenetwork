@@ -374,7 +374,7 @@ class JoinRequest(models.Model):
         default="individual")
     name = models.CharField(_('Name'), max_length=255)
     surname = models.CharField(_('Surname (for individual join requests)'), max_length=255, blank=True)
-    requested_username = models.CharField(_('Requested username'), max_length=32, help_text=_("If you have already an account in OCP, you can put the same username to have this project in the same account, or you can choose another username to have it separate."))
+    requested_username = models.CharField(_('Requested username'), max_length=32, help_text=_("If you have already an account in OCP, you can login before filling this form to have this project in the same account, or you can choose another username and email to have it separate."))
     email_address = models.EmailField(_('Email address'), max_length=96,)
     #    help_text=_("this field is optional, but we can't contact you via email without it"))
     phone_number = models.CharField(_('Phone number'), max_length=32, blank=True, null=True)
@@ -672,6 +672,55 @@ class JoinRequest(models.Model):
             raise ValidationError("Token fields order below 3: "+str(len(orderr))+"  "+('+'.join(orderr)))
 
         return token_obj #.hexdigest()
+
+    def payment_fees(self):
+        payopt = self.payment_option()
+        amount = self.payment_amount()
+        fees = 0
+        obj = None
+        if settings.PAYMENT_GATEWAYS and payopt:
+            gates = settings.PAYMENT_GATEWAYS
+            if self.project.fobi_slug and gates[self.project.fobi_slug]:
+                try:
+                    obj = gates[self.project.fobi_slug][payopt['key']]
+                except:
+                    pass
+            if obj and obj['fees']:
+                percent = obj['fees']['percent']
+                fixed = obj['fees']['fixed']
+                unit = obj['fees']['unit']
+                payer = obj['fees']['payer']
+
+                if percent:
+                    fees += amount * percent / 100
+
+                # TODO check unit type of payment
+
+                if fixed:
+                    fees += fixed
+
+        return fees
+
+    def payment_fees_payer(self):
+        payopt = self.payment_option()
+        obj = None
+        if settings.PAYMENT_GATEWAYS and payopt:
+            gates = settings.PAYMENT_GATEWAYS
+            if self.project.fobi_slug and gates[self.project.fobi_slug]:
+                try:
+                    obj = gates[self.project.fobi_slug][payopt['key']]
+                except:
+                    pass
+            if obj and obj['fees']:
+                payer = obj['fees']['payer']
+                if payer == 'user':
+                    return self.agent
+                elif payer == 'project':
+                    return self.project.agent
+        return None
+
+    def payment_total_with_fees(self):
+        return self.pending_shares() + self.payment_fees()
 
     def exchange_type(self):
         et = None
