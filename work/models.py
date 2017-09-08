@@ -1142,6 +1142,13 @@ class Ocp_Skill_Type(Job):
       else:
         return self.name
 
+    def opposite(self):
+        rel = self.rel_jobs1.filter(relation__clas='oppose')
+        if rel:
+            return rel[0].job2
+        #import pdb; pdb.set_trace()
+        return False
+
 
 class Ocp_Record_TypeManager(TreeManager):
 
@@ -1259,6 +1266,16 @@ class Ocp_Record_Type(Record_Type):
           return Ocp_Artwork_Type.objects.none()
 
         return answer
+
+    def x_actions(self):
+        try:
+            x_act = Ocp_Skill_Type.objects.get(clas='exchange')
+            x_acts = Ocp_Skill_Type.objects.filter(lft__gt=x_act.lft, rght__lt=x_act.rght, tree_id=x_act.tree_id)
+            return x_acts
+        except:
+            return None
+
+
 
 
 

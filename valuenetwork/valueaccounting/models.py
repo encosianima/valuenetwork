@@ -7344,6 +7344,38 @@ class TransferType(models.Model):
         prefix=self.form_prefix()
         return TransferTypeForm(instance=self, prefix=prefix)
 
+    def show_name(self, agent=None):
+        name = self.__unicode__()
+        newname = name
+        if agent:
+          if self.transfers:
+            gives = self.transfers.filter(events__from_agent=agent)
+            if not gives:
+                gives = self.transfers.filter(commitments__from_agent=agent)
+            takes = self.transfers.filter(events__to_agent=agent)
+            if not takes:
+                takes = self.transfers.filter(commitments__to_agent=agent)
+
+            if hasattr(self.exchange_type, 'ocp_record_type'):
+                x_actions = self.exchange_type.ocp_record_type.x_actions()
+                for action in x_actions:
+                    opposite = action.opposite()
+                    if opposite:
+                        if takes and action.clas == 'give':
+                            if action.clas and opposite.clas:
+                                newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                            if name == newname:
+                                newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                            name = newname
+                        if gives and action.clas == 'receive':
+                            if action.clas and opposite.clas:
+                                newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                            if name == newname:
+                                newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                            name = newname
+                    #import pdb; pdb.set_trace()
+        return name
+
 
 class TransferTypeFacetValue(models.Model):
     transfer_type = models.ForeignKey(TransferType,
@@ -7390,10 +7422,10 @@ class ExchangeManager(models.Manager):
         return exchanges
 
     def exchanges_by_date_and_context(self, start, end, agent):
-        return Exchange.objects.filter(start_date__range=[start, end]).filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__to_agent=agent) ).distinct() # | Q(context_agent__isnull=False, context_agent=agent) ) # bumbum add Q's from and to agent
+        return Exchange.objects.filter(start_date__range=[start, end]).filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(context_agent__isnull=True, transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(context_agent__isnull=True, transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct() # | Q(context_agent__isnull=False, context_agent=agent) ) # bumbum add Q's from and to agent, also for commitments
 
     def exchanges_by_type(self, agent):
-        return Exchange.objects.filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__to_agent=agent) ).distinct().order_by(Lower('exchange_type__ocp_record_type__name').asc()) # bumbum add Q's from and to agent
+        return Exchange.objects.filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(context_agent__isnull=True, transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(context_agent__isnull=True, transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct().order_by(Lower('exchange_type__ocp_record_type__name').asc()) # bumbum add Q's from and to agent, also for commitments
 
 
 class Exchange(models.Model):
@@ -7533,6 +7565,33 @@ class Exchange(models.Model):
                     slot.default_to_agent = None #logged on agent
 
         return slots
+
+    def show_name(self, agent=None):
+        name = self.__unicode__()
+        newname = None
+        if self.transfers:
+            give_ts = self.transfers.filter( Q(events__isnull=False, events__from_agent=agent) | Q(commitments__isnull=False, commitments__from_agent=agent) ).exclude(transfer_type__is_currency=False)
+            take_ts = self.transfers.filter( Q(events__isnull=False, events__to_agent=agent) | Q(commitments__isnull=False, commitments__to_agent=agent) ).exclude(transfer_type__is_currency=False)
+            et_name = str(self.exchange_type)
+            action = ''
+            if hasattr(self.exchange_type, 'ocp_record_type'):
+                et_name = str(self.exchange_type.ocp_record_type)
+                if hasattr(self.exchange_type.ocp_record_type, 'ocp_skill_type'):
+                    if self.exchange_type.ocp_record_type.ocp_skill_type:
+                        action = self.exchange_type.ocp_record_type.ocp_skill_type
+                        opposite = action.opposite()
+                        if opposite:
+                            if action.clas and opposite.clas:
+                                newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                            else:
+                                newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                            if take_ts and action.clas == 'buy':
+                                name = newname
+                            if give_ts and action.clas == 'sell':
+                                name = newname
+                            #import pdb; pdb.set_trace()
+                            #return str(action.clas)+' -> '+str(opposite.clas)+': '+name #+' GIVE: '+str(give_ts)+' - TAKE: '+str(take_ts)
+        return name
 
     def has_reciprocal(self):
         slots = self.exchange_type.transfer_types.all()
@@ -8063,6 +8122,11 @@ class Transfer(models.Model):
                 if commit.unit_of_quantity:
                     unit = commit.unit_of_quantity.name
 
+        if unit in resource_string:
+            unit = ''
+        if unit == 'Each' and resource_string:
+            unit = ''
+
         return " ".join([
         #    name,
             show_name,
@@ -8074,6 +8138,35 @@ class Transfer(models.Model):
             "on",
             self.transfer_date.strftime('%Y-%m-%d'),
             ])
+
+    def show_name(self, agent=None):
+        name = self.__unicode__()
+        newname = name
+        if agent:
+          if self.events or self.commitments:
+            gives = self.events.filter(from_agent=agent)
+            if not gives:
+                gives = self.commitments.filter(from_agent=agent)
+            takes = self.events.filter(to_agent=agent)
+            if not takes:
+                takes = self.commitments.filter(to_agent=agent)
+
+            if hasattr(self.exchange.exchange_type, 'ocp_record_type'):
+                x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
+                for action in x_actions:
+                    opposite = action.opposite()
+                    if opposite:
+                        if action.clas and opposite.clas:
+                            newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                        if name == newname:
+                            newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+
+                        if takes and action.clas == 'give' and not name == newname:
+                            name = newname
+                        if gives and action.clas == 'receive' and not name == newname:
+                            name = newname
+                    #import pdb; pdb.set_trace()
+        return name
 
     def commit_text(self):
         text = None

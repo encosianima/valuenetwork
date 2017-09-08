@@ -3282,9 +3282,14 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         #try:
         #    xx = list(x.transfer_list)
         #except AttributeError:
+        x.list_name = x.show_name(agent)
+
         x.transfer_list = list(x.transfers.all())
 
         for transfer in x.transfer_list:
+
+            transfer.list_name = transfer.show_name(agent)
+
             if transfer.quantity():
               if transfer.transfer_type.is_incoming(x, agent): #reciprocal:
                 sign = '<'
@@ -3579,6 +3584,8 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                 slot.add_commit_form = ContextTransferCommitmentForm(initial=commit_init, prefix="ACM" + str(slot.id), context_agent=context_agent, transfer_type=slot)
 
                 slot.add_ext_agent = ContextExternalAgent() #initial=None, prefix="AGN"+str(slot.id))#, context_agent=context_agent)
+
+                slot.list_name = slot.show_name(context_agent)
 
     else:
         raise ValidationError("System Error: No exchange or use case.")

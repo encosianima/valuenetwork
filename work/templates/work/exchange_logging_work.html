@@ -130,10 +130,11 @@ li {
   -webkit-border-radius: 7px;
   border-radius: 7px;*/
 }
-.trtheading {
-    color: #666;
-    font-style: italic;
-    font-size: 1.2em;
+h3.trtheading {
+    color: #888;
+    /*font-style: italic;
+    font-weight: normal;*/
+    font-size: 1.19em;
 }
 .ce {
     margin-left: 2em;
@@ -227,7 +228,7 @@ li {
                     {% if not slot.is_income %}
                         <div class="log-section infobox2">
                             <h3>
-                                {{ slot.name }}
+                                {{ slot.list_name|safe }}
                                 {% if agent and exchange %}
                                     <a href="#addCommitModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new commitment or plan for a transfer" >
                                         {% trans "New Commitment" %}
@@ -668,7 +669,7 @@ li {
                     {% if slot.is_income %}
                         <div class="log-section infobox2">
                             <h3>
-                                {{ slot.name }}
+                                {{ slot.list_name|safe }}
                                 {% if agent and exchange %}
                                     <a href="#addCommitModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new commitment or plan for a transfer" >
                                         {% trans "New Commitment" %}
