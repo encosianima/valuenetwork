@@ -31,6 +31,11 @@ class ResourceClassAdmin(admin.ModelAdmin):
 
 admin.site.register(ResourceClass, ResourceClassAdmin)
 
+#class ResourceStateAdmin(admin.ModelAdmin):
+#    list_display = ('name', 'description',)
+#admin.site.register(ResourceState, ResourceStateAdmin)
+
+
 class ValueEquationBucketInline(admin.TabularInline):
     model = ValueEquationBucket
     fk_name = 'value_equation'

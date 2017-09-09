@@ -161,7 +161,7 @@ h3.trtheading {
     <span style="/*font-size:90%;*/">
     <a href="{% url 'members_agent' agent_id=context_agent.id %}">{{ context_agent.name }}</a> > <a href="{% url "exchanges_all" agent_id=context_agent.id %}">{% trans "Exchanges" %}</a> >
       {% if exchange %}
-         <span style="">{{ exchange }}</span>
+         <span style="">{{ exchange.list_name|safe }}</span>
       {% else %}
         {% trans "New" %} {{ exchange_type.name }}
       {% endif %}
@@ -192,6 +192,11 @@ h3.trtheading {
 
         <div class="span4">
             <div class="totals infobox">
+                {% if exchange.join_request %}
+                    <p>
+                        {% trans "Exchange related the" %} <a href="{% url "project_feedback" agent_id=exchange.join_request.project.agent.id join_request_id=exchange.join_request.id %}" style="font-weight:bold;">{% trans "join request" %}{% if context_agent == exchange.join_request.project.agent %} {% trans "from" %} {{ exchange.join_request.agent.name }}{% else %} {% trans "to" %} {{ exchange.join_request.project.agent.name }}{% endif %}</a>
+                    </p>
+                {% endif %}
                 <p><span class="total-top">{% trans "Total transfer value" %}: {{ total_t }} </span></p>
                 <p>
                   <span class="total-top">{% trans "Total reciprocal transfer value" %}: {{ total_rect }} </span>

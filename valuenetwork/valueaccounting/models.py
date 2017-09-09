@@ -7422,10 +7422,10 @@ class ExchangeManager(models.Manager):
         return exchanges
 
     def exchanges_by_date_and_context(self, start, end, agent):
-        return Exchange.objects.filter(start_date__range=[start, end]).filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(context_agent__isnull=True, transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(context_agent__isnull=True, transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct() # | Q(context_agent__isnull=False, context_agent=agent) ) # bumbum add Q's from and to agent, also for commitments
+        return Exchange.objects.filter(start_date__range=[start, end]).filter( Q(context_agent__isnull=False, context_agent=agent) | Q(transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct() # | Q(context_agent__isnull=False, context_agent=agent) ) # bumbum add Q's from and to agent, also for commitments
 
     def exchanges_by_type(self, agent):
-        return Exchange.objects.filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(context_agent__isnull=True, transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(context_agent__isnull=True, transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct().order_by(Lower('exchange_type__ocp_record_type__name').asc()) # bumbum add Q's from and to agent, also for commitments
+        return Exchange.objects.filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct().order_by(Lower('exchange_type__ocp_record_type__name').asc()) # bumbum add Q's from and to agent, also for commitments
 
 
 class Exchange(models.Model):
@@ -7610,6 +7610,20 @@ class Exchange(models.Model):
             for event in transfer.events.all():
                 events.append(event)
         return events
+
+    def xfer_events(self): # the above function fails, so rename and works
+        events = []
+        for transfer in self.transfers.all():
+            for event in transfer.events.all():
+                events.append(event)
+        return events
+
+    def xfer_commitments(self):
+        commits = []
+        for transfer in self.transfers.all():
+            for commit in transfer.commitments.all():
+                commits.append(commit)
+        return commits
 
     def transfer_events(self):
         #todo exchange redesign fallout?
@@ -8036,8 +8050,8 @@ class Exchange(models.Model):
                 #print "local_total:", local_total
 
     def related_agents(self):
-        evts = self.events.all()
-        coms = self.commitments.all()
+        evts = self.xfer_events()
+        coms = self.xfer_commitments()
         agents = []
         for ev in evts:
           if not ev.to_agent in agents:
@@ -8193,6 +8207,8 @@ class Transfer(models.Model):
             qty = str(either.quantity)
             if either.unit_of_quantity:
                 unit = either.unit_of_quantity.abbrev
+                if unit in resource.lower() or unit == "EA":
+                    unit = ''
             if give:
                 if give.to_agent and give.from_agent:
                     give_text = "GIVE to " + give.to_agent.nick
@@ -8259,6 +8275,8 @@ class Transfer(models.Model):
             qty = str(either.quantity)
             if either.unit_of_quantity:
                 unit = either.unit_of_quantity.abbrev
+                if unit in resource.lower() or unit == "EA":
+                    unit = ''
             if give:
                 if give.event_date:
                     give_text = "GIVE on " + str(give.event_date)
@@ -8306,6 +8324,8 @@ class Transfer(models.Model):
             qty = str(either.quantity)
             if either.unit_of_quantity:
                 unit = either.unit_of_quantity.abbrev
+                if unit in resource.lower() or unit == "EA":
+                    unit = ''
             if give:
                 if give.to_agent:
                     give_text = "GIVE to " + give.to_agent.nick
@@ -10512,14 +10532,14 @@ class EconomicEventManager(models.Manager):
     def contributions(self):
         return EconomicEvent.objects.filter(is_contribution=True)
 
-TX_STATE_CHOICES = (
+"""TX_STATE_CHOICES = (
     ('new', _('New')),
     ('pending', _('Pending')),
     ('broadcast', _('Broadcast')),
     ('confirmed', _('Confirmed')),
     ('external', _('External')),
     ('error', _('Error')),
-)
+)"""
 
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType,
