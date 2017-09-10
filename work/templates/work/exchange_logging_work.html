@@ -194,7 +194,7 @@ h3.trtheading {
             <div class="totals infobox">
                 {% if exchange.join_request %}
                     <p>
-                        {% trans "Exchange related the" %} <a href="{% url "project_feedback" agent_id=exchange.join_request.project.agent.id join_request_id=exchange.join_request.id %}" style="font-weight:bold;">{% trans "join request" %}{% if context_agent == exchange.join_request.project.agent %} {% trans "from" %} {{ exchange.join_request.agent.name }}{% else %} {% trans "to" %} {{ exchange.join_request.project.agent.name }}{% endif %}</a>
+                        {% trans "Exchange related the" %} <a href="{% url "project_feedback" agent_id=exchange.join_request.project.agent.id join_request_id=exchange.join_request.id %}" style="font-weight:bold;">{% trans "Join Request" %}</a> {% if context_agent == exchange.join_request.project.agent %} {% trans "from" %}: <br><a href="{% url "members_agent" agent_id=exchange.join_request.agent.id %}"  style="font-weight:bold; ">{{ exchange.join_request.agent.name }}</a>{% else %} {% trans "to" %}: <br><a href="{% url "members_agent" agent_id=exchange.join_request.project.agent.id %}" style="font-weight:bold; ">{{ exchange.join_request.project.agent.name }}</a>{% endif %}
                     </p>
                 {% endif %}
                 <p><span class="total-top">{% trans "Total transfer value" %}: {{ total_t }} </span></p>
@@ -202,6 +202,7 @@ h3.trtheading {
                   <span class="total-top">{% trans "Total reciprocal transfer value" %}: {{ total_rect }} </span>
                 </p>
             </div>
+            {% if not exchange.join_request.agent == request.user.agent.agent %}
             <form class="validateMe miniform" id="exchangeForm" method="POST" action="" style="padding-bottom:13px;">
                 {% csrf_token %}
                 {{ exchange_form|as_bootstrap }}
@@ -214,6 +215,7 @@ h3.trtheading {
                     {% endif %}
                 {% endif %}
             </form>
+            {% endif %}
 
         </div>
 
@@ -234,7 +236,7 @@ h3.trtheading {
                         <div class="log-section infobox2">
                             <h3>
                                 {{ slot.list_name|safe }}
-                                {% if agent and exchange %}
+                                {% if agent and exchange and logger %}
                                     <a href="#addCommitModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new commitment or plan for a transfer" >
                                         {% trans "New Commitment" %}
                                     </a>
@@ -249,7 +251,7 @@ h3.trtheading {
                                 {% endif %}
                                 <span class="total">Total: {{ slot.total }}</span>
                             </h3>
-                            {% if agent and exchange %}
+                            {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
                                     <div class="modal-header">
@@ -367,7 +369,7 @@ h3.trtheading {
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ xfer.commit_text }}
                                         {% if logger or xfer.commitments.first.created_by == request.user or xfer.commitments.first.to_agent == request.user.agent.agent or xfer.commitments.first.to_agent in request.user.agent.agent.managed_projects %}
-
+                                          {% if not exchange.join_request.agent == request.user.agent.agent %}
                                             {% if not xfer.commitments.first.to_agent %}
                                                <a href="#agentModal{{ xfer.id }}" class="btn btn-primary btn-mini" role="button" data-toggle="modal" alt="Create a new external agent (without a OCP user)">New External Agent?</a>
                                                <div class="modal hide fade" id="agentModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
@@ -390,6 +392,7 @@ h3.trtheading {
                                                   </div>
                                                </div>
                                             {% endif %}
+
                                             <a href="#cmitModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                 <i class="icon-edit"></i>
                                             </a>
@@ -510,6 +513,7 @@ h3.trtheading {
                                                   </div>
                                                 {% endif %}
                                             {% endif %}
+                                          {% endif %}
                                         {% endif %}
 
                                         {% if xfer.commit_description %}
@@ -518,6 +522,7 @@ h3.trtheading {
                                         {% if xfer.events.all %}
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.commit_event_text }}
                                                 {% if logger or xfer.events.first.created_by == request.user or xfer.events.first.to_agent == request.user.agent.agent or xfer.events.first.to_agent in request.user.agent.agent.managed_projects %}
+                                                  {% if not exchange.join_request.agent == request.user.agent.agent %}
                                                     <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                         <i class="icon-edit"></i>
                                                     </a>
@@ -528,7 +533,7 @@ h3.trtheading {
                                                             <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events" transfer_id=xfer.id context_agent_id=context_agent.id %}" method="POST" >
+                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events_work" transfer_id=xfer.id context_agent_id=context_agent.id %}" method="POST" >
                                                                 {% if xfer.events.first.created_by == request.user %}<div style="float:right">
                                                                 {% trans "...created by you" %}</div>{% endif %}
 
@@ -579,15 +584,17 @@ h3.trtheading {
                                                         <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                                       </form>
                                                     {% endif %}
+                                                  {% endif %}
                                                 {% endif %}
-                                                {% if event.description %}
-                                                    <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
+                                                {% if xfer.events.first.description %}
+                                                    <div class="notes"> {{ xfer.events.first.description|urlize|linebreaks }} </div>
                                                 {% endif %}
                                             </div>
                                         {% endif %}
                                     {% else %}
                                         <span class="event-label">{% trans "Transfer" %}:</span> {{ xfer.event_text }}
                                         {% if logger or xfer.events.first.created_by == request.user or xfer.events.first.to_agent == request.user.agent.agent or xfer.events.first.to_agent in request.user.agent.agent.managed_projects %}
+                                          {% if not exchange.join_request.agent == request.user.agent.agent %}
                                             <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                 <i class="icon-edit"></i>
                                             </a>
@@ -597,7 +604,7 @@ h3.trtheading {
                                                     <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events" transfer_id=xfer.id context_agent_id=context_agent.id %}" method="POST" >
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events_work" transfer_id=xfer.id context_agent_id=context_agent.id %}" method="POST" >
                                                         {% if xfer.events.first.created_by == request.user %}<div style="float:right">
                                                         {% trans "...created by you" %}</div>{% endif %}
 
@@ -649,9 +656,10 @@ h3.trtheading {
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                               </form>
                                             {% endif %}
+                                          {% endif %}
                                         {% endif %}
-                                        {% if xfer.event_description %}
-                                            <div class="notes"> {{ xfer.event_description|urlize|linebreaks }} </div>
+                                        {% if xfer.events.first.description %}
+                                            <div class="notes"> {{ xfer.events.first.description|urlize|linebreaks }} </div>
                                         {% endif %}
                                     {% endif %}
                                 </div>
@@ -675,7 +683,7 @@ h3.trtheading {
                         <div class="log-section infobox2">
                             <h3>
                                 {{ slot.list_name|safe }}
-                                {% if agent and exchange %}
+                                {% if agent and exchange and logger %}
                                     <a href="#addCommitModal{{ slot.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal" title="Log a new commitment or plan for a transfer" >
                                         {% trans "New Commitment" %}
                                     </a>
@@ -687,7 +695,7 @@ h3.trtheading {
                                 {% endif %}
                                 <span class="total">Total: {{ slot.total }}</span>
                             </h3>
-                            {% if agent and exchange %}
+                            {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
                                     <div class="modal-header">
@@ -806,7 +814,7 @@ h3.trtheading {
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ xfer.commit_text }}
                                         {% if logger or xfer.commitments.first.created_by == request.user or xfer.commitments.first.from_agent == request.user.agent.agent or xfer.commitments.first.from_agent in request.user.agent.agent.managed_projects %}
-
+                                          {% if not exchange.join_request.agent == request.user.agent.agent %}
                                             {% if not xfer.commitments.first.from_agent %}
                                                <a href="#agentModal{{ xfer.id }}" class="btn btn-primary btn-mini" role="button" data-toggle="modal" alt="Create a new external agent (without a OCP user)">New External Agent?</a>
                                                <div class="modal hide fade" id="agentModal{{ xfer.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
@@ -950,6 +958,7 @@ h3.trtheading {
                                                   </div>
                                                 {% endif %}
                                             {% endif %}
+                                          {% endif %}
                                         {% endif %}
                                         {% if xfer.commit_description %}
                                             <div class="notes"> {{ xfer.commit_description|urlize|linebreaks }} </div>
@@ -967,7 +976,7 @@ h3.trtheading {
                                                             <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events" transfer_id=xfer.id context_agent_id=context_agent.id %}" method="POST" >
+                                                            <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events_work" transfer_id=xfer.id context_agent_id=context_agent.id %}" method="POST" >
                                                                 {% if xfer.events.first.created_by == request.user %}<div style="float:right">
                                                                 {% trans "...created by you" %}</div>{% endif %}
 
@@ -1028,6 +1037,7 @@ h3.trtheading {
                                     {% else %}
                                         <span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.event_text }}
                                         {% if logger or xfer.events.first.created_by == request.user or xfer.events.first.from_agent == request.user.agent.agent or xfer.events.first.from_agent in request.user.agent.agent.managed_projects  %}
+                                          {% if not exchange.join_request.agent == request.user.agent.agent %}
                                             <a href="#xferModal{{ xfer.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                 <i class="icon-edit"></i>
                                             </a>
@@ -1037,7 +1047,7 @@ h3.trtheading {
                                                     <h3 id="xfer-label">{% trans "Change Transfer" %}</h3>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events" transfer_id=xfer.id context_agent_id=context_agent.id %}" method="POST" >
+                                                    <form class="validateMe" enctype="multipart/form-data" action="{% url "change_transfer_events_work" transfer_id=xfer.id context_agent_id=context_agent.id %}" method="POST" >
                                                         {% if xfer.events.first.created_by == request.user %}<div style="float:right">
                                                         {% trans "...created by you" %}</div>{% endif %}
 
@@ -1048,7 +1058,7 @@ h3.trtheading {
                                                         {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ cev_form.to_agent }}<br />{% endif %}
                                                         Quantity transferred:<br />{{ cev_form.quantity }}<br />
                                                         {% if cev_form.ocp_resource_type %}
-                                                          {% trans "Type of Resource transferred:" %} <i>{{ cev_form.ocp_resource_type.label }}</i><br />
+                                                          {% trans "Type of Resource transferred:" %} <!--<i>{{ cev_form.ocp_resource_type.label }}</i> --><br />
                                                           {{ cev_form.ocp_resource_type }}<br />
                                                         {% else %}
                                                           <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
@@ -1058,7 +1068,8 @@ h3.trtheading {
                                                             Account from (if virtual account)<br />{{ cev_form.from_resource }}<br />
                                                             Account to (if virtual account)<br />{{ cev_form.resource }}<br />
                                                         {% else %}
-                                                            Resource transferred (only if inventoried):<br />{{ cev_form.resource }}<br />Description:<br />{{ xfer.change_events_context_form.description }}<br />
+                                                            Resource transferred (only if inventoried):<br />{{ cev_form.resource }}<br />
+                                                            Description:<br />{{ cev_form.description }}<br />
                                                         {% endif %}
                                                         {% if not slot.is_currency %}
                                                             Value (total, not per unit):<br />{{ cev_form.value }}<br />
@@ -1088,6 +1099,7 @@ h3.trtheading {
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                               </form>
                                             {% endif %}
+                                          {% endif %}
                                         {% endif %}
                                         {% if xfer.event_description %}
                                             <div class="notes"> {{ xfer.event_description|urlize|linebreaks }} </div>
@@ -1103,6 +1115,7 @@ h3.trtheading {
             </div>
             {% endif %}
 
+            {% if not exchange.join_request.agent == request.user.agent.agent %}
             <div class="log-section infobox2">
                 <h3 style="margin-bottom: 4px;" >
                     {% trans "Work" %}
@@ -1206,6 +1219,7 @@ h3.trtheading {
                     </div>
                 {% endfor %}
             </div>
+            {% endif %}
           {% endif %}
         </div>
         {% endwith %}

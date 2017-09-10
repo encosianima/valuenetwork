@@ -686,8 +686,8 @@ class JoinRequest(models.Model):
                 except:
                     pass
             if obj and obj['fees']:
-                percent = obj['fees']['percent']
-                fixed = obj['fees']['fixed']
+                percent = float(obj['fees']['percent'])
+                fixed = float(obj['fees']['fixed'])
                 unit = obj['fees']['unit']
                 payer = obj['fees']['payer']
 

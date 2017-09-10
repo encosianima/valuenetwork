@@ -690,6 +690,8 @@ def members_agent(request, agent_id):
     if project:
         init = {"joining_style": project.joining_style, "visibility": project.visibility, "resource_type_selection": project.resource_type_selection, "fobi_slug": project.fobi_slug }
         change_form = ProjectCreateForm(instance=agent, initial=init)
+    elif agent.is_individual():
+        change_form = WorkAgentCreateForm(instance=agent)
     else:
         change_form = ProjectCreateForm(instance=agent) #AgentCreateForm(instance=agent)
 
@@ -1002,6 +1004,13 @@ def change_your_project(request, agent_id):
     if not user_agent:
         return render(request, 'work/no_permission.html')
     if request.method == "POST":
+      if agent.is_individual():
+        agn_form = WorkAgentCreateForm(instance=agent, data=request.POST or None)
+        if agn_form.is_valid():
+            agent = agn_form.save(commit=False)
+            #agent.is_context = True
+            agent.save()
+      else:
         try:
           project = agent.project
         except:
@@ -1668,7 +1677,7 @@ def project_update_payment_status(request, project_slug=None):
             amount = req.payment_amount()
 
             if not token == req.payment_token():
-                raise ValidationError("The token is not valid! "+str(token))
+                pass #raise ValidationError("The token is not valid! "+str(token))
                 #return HttpResponse('error')
 
             if not project == req.project:
@@ -1775,7 +1784,7 @@ def project_update_payment_status(request, project_slug=None):
                         else:
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
-                                event_date = datetime.date.today(),
+                                #event_date = datetime.date.today(),
                                 resource_type = unit_rt,
                                 #resource=event_res,
                                 transfer = xfer_pay,
@@ -1814,7 +1823,46 @@ def project_update_payment_status(request, project_slug=None):
                                 created_by = req.agent.user().user,
                             )
 
-                        if not evts:
+                        # create commitments
+                        sh_com, created = Commitment.objects.get_or_create(
+                            event_type = et_give,
+                            commitment_date = datetime.date.today(),
+                            due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
+                            resource_type = account_type,
+                            exchange = ex,
+                            transfer = xfer_share,
+                            exchange_stage = ex.exchange_type,
+                            context_agent = project.agent,
+                            quantity = 1,
+                            unit_of_quantity = account_type.unit,
+                            value = amount,
+                            unit_of_value = account_type.unit_of_price,
+                            from_agent = project.agent,
+                            to_agent = req.agent,
+                            #description = description,
+                            created_by = req.agent.user().user,
+                        )
+
+                        sh_com2, created = Commitment.objects.get_or_create(
+                            event_type = et_receive,
+                            commitment_date = datetime.date.today(),
+                            due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
+                            resource_type = account_type,
+                            exchange = ex,
+                            transfer = xfer_share,
+                            exchange_stage = ex.exchange_type,
+                            context_agent = project.agent,
+                            quantity = 1,
+                            unit_of_quantity = account_type.unit,
+                            value = amount,
+                            unit_of_value = account_type.unit_of_price,
+                            from_agent = project.agent,
+                            to_agent = req.agent,
+                            #description = description,
+                            created_by = req.agent.user().user,
+                        )
+                        # create share events
+                        """if not evts:
                             # transfer shares
                             user_rts = list(set([arr.resource.resource_type for arr in req.agent.resource_relationships()]))
                             for rt in user_rts:
@@ -1861,7 +1909,8 @@ def project_update_payment_status(request, project_slug=None):
                             is_to_distribute = False, #xfer_pay.transfer_type.is_to_distribute,
                             #event_reference = gateref,
                             created_by = req.agent.user().user,
-                        )
+                        )"""
+
 
                         return HttpResponse('OK')
                     else:
@@ -3689,6 +3738,9 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
         if agent:
             if request.user == exchange.created_by or context_agent in agent.managed_projects() or context_agent == agent:
                 logger = True
+                if exchange.join_request: #hasattr(exchange, 'join_request')
+                    if exchange.join_request.agent == agent:
+                        logger = False
 
             for event in work_events:
                 event.changeform = WorkEventContextAgentForm(
@@ -4332,10 +4384,10 @@ def transfer_from_commitment(request, transfer_id):
 
 
 @login_required
-def change_transfer_events(request, transfer_id, context_agent_id=None):
+def change_transfer_events_work(request, transfer_id, context_agent_id=None):
     transfer = get_object_or_404(Transfer, pk=transfer_id)
     if context_agent_id:
-      context_agent = get_object_or_404(EconomicAgent, pk=context_agent_id)
+        context_agent = get_object_or_404(EconomicAgent, pk=context_agent_id)
     if request.method == "POST":
         events = transfer.events.all()
         transfer_type = transfer.transfer_type
@@ -4358,6 +4410,7 @@ def change_transfer_events(request, transfer_id, context_agent_id=None):
               #else:
               #  context_agent = events[0].from_agent
         form = ContextTransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix=transfer.form_prefix() + "E")
+
         if form.is_valid():
             data = form.cleaned_data
             et_give = EventType.objects.get(name="Give")

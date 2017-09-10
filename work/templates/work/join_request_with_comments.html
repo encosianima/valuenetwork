@@ -61,6 +61,7 @@ th
     <div>
         <legend>
           {% if jn_req.agent.is_active_freedom_coop_member or user_agent.is_participant %}
+            {% if jn_req.agent %}<a class="indent" href="{% url 'members_agent' agent_id=jn_req.agent.id %}">{{ jn_req.agent.name }}</a> > {% endif %}
             {% trans "Feedback with" %} {{ agent.name }}
           {% elif user_agent in agent.managers or user_agent == agent %}
             <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a> >
@@ -158,7 +159,7 @@ th
                         {% if req.payment_fees and req.payment_fees_payer == req.agent %}
                            (+ {{ req.payment_fees }} {% trans "gateway fees" %})
                         {% endif %}
-                        <form action="{{ req.payment_url }}" method="POST" style="display:inline">
+                        <form action="{{ req.payment_url }}" method="POST" style="display:inline" target="_blank">
                             {% csrf_token %}
                             <input type="hidden" name="order_id" id="order_id" value="{{ req.pk }}" />
                             <input type="hidden" name="amount" id="amount" value="{{ req.payment_total_with_fees }}" />
@@ -173,6 +174,9 @@ th
                         <br /> {{ req.payment_html|safe }}
                     {% else %}
                         <span class="error">{% trans "ERROR: request without a payment option!" %}</span>
+                    {% endif %}
+                    {% if req.exchange %}
+                        &nbsp; {% trans "related the exchange" %}: <a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a>
                     {% endif %}
                 {% endif %}
                 </td>
