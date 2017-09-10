@@ -249,8 +249,9 @@ h3.trtheading {
                                 {% if False and slot.add_xfer_form.errors %}<br>
                                   errors: {{ slot.add_xfer_form.errors }}
                                 {% endif %}
-                                <span class="total">Total: {{ slot.total }}</span>
+
                             </h3>
+                            <p style="font-weight:bold;">Total: {{ slot.total }} - Status: {{ slot.status }}</p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
@@ -693,8 +694,8 @@ h3.trtheading {
                                       </a>
                                     {% endif %}
                                 {% endif %}
-                                <span class="total">Total: {{ slot.total }}</span>
                             </h3>
+                            <p style="font-weight:bold;">Total: {{ slot.total }} - Status: {{ slot.status }}</p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">

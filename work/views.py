@@ -1833,7 +1833,7 @@ def project_update_payment_status(request, project_slug=None):
                             transfer = xfer_share,
                             exchange_stage = ex.exchange_type,
                             context_agent = project.agent,
-                            quantity = 1,
+                            quantity = amount,
                             unit_of_quantity = account_type.unit,
                             value = amount,
                             unit_of_value = account_type.unit_of_price,
@@ -1852,7 +1852,7 @@ def project_update_payment_status(request, project_slug=None):
                             transfer = xfer_share,
                             exchange_stage = ex.exchange_type,
                             context_agent = project.agent,
-                            quantity = 1,
+                            quantity = amount,
                             unit_of_quantity = account_type.unit,
                             value = amount,
                             unit_of_value = account_type.unit_of_price,
@@ -3770,7 +3770,7 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                     if slot.inherit_types:
                         #pass
                         if slot.is_income:
-                            slot.is_income = False
+                            pass #slot.is_income = False
                         else:
                             pass #slot.is_income = True
 

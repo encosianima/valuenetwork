@@ -7366,15 +7366,25 @@ class TransferType(models.Model):
                                 newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
                             if name == newname:
                                 newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
-                            name = newname
+                            if not name == newname:
+                                name = newname
+                                break
                         if gives and action.clas == 'receive':
                             if action.clas and opposite.clas:
                                 newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
                             if name == newname:
                                 newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
-                            name = newname
+                            if not name == newname:
+                                name = newname
+                                break
                     #import pdb; pdb.set_trace()
         return name
+
+    def status(self):
+        status = '??'
+        for tr in self.transfers.all():
+            status = tr.status()
+        return status
 
 
 class TransferTypeFacetValue(models.Model):
@@ -8177,10 +8187,22 @@ class Transfer(models.Model):
 
                         if takes and action.clas == 'give' and not name == newname:
                             name = newname
+                            break
                         if gives and action.clas == 'receive' and not name == newname:
                             name = newname
+                            break
                     #import pdb; pdb.set_trace()
         return name
+
+    def status(self):
+        need_evts = 2
+        status = '??'
+        if len(self.events.all()) < len(self.commitments.all()) or not len(self.events.all()) == need_evts:
+            status = 'pending'
+        elif len(self.events.all()) == need_evts:
+            status = 'complete'
+        return status
+
 
     def commit_text(self):
         text = None
