@@ -546,6 +546,13 @@ class JoinRequest(models.Model):
                 return obj['url']
         return False
 
+    def payment_gateway(self):
+        url = self.payment_url()
+        arr = url.split('/')
+        if len(arr) > 2:
+            return arr[2]
+        return self.payment_option()
+
     def payment_html(self):
         payopt = self.payment_option()
         obj = None

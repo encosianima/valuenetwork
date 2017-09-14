@@ -1750,15 +1750,17 @@ def project_update_payment_status(request, project_slug=None):
                             #else:
                             #    xfer_name = xfer_name + " of " + rt.name
 
-                            xfer = Transfer(
+                            xfer, created = Transfer.objects.get_or_create(
                                 name=xfer_name,
                                 transfer_type = tt,
                                 exchange = ex,
                                 context_agent = project.agent,
-                                transfer_date = datetime.date.today(),
-                                notes = status,
-                                created_by = req.agent.user().user,
-                                )
+                            )
+                            if created:
+                                xfer.created_by = req.agent.user().user
+                                xfer.transfer_date = datetime.date.today()
+                            else:
+                                xfer.edited_by = req.agent.user().user
                             xfer.save()
                 xfers = ex.transfers.all()
                 xfer_pay = None
@@ -1771,6 +1773,10 @@ def project_update_payment_status(request, project_slug=None):
                     xfer_share = xfers.get(transfer_type__inherit_types=True) #exchange_type__ocp_record_type__ocpRecordType_ocp_artwork_type__resource_type__isnull=False)
                 except:
                     raise ValidationError("Can't get a transfer type related shares in the exchange: "+str(ex))
+
+                if xfer_pay:
+                    xfer_pay.notes += str(datetime.date.today())+' '+req.payment_gateway()+': '+status
+                    xfer_pay.save()
 
                 if status == 'complete' or status == 'published':
                     if req.agent and amount:

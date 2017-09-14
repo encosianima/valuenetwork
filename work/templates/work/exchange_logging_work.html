@@ -199,7 +199,12 @@ h3.trtheading {
                 {% endif %}
                 {% if exchange.join_request %}
                     <p>
-                        {% trans "Exchange related the" %} <a href="{% url "project_feedback" agent_id=exchange.join_request.project.agent.id join_request_id=exchange.join_request.id %}" style="font-weight:bold;">{% trans "Join Request" %}</a> {% if context_agent == exchange.join_request.project.agent %} {% trans "from" %}: <br><a href="{% url "members_agent" agent_id=exchange.join_request.agent.id %}"  style="font-weight:bold; ">{{ exchange.join_request.agent.name }}</a>{% else %} {% trans "to" %}: <br><a href="{% url "members_agent" agent_id=exchange.join_request.project.agent.id %}" style="font-weight:bold; ">{{ exchange.join_request.project.agent.name }}</a>{% endif %}
+                        {% trans "Exchange related the" %} <a href="{% url "project_feedback" agent_id=exchange.join_request.project.agent.id join_request_id=exchange.join_request.id %}" style="font-weight:bold;">{% trans "Join Request" %}</a> {% if context_agent == exchange.join_request.project.agent %} {% trans "from" %}: </p><p><a href="{% url "members_agent" agent_id=exchange.join_request.agent.id %}"  style="font-weight:bold; font-size:1.1em;">{{ exchange.join_request.agent.name }}</a>{% else %} {% trans "to" %}: </p><p><a href="{% url "members_agent" agent_id=exchange.join_request.project.agent.id %}" style="font-weight:bold; font-size:1.1em;">{{ exchange.join_request.project.agent.name }}</a>{% endif %}
+                    </p>
+                {% endif %}
+                {% if exchange.join_request.payment_gateway %}
+                    <p>
+                      {% trans "Payment gateway" %}: <b>{{ exchange.join_request.payment_gateway }}</b>
                     </p>
                 {% endif %}
                 <p><span class="total-top">{% trans "Total transfer value" %}: {{ total_t }} </span></p>

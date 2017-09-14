@@ -174,7 +174,7 @@ th
                         <span class="error">{% trans "ERROR: request without a payment option!" %}</span>
                     {% endif %}
                     {% if req.exchange %}
-                        &nbsp; {% trans "related the exchange" %}: <a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a>
+                        &nbsp; {% trans "related the exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b>
                     {% endif %}
                 {% endif %}
                 </td>
