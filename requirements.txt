@@ -24,3 +24,5 @@ django-fobi==0.12.2
 pytz
 selenium
 mock
+passlib
+bcrypt
