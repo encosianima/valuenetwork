@@ -2180,7 +2180,7 @@ def project_feedback(request, agent_id, join_request_id):
     jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
     project = agent.project
     allowed = False
-    if user_agent and jn_req:
+    if user_agent and jn_req and project == jn_req.project:
       if user_agent.is_staff() or user_agent in agent.managers():
         allowed = True
       elif jn_req.agent == request.user.agent.agent: #in user_agent.joinaproject_requests():
@@ -3458,7 +3458,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                 #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
                 #Stype_form = NewSkillTypeForm(agent=agent, data=None)
         else:
-          exchanges = Exchange.objects.filter(context_agent=agent) #.none()
+          exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #Exchange.objects.filter(context_agent=agent) #.none()
           selected_values = "all"
     else:
         exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
@@ -3738,7 +3738,7 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
         if agent:
             if request.user == exchange.created_by or context_agent in agent.managed_projects() or context_agent == agent:
                 logger = True
-                if exchange.join_request: #hasattr(exchange, 'join_request')
+                if hasattr(exchange, 'join_request') and exchange.join_request: #hasattr(exchange, 'join_request')
                     if exchange.join_request.agent == agent:
                         logger = False
 

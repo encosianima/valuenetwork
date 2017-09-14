@@ -60,17 +60,15 @@ th
         {% include "_messages.html" %}
     <div>
         <legend>
-          {% if jn_req.agent.is_active_freedom_coop_member or user_agent.is_participant %}
-            {% if jn_req.agent %}<a class="indent" href="{% url 'members_agent' agent_id=jn_req.agent.id %}">{{ jn_req.agent.name }}</a> > {% endif %}
-            {% trans "Feedback with" %} {{ agent.name }}
-          {% elif user_agent in agent.managers or user_agent == agent %}
+          {% if user_agent in agent.managers or user_agent == agent %}
             <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a> >
             {% if agent.project.fobi_slug and agent.project.join_requests %}
               <a class="indent" href="{% url 'join_requests' agent_id=agent.id %}">{% trans "Join Requests" %}</a> >
             {% endif %}
             {{ jn_req.agent.name }}
           {% else %}
-            {% trans "Your joining request for " %}<a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>
+            {% if jn_req.agent %}<a class="indent" href="{% url 'members_agent' agent_id=jn_req.agent.id %}">{{ jn_req.agent.name }}</a> > {% endif %}
+            {% trans "Feedback with" %} <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>
           {% endif %}
            &nbsp; <span style="font-weight:normal; font-size:80%;">
           {% if jn_req.agent %}

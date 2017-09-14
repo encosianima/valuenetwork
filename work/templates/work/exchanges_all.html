@@ -17,6 +17,19 @@
 ul, li {
   min-height: 23px;
 }
+ul.xlist {
+  list-style: none;
+  margin-left: 0;
+}
+ul.tlist {
+  list-style: none;
+  margin-left: 1.4em;
+}
+span.pending, span.complete, span.empty {
+  display: block;
+  float: left;
+  padding: 0 0.5em 0.2em 0;
+}
 
 .totals {
     /*border: solid 2px firebrick;
@@ -472,7 +485,7 @@ hr {
                                     var R_{{ node.id }}_obj = {
                                       "name":"{% if node.resource_type %}{{ node.resource_type.name }}{% else %}{{ node.name }}{% endif %}",
                                       "parent":"{{ node.parent.id }}",
-                                      "description":"{{ node.resource_type.description }}",
+                                      "description":"{{ node.resource_type.description_str|safe }}",
                                       "context":"{{ node.resource_type.context_agent.id }}",
                                       "substi":"{{ node.resource_type.substitutable }}",
                                       "unit":"{{ node.resource_type.unit.ocp_unit_type.id }}",
@@ -536,7 +549,7 @@ hr {
                                     var S_{{ node.id }}_obj = {
                                       "name":"{% if node.resource_type %}{{ node.resource_type.name }}{% else %}{{ node.name }}{% endif %}",
                                       "parent":"{{ node.parent.id }}",
-                                      "description":"{{ node.resource_type.description }}",
+                                      "description":"{{ node.resource_type.description_str|safe }}",
                                       "context":"{{ node.resource_type.context_agent.id }}",
                                       //"substi":"{{ node.resource_type.substitutable }}",
                                       "unit":"{{ node.resource_type.unit.ocp_unit_type.id }}",
@@ -588,7 +601,7 @@ hr {
                     {% endif %}
                 </div> <!-- end tabs -->
               </div>
-              {% if request.user.is_superuser %}<span style="font-size:0.8em;color:#666;">(debug) <b>Contexts:</b>
+              {% if False and request.user.is_superuser %}<span style="font-size:0.8em;color:#666;">(debug) <b>Contexts:</b>
                 {% for ag in context_agent.related_all_agents %} {{ ag.name }} {% if not ag.nick == ag.name %}({{ ag.nick }}){% endif %}, {% endfor %}
               </span>{% endif %}
               <span id="new_name"></span>
@@ -694,14 +707,14 @@ hr {
             <span>({% trans "related to you" %})</span>
           {% endif %}: &nbsp;<span style="font-size:80%">{{ exchanges.count }}</span>
         </h3>
-			  <ul>
+			  <ul class="xlist">
 			    {% for x in exchanges %}
 
             {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent in x.related_agents %}
-                    <li>
+                    <li><span class="{{ x.status }}">&#9679;</span>
                         <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"><b>{{ x.list_name|safe }}</b></a>  {% if user.is_staff %}{% trans "created by" %} {{ x.created_by }} {% endif %} {% if x.join_request %} &nbsp;({% trans "related a" %} <a href="{% url "project_feedback" agent_id=x.join_request.project.agent.id join_request_id=x.join_request.id %}" style="font-weight:bold;">{% trans "join request" %}{% if context_agent == x.join_request.project.agent %} {% trans "from" %} {{ x.join_request.agent }}{% else %} {% trans "to" %} {{ x.join_request.project.agent }}{% endif %}</a>) {% endif %}
                         {% if user == x.created_by or user.is_superuser%}
-                            <a class="btn btn-info btn-mini" href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a>
+                            <!-- <a class="btn btn-info btn-mini" href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a> -->
                             {% if x.is_deletable %}
                                 <form
                                     style="display: inline;"
@@ -711,20 +724,20 @@ hr {
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="exchanges-all" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >{% trans "Delete" %}</button>
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >{% trans "X" %}</button>
                                 </form>
                             {% endif %}
                         {% endif %}
                     </li>
                     {% if x.transfer_list %}
-                        <ul>
+                        <ul class="tlist">
                             {% for transfer in x.transfer_list %}
-                                <li>{{ transfer.list_name|safe }} </li>
+                                <li><span class="{{ transfer.status }}">&#9679;</span> {{ transfer.list_name|safe }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
                     {% if x.work_events %}
-                        <ul>
+                        <ul class="wlist">
                             {% for event in x.work_events %}
                                 <li>{{ event }} </li>
                             {% endfor %}

@@ -2059,6 +2059,10 @@ class EconomicResourceType(models.Model):
     def __unicode__(self):
         return self.name
 
+    def description_str(self):
+        stri = self.description.replace("\n\r", "<br>").replace("\r\n", "<br>").replace("\r", "<br>").replace("\n", "<br>")
+        return stri
+
     @models.permalink
     def get_absolute_url(self):
         return ('resource_type', (),
@@ -7380,11 +7384,6 @@ class TransferType(models.Model):
                     #import pdb; pdb.set_trace()
         return name
 
-    def status(self):
-        status = '??'
-        for tr in self.transfers.all():
-            status = tr.status()
-        return status
 
 
 class TransferTypeFacetValue(models.Model):
@@ -7574,6 +7573,16 @@ class Exchange(models.Model):
                 if not slot.receive_agent_is_context:
                     slot.default_to_agent = None #logged on agent
 
+            pend = []
+            for xf in slot.xfers:
+              if xf.status() == 'pending':
+                pend.append(xf)
+            if len(pend):
+              slot.status = pend[0].status()
+            elif slot.xfers:
+              slot.status = slot.xfers[0].status()
+            else:
+              slot.status = 'empty'
         return slots
 
     def show_name(self, agent=None):
@@ -7602,6 +7611,21 @@ class Exchange(models.Model):
                             #import pdb; pdb.set_trace()
                             #return str(action.clas)+' -> '+str(opposite.clas)+': '+name #+' GIVE: '+str(give_ts)+' - TAKE: '+str(take_ts)
         return name
+
+    def status(self):
+        status = '??'
+        arr = []
+        trans = self.transfers.all()
+        for tr in trans:
+          if 'pending' in tr.status() or 'empty' in tr.status():
+            arr.append(tr)
+        if len(arr) < 1 and trans: #len(self.transfers.all()):
+          status = trans[0].status() #arr[0] #'complete'
+        elif arr:
+          status = arr[0].status()
+        else:
+          status = 'empty'
+        return status
 
     def has_reciprocal(self):
         slots = self.exchange_type.transfer_types.all()
@@ -8195,12 +8219,25 @@ class Transfer(models.Model):
         return name
 
     def status(self):
-        need_evts = 2
+        if self.exchange.exchange_type.use_case.identifier == 'intrnl_xfer':
+            need_evts = 2
+        else:
+            need_evts = 1
         status = '??'
-        if len(self.events.all()) < len(self.commitments.all()) or not len(self.events.all()) == need_evts:
-            status = 'pending'
-        elif len(self.events.all()) == need_evts:
+        comits = self.commitments.filter(transfer=self)
+        events = self.events.filter(transfer=self)
+        if len(comits):
+          if len(events) < len(comits) or not len(events) >= need_evts:
+            status = 'pending' #str([ev.id for ev in events])+' '+str([co.id for co in comits])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
+          elif len(events) == len(comits): #need_evts:
             status = 'complete'
+        elif len(events):
+          if len(events) >= need_evts:
+            status = 'complete' #str([ev.id for ev in events])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' complete'
+          else:
+            status = 'pending' #str([ev.id for ev in events])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
+        else:
+          status = 'empty'
         return status
 
 

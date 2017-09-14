@@ -49,7 +49,7 @@ li {
     list-style-type: none;
 }
 .event-label {
-    color: #BE6F54;
+    color: #476B6B; /*#BE6F54;*/
     font-weight: bold;
     font-style: normal;
 }
@@ -192,6 +192,11 @@ h3.trtheading {
 
         <div class="span4">
             <div class="totals infobox">
+                {% if exchange.status %}
+                    <p>
+                      {% trans "Status" %}: <span class="{{ exchange.status }}">{{ exchange.status|title }}</span>
+                    </p>
+                {% endif %}
                 {% if exchange.join_request %}
                     <p>
                         {% trans "Exchange related the" %} <a href="{% url "project_feedback" agent_id=exchange.join_request.project.agent.id join_request_id=exchange.join_request.id %}" style="font-weight:bold;">{% trans "Join Request" %}</a> {% if context_agent == exchange.join_request.project.agent %} {% trans "from" %}: <br><a href="{% url "members_agent" agent_id=exchange.join_request.agent.id %}"  style="font-weight:bold; ">{{ exchange.join_request.agent.name }}</a>{% else %} {% trans "to" %}: <br><a href="{% url "members_agent" agent_id=exchange.join_request.project.agent.id %}" style="font-weight:bold; ">{{ exchange.join_request.project.agent.name }}</a>{% endif %}
@@ -251,7 +256,7 @@ h3.trtheading {
                                 {% endif %}
 
                             </h3>
-                            <p style="font-weight:bold;">Total: {{ slot.total }} - Status: {{ slot.status }}</p>
+                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }}</p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
@@ -365,7 +370,7 @@ h3.trtheading {
                             {% endif %}
 
                             {% for xfer in slot.xfers %}
-                                <div class="event">
+                                <div class="event"><span class="{{ xfer.status }}">&#9679;{% if False and request.user.is_superuser %} {{ xfer.status }}{% endif %}</span>
                                     {% if xfer.commitments.all %}
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ xfer.commit_text }}
@@ -695,7 +700,7 @@ h3.trtheading {
                                     {% endif %}
                                 {% endif %}
                             </h3>
-                            <p style="font-weight:bold;">Total: {{ slot.total }} - Status: {{ slot.status }}</p>
+                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }}</p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
@@ -810,7 +815,7 @@ h3.trtheading {
                             {% endif %}
 
                             {% for xfer in slot.xfers %}
-                                <div class="event">
+                                <div class="event"><span class="{{ xfer.status }}">&#9679;{% if False and request.user.is_superuser %} {{ xfer.status }}{% endif %}</span>
                                     {% if xfer.commitments.all %}
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ xfer.commit_text }}

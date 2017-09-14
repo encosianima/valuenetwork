@@ -92,6 +92,18 @@ span.error {
 .error {
   color: #b34;
 }
+span.pending {
+  color: #f27003;
+  font-weight: bold;
+}
+span.complete {
+  color: #3b4;
+  font-weight: bold;
+}
+span.empty {
+  color: #b34;
+  font-weight: bold;
+}
 
 .link-normal {
   font-size: 13px;
