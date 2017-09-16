@@ -4013,6 +4013,66 @@ class Order(models.Model):
         # this cd be return order.dependent_commitments.all()
         return Commitment.objects.filter(independent_demand=self)
 
+    def all_incoming_commitments(self):
+        cts = [ct for ct in self.all_dependent_commitments().exclude(event_type__relationship="out")]
+        answer = []
+        for ct in cts:
+            matches = None
+            if ct.process:
+                pps = ct.process.previous_processes()
+                for pp in pps:
+                    matches = [oc for oc in pp.outgoing_commitments() if oc.resource_type == ct.resource_type]
+                    if matches:
+                        break
+                if not matches:
+                    answer.append(ct)
+        return answer
+
+    def all_outgoing_commitments(self):
+        cts = [ct for ct in self.all_dependent_commitments().filter(event_type__relationship="out")]
+        answer = []
+        for ct in cts:
+            matches = None
+            if ct.process:
+                nps = ct.process.next_processes()
+                for np in nps:
+                    matches = [ic for ic in np.incoming_commitments() if ic.resource_type == ct.resource_type]
+                    if matches:
+                        break
+                if not matches:
+                    answer.append(ct)
+        return answer
+
+    def all_incoming_events(self):
+        evts = [evt for evt in self.all_events() if evt.event_type.relationship!="out"]
+        answer = []
+        for evt in evts:
+            matches = None
+            if evt.process:
+                pps = evt.process.previous_processes()
+                for pp in pps:
+                    matches = [oevt for oevt in pp.production_events() if oevt.resource_type == evt.resource_type]
+                    if matches:
+                        break
+                if not matches:
+                    answer.append(evt)
+        return answer
+
+    def all_outgoing_events(self):
+        evts = [evt for evt in self.all_events() if evt.event_type.relationship=="out"]
+        answer = []
+        for evt in evts:
+            matches = None
+            if evt.process:
+                nps = evt.process.next_processes()
+                for np in nps:
+                    matches = [ievt for ievt in np.incoming_events() if ievt.resource_type == evt.resource_type]
+                    if matches:
+                        break
+                if not matches:
+                    answer.append(evt)
+        return answer
+
     def has_open_processes(self):
         answer = False
         processes = self.unordered_processes()
