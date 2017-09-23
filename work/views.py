@@ -1778,15 +1778,23 @@ def project_update_payment_status(request, project_slug=None):
                     xfer_pay.notes += str(datetime.date.today())+' '+req.payment_gateway()+': '+status
                     xfer_pay.save()
 
-                if status == 'complete' or status == 'published':
-                    if req.agent and amount:
-                        evts = xfer_pay.events.all()
-                        coms = xfer_pay.commitments.all()
+                if req.agent and amount and xfer_pay:
+                    evts = xfer_pay.events.all()
+                    coms = xfer_pay.commitments.all()
+                    commit_pay = None
+                    commit_pay2 = None
+                    if len(coms):
+                        # if has various commitments? TODO
+                        commit_pay = coms[0]
+                        if coms[1]:
+                          commit_pay2 = coms[1]
+                        if not commit_pay2:
+                          commit_pay2 = commit_pay
+
+                    if status == 'complete' or status == 'published':
+
                         if len(evts):
-                            pass #raise ValidationError("The payment transfer already has events! "+str(evts))
-                        elif len(coms):
-                            # has commitments TODO make transfer
-                            raise ValidationError("The payment transfer already has commitments! "+str(coms))
+                            raise ValidationError("The payment transfer already has events! "+str(evts))
                         else:
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
@@ -1806,6 +1814,7 @@ def project_update_payment_status(request, project_slug=None):
                                 is_to_distribute = xfer_pay.transfer_type.is_to_distribute,
                                 event_reference = gateref,
                                 created_by = req.agent.user().user,
+                                commitment = commit_pay,
                             )
                             #evt.save()
 
@@ -1827,7 +1836,9 @@ def project_update_payment_status(request, project_slug=None):
                                 is_to_distribute = xfer_pay.transfer_type.is_to_distribute,
                                 event_reference = gateref,
                                 created_by = req.agent.user().user,
+                                commitment = commit_pay2,
                             )
+                            #evt2.save()
 
                         # create commitments
                         sh_com, created = Commitment.objects.get_or_create(
@@ -1919,12 +1930,55 @@ def project_update_payment_status(request, project_slug=None):
 
 
                         return HttpResponse('OK')
+
+                    elif status == 'pending':
+                        if not commit_pay:
+                            commit_pay, created = Commitment.objects.get_or_create(
+                                event_type = et_give,
+                                commitment_date = datetime.date.today(),
+                                due_date = datetime.date.today() + datetime.timedelta(days=2), # TODO custom process delaytime by project
+                                resource_type = unit_rt,
+                                exchange = ex,
+                                transfer = xfer_pay,
+                                exchange_stage = ex.exchange_type,
+                                context_agent = project.agent,
+                                quantity = amount,
+                                unit_of_quantity = unit,
+                                value = amount,
+                                unit_of_value = unit,
+                                from_agent = req.agent,
+                                to_agent = project.agent,
+                                #description = description,
+                                created_by = req.agent.user().user,
+                            )
+                        if not commit_pay2:
+                            commit_pay2, created = Commitment.objects.get_or_create(
+                                event_type = et_receive,
+                                commitment_date = datetime.date.today(),
+                                due_date = datetime.date.today() + datetime.timedelta(days=2), # TODO custom process delaytime by project
+                                resource_type = unit_rt,
+                                exchange = ex,
+                                transfer = xfer_pay,
+                                exchange_stage = ex.exchange_type,
+                                context_agent = project.agent,
+                                quantity = amount,
+                                unit_of_quantity = unit,
+                                value = amount,
+                                unit_of_value = unit,
+                                from_agent = req.agent,
+                                to_agent = project.agent,
+                                #description = description,
+                                created_by = req.agent.user().user,
+                            )
+
+                        return HttpResponse('OK')
+
                     else:
-                        raise ValidationError("The request has no agent yet! ")
-                        return HttpResponse('no agent')
+                        raise ValidationError("The status is not implemented: "+status)
+                        return HttpResponse('error')
                 else:
-                    raise ValidationError("The status is not implemented: "+status)
-                    return HttpResponse('error')
+                    raise ValidationError("The request has no agent yet! ")
+                    return HttpResponse('no agent')
             else:
                 raise ValidationError("The notification has no status! "+status)
                 return HttpResponse('error')

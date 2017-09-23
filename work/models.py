@@ -1087,6 +1087,7 @@ class Ocp_Artwork_Type(Artwork_Type):
 
     def is_share(self):
         shr_typ = Ocp_Artwork_Type.objects.get_shares_type()
+        shr_cur = Ocp_Unit_Type.objects.get_shares_currency()
         if shr_typ:
             # mptt: get_ancestors(ascending=False, include_self=False)
             ancs = self.get_ancestors(True, True)
@@ -1098,6 +1099,11 @@ class Ocp_Artwork_Type(Artwork_Type):
                 for an in ancs:
                     if an.id == shr_typ.id:
                         return Ocp_Artwork_Type.objects.get(id=self.general_nonmaterial_type.id)
+            if self.general_unit_type and shr_cur:
+                ancs = self.general_unit_type.get_ancestors(True, True)
+                for an in ancs:
+                    if an.id == shr_cur.id:
+                        return self.general_unit_type #Ocp_Artwork_Type.objects.get(id=self.general_nonmaterial_type.id)
 
         return False
 
@@ -1332,6 +1338,15 @@ from general.models import Unit as Gen_Unit
 
 class Ocp_Unit_TypeManager(TreeManager):
 
+    def get_shares_currency(self):
+        shr_typs = Ocp_Unit_Type.objects.filter(clas='shares_currency')
+        if len(shr_typs) > 1:
+            raise ValidationError("There's more than one Ocp_Unit_Type with the clas 'shares_currency'!")
+        elif shr_typs[0]:
+            return shr_typs[0]
+        else:
+            raise ValidationError("The Ocp_Unit_Type with 'shares_currency' clas is not found!")
+
     def update_from_general(self): # TODO, if general.Unit_Type changes independently, update the subclass with new items
         return False
 
@@ -1377,6 +1392,7 @@ class Ocp_Unit_Type(Unit_Type):
           return self.name+' <' #+'  ('+self.resource_type.name+')'
         else:
           return self.name
+
 
 
 from django.db.models.signals import post_migrate
