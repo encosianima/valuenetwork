@@ -261,7 +261,7 @@ h3.trtheading {
                                 {% endif %}
 
                             </h3>
-                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }}</p>
+                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }} {% if request.user.is_superuser and slot.is_share %} &nbsp; &nbsp; Share: <em><b>{{ slot.is_share.name }}</b></em> {% endif %}</p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
@@ -274,12 +274,22 @@ h3.trtheading {
                                             {% csrf_token %}
                                             {% with slot.add_xfer_form as ax_form %}
                                             Event date:<br />{{ ax_form.event_date }}<br />
-                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ax_form.from_agent }}<br />{% endif %}
-                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ax_form.to_agent }}<br />{% endif %}
+                                            {% if exchange.join_request %}
+                                              {% if slot.is_share %}
+                                                Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                              {% elif slot.is_currency %}
+                                                Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                              {% endif %}
+                                            {% else %}
+                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ax_form.from_agent }}<br />{% endif %}
+                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ax_form.to_agent }}<br />{% endif %}
+                                            {% endif %}
                                             {% if ax_form.ocp_resource_type %}
-                                               {% trans "Type of Resource:" %} <!-- <i>{{ ax_form.ocp_resource_type.label }}</i> --><br />{{ ax_form.ocp_resource_type }}
-                                          <!-- <div class='add-new-type'>{{ add_type }}<a href='#' class='btn disabled btn-mini'>{% trans "New Resource Type" %}</a></div> -->
-                                          <br />
+                                                {% trans "Type of Resource:" %} {% if request.user.is_superuser %}<i>{{ ax_form.ocp_resource_type.label }}</i>{% endif %}<br />{{ ax_form.ocp_resource_type }}
+                                                <!-- <div class='add-new-type'>{{ add_type }}<a href='#' class='btn disabled btn-mini'>{% trans "New Resource Type" %}</a></div> -->
+                                               <br />
                                             {% else %}
                                                <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
 
@@ -292,7 +302,6 @@ h3.trtheading {
                                             {% else %}
                                                 Resource transferred (no entry if not inventoried)<br />{{ ax_form.resource }}<br />
                                             {% endif %}
-                                            Description:<br />{{ ax_form.description }}<br />
                                             {% if not slot.is_currency %}
                                                 Value (total, not per unit):<br />{{ ax_form.value }}<br />
                                                 Unit of value:<br />{{ ax_form.unit_of_value }}<br />
@@ -300,6 +309,8 @@ h3.trtheading {
                                             {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ ax_form.is_contribution }}<br />{% endif %}
                                             {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ax_form.is_to_distribute }}<br />{% endif %}
                                             {% if slot.is_currency %}Event reference:<br />{{ ax_form.event_reference }}<br />{% endif %}
+                                            Description:<br />{{ ax_form.description }}<br />
+
                                             {% if slot.can_create_resource %}
                                                 <br />
                                                 <h4>Incoming resource:</h4>
@@ -349,20 +360,30 @@ h3.trtheading {
                                             {% with slot.add_commit_form as ac_form %}
                                             Commitment date:<br />{{ ac_form.commitment_date }}<br />
                                             Due date:<br />{{ ac_form.due_date }}<br />
-                                            {% if not slot.give_agent_is_context %}Transfer from:<br />{{ ac_form.from_agent }}<br />{% endif %}
-                                            {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ ac_form.to_agent }}<br />{% endif %}
+                                            {% if exchange.join_request %}
+                                              {% if slot.is_share %}
+                                                Transfer from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                Transfer to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                              {% elif slot.is_currency %}
+                                                Transfer from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                Transfer to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                              {% endif %}
+                                            {% else %}
+                                                {% if not slot.give_agent_is_context %}Transfer from:<br />{{ ac_form.from_agent }}<br />{% endif %}
+                                                {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ ac_form.to_agent }}<br />{% endif %}
+                                            {% endif %}
                                             Quantity:<br />{{ ac_form.quantity }}<br />
                                             {% if ac_form.ocp_resource_type %}
-                                               {% trans "Type of Resource:" %} <!-- <i>{{ ac_form.ocp_resource_type.label }}</i> --> <br />{{ ac_form.ocp_resource_type }}<br />
+                                               {% trans "Type of Resource:" %} {% if request.user.is_superuser %}<i>{{ ac_form.ocp_resource_type.label }}</i>{% endif %} <br />{{ ac_form.ocp_resource_type }}<br />
                                             {% else %}
                                                <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
                                                 Resource type:<br />{{ ac_form.resource_type }}<br />
                                             {% endif %}
-                                            Description:<br />{{ ac_form.description }}<br />
                                             {% if not slot.is_currency %}
                                                 Value (total, not per unit):<br />{{ ac_form.value }}<br />
                                                 Unit of value:<br />{{ ac_form.unit_of_value }}<br />
                                             {% endif %}
+                                            Description:<br />{{ ac_form.description }}<br />
                                             {% endwith %}
                                             <input type="hidden" id="next" name="next" value="exchange-work" />
                                             <div class="modal-footer">
@@ -420,22 +441,32 @@ h3.trtheading {
                                                         {% with xfer.change_commitments_context_form as cc_form %}
                                                         Commitment date:<br />{{ cc_form.commitment_date }}<br />
                                                         Due date:<br />{{ cc_form.due_date }}<br />
-                                                        {% if not slot.give_agent_is_context %}Transfer from:<br />{{ cc_form.from_agent }}<br />{% endif %}
-                                                        {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ cc_form.to_agent }}<br />{% endif %}
+                                                        {% if exchange.join_request %}
+                                                          {% if slot.is_share %}
+                                                            Transfer from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                            Transfer to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                          {% elif slot.is_currency %}
+                                                            Transfer from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                            Transfer to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                          {% endif %}
+                                                        {% else %}
+                                                            {% if not slot.give_agent_is_context %}Transfer from:<br />{{ cc_form.from_agent }}<br />{% endif %}
+                                                            {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ cc_form.to_agent }}<br />{% endif %}
+                                                        {% endif %}
                                                         Quantity:<br />{{ cc_form.quantity }}<br />
                                                         {% if cc_form.ocp_resource_type %}
-                                                          {% trans "Type of Resource:" %} <i>{{ cc_form.ocp_resource_type.label }}</i><br />
+                                                          {% trans "Type of Resource:" %} {% if request.user.is_superuser %}<i>{{ cc_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                                           {{ cc_form.ocp_resource_type }}<br />
                                                         {% else %}
                                                           <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
 
                                                           Resource type:<br />{{ cc_form.resource_type }}<br />
                                                         {% endif %}
-                                                        Description:<br />{{ cc_form.description }}<br />
                                                         {% if not slot.is_currency %}
                                                             Value (total, not per unit):<br />{{ cc_form.value }}<br />
                                                             Unit of value:<br />{{ cc_form.unit_of_value }}<br />
                                                         {% endif %}
+                                                        Description:<br />{{ cc_form.description }}<br />
                                                         {% endwith %}
                                                         <input type="hidden" id="next" name="next" value="exchange-work" />
                                                         <div class="modal-footer">
@@ -468,11 +499,21 @@ h3.trtheading {
                                                             {% csrf_token %}
                                                             {% with xfer.commit_transfer_context_form as ct_form %}
                                                             Event date:<br />{{ ct_form.event_date }}<br />
-                                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ct_form.from_agent }}<br />{% endif %}
-                                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ct_form.to_agent }}<br />{% endif %}
+                                                            {% if exchange.join_request %}
+                                                              {% if slot.is_share %}
+                                                                Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                                Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                              {% elif slot.is_currency %}
+                                                                Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                                Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                              {% endif %}
+                                                            {% else %}
+                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ct_form.from_agent }}<br />{% endif %}
+                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ct_form.to_agent }}<br />{% endif %}
+                                                            {% endif %}
                                                             {{ ct_form.quantity.label }}:<br />{{ ct_form.quantity }}<br />
                                                             {% if ct_form.ocp_resource_type %}
-                                                              {% trans "Type of Resource transferred:" %} <i>{{ ct_form.ocp_resource_type.label }}</i><br />
+                                                              {% trans "Type of Resource transferred:" %} {% if request.user.is_superuser %}<i>{{ ct_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                                               {{ ct_form.ocp_resource_type }}<br />
                                                             {% else %}
                                                               <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
@@ -484,7 +525,6 @@ h3.trtheading {
                                                             {% else %}
                                                                 Resource transferred (no entry if not inventoried)<br />{{ ct_form.resource }}<br />
                                                             {% endif %}
-                                                            Description:<br />{{ ct_form.description }}<br />
                                                             {% if not slot.is_currency %}
                                                                 Value (total, not per unit):<br />{{ ct_form.value }}<br />
                                                                 Unit of value:<br />{{ ct_form.unit_of_value }}<br />
@@ -492,6 +532,7 @@ h3.trtheading {
                                                             {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ ct_form.is_contribution }}<br />{% endif %}
                                                             {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ct_form.is_to_distribute }}<br />{% endif %}
                                                             {% if slot.is_currency %}Event reference:<br />{{ ct_form.event_reference }}<br />{% endif %}
+                                                            Description:<br />{{ ct_form.description }}<br />
                                                             {% if slot.can_create_resource %}
                                                                 <br />
                                                                 <h4>Incoming resource:</h4>
@@ -551,11 +592,21 @@ h3.trtheading {
                                                                 {% csrf_token %}
                                                                 {% with xfer.change_events_context_form as ce_form %}
                                                                 Event date:<br />{{ ce_form.event_date }}<br />
-                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ce_form.from_agent }}<br />{% endif %}
-                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ce_form.to_agent }}<br />{% endif %}
+                                                                {% if exchange.join_request %}
+                                                                  {% if slot.is_share %}
+                                                                    Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                                    Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                                  {% elif slot.is_currency %}
+                                                                    Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                                    Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                                  {% endif %}
+                                                                {% else %}
+                                                                    {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ce_form.from_agent }}<br />{% endif %}
+                                                                    {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ce_form.to_agent }}<br />{% endif %}
+                                                                {% endif %}
                                                                 {{ ce_form.quantity.label }}:<br />{{ ce_form.quantity }}<br />
                                                                 {% if ce_form.ocp_resource_type %}
-                                                                  {% trans "Type of Resource:" %} <i>{{ ce_form.ocp_resource_type.label }}</i><br />
+                                                                  {% trans "Type of Resource:" %} {% if request.user.is_superuser %}<i>{{ ce_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                                                   {{ ce_form.ocp_resource_type }}<br />
                                                                 {% else %}
                                                                   <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
@@ -565,7 +616,7 @@ h3.trtheading {
                                                                     Account from (if virtual account)<br />{{ ce_form.from_resource }}<br />
                                                                     Account to (if virtual account)<br />{{ ce_form.resource }}<br />
                                                                 {% else %}
-                                                                    Resource transferred (only if inventoried):<br />{{ ce_form.resource }}<br />Description:<br />{{ ce_form.description }}<br />
+                                                                    Resource transferred (only if inventoried):<br />{{ ce_form.resource }}<br />
                                                                 {% endif %}
                                                                 {% if not slot.is_currency %}
                                                                     Value (total, not per unit):<br />{{ ce_form.value }}<br />
@@ -574,6 +625,7 @@ h3.trtheading {
                                                                 {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ ce_form.is_contribution }}<br />{% endif %}
                                                                 {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ce_form.is_to_distribute }}<br />{% endif %}
                                                                 {% if slot.is_currency %}Event reference:<br />{{ ce_form.event_reference }}<br />{% endif %}
+                                                                Description:<br />{{ ce_form.description }}<br />
                                                                 {% endwith %}
                                                                 <input type="hidden" id="next" name="next" value="exchange-work" />
                                                                 <div class="modal-footer">
@@ -622,11 +674,21 @@ h3.trtheading {
                                                         {% csrf_token %}
                                                         {% with xfer.change_events_context_form as cev_form %}
                                                         Event date:<br />{{ cev_form.event_date }}<br />
-                                                        {% if not slot.give_agent_is_context %}Transferred from:<br />{{ cev_form.from_agent }}<br />{% endif %}
-                                                        {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ cev_form.to_agent }}<br />{% endif %}
+                                                        {% if exchange.join_request %}
+                                                          {% if slot.is_share %}
+                                                            Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                            Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                          {% elif slot.is_currency %}
+                                                            Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                            Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                          {% endif %}
+                                                        {% else %}
+                                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ cev_form.from_agent }}<br />{% endif %}
+                                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ cev_form.to_agent }}<br />{% endif %}
+                                                        {% endif %}
                                                         {{ cev_form.quantity.label }}:<br />{{ cev_form.quantity }}<br />
                                                         {% if cev_form.ocp_resource_type %}
-                                                          {% trans "Type of Resource transferred:" %} <i>{{ cev_form.ocp_resource_type.label }}</i><br />
+                                                          {% trans "Type of Resource transferred:" %} {% if request.user.is_superuser %}<i>{{ cev_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                                           {{ cev_form.ocp_resource_type }}<br />
                                                         {% else %}
                                                           <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
@@ -638,7 +700,6 @@ h3.trtheading {
                                                         {% else %}
                                                             Resource transferred (only if inventoried):<br />{{ cev_form.resource }}<br />
                                                         {% endif %}
-                                                        Description:<br />{{ cev_form.description }}<br />
                                                         {% if not slot.is_currency %}
                                                             Value (total, not per unit):<br />{{ cev_form.value }}<br />
                                                             Unit of value:<br />{{ cev_form.unit_of_value }}<br />
@@ -646,6 +707,7 @@ h3.trtheading {
                                                         {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ cev_form.is_contribution }}<br />{% endif %}
                                                         {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ cev_form.is_to_distribute }}<br />{% endif %}
                                                         {% if slot.is_currency %}Event reference:<br />{{ cev_form.event_reference }}<br />{% endif %}
+                                                        Description:<br />{{ cev_form.description }}<br />
                                                         {% endwith %}
                                                         <input type="hidden" id="next" name="next" value="exchange-work" />
                                                         <div class="modal-footer">
@@ -705,7 +767,7 @@ h3.trtheading {
                                     {% endif %}
                                 {% endif %}
                             </h3>
-                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }}</p>
+                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }} {% if request.user.is_superuser and slot.is_share %} &nbsp; &nbsp; Share: <em><b>{{ slot.is_share.name }}</b></em> {% endif %}</p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
@@ -718,11 +780,21 @@ h3.trtheading {
                                             {% csrf_token %}
                                             {% with slot.add_xfer_form as ax_form %}
                                             Event date:<br />{{ ax_form.event_date }}<br />
-                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ax_form.from_agent }}<br />{% endif %}
-                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ax_form.to_agent }}<br />{% endif %}
+                                            {% if exchange.join_request %}
+                                              {% if slot.is_share %}
+                                                Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                              {% elif slot.is_currency %}
+                                                Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                              {% endif %}
+                                            {% else %}
+                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ax_form.from_agent }}<br />{% endif %}
+                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ax_form.to_agent }}<br />{% endif %}
+                                            {% endif %}
                                             Quantity transferred:<br />{{ ax_form.quantity }}<br />
                                             {% if ax_form.ocp_resource_type %}
-                                              {% trans "Type of Resource:" %} <!--<i>{{ ax_form.ocp_resource_type.label }}</i> --><br />
+                                              {% trans "Type of Resource:" %} {% if request.user.is_superuser %}<i>{{ ax_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                               {{ ax_form.ocp_resource_type }}
                                               <!-- <div class='add-new-type'>{{ add_type }}<a href='#' class='btn disabled btn-mini'>{% trans "New Resource Type" %}</a></div> -->
                                               <br />
@@ -736,7 +808,6 @@ h3.trtheading {
                                             {% else %}
                                                 Resource transferred (no entry if not inventoried)<br />{{ ax_form.resource }}<br />
                                             {% endif %}
-                                            Description:<br />{{ ax_form.description }}<br />
                                             {% if not slot.is_currency %}
                                                 Value (total, not per unit):<br />{{ ax_form.value }}<br />
                                                 Unit of value:<br />{{ ax_form.unit_of_value }}<br />
@@ -744,6 +815,8 @@ h3.trtheading {
                                             {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ ax_form.is_contribution }}<br />{% endif %}
                                             {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ax_form.is_to_distribute }}<br />{% endif %}
                                             {% if slot.is_currency %}Event reference:<br />{{ ax_form.event_reference }}<br />{% endif %}
+                                            Description:<br />{{ ax_form.description }}<br />
+
                                             {% if slot.can_create_resource %}
                                                 <br />
                                                 <h4>Incoming resource:</h4>
@@ -793,21 +866,31 @@ h3.trtheading {
                                             {% with slot.add_commit_form as ac_form %}
                                             Commitment date:<br />{{ ac_form.commitment_date }}<br />
                                             Due date:<br />{{ ac_form.due_date }}<br />
-                                            {% if not slot.give_agent_is_context %}Transfer from:<br />{{ ac_form.from_agent }}<br />{% endif %}
-                                            {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ ac_form.to_agent }}<br />{% endif %}
+                                            {% if exchange.join_request %}
+                                              {% if slot.is_share %}
+                                                Transfer from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                Transfer to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                              {% elif slot.is_currency %}
+                                                Transfer from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                Transfer to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                              {% endif %}
+                                            {% else %}
+                                                {% if not slot.give_agent_is_context %}Transfer from:<br />{{ ac_form.from_agent }}<br />{% endif %}
+                                                {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ ac_form.to_agent }}<br />{% endif %}
+                                            {% endif %}
                                             Quantity:<br />{{ ac_form.quantity }}<br />
                                             {% if ac_form.ocp_resource_type %}
-                                              {% trans "Type of Resource:" %} <i>{{ ac_form.ocp_resource_type.label }}</i><br />
+                                              {% trans "Type of Resource:" %} {% if request.user.is_superuser %}<i>{{ ac_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                               {{ ac_form.ocp_resource_type }}<br />
                                             {% else %}
                                               <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
                                               Resource type:<br />{{ ac_form.resource_type }}<br />
                                             {% endif %}
-                                            Description:<br />{{ ac_form.description }}<br />
                                             {% if not slot.is_currency %}
                                                 Value (total, not per unit):<br />{{ ac_form.value }}<br />
                                                 Unit of value:<br />{{ ac_form.unit_of_value }}<br />
                                             {% endif %}
+                                            Description:<br />{{ ac_form.description }}<br />
                                             {% endwith %}
                                             <input type="hidden" id="next" name="next" value="exchange-work" />
                                             <div class="modal-footer">
@@ -865,22 +948,32 @@ h3.trtheading {
                                                         {% with xfer.change_commitments_context_form as cc_form %}
                                                         Commitment date:<br />{{ cc_form.commitment_date }}<br />
                                                         Due date:<br />{{ cc_form.due_date }}<br />
-                                                        {% if not slot.give_agent_is_context %}Transfer from:<br />{{ cc_form.from_agent }}<br />{% endif %}
-                                                        {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ cc_form.to_agent }}<br />{% endif %}
+                                                        {% if exchange.join_request %}
+                                                          {% if slot.is_share %}
+                                                            Transfer from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                            Transfer to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                          {% elif slot.is_currency %}
+                                                            Transfer from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                            Transfer to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                          {% endif %}
+                                                        {% else %}
+                                                            {% if not slot.give_agent_is_context %}Transfer from:<br />{{ cc_form.from_agent }}<br />{% endif %}
+                                                            {% if not slot.receive_agent_is_context %}Transfer to:<br />{{ cc_form.to_agent }}<br />{% endif %}
+                                                        {% endif %}
                                                         Quantity:<br />{{ cc_form.quantity }}<br />
                                                         {% if cc_form.ocp_resource_type %}
-                                                          {% trans "Type of Resource:" %} <i>{{ cc_form.ocp_resource_type.label }}</i><br />
+                                                          {% trans "Type of Resource:" %} {% if request.user.is_superuser %}<i>{{ cc_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                                           {{ cc_form.ocp_resource_type }}<br />
                                                         {% else %}
                                                           <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
 
                                                           Resource type:<br />{{ cc_form.resource_type }}<br />
                                                         {% endif %}
-                                                        Description:<br />{{ cc_form.description }}<br />
                                                         {% if not slot.is_currency %}
                                                             Value (total, not per unit):<br />{{ cc_form.value }}<br />
                                                             Unit of value:<br />{{ cc_form.unit_of_value }}<br />
                                                         {% endif %}
+                                                        Description:<br />{{ cc_form.description }}<br />
                                                         {% endwith %}
                                                         <input type="hidden" id="next" name="next" value="exchange-work" />
                                                         <div class="modal-footer">
@@ -913,11 +1006,21 @@ h3.trtheading {
                                                             {% csrf_token %}
                                                             {% with xfer.commit_transfer_context_form as ct_form %}
                                                             Event date:<br />{{ ct_form.event_date }}<br />
-                                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ct_form.from_agent }}<br />{% endif %}
-                                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ct_form.to_agent }}<br />{% endif %}
+                                                            {% if exchange.join_request %}
+                                                              {% if slot.is_share %}
+                                                                Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                                Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                              {% elif slot.is_currency %}
+                                                                Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                                Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                              {% endif %}
+                                                            {% else %}
+                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ct_form.from_agent }}<br />{% endif %}
+                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ct_form.to_agent }}<br />{% endif %}
+                                                            {% endif %}
                                                             Quantity transferred:<br />{{ ct_form.quantity }}<br />
                                                             {% if ct_form.ocp_resource_type %}
-                                                              {% trans "Type of Resource transferred:" %} <i>{{ ct_form.ocp_resource_type.label }}</i><br />
+                                                              {% trans "Type of Resource transferred:" %} {% if request.user.is_superuser %}<i>{{ ct_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                                               {{ ct_form.ocp_resource_type }}<br />
                                                             {% else %}
                                                               <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
@@ -929,7 +1032,6 @@ h3.trtheading {
                                                             {% else %}
                                                                 Resource transferred (no entry if not inventoried)<br />{{ ct_form.resource }}<br />
                                                             {% endif %}
-                                                            Description:<br />{{ ct_form.description }}<br />
                                                             {% if not slot.is_currency %}
                                                                 Value (total, not per unit):<br />{{ ct_form.value }}<br />
                                                                 Unit of value:<br />{{ ct_form.unit_of_value }}<br />
@@ -937,6 +1039,7 @@ h3.trtheading {
                                                             {% if slot.is_contribution %}Can be a rewarded in a value equation:<br />{{ ct_form.is_contribution }}<br />{% endif %}
                                                             {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ct_form.is_to_distribute }}<br />{% endif %}
                                                             {% if slot.is_currency %}Event reference:<br />{{ ct_form.event_reference }}<br />{% endif %}
+                                                            Description:<br />{{ ct_form.description }}<br />
                                                             {% if slot.can_create_resource %}
                                                                 <br />
                                                                 <h4>Incoming resource:</h4>
@@ -994,11 +1097,21 @@ h3.trtheading {
                                                                 {% csrf_token %}
                                                                 {% with xfer.change_events_context_form as ce_form %}
                                                                 Event date:<br />{{ ce_form.event_date }}<br />
-                                                                {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ce_form.from_agent }}<br />{% endif %}
-                                                                {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ce_form.to_agent }}<br />{% endif %}
+                                                                {% if exchange.join_request %}
+                                                                  {% if slot.is_share %}
+                                                                    Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                                    Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                                  {% elif slot.is_currency %}
+                                                                    Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                                    Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                                  {% endif %}
+                                                                {% else %}
+                                                                    {% if not slot.give_agent_is_context %}Transferred from:<br />{{ ce_form.from_agent }}<br />{% endif %}
+                                                                    {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ ce_form.to_agent }}<br />{% endif %}
+                                                                {% endif %}
                                                                 Quantity transferred:<br />{{ ce_form.quantity }}<br />
                                                                 {% if ce_form.ocp_resource_type %}
-                                                                  {% trans "Type of Resource transferred:" %} <i>{{ ce_form.ocp_resource_type.label }}</i><br />
+                                                                  {% trans "Type of Resource transferred:" %} {% if request.user.is_superuser %}<i>{{ ce_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                                                   {{ ce_form.ocp_resource_type }}<br />
                                                                 {% else %}
                                                                   <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
@@ -1010,7 +1123,6 @@ h3.trtheading {
                                                                 {% else %}
                                                                     Resource transferred (only if inventoried):<br />{{ ce_form.resource }}<br />
                                                                 {% endif %}
-                                                                Description:<br />{{ ce_form.description }}<br />
                                                                 {% if not slot.is_currency %}
                                                                     Value (total, not per unit):<br />{{ ce_form.value }}<br />
                                                                     Unit of value:<br />{{ ce_form.unit_of_value }}<br />
@@ -1018,6 +1130,7 @@ h3.trtheading {
                                                                 {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ ce_form.is_contribution }}<br />{% endif %}
                                                                 {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ ce_form.is_to_distribute }}<br />{% endif %}
                                                                 {% if slot.is_currency %}Event reference:<br />{{ ce_form.event_reference }}<br />{% endif %}
+                                                                Description:<br />{{ ce_form.description }}<br />
                                                                 {% endwith %}
                                                                 <input type="hidden" id="next" name="next" value="exchange-work" />
                                                                 <div class="modal-footer">
@@ -1065,11 +1178,21 @@ h3.trtheading {
                                                         {% csrf_token %}
                                                         {% with xfer.change_events_context_form as cev_form %}
                                                         Event date:<br />{{ cev_form.event_date }}<br />
-                                                        {% if not slot.give_agent_is_context %}Transferred from:<br />{{ cev_form.from_agent }}<br />{% endif %}
-                                                        {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ cev_form.to_agent }}<br />{% endif %}
+                                                        {% if exchange.join_request %}
+                                                          {% if slot.is_share %}
+                                                            Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                            Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                          {% elif slot.is_currency %}
+                                                            Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                            Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
+                                                          {% endif %}
+                                                        {% else %}
+                                                            {% if not slot.give_agent_is_context %}Transferred from:<br />{{ cev_form.from_agent }}<br />{% endif %}
+                                                            {% if not slot.receive_agent_is_context %}Transferred to:<br />{{ cev_form.to_agent }}<br />{% endif %}
+                                                        {% endif %}
                                                         Quantity transferred:<br />{{ cev_form.quantity }}<br />
                                                         {% if cev_form.ocp_resource_type %}
-                                                          {% trans "Type of Resource transferred:" %} <!--<i>{{ cev_form.ocp_resource_type.label }}</i> --><br />
+                                                          {% trans "Type of Resource transferred:" %} {% if request.user.is_superuser %}<i>{{ cev_form.ocp_resource_type.label }}</i>{% endif %}<br />
                                                           {{ cev_form.ocp_resource_type }}<br />
                                                         {% else %}
                                                           <span class="error">{% trans "Can't retrieve General types, try choosing a resource type below:" %}</span><br />
@@ -1080,7 +1203,6 @@ h3.trtheading {
                                                             Account to (if virtual account)<br />{{ cev_form.resource }}<br />
                                                         {% else %}
                                                             Resource transferred (only if inventoried):<br />{{ cev_form.resource }}<br />
-                                                            Description:<br />{{ cev_form.description }}<br />
                                                         {% endif %}
                                                         {% if not slot.is_currency %}
                                                             Value (total, not per unit):<br />{{ cev_form.value }}<br />
@@ -1089,6 +1211,7 @@ h3.trtheading {
                                                         {% if slot.is_contribution %}Can be rewarded in a value equation:<br />{{ cev_form.is_contribution }}<br />{% endif %}
                                                         {% if slot.is_to_distribute %}Can be distributed in a value equation:<br />{{ cev_form.is_to_distribute }}<br />{% endif %}
                                                         {% if slot.is_currency %}Event reference:<br />{{ cev_form.event_reference }}<br />{% endif %}
+                                                        Description:<br />{{ cev_form.description }}<br />
                                                         {% endwith %}
                                                         <input type="hidden" id="next" name="next" value="exchange-work" />
                                                         <div class="modal-footer">

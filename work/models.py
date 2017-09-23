@@ -946,6 +946,15 @@ from mptt.models import TreeManager
 
 class Ocp_Artwork_TypeManager(TreeManager):
 
+    def get_shares_type(self):
+        shr_typs = Ocp_Artwork_Type.objects.filter(clas='shares')
+        if len(shr_typs) > 1:
+            raise ValidationError("There's more than one Ocp_Artwork_Type with the clas 'shares'!")
+        elif shr_typs[0]:
+            return shr_typs[0]
+        else:
+            raise ValidationError("The Ocp_Artwork_Type with 'shares' clas is not found!")
+
     def update_from_general(self): # TODO, if general.Artwork_Type (or Type) changes independently, update the subclass with new items
         return False
 
@@ -1076,6 +1085,23 @@ class Ocp_Artwork_Type(Artwork_Type):
           return self.name
 
 
+    def is_share(self):
+        shr_typ = Ocp_Artwork_Type.objects.get_shares_type()
+        if shr_typ:
+            # mptt: get_ancestors(ascending=False, include_self=False)
+            ancs = self.get_ancestors(True, True)
+            for an in ancs:
+                if an.id == shr_typ.id:
+                    return self
+            if self.general_nonmaterial_type:
+                ancs = self.general_nonmaterial_type.get_ancestors(True, True)
+                for an in ancs:
+                    if an.id == shr_typ.id:
+                        return Ocp_Artwork_Type.objects.get(id=self.general_nonmaterial_type.id)
+
+        return False
+
+
 
 
 class Ocp_Skill_TypeManager(TreeManager):
@@ -1117,12 +1143,20 @@ class Ocp_Skill_Type(Job):
     )
     ocp_artwork_type = TreeForeignKey(
       Ocp_Artwork_Type,
-      on_delete=models.CASCADE,
+      on_delete=models.SET_NULL,
       verbose_name=_('general artwork_type'),
       related_name='ocp_skill_types',
       blank=True, null=True,
       help_text=_("a related General Artwork Type")
     )
+    '''event_type = models.ForeignKey( # only for verbs that are ocp event types
+      EventType,
+      on_delete=models.SET_NULL,
+      verbose_name=_('ocp event_type'),
+      related_name='ocp_skill_type',
+      blank=True, null=True,
+      help_text=_("a related OCP EventType")
+    )'''
 
     objects = Ocp_Skill_TypeManager()
 
@@ -1193,6 +1227,14 @@ class Ocp_Record_Type(Record_Type):
         blank=True, null=True,
         help_text=_("a related General Skill Type")
     )
+    '''event_type = models.ForeignKey( # only for verbs that are ocp event types
+      EventType,
+      on_delete=models.SET_NULL,
+      verbose_name=_('ocp event_type'),
+      related_name='ocp_skill_type',
+      blank=True, null=True,
+      help_text=_("a related OCP EventType")
+    )'''
 
     objects = Ocp_Record_TypeManager()
 

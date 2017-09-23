@@ -7203,7 +7203,6 @@ class Process(models.Model):
 
 
 #from general.models import Material_Type, Nonmaterial_Type, Artwork_Type
-#from work.models import Ocp_Material_Type, Ocp_Nonmaterial_Type
 
 class TransferType(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -7334,11 +7333,18 @@ class TransferType(models.Model):
                 return True
               elif tx.from_agent() == context_agent:
                 return False
-        elif not transfers:
+        else:
             return self.is_reciprocal
 
-        #return None
-        #pass
+    def is_share(self):
+        rel_typ = None
+        if self.inherit_types:
+            if self.exchange_type.ocp_record_type:
+                if self.exchange_type.ocp_record_type.ocpRecordType_ocp_artwork_type:
+                    rel_typ = self.exchange_type.ocp_record_type.ocpRecordType_ocp_artwork_type
+                    return rel_typ.is_share()
+
+        return rel_typ
 
     def form_prefix(self):
         return "-".join(["TT", str(self.id)])
@@ -7360,7 +7366,7 @@ class TransferType(models.Model):
             if not takes:
                 takes = self.transfers.filter(commitments__to_agent=agent)
 
-            if hasattr(self.exchange_type, 'ocp_record_type'):
+            if hasattr(self.exchange_type, 'ocp_record_type') and self.exchange_type.ocp_record_type:
                 x_actions = self.exchange_type.ocp_record_type.x_actions()
                 for action in x_actions:
                     opposite = action.opposite()
@@ -7595,21 +7601,23 @@ class Exchange(models.Model):
             action = ''
             if hasattr(self.exchange_type, 'ocp_record_type'):
                 et_name = str(self.exchange_type.ocp_record_type)
-                if hasattr(self.exchange_type.ocp_record_type, 'ocp_skill_type'):
-                    if self.exchange_type.ocp_record_type.ocp_skill_type:
-                        action = self.exchange_type.ocp_record_type.ocp_skill_type
-                        opposite = action.opposite()
-                        if opposite:
-                            if action.clas and opposite.clas:
-                                newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
-                            else:
-                                newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
-                            if take_ts and action.clas == 'buy':
+                actions = self.exchange_type.ocp_record_type.x_actions()
+                for action in actions:
+                    opposite = action.opposite()
+                    if opposite:
+                        if action.clas and opposite.clas:
+                            newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                        else:
+                            newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                        if take_ts:
+                            if action.clas == 'buy' or action.clas == 'receive':
                                 name = newname
-                            if give_ts and action.clas == 'sell':
+                        if give_ts:
+                            if action.clas == 'sell' or action.clas == 'give':
                                 name = newname
-                            #import pdb; pdb.set_trace()
-                            #return str(action.clas)+' -> '+str(opposite.clas)+': '+name #+' GIVE: '+str(give_ts)+' - TAKE: '+str(take_ts)
+
+                        #import pdb; pdb.set_trace()
+                        #return str(action.clas)+' -> '+str(opposite.clas)+': '+name #+' GIVE: '+str(give_ts)+' - TAKE: '+str(take_ts)
         return name
 
     def status(self):

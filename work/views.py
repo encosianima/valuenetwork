@@ -3686,21 +3686,6 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
             return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
                   % ('work/agent', context_agent.id, 'exchange-logging-work', 0, exchange.id))
 
-            '''exchange_form = ExchangeContextForm()
-            slots = exchange_type.slots()
-            return render(request, "work/exchange_logging_work.html", {
-                "use_case": use_case,
-                "exchange_type": exchange_type,
-                "exchange_form": exchange_form,
-                "agent": agent,
-                "context_agent": context_agent,
-                "user": request.user,
-                "logger": logger,
-                "slots": slots,
-                "total_t": 0,
-                "total_rect": 0,
-                "help": get_help("exchange"),
-            })'''
         else:
             raise ValidationError("System Error: No agent, not allowed to create exchange.")
 
@@ -3712,8 +3697,8 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
             exchange_form = ExchangeContextForm(instance=exchange, data=request.POST)
             if exchange_form.is_valid():
                 exchange = exchange_form.save()
-                return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-                    % ('work/agent', context_agent.id, 'exchange-logging-work', 0, exchange.id))
+                #return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+                #    % ('work/agent', context_agent.id, 'exchange-logging-work', 0, exchange.id))
 
         exchange_type = exchange.exchange_type
         use_case = exchange_type.use_case
@@ -3760,10 +3745,10 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
             add_work_form = WorkEventContextAgentForm(initial=work_init, context_agent=context_agent)
 
             for slot in slots:
-                flip = False
+                slot.flip = False
                 slot.list_name = slot.show_name(context_agent)
                 if not slot.list_name == slot.name:
-                    flip = True
+                    slot.flip = True
 
                 ta_init = slot.default_to_agent
                 fa_init = slot.default_from_agent
@@ -3772,13 +3757,18 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                 if not fa_init:
                     fa_init = agent
 
-                if flip:
+                if slot.flip:
+                    #fa_init = ta_init
+                    #ta_init = slot.default_from_agent
+                    #slot.default_from_agent = fa_init
+                    #slot.default_to_agent = ta_init
+
                     if slot.inherit_types:
                         #pass
                         if slot.is_income:
-                            pass #slot.is_income = False
-                        else:
-                            pass #slot.is_income = True
+                            slot.is_income = False
+                        #else:
+                        #    pass #slot.is_income = True
 
                 xfer_init = {
                     "from_agent": fa_init,
@@ -4212,10 +4202,14 @@ def change_transfer_commitments_work(request, transfer_id):
                 due_date = data["due_date"]
                 if transfer_type.give_agent_is_context:
                     from_agent = context_agent
+                    if data["from_agent"]:
+                        from_agent = data["from_agent"]
                 else:
                     from_agent = data["from_agent"]
                 if transfer_type.receive_agent_is_context:
                     to_agent = context_agent
+                    if data["to_agent"]:
+                        to_agent = data["to_agent"]
                 else:
                     to_agent = data["to_agent"]
 
@@ -4286,10 +4280,14 @@ def transfer_from_commitment(request, transfer_id):
             event_date = data["event_date"]
             if transfer_type.give_agent_is_context:
                 from_agent = context_agent
+                if data["from_agent"]:
+                    from_agent = data["from_agent"]
             else:
                 from_agent = data["from_agent"]
             if transfer_type.receive_agent_is_context:
                 to_agent = context_agent
+                if data["to_agent"]:
+                    to_agent = data["to_agent"]
             else:
                 to_agent = data["to_agent"]
 
