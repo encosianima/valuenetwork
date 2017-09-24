@@ -276,8 +276,8 @@ h3.trtheading {
                                             Event date:<br />{{ ax_form.event_date }}<br />
                                             {% if exchange.join_request %}
                                               {% if slot.is_share %}
-                                                Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />
-                                                Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
+                                                Transferred from:<br /><b>{{ exchange.join_request.project.agent.name }}</b> {{ ax_form.from_agent }}<br />
+                                                Transferred to:<br /><b>{{ exchange.join_request.agent.name }}</b> {{ ax_form.to_agent }}<br />
                                               {% elif slot.is_currency %}
                                                 Transferred from:<br /><b>{{ exchange.join_request.agent.name }}</b><br />
                                                 Transferred to:<br /><b>{{ exchange.join_request.project.agent.name }}</b><br />

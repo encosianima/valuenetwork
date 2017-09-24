@@ -3068,26 +3068,26 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                       rrt_ancs = rrt.get_ancestors(False, True)
                       for an in rrt_ancs: # see if is child of material or non-material
                         if an.clas == 'Material':
-                          try:
-                            mat = Material_Type.objects.get(id=rrt.id)
-                          except:
-                            mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
-                          rel_material = mat
+                          #try:
+                          #  mat = Material_Type.objects.get(id=rrt.id)
+                          #except:
+                          #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
+                          rel_material = rrt #mat
                           break
                         if an.clas == 'Nonmaterial':
-                          try:
-                            non = Nonmaterial_Type.objects.get(id=rrt.id)
-                          except:
-                            non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
-                          rel_nonmaterial = non
+                          #try:
+                          #  non = Nonmaterial_Type.objects.get(id=rrt.id)
+                          #except:
+                          #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
+                          rel_nonmaterial = rrt #non
                           break
 
                     new_oat = Ocp_Artwork_Type(
                       name=data["name"],
                       description=data["description"],
                       resource_type=new_rt,
-                      general_material_type=rel_material,
-                      general_nonmaterial_type=rel_nonmaterial,
+                      rel_material_type=rel_material,
+                      rel_nonmaterial_type=rel_nonmaterial,
                     )
                     # mptt: insert_node(node, target, position='last-child', save=False)
                     try:
@@ -3142,21 +3142,21 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                           rrt_ancs = rrt.get_ancestors(False, True)
                           for an in rrt_ancs: # see if is child of material or non-material
                             if an.clas == 'Material':
-                              try:
-                                mat = Material_Type.objects.get(id=rrt.id)
-                              except:
-                                mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
-                              rel_material = mat
+                              #try:
+                              #  mat = Material_Type.objects.get(id=rrt.id)
+                              #except:
+                              #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
+                              rel_material = rrt #mat
                               break
                             if an.clas == 'Nonmaterial':
-                              try:
-                                non = Nonmaterial_Type.objects.get(id=rrt.id)
-                              except:
-                                non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
-                              rel_nonmaterial = non
+                              #try:
+                              #  non = Nonmaterial_Type.objects.get(id=rrt.id)
+                              #except:
+                              #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
+                              rel_nonmaterial = rrt #non
                               break
-                        grt.general_material_type = rel_material
-                        grt.general_nonmaterial_type = rel_nonmaterial
+                        grt.rel_material_type = rel_material
+                        grt.rel_nonmaterial_type = rel_nonmaterial
 
                         grt.save()
 
@@ -3935,6 +3935,13 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     to_agent = context_agent
                 else:
                     to_agent = data["to_agent"]
+                if exchange.join_request:
+                    if transfer_type.is_currency:
+                        to_agent = exchange.join_request.project.agent
+                        from_agent = exchange.join_request.agent
+                    elif transfer_type.is_share():
+                        to_agent = exchange.join_request.agent
+                        from_agent = exchange.join_request.project.agent
 
                 rt = data["resource_type"]
                 if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
@@ -4139,6 +4146,14 @@ def add_transfer_commitment_work(request, exchange_id, transfer_type_id):
                 else:
                     to_agent = data["to_agent"]
 
+                if exchange.join_request:
+                    if transfer_type.is_currency:
+                        to_agent = exchange.join_request.project.agent
+                        from_agent = exchange.join_request.agent
+                    elif transfer_type.is_share():
+                        to_agent = exchange.join_request.agent
+                        from_agent = exchange.join_request.project.agent
+
                 rt = data["resource_type"]
                 if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
                     gen_rt = data["ocp_resource_type"]
@@ -4267,6 +4282,14 @@ def change_transfer_commitments_work(request, transfer_id):
                 else:
                     to_agent = data["to_agent"]
 
+                if exchange.join_request:
+                    if transfer_type.is_currency:
+                        to_agent = exchange.join_request.project.agent
+                        from_agent = exchange.join_request.agent
+                    elif transfer_type.is_share():
+                        to_agent = exchange.join_request.agent
+                        from_agent = exchange.join_request.project.agent
+
                 rt = data["resource_type"]
                 if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
                     gen_rt = data["ocp_resource_type"]
@@ -4344,6 +4367,14 @@ def transfer_from_commitment(request, transfer_id):
                     to_agent = data["to_agent"]
             else:
                 to_agent = data["to_agent"]
+
+            if exchange.join_request:
+                if transfer_type.is_currency:
+                    to_agent = exchange.join_request.project.agent
+                    from_agent = exchange.join_request.agent
+                elif transfer_type.is_share():
+                    to_agent = exchange.join_request.agent
+                    from_agent = exchange.join_request.project.agent
 
             rt = data["resource_type"]
             if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
@@ -4484,6 +4515,14 @@ def change_transfer_events_work(request, transfer_id, context_agent_id=None):
                     to_agent = context_agent
                 else:
                     to_agent = data["to_agent"]
+
+                if exchange.join_request:
+                    if transfer_type.is_currency:
+                        to_agent = exchange.join_request.project.agent
+                        from_agent = exchange.join_request.agent
+                    elif transfer_type.is_share():
+                        to_agent = exchange.join_request.agent
+                        from_agent = exchange.join_request.project.agent
 
                 rt = data["resource_type"]
                 if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum

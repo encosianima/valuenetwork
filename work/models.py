@@ -940,7 +940,7 @@ class InvoiceNumber(models.Model):
         super(InvoiceNumber, self).save(*args, **kwargs)
 
 
-from general.models import Record_Type, Artwork_Type, Material_Type, Nonmaterial_Type, Job, Unit_Type
+from general.models import Record_Type, Artwork_Type, Job, Unit_Type #, Material_Type, Nonmaterial_Type
 from mptt.models import TreeManager
 
 
@@ -955,10 +955,29 @@ class Ocp_Artwork_TypeManager(TreeManager):
         else:
             raise ValidationError("The Ocp_Artwork_Type with 'shares' clas is not found!")
 
+    def get_material_type(self):
+        mat_typs = Ocp_Artwork_Type.objects.filter(clas='Material')
+        if len(mat_typs) > 1:
+            raise ValidationError("There's more than one Ocp_Artwork_Type with the clas 'Material'!")
+        elif mat_typs[0]:
+            return mat_typs[0]
+        else:
+            raise ValidationError("The Ocp_Artwork_Type with 'Material' clas is not found!")
+
+    def get_nonmaterial_type(self):
+        non_typs = Ocp_Artwork_Type.objects.filter(clas='Nonmaterial')
+        if len(non_typs) > 1:
+            raise ValidationError("There's more than one Ocp_Artwork_Type with the clas 'Nonmaterial'!")
+        elif non_typs[0]:
+            return non_typs[0]
+        else:
+            raise ValidationError("The Ocp_Artwork_Type with 'Nonmaterial' clas is not found!")
+
+
     def update_from_general(self): # TODO, if general.Artwork_Type (or Type) changes independently, update the subclass with new items
         return False
 
-    def update_to_general(self, table=None, ide=None): # update material and non-material general tables if not matching
+    """def update_to_general(self, table=None, ide=None): # update material and non-material general tables if not matching
         if table and ide:
             if table == 'Material_Type':
                 try:
@@ -1000,6 +1019,7 @@ class Ocp_Artwork_TypeManager(TreeManager):
                                 cursor.execute("PRAGMA foreign_keys=OFF")
                                 cursor.execute("INSERT INTO general_material_type (materialType_artwork_type_id) VALUES (%s)", [ocpm.id])
                                 cursor.execute("PRAGMA foreign_keys=ON")
+    """
 
 
 class Ocp_Artwork_Type(Artwork_Type):
@@ -1009,21 +1029,39 @@ class Ocp_Artwork_Type(Artwork_Type):
       primary_key=True,
       parent_link=True
     )
-    general_material_type = TreeForeignKey(
-      Material_Type,
-      on_delete=models.CASCADE,
-      verbose_name=_('general material_type'),
-      related_name='ocp_artwork_types',
+
+    def get_Q_material_type():
+        mat_typ = Ocp_Artwork_Type.objects.get_material_type()
+        if mat_typ:
+            return {'lft__gt':mat_typ.lft, 'rght__lt':mat_typ.rght, 'tree_id':mat_typ.tree_id}
+        else:
+            return {}
+
+    rel_material_type = TreeForeignKey(
+      'self',
+      on_delete=models.SET_NULL,
+      verbose_name=_('related material_type'),
+      related_name='rel_types_material',
       blank=True, null=True,
-      help_text=_("a related General Material Type")
+      help_text=_("a related General Material Type"),
+      limit_choices_to=get_Q_material_type
     )
-    general_nonmaterial_type = TreeForeignKey(
-      Nonmaterial_Type,
-      on_delete=models.CASCADE,
-      verbose_name=_('general nonmaterial_type'),
-      related_name='ocp_artwork_types',
+
+    def get_Q_nonmaterial_type():
+        non_typ = Ocp_Artwork_Type.objects.get_nonmaterial_type()
+        if non_typ:
+            return {'lft__gt':non_typ.lft, 'rght__lt':non_typ.rght, 'tree_id':non_typ.tree_id}
+        else:
+            return {}
+
+    rel_nonmaterial_type = TreeForeignKey(
+      'self',
+      on_delete=models.SET_NULL,
+      verbose_name=_('related nonmaterial_type'),
+      related_name='rel_types_nonmaterial',
       blank=True, null=True,
-      help_text=_("a related General Non-material Type")
+      help_text=_("a related General Non-material Type"),
+      limit_choices_to=get_Q_nonmaterial_type
     )
     facet = models.OneToOneField(
       Facet,
@@ -1094,19 +1132,18 @@ class Ocp_Artwork_Type(Artwork_Type):
             for an in ancs:
                 if an.id == shr_typ.id:
                     return self
-            if self.general_nonmaterial_type:
-                ancs = self.general_nonmaterial_type.get_ancestors(True, True)
+            if self.rel_nonmaterial_type:
+                ancs = self.rel_nonmaterial_type.get_ancestors(True, True)
                 for an in ancs:
                     if an.id == shr_typ.id:
-                        return Ocp_Artwork_Type.objects.get(id=self.general_nonmaterial_type.id)
+                        return Ocp_Artwork_Type.objects.get(id=self.rel_nonmaterial_type.id)
             if self.general_unit_type and shr_cur:
                 ancs = self.general_unit_type.get_ancestors(True, True)
                 for an in ancs:
                     if an.id == shr_cur.id:
-                        return self.general_unit_type #Ocp_Artwork_Type.objects.get(id=self.general_nonmaterial_type.id)
+                        return self.general_unit_type #Ocp_Artwork_Type.objects.get(id=self.rel_nonmaterial_type.id)
 
         return False
-
 
 
 

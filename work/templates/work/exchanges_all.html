@@ -490,7 +490,7 @@ hr {
                                       "substi":"{{ node.resource_type.substitutable }}",
                                       "unit":"{{ node.resource_type.unit.ocp_unit_type.id }}",
                                       "price":"{% if node.resource_type.price_per_unit %}{{ node.resource_type.price_per_unit }}{% endif %}",
-                                      "related":"{% if node.general_material_type %}{{ node.general_material_type.id }}{% elif node.general_nonmaterial_type %}{{ node.general_nonmaterial_type.id }}{% endif %}",
+                                      "related":"{% if node.rel_material_type %}{{ node.rel_material_type.id }}{% elif node.rel_nonmaterial_type %}{{ node.rel_nonmaterial_type.id }}{% endif %}",
                                       "parentrecipe":"{{ node.resource_type.parent.id }}",
                                       "url":"{{ node.resource_type.url }}",
                                       "photo_url":"{{ node.resource_type.photo_url }}",
