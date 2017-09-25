@@ -2790,6 +2790,353 @@ def edit_skill_type(request, agent_id):
 
 
 
+
+
+#   R E S O U R C E   T Y P E S
+
+@login_required
+def new_resource_type(request, agent_id):
+    agent = EconomicAgent.objects.get(id=agent_id)
+    new_rt = request.POST.get("new_resource_type")
+    if not new_rt:
+        edit_rt = request.POST.get("edit_resource_type")
+        if edit_rt:
+          #raise ValidationError("Edit skill type? redirect")
+          return edit_resource_type(request, agent.id)
+        else:
+          raise ValidationError("New resource type, invalid")
+
+    Rtype_form = NewResourceTypeForm(agent=agent, data=request.POST)
+    if Rtype_form.is_valid():
+        data = Rtype_form.cleaned_data
+        if hasattr(data["resource_type"], 'id'):
+            parent_rt = Ocp_Artwork_Type.objects.get(id=data["resource_type"].id)
+            if parent_rt.id:
+                out = None
+                if hasattr(data["unit_type"], 'id'):
+                    gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
+                    out = gut.ocp_unit
+                if hasattr(data, "substitutable"):
+                    substi = data["substitutable"]
+                else:
+                    substi = False
+                new_rt = EconomicResourceType(
+                    name=data["name"],
+                    description=data["description"],
+                    unit=out,
+                    price_per_unit=data["price_per_unit"],
+                    substitutable=substi,
+                    context_agent=data["context_agent"],
+                    url=data["url"],
+                    photo_url=data["photo_url"],
+                    parent=data["parent"],
+                    created_by=request.user,
+                )
+                #try:
+                new_rt.save()
+                #except:
+                #  raise ValidationError('Cannot save new resource type:'+str(new_oat)+' Parent:'+str(parent_rt))
+
+                # mptt: get_ancestors(ascending=False, include_self=False)
+                ancs = parent_rt.get_ancestors(True, True)
+                for an in ancs:
+                    if an.clas != 'Artwork':
+                        an = Ocp_Artwork_Type.objects.get(id=an.id)
+                        if an.resource_type:
+                          new_rtfv = None
+                          for fv in an.resource_type.facets.all():
+                            new_rtfv = ResourceTypeFacetValue(
+                              resource_type=new_rt,
+                              facet_value=fv.facet_value
+                            )
+                            new_rtfv.save()
+                          if new_rtfv:
+                            break
+                        if an.facet_value:
+                          new_rtfv = ResourceTypeFacetValue(
+                              resource_type=new_rt,
+                              facet_value=an.facet_value
+                          )
+                          new_rtfv.save()
+                          break
+
+                rel_material = None
+                rel_nonmaterial = None
+                if hasattr(data["related_type"], 'id'):
+                    rrt = Ocp_Artwork_Type.objects.get(id=data["related_type"].id)
+                    # mptt: get_ancestors(ascending=False, include_self=False)
+                    rrt_ancs = rrt.get_ancestors(False, True)
+                    for an in rrt_ancs: # see if is child of material or non-material
+                        if an.clas == 'Material':
+                          #try:
+                          #  mat = Material_Type.objects.get(id=rrt.id)
+                          #except:
+                          #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
+                          rel_material = rrt #mat
+                          break
+                        if an.clas == 'Nonmaterial':
+                          #try:
+                          #  non = Nonmaterial_Type.objects.get(id=rrt.id)
+                          #except:
+                          #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
+                          rel_nonmaterial = rrt #non
+                          break
+
+                new_oat = Ocp_Artwork_Type(
+                    name=data["name"],
+                    description=data["description"],
+                    resource_type=new_rt,
+                    rel_material_type=rel_material,
+                    rel_nonmaterial_type=rel_nonmaterial,
+                )
+                # mptt: insert_node(node, target, position='last-child', save=False)
+                try:
+                    new_res = Ocp_Artwork_Type.objects.insert_node(new_oat, parent_rt, 'last-child', True)
+                except:
+                    raise ValidationError('Cannot insert node:'+str(new_oat)+' Parent:'+str(parent_rt))
+
+                #nav_form = ExchangeNavForm(agent=agent, data=None)
+                #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
+                #Stype_form = NewSkillTypeForm(agent=agent, data=None)
+
+            else: # have no parent_type id
+                pass
+        else: # have no parent resource field
+            pass
+    else:
+        pass #raise ValidationError(Rtype_form.errors)
+
+    next = request.POST.get("next")
+    if next == "exchanges_all":
+        return HttpResponseRedirect('/%s/%s/%s/'
+            % ('work/agent', agent.id, 'exchanges'))
+    elif next == "members_agent":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('work/agent', agent.id))
+    else:
+        raise ValidationError("Has no next page specified! "+str(next))
+
+
+
+@login_required
+def edit_resource_type(request, agent_id):
+    edit_rt = request.POST.get("edit_resource_type")
+    if not edit_rt:
+        new_rt = request.POST.get("new_resource_type")
+        if new_rt:
+          raise ValidationError("New resource type? redirect")
+        else:
+          raise ValidationError("Edit resource type, invalid")
+
+    agent = EconomicAgent.objects.get(id=agent_id)
+    Rtype_form = NewResourceTypeForm(agent=agent, data=request.POST)
+    if Rtype_form.is_valid():
+        data = Rtype_form.cleaned_data
+        if hasattr(data["resource_type"], 'id'):
+            parent_rt = Ocp_Artwork_Type.objects.get(id=data["resource_type"].id)
+            if parent_rt.id:
+                out = None
+                if hasattr(data["unit_type"], 'id'):
+                    gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
+                    out = gut.ocp_unit
+                edid = request.POST.get("edid")
+                if edid == '':
+                    raise ValidationError("Missing edid!")
+                else:
+                    #raise ValidationError("Lets edit "+edid)
+                    idar = edid.split('_')
+                    if idar[0] == "Rid":
+                        grt = Ocp_Artwork_Type.objects.get(id=idar[1])
+                        grt.name = data["name"]
+                        grt.description = data["description"]
+                        moved = False
+                        if not grt.parent == parent_rt:
+                          # mptt: move_to(target, position='first-child')
+                          grt.move_to(parent_rt, 'last-child')
+                          moved = True
+
+                        rel_material = None
+                        rel_nonmaterial = None
+                        if hasattr(data["related_type"], 'id'):
+                          rrt = Ocp_Artwork_Type.objects.get(id=data["related_type"].id)
+                          # mptt: get_ancestors(ascending=False, include_self=False)
+                          rrt_ancs = rrt.get_ancestors(False, True)
+                          for an in rrt_ancs: # see if is child of material or non-material
+                            if an.clas == 'Material':
+                              #try:
+                              #  mat = Material_Type.objects.get(id=rrt.id)
+                              #except:
+                              #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
+                              rel_material = rrt #mat
+                              break
+                            if an.clas == 'Nonmaterial':
+                              #try:
+                              #  non = Nonmaterial_Type.objects.get(id=rrt.id)
+                              #except:
+                              #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
+                              rel_nonmaterial = rrt #non
+                              break
+                        grt.rel_material_type = rel_material
+                        grt.rel_nonmaterial_type = rel_nonmaterial
+
+                        grt.save()
+
+                        if not grt.resource_type:
+                          #pass #raise ValidationError("There's no resource type! create it?")
+                          if hasattr(data, "substitutable"):
+                            substi = data["substitutable"]
+                          else:
+                            substi = False
+                          new_rt = EconomicResourceType(
+                            name=data["name"],
+                            description=data["description"],
+                            unit=out,
+                            price_per_unit=data["price_per_unit"],
+                            substitutable=substi,
+                            context_agent=data["context_agent"],
+                            url=data["url"],
+                            photo_url=data["photo_url"],
+                            parent=data["parent"],
+                            created_by=request.user,
+                          )
+                          new_rt.save()
+                          grt.resource_type = new_rt
+                          grt.save()
+
+                          # mptt: get_ancestors(ascending=False, include_self=False)
+                          ancs = parent_rt.get_ancestors(True, True)
+                          for an in ancs:
+                            if an.clas != 'Artwork':
+                              an = Ocp_Artwork_Type.objects.get(id=an.id)
+                              if an.resource_type:
+                                new_rtfv = None
+                                for fv in an.resource_type.facets.all():
+                                  new_rtfv = ResourceTypeFacetValue(
+                                    resource_type=new_rt,
+                                    facet_value=fv.facet_value
+                                  )
+                                  new_rtfv.save()
+                                if new_rtfv:
+                                  break
+                              if an.facet_value:
+                                new_rtfv = ResourceTypeFacetValue(
+                                    resource_type=new_rt,
+                                    facet_value=an.facet_value
+                                )
+                                new_rtfv.save()
+                                break
+
+                        else:
+                          rt = grt.resource_type;
+                          rt.name = data["name"]
+                          rt.description = data["description"]
+                          rt.unit = out
+                          rt.price_per_unit = data["price_per_unit"]
+                          rt.substitutable = data["substitutable"]
+                          rt.context_agent = data["context_agent"]
+                          rt.url = data["url"]
+                          rt.photo_url = data["photo_url"]
+                          rt.parent = data["parent"]
+                          rt.edited_by = request.user
+                          if moved:
+                            old_rtfvs = ResourceTypeFacetValue.objects.filter(resource_type=rt)
+                            for rtfv in old_rtfvs:
+                              rtfv.delete()
+                            # mptt: get_ancestors(ascending=False, include_self=False)
+                            ancs = parent_rt.get_ancestors(True, True)
+                            for an in ancs:
+                              if an.clas != 'Artwork':
+                                an = Ocp_Artwork_Type.objects.get(id=an.id)
+                                if an.resource_type:
+                                  new_rtfv = None
+                                  for fv in an.resource_type.facets.all():
+                                    new_rtfv = ResourceTypeFacetValue(
+                                      resource_type=rt,
+                                      facet_value=fv.facet_value
+                                    )
+                                    new_rtfv.save()
+                                  if new_rtfv:
+                                    break
+                                if an.facet_value:
+                                  new_rtfv = ResourceTypeFacetValue(
+                                      resource_type=rt,
+                                      facet_value=an.facet_value
+                                  )
+                                  new_rtfv.save()
+                                  break
+                          rt.save()
+
+                        mkfv = request.POST.get("facetvalue")
+                        if mkfv == 'on' and not moved:
+                            #raise ValidationError("Insert FacetValue: "+str(grt.resource_type.facets.first().facet_value.facet))
+                            new_fv, created = FacetValue.objects.get_or_create(
+                                facet=grt.resource_type.facets.first().facet_value.facet,
+                                value=grt.name
+                            )
+                            grt.facet_value = new_fv
+                            grt.save()
+                            rtfvs = grt.resource_type.facets.all()
+                            if rtfvs:
+                                for rtfv in rtfvs:
+                                    if rtfv.facet_value == grt.resource_type.facets.first().facet_value:
+                                        rtfv.facet_value = new_fv
+                                        rtfv.save()
+                                        break
+                            else:
+                                new_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+                                    resource_type=grt.resource_type,
+                                    facet_value=new_fv
+                                )
+                            desc = grt.get_descendants() # true: include self
+                            for des in desc:
+                                ort = Ocp_Artwork_Type.objects.get(id=des.id)
+                                if ort.resource_type:
+                                    rtfvs = ort.resource_type.facets.all()
+                                    if rtfvs:
+                                        for rtfv in rtfvs:
+                                            if rtfv.facet_value != new_fv: #parent_rt.resource_type.facets.first().facet_value:
+                                                rtfv.facet_value = new_fv
+                                                rtfv.save()
+                                                break
+                                            else:
+                                                pass #raise ValidationError("the first fv is already the new fv: "+str(new_fv))
+                                    else:
+                                        new_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+                                            resource_type=ort.resource_type,
+                                            facet_value=new_fv
+                                        )
+
+                        #nav_form = ExchangeNavForm(agent=agent, data=None)
+                        #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
+                        #Stype_form = NewSkillTypeForm(agent=agent, data=None)
+
+                    else: # is not Rid
+                        pass
+
+
+            else: # have no parent_type id
+                pass
+        else: # have no parent resource field
+            pass
+    else: # form invalid
+        raise ValidationError("form errors: "+str(Rtype_form.errors))
+
+    next = request.POST.get("next")
+    if next == "exchanges_all":
+        return exchanges_all(request, agent.id) # HttpResponseRedirect('/%s/%s/%s/'
+            # % ('work/agent', agent.id, 'exchanges'))
+    elif next == "members_agent":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('work/agent', agent.id))
+    else:
+        raise ValidationError("Has no next page specified! "+str(next))
+
+
+
+
+
+
+
 #    E X C H A N G E S   A L L
 
 @login_required
@@ -3005,7 +3352,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
               pass #raise ValidationError(nav_form.errors)
 
         # there's no new_exchange, is it a new resource type?
-        new_resource_type = request.POST.get("new_resource_type")
+        """new_resource_type = request.POST.get("new_resource_type")
         if new_resource_type:
             if Rtype_form.is_valid():
                 data = Rtype_form.cleaned_data
@@ -3255,7 +3602,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                   else: # have no parent_type id
                     pass
                 else: # have no parent resource field
-                  pass
+                  pass"""
 
         # there's no new_resource_type = request.POST.get("new_resource_type")
         """new_skill_type = request.POST.get("new_skill_type")
@@ -4929,7 +5276,7 @@ def project_all_resources(request, agent_id):
     })
 
 
-def new_resource_type(request, agent_id, Rtype):
+"""def new_resource_type(request, agent_id, Rtype):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     if not (agent == user_agent or user_agent in agent.managers()):
@@ -4938,7 +5285,7 @@ def new_resource_type(request, agent_id, Rtype):
     # process savings TODO
 
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/agent', agent.id, 'resources'))
+        % ('work/agent', agent.id, 'resources'))"""
 
 
 

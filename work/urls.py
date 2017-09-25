@@ -53,6 +53,7 @@ urlpatterns = [
     #url(r"^agent/(?P<agent_id>\d+)/create-user-agent/$", work.views.create_project_user_and_agent, name="create_project_user_and_agent"),
     url(r'^assign-skills/(?P<agent_id>\d+)/$', work.views.assign_skills, name="assign_skills"),
     url(r'^new_skill_type/(?P<agent_id>\d+)/$', work.views.new_skill_type, name="new_skill_type"),
+    url(r'^new_resource_type/(?P<agent_id>\d+)/$', work.views.new_resource_type, name="new_resource_type"),
     url(r'^my-tasks/$', work.views.my_tasks, name="my_tasks"),
     url(r'^take-new-tasks/$', work.views.take_new_tasks, name="take_new_tasks"),
     url(r'^home/$', work.views.my_dashboard, name="home"),
@@ -96,7 +97,7 @@ urlpatterns = [
 
     url(r"^agent/(?P<agent_id>\d+)/resources/$", work.views.project_all_resources, name="project_resources"),
     url(r"^agent/(?P<agent_id>\d+)/resources/(?P<resource_id>\d+)/$", work.views.project_resource, name="project_resource"),
-    url(r"^agent/(?P<agent_id>\d+)/resources/new/(?P<Rtype>[\w-]+)/$", work.views.new_resource_type, name="new_resource_type"),
+    #url(r"^agent/(?P<agent_id>\d+)/resources/new/(?P<Rtype>[\w-]+)/$", work.views.new_resource_type, name="new_resource_type"),
     url(r"^agent/(?P<agent_id>\d+)/change-resource/(?P<resource_id>\d+)/$", work.views.change_resource, name="change_resource"),
 
 

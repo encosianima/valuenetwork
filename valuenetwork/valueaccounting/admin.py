@@ -328,6 +328,17 @@ class EconomicEventAdmin(admin.ModelAdmin):
 
 admin.site.register(EconomicEvent, EconomicEventAdmin)
 
+class ResourceTypeFacetValueAdmin(admin.ModelAdmin):
+    list_display = ('resource_type','facet_value',)
+    list_filter = ['facet_value','resource_type',]
+
+admin.site.register(ResourceTypeFacetValue, ResourceTypeFacetValueAdmin)
+
+class FacetValueAdmin(admin.ModelAdmin):
+    list_display = ('value','facet',)
+    list_filter = ['facet',]
+
+admin.site.register(FacetValue, FacetValueAdmin)
 
 #class CompensationAdmin(admin.ModelAdmin):
 #    list_display = ('initiating_event', 'compensating_event', 'compensation_date', 'compensating_value')
