@@ -1131,13 +1131,21 @@ class EconomicAgent(models.Model):
                     for an in ancs:
                       if an.clas == "currency":
                         cur = True
-                    if cur:
+                    if cur or rt.ocp_artwork_type.is_account():
                       if hasattr(rt.ocp_artwork_type, 'general_unit_type') and rt.ocp_artwork_type.general_unit_type.id:
-                        if rt.ocp_artwork_type.general_unit_type.ocp_unit_type:
-                          if not rt.ocp_artwork_type.general_unit_type.ocp_unit_type.id in uids:
-                            uids.append(rt.ocp_artwork_type.general_unit_type.ocp_unit_type.id)
-                        #pass
-                      #raise ValidationError("The RT:"+str(rt.ocp_artwork_type)+" unit:"+str(rt.ocp_artwork_type.general_unit_type))
+                        #if rt.ocp_artwork_type.general_unit_type.ocp_unit_type:
+                        if not rt.ocp_artwork_type.general_unit_type.id in uids:
+                            uids.append(rt.ocp_artwork_type.general_unit_type.id)
+                        else:
+                            pass #raise ValidationError("the unit type is already in uids: "+str(uids))
+                      else:
+                          raise ValidationError("The rt has not any related general_unit_type! "+str(rt.ocp_artwork_type))
+                    else:
+                        pass #raise ValidationError("The rt is not related currency or accounts: "+str(rt.ocp_artwork_type.is_account()))
+                  else:
+                      raise ValidationError("The resource type has not a related ocp_artwork_type! "+str(rt))
+                else:
+                    pass #raise ValidationError("The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.ocp_unit_type))
             else:
               rt = tx.resource_type()
               rtun = None
@@ -1152,7 +1160,7 @@ class EconomicAgent(models.Model):
                     uids.append(rtun.ocp_unit_type.id)
 
         return uids
-    #
+
 
     def task_assignment_candidates(self):
         answer = []

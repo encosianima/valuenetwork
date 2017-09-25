@@ -18,7 +18,7 @@ from general.models import Unit_Type
 
 from django.shortcuts import get_object_or_404
 
-from general.models import Record_Type, Material_Type, Nonmaterial_Type, Artwork_Type
+#from general.models import Record_Type, Material_Type, Nonmaterial_Type, Artwork_Type
 from mptt.forms import TreeNodeChoiceField
 from work.utils import *
 

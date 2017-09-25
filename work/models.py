@@ -948,31 +948,39 @@ class Ocp_Artwork_TypeManager(TreeManager):
 
     def get_shares_type(self):
         shr_typs = Ocp_Artwork_Type.objects.filter(clas='shares')
-        if len(shr_typs) > 1:
+        if shr_typs and len(shr_typs) > 1:
             raise ValidationError("There's more than one Ocp_Artwork_Type with the clas 'shares'!")
-        elif shr_typs[0]:
+        elif shr_typs and shr_typs[0]:
             return shr_typs[0]
         else:
-            raise ValidationError("The Ocp_Artwork_Type with 'shares' clas is not found!")
+            raise ValidationError("The Ocp_Artwork_Type with clas 'shares' is not found!")
 
     def get_material_type(self):
         mat_typs = Ocp_Artwork_Type.objects.filter(clas='Material')
-        if len(mat_typs) > 1:
+        if mat_typs and len(mat_typs) > 1:
             raise ValidationError("There's more than one Ocp_Artwork_Type with the clas 'Material'!")
-        elif mat_typs[0]:
+        elif mat_typs and mat_typs[0]:
             return mat_typs[0]
         else:
-            raise ValidationError("The Ocp_Artwork_Type with 'Material' clas is not found!")
+            raise ValidationError("The Ocp_Artwork_Type with clas 'Material' is not found!")
 
     def get_nonmaterial_type(self):
         non_typs = Ocp_Artwork_Type.objects.filter(clas='Nonmaterial')
-        if len(non_typs) > 1:
+        if non_typs and len(non_typs) > 1:
             raise ValidationError("There's more than one Ocp_Artwork_Type with the clas 'Nonmaterial'!")
-        elif non_typs[0]:
+        elif non_typs and non_typs[0]:
             return non_typs[0]
         else:
-            raise ValidationError("The Ocp_Artwork_Type with 'Nonmaterial' clas is not found!")
+            raise ValidationError("The Ocp_Artwork_Type with clas 'Nonmaterial' is not found!")
 
+    def get_account_type(self):
+        acc_typs = Ocp_Artwork_Type.objects.filter(clas='accounts')
+        if acc_typs and len(acc_typs) > 1:
+            raise ValidationError("There's more than one Ocp_Artwork_Type with the clas 'accounts'!")
+        elif acc_typs and acc_typs[0]:
+            return acc_typs[0]
+        else:
+            raise ValidationError("The Ocp_Artwork_Type with clas 'accounts' is not found!")
 
     def update_from_general(self): # TODO, if general.Artwork_Type (or Type) changes independently, update the subclass with new items
         return False
@@ -1145,6 +1153,17 @@ class Ocp_Artwork_Type(Artwork_Type):
 
         return False
 
+    def is_account(self):
+        acc_typ = Ocp_Artwork_Type.objects.get_account_type()
+        if acc_typ:
+            # mptt: get_ancestors(ascending=False, include_self=False)
+            ancs = self.get_ancestors(True, True)
+            for an in ancs:
+                if an.id == acc_typ.id:
+                    return self
+        else:
+            raise ValidationError("Can't get the ocp artwork type with clas 'accounts'")
+        return False
 
 
 class Ocp_Skill_TypeManager(TreeManager):
@@ -1377,9 +1396,9 @@ class Ocp_Unit_TypeManager(TreeManager):
 
     def get_shares_currency(self):
         shr_typs = Ocp_Unit_Type.objects.filter(clas='shares_currency')
-        if len(shr_typs) > 1:
+        if shr_typs and len(shr_typs) > 1:
             raise ValidationError("There's more than one Ocp_Unit_Type with the clas 'shares_currency'!")
-        elif shr_typs[0]:
+        elif shr_typs and shr_typs[0]:
             return shr_typs[0]
         else:
             raise ValidationError("The Ocp_Unit_Type with 'shares_currency' clas is not found!")

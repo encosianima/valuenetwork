@@ -34,7 +34,7 @@ from faircoin import utils as faircoin_utils
 from faircoin.models import FaircoinTransaction
 
 from fobi.models import FormEntry
-from general.models import Artwork_Type, Unit_Type
+from general.models import Artwork_Type #, Unit_Type
 
 if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
@@ -3549,8 +3549,12 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                 sign = '>'
               uq = transfer.unit_of_quantity()
               rt = transfer.resource_type()
+              uv = transfer.unit_of_value()
+              if uv:
+                uq = uv
               if not uq and rt:
                 uq = rt.unit
+
               if uq:
                 if not hasattr(uq, 'ocp_unit_type'):
                   raise ValidationError("The unit has not ocp_unit_type! "+str(uq))
@@ -3562,25 +3566,38 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
                     if transfer.transfer_type.is_incoming(x, agent): #is_reciprocal:
                       if transfer.events.all():
-                        to['income'] = (to['income']*1) + (transfer.quantity()*1)
+                        if uv:
+                            to['income'] = (to['income']*1) + (transfer.value()*1)
+                        else:
+                            to['income'] = (to['income']*1) + (transfer.quantity()*1)
                       else:
-                        to['incommit'] = (to['incommit']*1) + (transfer.quantity()*1)
+                        if uv:
+                            to['incommit'] = (to['incommit']*1) + (transfer.value()*1)
+                        else:
+                            to['incommit'] = (to['incommit']*1) + (transfer.quantity()*1)
                       #to['debug'] += str(x.id)+':'+str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_give_events()])+sign+' - '
                     else:
                       if transfer.events.all():
-                        to['outgo'] = (to['outgo']*1) + (transfer.quantity()*1)
+                        if uv:
+                            to['outgo'] = (to['outgo']*1) + (transfer.value()*1)
+                        else:
+                            to['outgo'] = (to['outgo']*1) + (transfer.quantity()*1)
                       else:
-                        to['outcommit'] = (to['outcommit']*1) + (transfer.quantity()*1)
+                        if uv:
+                            to['outcommit'] = (to['outcommit']*1) + (transfer.value()*1)
+                        else:
+                            to['outcommit'] = (to['outcommit']*1) + (transfer.quantity()*1)
                       #to['debug'] += str(x.id)+':'+str([str(ev.event_type.name)+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_receive_events()])+sign+' - '
 
                     if uq.ocp_unit_type.clas == 'each':
-                      rt = transfer.resource_type()
+                      #rt = transfer.resource_type()
                       rt.cur = False
                       if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
                         ancs = rt.ocp_artwork_type.get_ancestors(False,True)
                         for an in ancs:
                           if an.clas == "currency":
                             rt.cur = True
+
                         if rt.cur and rt.ocp_artwork_type.general_unit_type:
                           if rt.ocp_artwork_type.general_unit_type.ocp_unit_type:
                             to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type.general_unit_type.ocp_unit_type.name)+sign+' - '
@@ -3603,6 +3620,10 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                                 if sign == '>':
                                   ttr['outcommit'] = (ttr['outcommit']*1) + (transfer.quantity()*1)
                               break
+
+                        else:
+                            pass #raise ValidationError("Not rt.cur or rt.ocp_artwork_type.general_unit_type! rt: "+str(rt))
+
                       elif rt:
                         to['debug'] += '::'+str(rt)+'!!'+sign+'::'
 
@@ -3619,10 +3640,10 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
                       to['debug'] += str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name for ev in transfer.events.all()])+sign+' - '
                     else:
-                      to['debug'] += 'U:'+str(uq.ocp_unit_type)+sign
+                      to['debug'] += 'U:'+str(uq.ocp_unit_type.name)+sign
 
               else: # not uq
-                pass #total_transfers[1]['debug'] += ' :: '+str(transfer.name)+sign
+                pass #raise ValidationError("the transfer has not unit of quantity! "+str(uq))
             else: # not quantity
                 pass
 
@@ -3935,7 +3956,7 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     to_agent = context_agent
                 else:
                     to_agent = data["to_agent"]
-                if exchange.join_request:
+                if hasattr(exchange, 'join_request') and exchange.join_request:
                     if transfer_type.is_currency:
                         to_agent = exchange.join_request.project.agent
                         from_agent = exchange.join_request.agent
@@ -4146,7 +4167,7 @@ def add_transfer_commitment_work(request, exchange_id, transfer_type_id):
                 else:
                     to_agent = data["to_agent"]
 
-                if exchange.join_request:
+                if hasattr(exchange, 'join_request') and exchange.join_request:
                     if transfer_type.is_currency:
                         to_agent = exchange.join_request.project.agent
                         from_agent = exchange.join_request.agent
@@ -4282,7 +4303,7 @@ def change_transfer_commitments_work(request, transfer_id):
                 else:
                     to_agent = data["to_agent"]
 
-                if exchange.join_request:
+                if hasattr(exchange, 'join_request') and exchange.join_request:
                     if transfer_type.is_currency:
                         to_agent = exchange.join_request.project.agent
                         from_agent = exchange.join_request.agent
@@ -4368,7 +4389,7 @@ def transfer_from_commitment(request, transfer_id):
             else:
                 to_agent = data["to_agent"]
 
-            if exchange.join_request:
+            if hasattr(exchange, 'join_request') and exchange.join_request:
                 if transfer_type.is_currency:
                     to_agent = exchange.join_request.project.agent
                     from_agent = exchange.join_request.agent
@@ -4516,7 +4537,7 @@ def change_transfer_events_work(request, transfer_id, context_agent_id=None):
                 else:
                     to_agent = data["to_agent"]
 
-                if exchange.join_request:
+                if hasattr(exchange, 'join_request') and exchange.join_request:
                     if transfer_type.is_currency:
                         to_agent = exchange.join_request.project.agent
                         from_agent = exchange.join_request.agent
