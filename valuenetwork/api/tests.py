@@ -1780,6 +1780,69 @@ query ($token: String) {
   }
 }
 
+query ($token: String) {
+  viewer(token: $token) {
+    allPlans {
+      id
+      name
+      plannedNonWorkInputs {
+        action
+        resourceClassifiedAs {
+          name
+        }
+        committedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+      plannedOutputs {
+        action
+        resourceClassifiedAs {
+          name
+        }
+        committedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+      nonWorkInputs {
+        action
+        affects {
+          trackingIdentifier
+          resourceClassifiedAs {
+            name
+          }
+        }
+        affectedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+      outputs {
+        action
+        affects {
+          trackingIdentifier
+          resourceClassifiedAs {
+            name
+          }
+        }
+        affectedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+    }
+  }
+}
+
 # event data
 
 query ($token: String) {
@@ -1795,8 +1858,9 @@ query ($token: String) {
         }
       }
       note
-      affectedResource {
-        resourceClassification {
+      url
+      affects {
+        resourceClassifiedAs {
           name
           category
         }
@@ -1822,6 +1886,14 @@ query ($token: String) {
         id
         name
       }
+      fulfills {
+        fulfilledQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
     }
   }
 }
@@ -1840,8 +1912,8 @@ query ($token: String) {
             name
           }
         }
-        affectedResource {
-          resourceClassification {
+        affects {
+          resourceClassifiedAs {
             name
             category
           }
@@ -1869,7 +1941,7 @@ query ($token: String) {
             name
           }
         }
-        committedClassification {
+        resourceClassifiedAs {
           name
           category
         }
@@ -1900,8 +1972,8 @@ query ($token: String) {
         }
       }
       note
-      affectedResource {
-        resourceClassification {
+      affects {
+        resourceClassifiedAs {
           name
           category
         }
@@ -2281,15 +2353,18 @@ mutation ($token: String!) {
 
 mutation ($token: String!) {
   createCommitment(token: $token, action: "use", plannedStart: "2017-10-01", due: "2017-10-10",
-    scopeId: 39, note: "testing", committedResourceClassificationId: 17, committedResourceId: 11, 
-    committedNumericValue: "3.5", committedUnitId: 2, processId: 62,
+    scopeId: 39, note: "testing", committedResourceClassificationId: 17, involvesId: 11, 
+    committedNumericValue: "3.5", committedUnitId: 2, inputOfId: 62,
     providerId: 79, receiverId: 39) {
     commitment {
       id
       action
       plannedStart
       due
-      process {
+      inputOf {
+        name
+      }
+      outputOf {
         name
       }
       provider {
@@ -2304,7 +2379,7 @@ mutation ($token: String!) {
       resourceClassifiedAs {
         name
       }
-      committedResource {
+      involves {
         trackingIdentifier
       }
       committedQuantity {
@@ -2322,13 +2397,16 @@ mutation ($token: String!) {
 
 mutation ($token: String!) {
   updateCommitment(token: $token, plannedStart: "2017-10-03", due: "2017-10-12",
-    note: "testing more", committedNumericValue: "5.5", isFinished: true, id: 362) {
+    note: "testing more", committedNumericValue: "5.5", isFinished: true, id: 363) {
     commitment {
       id
       action
       plannedStart
       due
-      process {
+      inputOf {
+        name
+      }
+      outputOf {
         name
       }
       provider {
@@ -2343,7 +2421,7 @@ mutation ($token: String!) {
       resourceClassifiedAs {
         name
       }
-      committedResource {
+      involves {
         trackingIdentifier
       }
       committedQuantity {
@@ -2363,6 +2441,242 @@ mutation ($token: String!) {
   deleteCommitment(token: $token, id: 11) {
     commitment {
       action
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createPlan(token: $token, name: "Fudge!", due: "2017-10-15", note: "testing") {
+    plan {
+      id
+      name
+      due
+      note
+    }
+  }
+}
+
+mutation ($token: String!) {
+  updatePlan(token: $token, id:53, name: "Fudge!", due: "2017-10-16", note: "testing more") {
+    plan {
+      id
+      name
+      due
+      note
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deletePlan(token: $token, id: 53) {
+    plan {
+      name
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createEconomicEvent(token: $token, action: "use", start: "2017-10-01", scopeId: 39, 
+    note: "testing", affectedResourceClassifiedAsId: 17, affectsId: 11, affectedNumericValue: "3.5", 
+    affectedUnitId: 2, inputOfId: 62, providerId: 79, receiverId: 39, url: "hi.com") {
+    economicEvent {
+      id
+      action
+      start
+      inputOf {
+        name
+      }
+      outputOf {
+        name
+      }
+      provider {
+        name
+      }
+      receiver {
+        name
+      }
+      scope {
+        name
+      }
+      affects {
+        trackingIdentifier
+        resourceClassifiedAs {
+          name
+        }
+      }
+      affectedQuantity {
+        numericValue
+        unit {
+          name
+        }
+      }
+      note
+      url
+    }
+  }
+}
+
+#creates a resource also
+mutation ($token: String!) {
+  createEconomicEvent(token: $token, action: "produce", start: "2017-10-01", scopeId: 39, 
+    note: "testing new resource", affectedResourceClassifiedAsId: 37, affectedNumericValue: "30", 
+    affectedUnitId: 4, outputOfId: 67, providerId: 39, receiverId: 39, createResource: true,
+    resourceNote: "new one", resourceImage: "rrr.com/image", resourceTrackingIdentifier: "432234") {
+    economicEvent {
+      id
+      action
+      start
+      inputOf {
+        name
+      }
+      outputOf {
+        name
+      }
+      provider {
+        name
+      }
+      receiver {
+        name
+      }
+      scope {
+        name
+      }
+      affects {
+        trackingIdentifier
+        resourceClassifiedAs {
+          name
+        }
+        note
+      }
+      affectedQuantity {
+        numericValue
+        unit {
+          name
+        }
+      }
+      note
+      url
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createEconomicEvent(token: $token, action: "work", start: "2017-10-01", scopeId: 39, 
+    note: "testing no provider", affectedNumericValue: "5", affectedResourceClassifiedAsId: 61,
+    inputOfId: 65, affectedUnitId: 2, requestDistribution: true) {
+    economicEvent {
+      id
+      action
+      start
+      inputOf {
+        name
+      }
+      outputOf {
+        name
+      }
+      provider {
+        name
+      }
+      receiver {
+        name
+      }
+      scope {
+        name
+      }
+      affects {
+        trackingIdentifier
+        resourceClassifiedAs {
+          name
+        }
+        note
+      }
+      affectedQuantity {
+        numericValue
+        unit {
+          name
+        }
+      }
+      note
+      url
+      requestDistribution
+    }
+  }
+}
+
+mutation ($token: String!) {
+  updateEconomicEvent(token: $token, id: 350, start: "2017-10-02", scopeId: 39, 
+    note: "testing more", affectedResourceClassifiedAsId: 17, affectsId: 11, 
+    affectedNumericValue: "4.5", affectedUnitId: 2, inputOfId: 62, providerId: 79, receiverId: 39) {
+    economicEvent {
+      id
+      action
+      start
+      inputOf {
+        name
+      }
+      outputOf {
+        name
+      }
+      provider {
+        name
+      }
+      receiver {
+        name
+      }
+      scope {
+        name
+      }
+      affects {
+        trackingIdentifier
+        resourceClassifiedAs {
+          name
+        }
+      }
+      affectedQuantity {
+        numericValue
+        unit {
+          name
+        }
+      }
+      note
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deleteEconomicEvent(token: $token, id: 350) {
+    economicEvent {
+      action
+      start
+    }
+  }
+}
+
+mutation ($token: String!) {
+  updateEconomicResource(token: $token, id: 128, trackingIdentifier: "xxxccc333", 
+    note: "testing more", resourceClassifiedAsId: 37, image: "xxx.com") {
+    economicResource {
+      id
+      trackingIdentifier
+      resourceClassifiedAs {
+        name
+      }
+      currentQuantity {
+        numericValue
+        unit {
+          name
+        }
+      }
+      note
+      image
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deleteEconomicResource(token: $token, id: 34) {
+    economicResource {
+      trackingIdentifier
     }
   }
 }
