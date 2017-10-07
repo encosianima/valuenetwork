@@ -669,10 +669,12 @@ class JoinRequest(models.Model):
                     strin += str(amount)
 
             if algor == 'bcrypt':
-
-                from passlib.hash import bcrypt
-
-                token_obj = bcrypt.hash(strin)
+                import bcrypt
+                #from passlib.hash import bcrypt
+                #if isinstance(strin, str):
+                #    strin = bytes(strin, 'utf-8')
+                self.salt = bcrypt.gensalt(prefix=b"2a")
+                token_obj = bcrypt.hashpw(strin.encode('utf-8'), self.salt)#, 'utf8') #bcrypt.hash(strin)
             else:
                 raise ValidationError("Token hashing algorithm not implemented or not understood: "+algor)
         else:
