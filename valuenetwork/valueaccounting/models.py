@@ -2339,6 +2339,10 @@ class EconomicResourceType(models.Model):
                 pass
         if creation:
             creation.follow_stage_chain(chain)
+        else:
+            if staged_commitments:
+                creation = staged_commitments[0]
+                creation.follow_stage_chain(chain)
         return chain, inheritance
 
     def staged_commitment_type_sequence_beyond_workflow(self):
@@ -2381,6 +2385,10 @@ class EconomicResourceType(models.Model):
                 pass
         if creation:
             creation.follow_stage_chain_beyond_workflow(chain)
+        else:
+            if staged_commitments:
+                creation = staged_commitments[0]
+                creation.follow_stage_chain(chain)
         return chain, inheritance
 
     def staged_process_type_sequence(self):
