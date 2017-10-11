@@ -111,7 +111,7 @@ class MembershipRequestForm(forms.ModelForm):
 
     class Meta:
         model = MembershipRequest
-        exclude = ('agent',)
+        exclude = ('agent', 'state',)
 
     def clean(self):
         data = super(MembershipRequestForm, self).clean()
