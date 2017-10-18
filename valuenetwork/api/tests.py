@@ -867,6 +867,10 @@ query($token: String) {
       id
       name
       image
+      primaryLocation {
+        name
+        address
+      }
       note
       type
       __typename
@@ -1384,7 +1388,7 @@ query($token: String) {
   viewer(token: $token) {
     economicResource(id: 26) {
       id
-      resourceClassification {
+      resourceClassiedAs {
         name
         category
       }
@@ -1406,7 +1410,7 @@ query ($token: String) {
   viewer(token: $token) {
     allEconomicResources {
       id
-      resourceClassification {
+      resourceClassifiedAs {
         name
         category
       }
@@ -1416,6 +1420,10 @@ query ($token: String) {
         unit {
           name
         }
+      }
+      currentLocation {
+        name
+        address
       }
       image
       note
@@ -1429,7 +1437,7 @@ query ($token: String) {
       name
       ownedEconomicResources {
         id
-        resourceClassification {
+        resourceClassifiedAs {
           name
           category
         }
@@ -1454,7 +1462,7 @@ query ($token: String) {
       name
       ownedEconomicResources(category: CURRENCY) {
         id
-        resourceClassification {
+        resourceClassifiedAs {
           name
           category
         }
@@ -1478,7 +1486,7 @@ query ($token: String) {
       name
       ownedEconomicResources(category: INVENTORY) {
         id
-        resourceClassification {
+        resourceClassifiedAs {
           name
           category
         }
@@ -1500,7 +1508,7 @@ query ($token: String) {
   viewer(token: $token) {
     economicResource(id: 20) {
       id
-      resourceClassification {
+      resourceClassifiedAs {
         name
         category
       }
@@ -1520,7 +1528,7 @@ query ($token: String) {
         receiver {
           name
         }
-        resourceClassification {
+        resourceClassifiedAs {
           name
         }
         giveResource {
@@ -2072,13 +2080,13 @@ query ($token: String) {
         }
       }
       note
-      resourceClassifedAs {
+      resourceClassifiedAs {
         name
         category
       }
       involves {
         id
-        resourceClassifedAs {
+        resourceClassifiedAs {
           name
           category
         }
@@ -2103,6 +2111,18 @@ query ($token: String) {
       scope {
         id
         name
+      }
+      plan {
+        id
+        name
+      }
+      isPlanDeliverable
+      forPlanDeliverable {
+        id
+        action
+        outputOf {
+          name
+        }
       }
     }
   }
@@ -2318,6 +2338,48 @@ query ($token: String) {
   }
 }
 
+query ($token: String) {
+  viewer(token: $token) {
+    place(id: 4) {
+      id
+      name
+      address
+      latitude
+      longitude
+      note
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    allPlaces {
+      id
+      name
+      address
+      latitude
+      longitude
+      note
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    place(id: 5) {
+      placeAgents {
+        name
+      }
+      placeResources {
+        trackingIdentifier
+        resourceClassifiedAs {
+          name
+        }
+      }
+    }
+  }
+}
+
 
 ######################### SAMPLE MUTATIONS ###########################
 
@@ -2353,8 +2415,8 @@ mutation ($token: String!) {
 
 mutation ($token: String!) {
   createCommitment(token: $token, action: "use", plannedStart: "2017-10-01", due: "2017-10-10",
-    scopeId: 39, note: "testing", committedResourceClassificationId: 17, involvesId: 11, 
-    committedNumericValue: "3.5", committedUnitId: 2, inputOfId: 62,
+    scopeId: 39, note: "testing", committedResourceClassifiedAsId: 17, involvesId: 11, 
+    committedNumericValue: "3.5", committedUnitId: 2, inputOfId: 6, planId: 52,
     providerId: 79, receiverId: 39) {
     commitment {
       id
