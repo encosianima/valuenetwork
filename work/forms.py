@@ -1408,3 +1408,16 @@ class InvoiceNumberForm(forms.ModelForm):
     def __init__(self, agent, *args, **kwargs):
         super(InvoiceNumberForm, self).__init__(*args, **kwargs)
         self.fields["member"].queryset = agent.invoicing_candidates()
+
+
+#   V A L U E   E Q U A T I O N
+
+class VESandboxForm(forms.Form):
+    #value_equation = forms.ModelChoiceField(
+    #    queryset=ValueEquation.objects.all(),
+    #    label=_("Value Equation"),
+    #    empty_label=None,
+    #    widget=forms.Select(
+    #        attrs={'class': 've-selector'}))
+    amount_to_distribute = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money quantity input-small'}))
