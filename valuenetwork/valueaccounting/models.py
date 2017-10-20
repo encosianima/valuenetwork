@@ -3686,12 +3686,10 @@ class Order(models.Model):
         
     def naming_process(self):
         procs = self.all_processes()
+        if not procs:
+            procs = list(self.unordered_processes())
         if len(procs) == 1:
             return procs.pop()
-        else:
-            procs = self.unordered_processes()
-            if procs.count() == 1:
-                return procs[0]
         return None
 
     def process(self): #todo: should this be on order_item?
@@ -6728,6 +6726,33 @@ class Process(models.Model):
 
     def unplanned_work_events(self):
         return self.work_events().filter(commitment__isnull=True)
+        
+    def unplanned_work_events_condensed(self):
+        event_list = self.unplanned_work_events()
+        condensed_events = []
+        if event_list:
+            summaries = {}
+            for event in event_list:
+                try:
+                    key = "-".join([
+                        str(event.from_agent.id),
+                        str(event.context_agent.id),
+                        str(event.resource_type.id),
+                        str(event.event_type.id)
+                        ])
+                    if not key in summaries:
+                        summaries[key] = EventSummary(
+                            event.from_agent,
+                            event.context_agent,
+                            event.resource_type,
+                            event.event_type,
+                            Decimal('0.0'))
+                    summaries[key].quantity += event.quantity
+                except AttributeError:
+                    msg = " ".join(["invalid summary key:", key])
+                    assert False, msg
+            condensed_events = summaries.values()
+        return condensed_events
 
     def outputs(self):
         return self.events.filter(
