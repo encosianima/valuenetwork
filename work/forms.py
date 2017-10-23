@@ -1421,3 +1421,18 @@ class VESandboxForm(forms.Form):
     #        attrs={'class': 've-selector'}))
     amount_to_distribute = forms.DecimalField(required=False,
         widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money quantity input-small'}))
+
+class VEForm(forms.ModelForm):
+    #context_agent = forms.ModelChoiceField(
+    #    queryset=EconomicAgent.objects.context_agents(),
+    #    required=True,
+    #    empty_label=None,
+    #    widget=forms.Select(attrs={'class': 'chzn-select',}))
+    name = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'input-xlarge required-field',}))
+    description = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = ValueEquation
+        fields = ('name', 'description', 'percentage_behavior')

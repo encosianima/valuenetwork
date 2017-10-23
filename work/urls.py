@@ -57,7 +57,7 @@ urlpatterns = [
     #url(r"^edit-value-equation-work/$", work.views.edit_value_equation_work,
     #    name="edit_value_equation_work"),
     url(r"^delete-value-equation-work/(?P<value_equation_id>\d+)/(?P<agent_id>\d+)/$", work.views.delete_value_equation_work, name="delete_value_equation_work"),
-    url(r"^create-value-equation-work/$", work.views.create_value_equation_work, name="create_value_equation_work"),
+    url(r"^create-value-equation-work/(?P<agent_id>\d+)/$", work.views.create_value_equation_work, name="create_value_equation_work"),
     url(r"^change-value-equation-work/(?P<value_equation_id>\d+)/$", work.views.change_value_equation_work, name="change_value_equation_work"),
     url(r"^create-value-equation-bucket-work/(?P<value_equation_id>\d+)/$", work.views.create_value_equation_bucket_work, name="create_value_equation_bucket_work"),
     url(r"^change-value-equation-bucket-work/(?P<bucket_id>\d+)/$", work.views.change_value_equation_bucket_work,
@@ -69,6 +69,8 @@ urlpatterns = [
         name="change_value_equation_bucket_rule_work"),
     url(r"^delete-value-equation-bucket-rule-work/(?P<rule_id>\d+)/$", work.views.delete_value_equation_bucket_rule_work,
         name="delete_value_equation_bucket_rule_work"),
+    url(r"^json-default-equation-work/(?P<event_type_id>\d+)/$", work.views.json_default_equation_work,
+        name="json_default_equation_work"),
 
     # bum2
     url(r"^your-projects/$", work.views.your_projects, name="your_projects"),
