@@ -69,6 +69,8 @@ urlpatterns = [
         name="change_value_equation_bucket_rule_work"),
     url(r"^delete-value-equation-bucket-rule-work/(?P<rule_id>\d+)/$", work.views.delete_value_equation_bucket_rule_work,
         name="delete_value_equation_bucket_rule_work"),
+    url(r"^json-default-equation-work/(?P<event_type_id>\d+)/$", work.views.json_default_equation_work,
+        name="json_default_equation_work"),
 
     # bum2
     url(r"^your-projects/$", work.views.your_projects, name="your_projects"),

@@ -7218,3 +7218,10 @@ def value_equation_sandbox_work(request, value_equation_id):
         "ve": ve,
         "context_agent": context_agent,
     })
+
+
+def json_default_equation_work(request, event_type_id):
+    et = get_object_or_404(EventType, pk=event_type_id)
+    equation = et.default_event_value_equation()
+    data = simplejson.dumps(equation, ensure_ascii=False)
+    return HttpResponse(data, content_type="text/json-comment-filtered")
