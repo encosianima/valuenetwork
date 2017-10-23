@@ -751,13 +751,13 @@ class EconomicAgent(models.Model):
         ps = self.processes.all()
         oset = {p.independent_demand() for p in ps if p.independent_demand()}
         return list(oset)
-        
+
     def planned_orders(self):
         return [o for o in self.orders() if o.kanban_state() == "planned"]
-        
+
     def doing_orders(self):
         return [o for o in self.orders() if o.kanban_state() == "doing"]
-        
+
     def finished_orders(self):
         return [o for o in self.orders() if o.kanban_state() == "done"]
 
@@ -2503,6 +2503,8 @@ class EconomicResourceType(models.Model):
         return order
 
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
+        if not start_date: # fix tests error
+            start_date = datetime.date.today()
         #pr changed
         pts, inheritance = self.staged_process_type_sequence()
         order = Order(
@@ -3621,7 +3623,7 @@ class Order(models.Model):
             due_label,
             self.due_date.strftime('%Y-%m-%d'),
             ])
-            
+
     def kanban_label(self):
         name = self.name
         if not name:
@@ -3630,17 +3632,17 @@ class Order(models.Model):
                 name = process.name
             else:
                 name = str(self.id)
-                
+
         return "".join(
-            [name, 
+            [name,
             ", due: ",
             self.due_date.strftime('%Y-%m-%d'),
             ])
-            
+
     def number_of_processes(self):
         procs = self.unordered_processes()
         return len(list(procs))
-        
+
 
     @models.permalink
     def get_absolute_url(self):
@@ -3655,14 +3657,14 @@ class Order(models.Model):
 
     def node_id(self):
         return "-".join(["Order", str(self.id)])
-        
+
     def kanban_state(self):
         if not self.has_open_processes():
             return "done"
         if self.has_started_processes():
             return "doing"
         return "planned"
-        
+
     def timeline_title(self):
         return self.__unicode__()
 
@@ -3683,7 +3685,7 @@ class Order(models.Model):
 
     def work_requirements(self):
         return []
-        
+
     def naming_process(self):
         procs = self.all_processes()
         if not procs:
@@ -3853,7 +3855,7 @@ class Order(models.Model):
                 answer = True
                 break
         return answer
-        
+
     def has_started_processes(self):
         answer = False
         processes = self.unordered_processes()
@@ -6726,7 +6728,7 @@ class Process(models.Model):
 
     def unplanned_work_events(self):
         return self.work_events().filter(commitment__isnull=True)
-        
+
     def unplanned_work_events_condensed(self):
         event_list = self.unplanned_work_events()
         condensed_events = []
