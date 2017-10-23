@@ -6992,15 +6992,17 @@ def value_equations_work(request, agent_id):
     })
 
 @login_required
-def create_value_equation_work(request):
+def create_value_equation_work(request, agent_id):
+    context_agent = get_object_or_404(EconomicAgent, id=agent_id)
     if request.method == "POST":
-        ve_form = ValueEquationForm(data=request.POST)
+        ve_form = VEForm(data=request.POST)
         if ve_form.is_valid():
             ve = ve_form.save(commit=False)
+            ve.context_agent = context_agent
             ve.created_by = request.user
             ve.save()
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/edit-value-equation-work', ve.context_agent.id, ve.id))
+        % ('work/edit-value-equation-work', agent_id, ve.id))
 
 @login_required
 def create_value_equation_bucket_work(request, value_equation_id):
@@ -7022,11 +7024,11 @@ def edit_value_equation_work(request, value_equation_id=None, agent_id=None):
     value_equation_bucket_form = None
     if value_equation_id:
         value_equation = get_object_or_404(ValueEquation, id=value_equation_id)
-        value_equation_form = ValueEquationForm(instance=value_equation)
+        value_equation_form = VEForm(instance=value_equation)
         value_equation_bucket_form = ValueEquationBucketForm()
         context_agent = value_equation.context_agent
     else:
-        value_equation_form = ValueEquationForm()
+        value_equation_form = VEForm()
         context_agent = EconomicAgent.objects.get(pk=agent_id)
     agent = get_agent(request)
     test_results = []
@@ -7059,7 +7061,7 @@ def edit_value_equation_work(request, value_equation_id=None, agent_id=None):
 def change_value_equation_work(request, value_equation_id):
     ve = get_object_or_404(ValueEquation, id=value_equation_id)
     if request.method == "POST":
-        ve_form = ValueEquationForm(instance=ve, data=request.POST)
+        ve_form = VEForm(instance=ve, data=request.POST)
         if ve_form.is_valid():
             ve = ve_form.save(commit=False)
             ve.changed_by = request.user

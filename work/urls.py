@@ -57,7 +57,7 @@ urlpatterns = [
     #url(r"^edit-value-equation-work/$", work.views.edit_value_equation_work,
     #    name="edit_value_equation_work"),
     url(r"^delete-value-equation-work/(?P<value_equation_id>\d+)/(?P<agent_id>\d+)/$", work.views.delete_value_equation_work, name="delete_value_equation_work"),
-    url(r"^create-value-equation-work/$", work.views.create_value_equation_work, name="create_value_equation_work"),
+    url(r"^create-value-equation-work/(?P<agent_id>\d+)/$", work.views.create_value_equation_work, name="create_value_equation_work"),
     url(r"^change-value-equation-work/(?P<value_equation_id>\d+)/$", work.views.change_value_equation_work, name="change_value_equation_work"),
     url(r"^create-value-equation-bucket-work/(?P<value_equation_id>\d+)/$", work.views.create_value_equation_bucket_work, name="create_value_equation_bucket_work"),
     url(r"^change-value-equation-bucket-work/(?P<bucket_id>\d+)/$", work.views.change_value_equation_bucket_work,

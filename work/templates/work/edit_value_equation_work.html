@@ -117,7 +117,7 @@ th
                         <h3 id="create-ve-label">{% trans "Create Value Equation" %}</h3>
                     </div>
                     <div class="modal-body">
-                        <form class="validateMe" action="{% url "create_value_equation_work" %}" method="POST" >
+                        <form class="validateMe" action="{% url "create_value_equation_work" agent_id=context_agent.id %}" method="POST" >
                             {% csrf_token %}
                             {{ value_equation_form }}
                             <div class="modal-footer">
