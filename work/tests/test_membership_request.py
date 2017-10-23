@@ -48,7 +48,7 @@ class MembershipRequestTestCase(LiveServerTestCase):
         # Anonymous user fills the membership request form.
         s.get('%s%s' % (self.live_server_url, "/freedom-coop"))
         self.wait_loading(s, '//title[contains(text(), "Freedom Coop")]')
-        s.find_element_by_link_text("Join Freedom Coop").click()
+        s.find_element_by_id("join-page-but").click()
         self.wait_loading(s, '//title[contains(text(), "Request Membership at FreedomCoop")]')
         s.find_element_by_id("id_name").send_keys("test_name01")
         s.find_element_by_id("id_requested_username").send_keys("test_user01")
