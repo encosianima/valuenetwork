@@ -14,13 +14,13 @@
 <style>
 
 .column {
-    background-color: whitesmoke; 
+    background-color: whitesmoke;
     border: 1px solid gainsboro;
     padding: 6px;
     position: relative;
 }
 .card {
-    background-color: #FFFFB2; 
+    background-color: #FFFFB2;
     border: 1px solid gainsboro;
     padding: 6px;
     margin-bottom: 6px;
@@ -36,7 +36,7 @@
     text-align: center;
 }
 .indent {
-    margin-left: 2em;
+    /*margin-left: 2em;*/
 }
 .btn-primary {
     margin-top: 0;
@@ -111,7 +111,7 @@ li {
     <div class="container">
         {% include "_messages.html" %}
     <div class="row-fluid">
-    
+
     <legend>
         <a class="indent" href="{% url 'members_agent' agent_id=project.id %}">{{ project.name }}</a> > {% trans "Fake Kanban" %}</legend>
 
@@ -125,7 +125,7 @@ li {
                     </label>
                     <div class="controls fltr" style="display: inline;" >
                         {{ filter_form.resource_type }}
-                    </div>                    
+                    </div>
                 </div>
                 <input type="submit" name="submit" class="btn btn-info fltr-label" style="display: inline; " value="{% trans 'Reload' %}" />
             </form>
@@ -157,19 +157,19 @@ li {
                                     <div class="work">
                                         <ul>
                                             {% for req in process.work_requirements %}
-                                                <li><i class="icon-wrench"></i> 
+                                                <li><i class="icon-wrench"></i>
                                                     {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
                                                 </li>
                                             {% endfor %}
                                         </ul>
                                     </div>
-                                    
+
                                 {% else %}
                                     <i class="icon-calendar"></i> <a href="{% url 'order_plan' order_id=plan.id %}" title="Plan">
                                     {{ plan.kanban_label }}</a>
                                 {% endif %}
                             {% endwith%}
-                            
+
                         </div>
                         {% if plan.unordered_processes and not plan.naming_process %}
                         <div class="card-processes">
@@ -183,19 +183,19 @@ li {
                                         <div class="work">
                                         <ul>
                                             {% for req in process.work_requirements %}
-                                                <li><i class="icon-wrench"></i> 
+                                                <li><i class="icon-wrench"></i>
                                                     {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
                                                 </li>
                                             {% endfor %}
                                         </ul>
-                                        
+
                                     </div>
                                     </li>
                                 {% endfor %}
                             </ul>
                         </div>
                         {% endif%}
-                        
+
                     </div>
             {% endfor %}
 
@@ -212,7 +212,7 @@ li {
                                     <div class="work">
                                         <ul>
                                             {% for req in process.work_requirements %}
-                                                <li><i class="icon-wrench"></i> 
+                                                <li><i class="icon-wrench"></i>
                                                     {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
                                                     <ul>
                                                         {% for summary in req.fulfilling_events_condensed %}
@@ -238,7 +238,7 @@ li {
                                     {{ plan.kanban_label }}</a>
                                 {% endif %}
                             {% endwith%}
-                            
+
                         </div>
                         {% if plan.unordered_processes and not plan.naming_process %}
                         <div class="card-processes">
@@ -256,7 +256,7 @@ li {
                                          <div class="work">
                                         <ul>
                                             {% for req in process.work_requirements %}
-                                                <li><i class="icon-wrench"></i> 
+                                                <li><i class="icon-wrench"></i>
                                                     {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
                                                     <ul>
                                                         {% for summary in req.fulfilling_events_condensed %}
@@ -299,7 +299,7 @@ li {
                                      <div class="work">
                                         <ul>
                                             {% for req in process.work_requirements %}
-                                                <li><i class="icon-wrench"></i> 
+                                                <li><i class="icon-wrench"></i>
                                                     {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
                                                     <ul>
                                                         {% for summary in req.fulfilling_events_condensed %}
@@ -339,7 +339,7 @@ li {
                                          <div class="work">
                                         <ul>
                                             {% for req in process.work_requirements %}
-                                                <li><i class="icon-wrench"></i> 
+                                                <li><i class="icon-wrench"></i>
                                                     {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
                                                     <ul>
                                                         {% for summary in req.fulfilling_events_condensed %}
