@@ -15,6 +15,7 @@ from django.template.defaultfilters import slugify
 import json as simplejson
 from django.db.models.functions import Lower
 from django.conf import settings
+from django.urls import reverse
 
 from faircoin import utils as faircoin_utils
 from easy_thumbnails.fields import ThumbnailerImageField
@@ -6339,6 +6340,12 @@ class Process(models.Model):
     def get_absolute_url(self):
         return ('process_details', (),
             { 'process_id': str(self.id),})
+                
+    def get_notification_url(self):
+        if 'work.apps.WorkAppConfig' in settings.INSTALLED_APPS:
+            return reverse('process_logging', kwargs={ 'process_id': str(self.id)})
+        else:
+            return reverse('process_details', kwargs={ 'process_id': str(self.id)})
 
     def save(self, *args, **kwargs):
         pt_name = ""
