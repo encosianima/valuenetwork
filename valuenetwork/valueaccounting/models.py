@@ -12460,11 +12460,7 @@ class EconomicEvent(models.Model):
         prefix = self.form_prefix()
         qty_help = "up to 2 decimal places"
         if unit:
-            if unit.unit_type == "time":
-                from valuenetwork.valueaccounting.forms import WorkEventChangeForm
-                return WorkEventChangeForm(instance=self, prefix=prefix, data=data)
-            else:
-                qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+            qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         from valuenetwork.valueaccounting.forms import InputEventForm
         return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
 
