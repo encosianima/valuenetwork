@@ -7008,3 +7008,254 @@ def invoice_number(request):
         "form": form,
         "invoice_numbers": invoice_numbers,
     })
+
+
+# Value equations
+
+@login_required
+def value_equations_work(request, agent_id):
+    context_agent = get_object_or_404(EconomicAgent, pk=agent_id)
+    agent = get_agent(request)
+    value_equations = ValueEquation.objects.filter(context_agent=context_agent)
+
+    return render(request, "work/value_equations_work.html", {
+        "help": get_help("value_equations"),
+        "value_equations": value_equations,
+        "agent": agent,
+        "context_agent": context_agent,
+    })
+
+@login_required
+def create_value_equation_work(request, agent_id):
+    context_agent = get_object_or_404(EconomicAgent, id=agent_id)
+    if request.method == "POST":
+        ve_form = VEForm(data=request.POST)
+        if ve_form.is_valid():
+            ve = ve_form.save(commit=False)
+            ve.context_agent = context_agent
+            ve.created_by = request.user
+            ve.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/edit-value-equation-work', agent_id, ve.id))
+
+@login_required
+def create_value_equation_bucket_work(request, value_equation_id):
+    ve = get_object_or_404(ValueEquation, id=value_equation_id)
+    if request.method == "POST":
+        veb_form = ValueEquationBucketForm(data=request.POST)
+        if veb_form.is_valid():
+            veb = veb_form.save(commit=False)
+            veb.value_equation = ve
+            veb.created_by = request.user
+            veb.save()
+    #import pdb; pdb.set_trace()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/edit-value-equation-work', ve.context_agent.id, ve.id))
+
+@login_required
+def edit_value_equation_work(request, value_equation_id=None, agent_id=None):
+    value_equation = None
+    value_equation_bucket_form = None
+    if value_equation_id:
+        value_equation = get_object_or_404(ValueEquation, id=value_equation_id)
+        value_equation_form = VEForm(instance=value_equation)
+        value_equation_bucket_form = ValueEquationBucketForm()
+        context_agent = value_equation.context_agent
+    else:
+        value_equation_form = VEForm()
+        context_agent = EconomicAgent.objects.get(pk=agent_id)
+    agent = get_agent(request)
+    test_results = []
+    rpt_heading = ""
+    if request.method == "POST":
+        rule_id = int(request.POST['test'])
+        vebr = ValueEquationBucketRule.objects.get(id=rule_id)
+        tr = vebr.test_results()
+        nbr = len(tr)
+        if nbr > 50:
+            nbr = 50
+        count = 0
+        while count < nbr:
+            tr[count].claim_amount = vebr.compute_claim_value(tr[count])
+            test_results.append(tr[count])
+            count+=1
+        rpt_heading = "Bucket " + str(vebr.value_equation_bucket.sequence) + " " + vebr.event_type.name
+
+    return render(request, "work/edit_value_equation_work.html", {
+        "value_equation": value_equation,
+        "agent": agent,
+        "context_agent": context_agent,
+        "value_equation_form": value_equation_form,
+        "value_equation_bucket_form": value_equation_bucket_form,
+        "test_results": test_results,
+        "rpt_heading": rpt_heading,
+    })
+
+@login_required
+def change_value_equation_work(request, value_equation_id):
+    ve = get_object_or_404(ValueEquation, id=value_equation_id)
+    if request.method == "POST":
+        ve_form = VEForm(instance=ve, data=request.POST)
+        if ve_form.is_valid():
+            ve = ve_form.save(commit=False)
+            ve.changed_by = request.user
+            ve.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/edit-value-equation-work', ve.context_agent.id, ve.id))
+
+@login_required
+def delete_value_equation_work(request, value_equation_id, agent_id):
+    ve = get_object_or_404(ValueEquation, id=value_equation_id)
+    ve.delete()
+    return HttpResponseRedirect('/%s/%s/'
+        % ('work/value-equations-work', agent_id))
+
+@login_required
+def change_value_equation_bucket_work(request, bucket_id):
+    veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
+    ve = veb.value_equation
+    if request.method == "POST":
+        veb_form = ValueEquationBucketForm(prefix=str(veb.id), instance=veb, data=request.POST)
+        if veb_form.is_valid():
+            veb = veb_form.save(commit=False)
+            veb.changed_by = request.user
+            veb.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/edit-value-equation-work', ve.context_agent.id, ve.id))
+
+@login_required
+def delete_value_equation_bucket_work(request, bucket_id):
+    veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
+    ve = veb.value_equation
+    veb.delete()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/edit-value-equation-work', ve.context_agent.id, ve.id))
+
+@login_required
+def create_value_equation_bucket_rule_work(request, bucket_id):
+    veb = get_object_or_404(ValueEquationBucket, id=bucket_id)
+    ve = veb.value_equation
+    if request.method == "POST":
+        vebr_form = ValueEquationBucketRuleForm(prefix=str(bucket_id), data=request.POST)
+        if vebr_form.is_valid():
+            vebr = vebr_form.save(commit=False)
+            vebr.value_equation_bucket = veb
+            vebr.created_by = request.user
+            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None, prefix=str(bucket_id), data=request.POST)
+            if filter_form.is_valid():
+                vebr.filter_rule = filter_form.serialize()
+                vebr.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/edit-value-equation-work', ve.context_agent.id, ve.id))
+
+@login_required
+def change_value_equation_bucket_rule_work(request, rule_id):
+    vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
+    ve = vebr.value_equation_bucket.value_equation
+    if request.method == "POST":
+        vebr_form = ValueEquationBucketRuleForm(prefix="vebr" + str(vebr.id), instance=vebr, data=request.POST)
+        if vebr_form.is_valid():
+            vebr = vebr_form.save(commit=False)
+            vebr.changed_by = request.user
+            filter_form = BucketRuleFilterSetForm(context_agent=None, event_type=None, pattern=None, prefix="vebrf" + str(rule_id), data=request.POST)
+            if filter_form.is_valid():
+                vebr.filter_rule = filter_form.serialize()
+                vebr.save()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/edit-value-equation-work', ve.context_agent.id, ve.id))
+
+@login_required
+def delete_value_equation_bucket_rule_work(request, rule_id):
+    vebr = get_object_or_404(ValueEquationBucketRule, id=rule_id)
+    ve = vebr.value_equation_bucket.value_equation
+    vebr.delete()
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/edit-value-equation-work', ve.context_agent.id, ve.id))
+
+@login_required
+def value_equation_sandbox_work(request, value_equation_id):
+    #ve = None
+    #ves = ValueEquation.objects.all()
+    #init = {}
+    #if value_equation_id:
+    ve = ValueEquation.objects.get(id=value_equation_id)
+    init = {"value_equation": ve}
+    context_agent = ve.context_agent
+    header_form = VESandboxForm(data=request.POST or None)
+    #buckets = []
+    agent_totals = []
+    details = []
+    total = None
+    hours = None
+    agent_subtotals = None
+    event_count = 0
+    #if ves:
+    #    if not ve:
+    #        ve = ves[0]
+    buckets = ve.buckets.all()
+    if request.method == "POST":
+        if header_form.is_valid():
+            data = header_form.cleaned_data
+            value_equation = ve #data["value_equation"]
+            amount = data["amount_to_distribute"]
+            serialized_filters = {}
+            for bucket in buckets:
+                if bucket.filter_method:
+                    bucket_form = bucket.filter_entry_form(data=request.POST or None)
+                    if bucket_form.is_valid():
+                        ser_string = bucket_data = bucket_form.serialize()
+                        serialized_filters[bucket.id] = ser_string
+                        bucket.form = bucket_form
+            agent_totals, details = ve.run_value_equation(amount_to_distribute=Decimal(amount), serialized_filters=serialized_filters)
+            total = sum(at.quantity for at in agent_totals)
+            hours = sum(d.quantity for d in details)
+            #daniel = EconomicAgent.objects.get(nick="Daniel")
+            #dan_details = [d for d in details if d.from_agent==daniel]
+            agent_subtotals = {}
+            for d in details:
+                key = "-".join([str(d.from_agent.id), str(d.vebr.id)])
+                if key not in agent_subtotals:
+                    agent_subtotals[key] = AgentSubtotal(d.from_agent, d.vebr)
+                sub = agent_subtotals[key]
+                sub.quantity += d.quantity
+                try:
+                    sub.value += d.share
+                except AttributeError:
+                    sub.value = Decimal("0.0")
+                try:
+                    sub.distr_amt += d.distr_amt
+                except AttributeError:
+                    sub.distr_amt = Decimal("0.0")
+                sub.rate = 0
+                if sub.distr_amt and sub.quantity:
+                    sub.rate = (sub.distr_amt / sub.quantity).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
+            agent_subtotals = agent_subtotals.values()
+            agent_subtotals = sorted(agent_subtotals, key=methodcaller('key'))
+
+            details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
+            event_count = len(details)
+
+    else:
+        for bucket in buckets:
+            if bucket.filter_method:
+                bucket.form = bucket.filter_entry_form()
+
+    return render(request, "work/value_equation_sandbox_work.html", {
+        "header_form": header_form,
+        "buckets": buckets,
+        "agent_totals": agent_totals,
+        "details": details,
+        "agent_subtotals": agent_subtotals,
+        "total": total,
+        "event_count": event_count,
+        "hours": hours,
+        "ve": ve,
+        "context_agent": context_agent,
+    })
+
+
+def json_default_equation_work(request, event_type_id):
+    et = get_object_or_404(EventType, pk=event_type_id)
+    equation = et.default_event_value_equation()
+    data = simplejson.dumps(equation, ensure_ascii=False)
+    return HttpResponse(data, content_type="text/json-comment-filtered")
