@@ -113,7 +113,7 @@ li {
     <div class="row-fluid">
 
     <legend>
-        <a class="indent" href="{% url 'members_agent' agent_id=project.id %}">{{ project.name }}</a> > {% trans "Fake Kanban" %}</legend>
+        <a class="indent" href="{% url 'members_agent' agent_id=project.id %}">{{ project.name }}</a> > {% trans "Kanbans" %}</legend>
 
         <div class="span12">
 {% comment %}
@@ -226,7 +226,7 @@ li {
                                                     <li>Unplanned work:</li>
                                                     <ul>
                                                         {% for event in events %}
-                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.quantity }}</li>
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
                                                         {% endfor %}
                                                     </ul>
                                                 {% endif %}
@@ -270,7 +270,7 @@ li {
                                                     <li>Unplanned work:</li>
                                                     <ul>
                                                         {% for event in events %}
-                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.quantity }}</li>
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
                                                         {% endfor %}
                                                     </ul>
                                                 {% endif %}
@@ -313,7 +313,7 @@ li {
                                                     <li>Unplanned work:</li>
                                                     <ul>
                                                         {% for event in events %}
-                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.quantity }}</li>
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
                                                         {% endfor %}
                                                     </ul>
                                                 {% endif %}
@@ -353,7 +353,7 @@ li {
                                                     <li>Unplanned work:</li>
                                                     <ul>
                                                         {% for event in events %}
-                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.quantity }}</li>
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
                                                         {% endfor %}
                                                     </ul>
                                                 {% endif %}
