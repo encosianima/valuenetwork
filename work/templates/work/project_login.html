@@ -94,8 +94,8 @@ body {
           </h3>
         </td>
         <td width="50%" class="login-block">
-          <h3>{% trans "Log in to the OCP" %}</h3>
-	  <p>{% trans "If you already did it, and have user and password, login here." %}</p>
+          <h3>{% trans "Log in to OCP" %}</h3>
+	  <p>{% trans "If you already have an user and password, login here." %}</p>
           <div class="log">
             <form method="POST" action="{% url "project_login" form_slug=form_slug %}" autocapitalize="off" class="form-horizontal"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
                 {% csrf_token %}
