@@ -839,10 +839,10 @@ class EconomicAgent(models.Model):
 
     def contributions(self):
         return self.given_events.filter(is_contribution=True)
-    
+
     def involved_in_events(self):
         return EconomicEvent.objects.filter(Q(from_agent=self)|Q(to_agent=self)|Q(context_agent=self))
-    
+
     def involved_in_commitments(self):
         return Commitment.objects.filter(Q(from_agent=self)|Q(to_agent=self)|Q(context_agent=self))
 
@@ -1154,6 +1154,26 @@ class EconomicAgent(models.Model):
                     resp = False
         return resp
 
+    def need_tasks(self):
+        resp = True
+        ags = self.related_contexts()
+        add = 0
+        if not self in ags:
+            add = 1
+            ags.append(self)
+        noneed = []
+        for ag in ags:
+            try:
+                if ag.project and ag.project.services():
+                    if not 'tasks' in ag.project.services():
+                        noneed.append(ag)
+            except:
+                pass
+        if len(ags)-add == len(noneed):
+            resp = False
+        if self in noneed:
+            resp = False
+        return resp
 
     def invoicing_candidates(self):
         ctx = self.related_contexts()
@@ -2288,8 +2308,8 @@ class EconomicResourceType(models.Model):
     def category(self):
         if (self.behavior == "other"
             or self.behavior == "consumed"
-            or self.behavior == "used" 
-            or self.behavior == "produced" 
+            or self.behavior == "used"
+            or self.behavior == "produced"
             or self.behavior == "cited"):
             return "INVENTORY"
         elif self.behavior == "work":
@@ -2300,8 +2320,8 @@ class EconomicResourceType(models.Model):
     @property
     def process_category(self):
         if (self.behavior ==  "consumed"
-            or self.behavior == "used" 
-            or self.behavior == "produced" 
+            or self.behavior == "used"
+            or self.behavior == "produced"
             or self.behavior == "cited"):
             return self.behavior
         else:
@@ -3928,7 +3948,7 @@ class Order(models.Model):
 
     #TODO this is a start at something, check if it is still useful
     #assumes the order itself is already saved (adapted from view plan_from_recipe)
-    #def create_order_details_from_recipe_api(self, resource_type_id=None, rt_list_id=None, resource_id=None): 
+    #def create_order_details_from_recipe_api(self, resource_type_id=None, rt_list_id=None, resource_id=None):
     #    resource_types = []
     #    resource_type_lists = []
     #    selected_context_agent = self.provider
@@ -4825,7 +4845,7 @@ class EconomicResourceManager(models.Manager):
 
     def onhand(self):
         return EconomicResource.objects.filter(quantity__gt=0)
-    
+
     def all_economic_resources(self):
         return EconomicResource.objects.all()
 
@@ -4928,10 +4948,10 @@ class EconomicResource(models.Model):
 
     @property #ValueFlows
     def category(self):
-        if (self.resource_type.behavior == "other" 
+        if (self.resource_type.behavior == "other"
         or self.resource_type.behavior == "consumed"
-        or self.resource_type.behavior == "used" 
-        or self.resource_type.behavior == "produced" 
+        or self.resource_type.behavior == "used"
+        or self.resource_type.behavior == "produced"
         or self.resource_type.behavior == "cited"):
             return "INVENTORY"
         if self.resource_type.behavior == "work":
@@ -6841,7 +6861,7 @@ class Process(models.Model):
     def get_absolute_url(self):
         return ('process_details', (),
             { 'process_id': str(self.id),})
-                
+
     def get_notification_url(self):
         if 'work.apps.WorkAppConfig' in settings.INSTALLED_APPS:
             return reverse('process_logging', kwargs={ 'process_id': str(self.id)})
@@ -6896,15 +6916,15 @@ class Process(models.Model):
     @property #ValueFlows
     def planned_duration(self):
         return self.end_date - self.start_date
-    
+
     #@property #ValueFlows
     #def numeric_duration(self):
     #    return self.end_date - self.start_date #TODO get in tune with VF, get VF resolved
-    
+
     #@property #ValueFlows
     #def temporal_unit(self):
     #    return "Days" #TODO get in tune with VF, get VF resolved
-    
+
     @property #ValueFlows
     def is_finished(self):
         return self.finished
@@ -6931,7 +6951,7 @@ class Process(models.Model):
                 rt_selection = "all"
         except:
             rt_selection = "all"
-        #items = 
+        #items =
         #if rt_selection == "project":
         return rt_selection #temp
 
@@ -8749,7 +8769,7 @@ class Transfer(models.Model):
 
     @property #ValueFlows
     def exchange_agreement(self):
-        #VF does not have an exchange unless it is created ahead of time for reciprocal commitments 
+        #VF does not have an exchange unless it is created ahead of time for reciprocal commitments
         exch = self.exchange
         if exch.has_reciprocal():
             return exch
@@ -11721,7 +11741,7 @@ class EconomicEvent(models.Model):
         #        old_resource = None
         #    else:
         #        has_new_resource = True
-                
+
         resource = self.resource
         if resource:
             #quantity = delta or self.quantity
@@ -11752,7 +11772,7 @@ class EconomicEvent(models.Model):
                             resource.quantity = resource.quantity + changed_qty
                 else:
                     resource.quantity = resource.quantity + self.quantity
-                resource.save()                
+                resource.save()
                 #resource.quantity += quantity
                 #resource.save()
         else:
@@ -11794,7 +11814,7 @@ class EconomicEvent(models.Model):
                         resource.save()
                     else:
                         resource.revert_to_previous_stage()
-                
+
 
     def due_date(self):
         if self.commitment:
