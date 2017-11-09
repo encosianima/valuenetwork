@@ -46,9 +46,9 @@ class MembershipRequestTestCase(LiveServerTestCase):
         s.maximize_window()
 
         # Anonymous user fills the membership request form.
-        s.get('%s%s' % (self.live_server_url, "/"))
-        self.wait_loading(s, '//title[contains(text(), "OCP: Open Collaborative Platform")]')
-        s.find_element_by_link_text("Join FreedomCoop").click()
+        s.get('%s%s' % (self.live_server_url, "/freedom-coop"))
+        self.wait_loading(s, '//title[contains(text(), "Freedom Coop")]')
+        s.find_element_by_id("join-page-but").click()
         self.wait_loading(s, '//title[contains(text(), "Request Membership at FreedomCoop")]')
         s.find_element_by_id("id_name").send_keys("test_name01")
         s.find_element_by_id("id_requested_username").send_keys("test_user01")
@@ -58,8 +58,8 @@ class MembershipRequestTestCase(LiveServerTestCase):
         self.wait_loading(s, '//title[contains(text(), "Thank you for your membership request")]')
 
         # Admin login.
-        s.get('%s%s' % (self.live_server_url, "/"))
-        self.wait_loading(s, '//title[contains(text(), "OCP: Open Collaborative Platform")]')
+        s.get('%s%s' % (self.live_server_url, "/freedom-coop"))
+        self.wait_loading(s, '//title[contains(text(), "Freedom Coop")]')
         s.find_element_by_id("id_username").send_keys("admin_user")
         s.find_element_by_id("id_password").send_keys("admin_passwd")
         s.find_element_by_xpath('//button[@type="submit"]').click()

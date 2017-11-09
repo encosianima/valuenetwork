@@ -1,0 +1,416 @@
+{% extends "work_base.html" %}
+
+{% load i18n %}
+{% load staticfiles %}
+{% load bootstrap_tags %}
+
+{% block head_title %}{% trans "Fake Kanban for" %}: {{ project }}{% endblock %}
+
+{% block extra_head %}
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
+
+<style>
+
+.column {
+    background-color: whitesmoke;
+    border: 1px solid gainsboro;
+    padding: 6px;
+    position: relative;
+}
+.card {
+    background-color: #FFFFB2;
+    border: 1px solid gainsboro;
+    padding: 6px;
+    margin-bottom: 6px;
+}
+
+.arrow {
+    margin-left: .6em;
+}
+.top {
+    color: firebrick;
+    font-weight: bold;
+    font-size: 1.4em;
+    text-align: center;
+}
+.indent {
+    /*margin-left: 2em;*/
+}
+.btn-primary {
+    margin-top: 0;
+    margin-bottom: 5px;
+    margin-left: 10px;
+}
+.card-hdr {
+    font-weight: bold;
+}
+.work {
+    font-weight: normal;
+}
+.item-description {
+    height: 50px;
+    width: 520px;
+}
+img {
+    margin: 0;
+}
+.gray {
+    color: #A6A6A6;
+}
+h3 {
+    color: firebrick;
+}
+.notes {
+    margin-left: 3em;
+    padding-right: 2em;
+    font-style: italic;
+    font-size: .9em;
+}
+.modal-hdg {
+    font-weight: bold;
+    color: #5C8A8A;
+    font-size: 1.3em;
+}
+.xfer {
+    width: 600px;
+}
+.fltr {
+    margin-right: 1em;
+}
+.fltr-label {
+    vertical-align: 7px;
+}
+.delete-form {
+    margin-bottom: 0;
+}
+.rpt {
+    font-weight: bold;
+    float: right;
+    font-size: 1.2em;
+}
+
+.green {
+    color: green;
+}
+
+.other-project {
+    color: firebrick;
+}
+
+li {
+    list-style-type: none;
+}
+</style>
+{% endblock %}
+
+{% block body_class %}board{% endblock %}
+
+{% block body_base %}
+    <div class="container">
+        {% include "_messages.html" %}
+    <div class="row-fluid">
+
+    <legend>
+        <a class="indent" href="{% url 'members_agent' agent_id=project.id %}">{{ project.name }}</a> > {% trans "Kanbans" %}</legend>
+
+        <div class="span12">
+{% comment %}
+            <form id="filterForm" action="." method="POST" >
+                {% csrf_token %}
+                <div id="div_id_resource_type" class="control-group" style="display: inline;" >
+                    <label for="id_context_agent" class="control-label fltr-label" style="display: inline;  " >
+                        {% trans "Resource Type" %}
+                    </label>
+                    <div class="controls fltr" style="display: inline;" >
+                        {{ filter_form.resource_type }}
+                    </div>
+                </div>
+                <input type="submit" name="submit" class="btn btn-info fltr-label" style="display: inline; " value="{% trans 'Reload' %}" />
+            </form>
+{% endcomment %}
+        </div>
+    </div>
+    <div class="row-fluid">
+        <div class="span4">
+            <span class="top">Planned</span>
+        </div>
+        <div class="span4">
+            <span class="top">Doing</span>
+
+        </div>
+        <div class="span4">
+            <span class="top">Done</span>
+
+        </div>
+    </div>
+	<div class="row-fluid">
+		<div class="span4 column">
+            {% for plan in project.planned_orders %}
+                    <div class="card">
+                        <div class="card-hdr">
+                            {% with plan.naming_process as process %}
+                                {% if process %}
+                                    <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >
+                                    {{ plan.kanban_label }}</a>
+                                    <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+
+                                {% else %}
+                                    <i class="icon-calendar"></i> <a href="{% url 'order_plan' order_id=plan.id %}" title="Plan">
+                                    {{ plan.kanban_label }}</a>
+                                {% endif %}
+                            {% endwith%}
+
+                        </div>
+                        {% if plan.unordered_processes and not plan.naming_process %}
+                        <div class="card-processes">
+                            <ul>
+                                {% for process in plan.all_processes %}
+                                    <li>
+                                        <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >{{ process.name }}</a>
+                                        {% if process.context_agent != project %}
+                                            <span class="other-project">In {{ process.context_agent }}</span>
+                                        {% endif %}
+                                        <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+
+                                    </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif%}
+
+                    </div>
+            {% endfor %}
+
+		</div>
+
+        <div class="span4 column">
+            {% for plan in project.doing_orders %}
+                    <div class="card">
+                        <div class="card-hdr">
+                            {% with plan.naming_process as process %}
+                                {% if process %}
+                                    <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >
+                                    {{ plan.kanban_label }}</a>
+                                    <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                    <ul>
+                                                        {% for summary in req.fulfilling_events_condensed %}
+                                                            <li><i class="icon-user"></i> {{ summary.agent }} {{ summary.quantity }} {{ req.unit_of_quantity }}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                            {% with process.unplanned_work_events_condensed as events %}
+                                                {% if events %}
+                                                    <li>Unplanned work:</li>
+                                                    <ul>
+                                                        {% for event in events %}
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </ul>
+                                    </div>
+                                {% else %}
+                                    <i class="icon-calendar"></i> <a href="{% url 'order_plan' order_id=plan.id %}" title="Plan">
+                                    {{ plan.kanban_label }}</a>
+                                {% endif %}
+                            {% endwith%}
+
+                        </div>
+                        {% if plan.unordered_processes and not plan.naming_process %}
+                        <div class="card-processes">
+                            <ul>
+                                {% for process in plan.all_processes %}
+                                    <li>
+                                        <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >{{ process.name }}</a>
+                                        {% if process.started %}
+                                            <span class="green">doing</span>
+                                        {% elif process.finished %}<b>done</b>
+                                        {% endif%}
+                                        {% if process.context_agent != project %}
+                                            <span class="other-project">In {{ process.context_agent }}</span>
+                                        {% endif %}
+                                         <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                    <ul>
+                                                        {% for summary in req.fulfilling_events_condensed %}
+                                                            <li><i class="icon-user"></i> {{ summary.agent }} {{ summary.quantity }} {{ req.unit_of_quantity }}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                            {% with process.unplanned_work_events_condensed as events %}
+                                                {% if events %}
+                                                    <li>Unplanned work:</li>
+                                                    <ul>
+                                                        {% for event in events %}
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </ul>
+                                    </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif%}
+
+                    </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="span4 column">
+            {% for plan in project.finished_orders %}
+                    <div class="card">
+                        <div class="card-hdr">
+                            {% with plan.naming_process as process %}
+                                {% if process %}
+                                    <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >
+                                    {{ plan.kanban_label }}</a>
+                                     <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                    <ul>
+                                                        {% for summary in req.fulfilling_events_condensed %}
+                                                            <li><i class="icon-user"></i> {{ summary.agent }} {{ summary.quantity }} {{ req.unit_of_quantity }}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                            {% with process.unplanned_work_events_condensed as events %}
+                                                {% if events %}
+                                                    <li>Unplanned work:</li>
+                                                    <ul>
+                                                        {% for event in events %}
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </ul>
+                                    </div>
+                                {% else %}
+                                    <i class="icon-calendar"></i> <a href="{% url 'order_plan' order_id=plan.id %}" title="Plan">
+                                    {{ plan.kanban_label }}</a>
+                                {% endif %}
+                            {% endwith%}
+
+                        </div>
+                        {% if plan.unordered_processes and not plan.naming_process %}
+                        <div class="card-processes">
+                            <ul>
+                                {% for process in plan.all_processes %}
+                                    <li>
+                                        <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >{{ process.name }}</a>
+                                        {% if process.context_agent != project %}
+                                            <span class="other-project">In {{ process.context_agent }}</span>
+                                        {% endif %}
+                                         <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                    <ul>
+                                                        {% for summary in req.fulfilling_events_condensed %}
+                                                            <li><i class="icon-user"></i> {{ summary.agent }} {{ summary.quantity }} {{ req.unit_of_quantity }}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                            {% with process.unplanned_work_events_condensed as events %}
+                                                {% if events %}
+                                                    <li>Unplanned work:</li>
+                                                    <ul>
+                                                        {% for event in events %}
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </ul>
+                                    </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif%}
+
+                    </div>
+            {% endfor %}
+
+        </div>
+
+{% comment %}
+        <div class="span3 filter">
+            <h3 >{% trans "Filter Board" %}</h3>
+            <form id="category-form" action="." method="POST">
+                {% csrf_token %}
+                <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "Show All" %}</p>
+                <p>Owner: {{ resource_form.to_agent }}</p>
+                <p>Resource type: {{ resource_form.resource_type }}</p>
+                <p>Location: {{ resource_form.current_location }}</p>
+                {% for facet in facets %}
+                    <p class="facet"> {{ facet.name }} </p>
+                    {% for val in facet.values.all %}
+                        <p><input type="checkbox" class="category" id="{{ val }}" name="{{ val }}" value="{{ val }}" /> {{ val.value }}</p>
+                    {% endfor %}
+                {% endfor %}
+                <input type='hidden' id='categories' name='categories' value='' />
+                <input type="submit" name="submit" class="btn btn-info" value="Filter" />
+            </form>
+        </div>
+{% endcomment %}
+	</div>
+
+
+
+
+{% endblock %}
+{% block extra_script %}
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script src="{% static 'js/chosen.jquery.js' %}"></script>
+{% endblock %}
+{% block extra_body %}
+	{{ block.super }}
+    <script type="text/javascript">
+
+	$(document).ready(function(){
+
+
+
+	}); // end document.ready
+
+    </script>
+{% endblock %}
