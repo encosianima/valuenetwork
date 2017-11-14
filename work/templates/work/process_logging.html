@@ -689,7 +689,7 @@ hr {
 				                    {% for event in work_events %}
 					                    <div>
 					                    {{ event.event_date }} {{ event.quantity }} {{ event.unit_of_quantity.name  }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span>
-					                    {% if event.is_contribution %}<span class="payment">$</span>{% endif %}
+					                    {% if event.is_contribution %}<i class="icon-plus-sign"></i>{% endif %}
                                         {% if agent %}
 					                    {% if agent == event.from_agent or user == event.created_by  %}
 
