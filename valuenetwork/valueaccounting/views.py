@@ -8679,7 +8679,7 @@ def change_work_event(request, event_id):
     process = event.process
     if request.method == "POST":
         prefix = event.form_prefix()
-        form = WorkEventChangeForm(instance=event, prefix=prefix, data=request.POST)
+        form = InputEventAgentForm(instance=event, prefix=prefix, data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
             form.save()

@@ -14,13 +14,13 @@
 <style>
 
 .column {
-    background-color: whitesmoke; 
+    background-color: whitesmoke;
     border: 1px solid gainsboro;
     padding: 6px;
     position: relative;
 }
 .card {
-    background-color: #FFFFB2; 
+    background-color: #FFFFB2;
     border: 1px solid gainsboro;
     padding: 6px;
     margin-bottom: 6px;
@@ -36,7 +36,7 @@
     text-align: center;
 }
 .indent {
-    margin-left: 2em;
+    /*margin-left: 2em;*/
 }
 .btn-primary {
     margin-top: 0;
@@ -45,6 +45,9 @@
 }
 .card-hdr {
     font-weight: bold;
+}
+.work {
+    font-weight: normal;
 }
 .item-description {
     height: 50px;
@@ -96,6 +99,9 @@ h3 {
     color: firebrick;
 }
 
+li {
+    list-style-type: none;
+}
 </style>
 {% endblock %}
 
@@ -105,9 +111,9 @@ h3 {
     <div class="container">
         {% include "_messages.html" %}
     <div class="row-fluid">
-    
+
     <legend>
-        <a class="indent" href="{% url 'members_agent' agent_id=project.id %}">{{ project.name }}</a> > {% trans "Fake Kanban" %}</legend>
+        <a class="indent" href="{% url 'members_agent' agent_id=project.id %}">{{ project.name }}</a> > {% trans "Kanbans" %}</legend>
 
         <div class="span12">
 {% comment %}
@@ -119,7 +125,7 @@ h3 {
                     </label>
                     <div class="controls fltr" style="display: inline;" >
                         {{ filter_form.resource_type }}
-                    </div>                    
+                    </div>
                 </div>
                 <input type="submit" name="submit" class="btn btn-info fltr-label" style="display: inline; " value="{% trans 'Reload' %}" />
             </form>
@@ -144,25 +150,52 @@ h3 {
             {% for plan in project.planned_orders %}
                     <div class="card">
                         <div class="card-hdr">
-                            <a href="{% url 'order_plan' order_id=plan.id %}">
-                            {{ plan.kanban_label }}
-                            </a>
+                            {% with plan.naming_process as process %}
+                                {% if process %}
+                                    <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >
+                                    {{ plan.kanban_label }}</a>
+                                    <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+
+                                {% else %}
+                                    <i class="icon-calendar"></i> <a href="{% url 'order_plan' order_id=plan.id %}" title="Plan">
+                                    {{ plan.kanban_label }}</a>
+                                {% endif %}
+                            {% endwith%}
+
                         </div>
-                        {% if plan.unordered_processes %}
+                        {% if plan.unordered_processes and not plan.naming_process %}
                         <div class="card-processes">
                             <ul>
-                                {% for proc in plan.all_processes %}
+                                {% for process in plan.all_processes %}
                                     <li>
-                                        <a href="{% url 'process_logging' process_id=proc.id %}" title="Process" >{{ proc.name }}</a>
-                                        {% if proc.context_agent != project %}
-                                            <span class="other-project">In {{ proc.context_agent }}</span>
+                                        <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >{{ process.name }}</a>
+                                        {% if process.context_agent != project %}
+                                            <span class="other-project">In {{ process.context_agent }}</span>
                                         {% endif %}
+                                        <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+
+                                    </div>
                                     </li>
                                 {% endfor %}
                             </ul>
                         </div>
                         {% endif%}
-                        
+
                     </div>
             {% endfor %}
 
@@ -172,23 +205,78 @@ h3 {
             {% for plan in project.doing_orders %}
                     <div class="card">
                         <div class="card-hdr">
-                            <a href="{% url 'order_plan' order_id=plan.id %}">
-                            {{ plan.kanban_label }}
-                            </a>
+                            {% with plan.naming_process as process %}
+                                {% if process %}
+                                    <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >
+                                    {{ plan.kanban_label }}</a>
+                                    <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                    <ul>
+                                                        {% for summary in req.fulfilling_events_condensed %}
+                                                            <li><i class="icon-user"></i> {{ summary.agent }} {{ summary.quantity }} {{ req.unit_of_quantity }}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                            {% with process.unplanned_work_events_condensed as events %}
+                                                {% if events %}
+                                                    <li>Unplanned work:</li>
+                                                    <ul>
+                                                        {% for event in events %}
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </ul>
+                                    </div>
+                                {% else %}
+                                    <i class="icon-calendar"></i> <a href="{% url 'order_plan' order_id=plan.id %}" title="Plan">
+                                    {{ plan.kanban_label }}</a>
+                                {% endif %}
+                            {% endwith%}
+
                         </div>
-                        {% if plan.unordered_processes %}
+                        {% if plan.unordered_processes and not plan.naming_process %}
                         <div class="card-processes">
                             <ul>
-                                {% for proc in plan.all_processes %}
+                                {% for process in plan.all_processes %}
                                     <li>
-                                        <a href="{% url 'process_logging' process_id=proc.id %}" title="Process" >{{ proc.name }}</a>
-                                        {% if proc.started %}
+                                        <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >{{ process.name }}</a>
+                                        {% if process.started %}
                                             <span class="green">doing</span>
-                                        {% elif proc.finished %}<b>done</b>
+                                        {% elif process.finished %}<b>done</b>
                                         {% endif%}
-                                        {% if proc.context_agent != project %}
-                                            <span class="other-project">In {{ proc.context_agent }}</span>
+                                        {% if process.context_agent != project %}
+                                            <span class="other-project">In {{ process.context_agent }}</span>
                                         {% endif %}
+                                         <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                    <ul>
+                                                        {% for summary in req.fulfilling_events_condensed %}
+                                                            <li><i class="icon-user"></i> {{ summary.agent }} {{ summary.quantity }} {{ req.unit_of_quantity }}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                            {% with process.unplanned_work_events_condensed as events %}
+                                                {% if events %}
+                                                    <li>Unplanned work:</li>
+                                                    <ul>
+                                                        {% for event in events %}
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </ul>
+                                    </div>
                                     </li>
                                 {% endfor %}
                             </ul>
@@ -204,19 +292,74 @@ h3 {
             {% for plan in project.finished_orders %}
                     <div class="card">
                         <div class="card-hdr">
-                            <a href="{% url 'order_plan' order_id=plan.id %}">
-                            {{ plan.kanban_label }}
-                            </a>
+                            {% with plan.naming_process as process %}
+                                {% if process %}
+                                    <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >
+                                    {{ plan.kanban_label }}</a>
+                                     <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                    <ul>
+                                                        {% for summary in req.fulfilling_events_condensed %}
+                                                            <li><i class="icon-user"></i> {{ summary.agent }} {{ summary.quantity }} {{ req.unit_of_quantity }}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                            {% with process.unplanned_work_events_condensed as events %}
+                                                {% if events %}
+                                                    <li>Unplanned work:</li>
+                                                    <ul>
+                                                        {% for event in events %}
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </ul>
+                                    </div>
+                                {% else %}
+                                    <i class="icon-calendar"></i> <a href="{% url 'order_plan' order_id=plan.id %}" title="Plan">
+                                    {{ plan.kanban_label }}</a>
+                                {% endif %}
+                            {% endwith%}
+
                         </div>
-                        {% if plan.unordered_processes %}
+                        {% if plan.unordered_processes and not plan.naming_process %}
                         <div class="card-processes">
                             <ul>
-                                {% for proc in plan.all_processes %}
+                                {% for process in plan.all_processes %}
                                     <li>
-                                        <a href="{% url 'process_logging' process_id=proc.id %}" title="Process" >{{ proc.name }}</a>
-                                        {% if proc.context_agent != project %}
-                                            <span class="other-project">In {{ proc.context_agent }}</span>
+                                        <i class="icon-repeat"></i> <a href="{% url 'process_logging' process_id=process.id %}" title="Process" >{{ process.name }}</a>
+                                        {% if process.context_agent != project %}
+                                            <span class="other-project">In {{ process.context_agent }}</span>
                                         {% endif %}
+                                         <div class="work">
+                                        <ul>
+                                            {% for req in process.work_requirements %}
+                                                <li><i class="icon-wrench"></i>
+                                                    {{ req.resource_type }} {{ req.quantity }} {{ req.unit_of_quantity }}
+                                                    <ul>
+                                                        {% for summary in req.fulfilling_events_condensed %}
+                                                            <li><i class="icon-user"></i> {{ summary.agent }} {{ summary.quantity }} {{ req.unit_of_quantity }}
+                                                        {% endfor %}
+                                                    </ul>
+                                                </li>
+                                            {% endfor %}
+                                            {% with process.unplanned_work_events_condensed as events %}
+                                                {% if events %}
+                                                    <li>Unplanned work:</li>
+                                                    <ul>
+                                                        {% for event in events %}
+                                                            <li><i class="icon-user"></i> {{ event.agent }} {{ event.resource_type.name }} {{ event.quantity }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </ul>
+                                    </div>
                                     </li>
                                 {% endfor %}
                             </ul>

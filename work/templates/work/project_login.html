@@ -90,12 +90,12 @@ body {
           <h3>{% trans "Request Membership" %}</h3>
 	  <p>{% blocktrans %}The first step to become a member of this project and use OCP, is to fill the following membership form:{% endblocktrans %}</p>
 	  <h4>
-          <a class="btn" href="{% url 'join_request' form_slug=project.fobi_slug %}">{% trans "Join" %} {{ project.agent.name }}</a></h4>
+          <a class="btn" href="{% url 'join_request' form_slug=project.fobi_slug %}" id="join-page-but">{% trans "Join" %} {{ project.agent.name }}</a></h4>
           </h3>
         </td>
         <td width="50%" class="login-block">
-          <h3>{% trans "Log in to the OCP" %}</h3>
-	  <p>{% trans "If you already did it, and have user and password, login here." %}</p>
+          <h3>{% trans "Log in to OCP" %}</h3>
+	  <p>{% trans "If you already have an user and password, login here." %}</p>
           <div class="log">
             <form method="POST" action="{% url "project_login" form_slug=form_slug %}" autocapitalize="off" class="form-horizontal"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
                 {% csrf_token %}

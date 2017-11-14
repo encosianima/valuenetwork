@@ -154,13 +154,18 @@
             <a class="indent smaller" href="{% url "agents" %}">{% trans "All Agents" %}</a> -->
         {% endif %}
         <div class="subnav">
+                {% if agent.is_context and agent.need_tasks %}
+                    <a class="indent" href="{% url "fake_kanban" agent_id=agent.id %}">{% trans "Kanbans" %}</a>
+                {% endif %}
                {% if agent.faircoin_resource %}
                  {% if user_agent in agent.managers or user_agent == agent %}
                   <a class="indent" href="{% url "manage_faircoin_account" resource_id=agent.faircoin_resource.id %}">{% trans "FairAccount" %}</a>
                  {% endif %}
                {% endif %}
                {% if user_agent.is_staff or user_agent in agent.managers or user_agent in agent.participants or user_agent == agent %}
+                  {% if agent.is_context and agent.need_tasks %}
                     <a class="indent" href="{% url "value_equations_work" agent_id=agent.id %}">{% trans "Value Equations" %}</a>
+                  {% endif %}
                {% endif %}
                {% if user_agent.is_staff or user_agent in agent.managers or user_agent in agent.participants or user_agent == agent %}
                  {% if agent.need_exchanges %}

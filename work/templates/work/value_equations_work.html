@@ -40,7 +40,7 @@
 .link {
     margin-left: 1em;
     font-weight: normal;
-    font-size: 1em;
+    font-size: 0.9em;
 }
 
 </style>
@@ -55,9 +55,9 @@
       <div>
 
         <legend>
-            {% trans "Value Equations" %}
+            <a class="indent" href="{% url 'members_agent' agent_id=context_agent.id %}">{{ context_agent.name }}</a> > {% trans "Value Equations" %}
             {% if agent %}
-                <a class="btn btn-info" href="{% url "edit_value_equation_work" agent_id=context_agent.id %}">{% trans "Create Value Equation" %}</a>
+                <a class="btn btn-primary" href="{% url "edit_value_equation_work" agent_id=context_agent.id %}">{% trans "Create Value Equation" %}</a>
             {% endif %}
             &nbsp;&nbsp;
 {% comment %}
@@ -68,17 +68,18 @@
         <div class="ves" >
             {% for ve in value_equations %}
 
-                <div class="ve">{{ ve.name }}
+            <div class="ve"><h3>
+                <a class="" href="{% url "edit_value_equation_work" agent_id=context_agent.id value_equation_id=ve.id %}">{{ ve.name }}</a> &nbsp;
 {% comment %}
                     <span class="live">({% if ve.live %}{% trans "Live" %}{% else %}{% trans "Test Only" %}{% endif%})</span>
 {% endcomment %}
                     {% if user == ve.created_by or user.is_superuser %}
-                        <form
+                        <!--<form
                             style="display: inline;"
                             action="{% url "edit_value_equation_work" agent_id=context_agent.id value_equation_id=ve.id %}"
                             method="GET" >
-                            <button style="display: inline;"  class="btn btn-primary" title="Change" >{% trans "Change" %}</button>
-                        </form>
+                            <button style="display: inline;"  class="btn btn-primary btn-mini" title="Change" >{% trans "Change" %}</button>
+                        </form>-->
 
                         {% if ve.is_deletable %}
                             <form
@@ -86,12 +87,13 @@
                                 action="{% url "delete_value_equation_work" value_equation_id=ve.id agent_id=context_agent.id %}"
                                 method="POST" >
                                 {% csrf_token %}
-                                <button style="display: inline;"  class="btn btn-warning" title="Delete" >{% trans "Delete" %}</button>
+                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete" >{% trans "Delete" %}</button>
                             </form>
                         {% endif %}
 
                     {% endif %}
-                    <a class="link" href="{% url "value_equation_sandbox_work" value_equation_id=ve.id %}">{% trans "Value Equation Sandbox" %}</a>
+                    <a class="btn btn-info btn-mini" href="{% url "value_equation_sandbox_work" value_equation_id=ve.id %}">{% trans "Open Testing Sandbox" %}</a>
+                </h3>
 {% comment %}
                     {% if agent %}
                       {% if ve.live and user.is_staff %}
@@ -100,13 +102,13 @@
                     {% endif %}
 {% endcomment %}
                 </div>
-                <div class="using">For: <b>
+                <!-- <div class="using">For: <b>
                     {% if ve.context_agent %}
                         {{ ve.context_agent.nick }}
                     {% else %}
                         None
                     {% endif %}</b>
-                </div>
+                </div> -->
                 {% if ve.description %}
                     <div class="description" >{{ ve.description|urlize|linebreaks }}</div>
                 {% endif %}

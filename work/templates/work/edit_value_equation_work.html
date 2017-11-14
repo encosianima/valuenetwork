@@ -22,13 +22,13 @@
     background-color: #E1EBCD; /*#CCF5CC;*/
     border: solid 1px gainsboro;
     padding: 4px;
-    margin-bottom: 7px; 
+    margin-bottom: 7px;
 }
 .veb {
     background-color: honeydew;
     border: solid 1px gainsboro;
     padding: 4px;
-    margin: 0 5px 7px 5px; 
+    margin: 0 5px 7px 5px;
 }
 .vebr {
     background-color: #E6EFEF;
@@ -40,7 +40,7 @@
     margin-left: 1em;
     font-style: italic;
 }
-.btn-primary, .indent {
+.indent {
     margin-left: 1em;
 }
 .indent2 {
@@ -50,7 +50,7 @@
     height: 40px;
 }
 h3 {
-    color: firebrick;
+    /*color: firebrick;*/
 }
 textarea {
     width: 550px;
@@ -61,7 +61,7 @@ textarea {
     font-size: 1.2em;
     color: firebrick;
 }
-tr.even td 
+tr.even td
 {
     color:#000000;
     background-color:#EAF2D3;
@@ -89,20 +89,16 @@ th
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-       
+
         <legend>
+            <a class="" href="{% url 'members_agent' agent_id=context_agent.id %}">{{ context_agent.name }}</a> >
+            <a class="" href="{% url "value_equations_work" agent_id=context_agent.id %}">{% trans "Value Equations" %}</a> >
             {% if value_equation %}
-                {% trans "Edit Value Equation" %} {{ value_equation }}
-                <a class="indent" href="{% url "value_equation_sandbox_work" value_equation_id=value_equation.id %}">{% trans "Value Equation Sandbox" %}</a> 
-{% comment %}
-                {% if value_equation.live and user.is_staff %}
-                    <a class="indent" href="{% url "create_distribution_using_value_equation" agent_id=value_equation.context_agent.id value_equation_id=value_equation.id %}">{% trans "Distribute Income" %}</a>
-                {% endif %}
-{% endcomment %}
+                {{ value_equation }}
             {% else %}
                 {% trans "Create Value Equation" %}
             {% endif %}
-            <a class="indent" href="{% url "value_equations_work" agent_id=context_agent.id %}">{% trans "Value Equations List" %}</a>
+
         </legend>
 
         {% if not value_equation %}
@@ -130,16 +126,24 @@ th
             {% endif %}
         {% else %}
           <div class="row-fluid">
-           <div class="span7 ve">
+           <div class="span7">
 
-                <span class="name">{{ value_equation }}</span>
+                <h2 class="">{{ value_equation }} &nbsp;
                 {% if user == value_equation.created_by or user.is_superuser %}
                     <div style="display: inline;" >
-                        <a href="#change-ve" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Change" %}</a>
+                        <a href="#change-ve" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
                     </div>
                     <div style="display: inline;" >
-                        <a href="#create-veb" role="button" class="btn btn-info btn-mini" data-toggle="modal">{% trans "Add a Bucket" %}</a>
+                        <a href="#create-veb" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Add a Bucket" %}</a>
                     </div>
+
+                    <a class="btn btn-info" href="{% url "value_equation_sandbox_work" value_equation_id=value_equation.id %}">{% trans "Open Testing Sandbox" %}</a>
+                    </h2>
+    {% comment %}
+                    {% if value_equation.live and user.is_staff %}
+                        <a class="indent" href="{% url "create_distribution_using_value_equation" agent_id=value_equation.context_agent.id value_equation_id=value_equation.id %}">{% trans "Distribute Income" %}</a>
+                    {% endif %}
+    {% endcomment %}
 
                     <div class="modal hide fade" id="change-ve" tabindex="-1" role="dialog" aria-labelledby="change-ve-label" aria-hidden="true">
                         <div class="modal-header">
@@ -157,7 +161,7 @@ th
                             </form>
                         </div>
                     </div>
-        
+
                     <div class="modal hide fade" id="create-veb" tabindex="-1" role="dialog" aria-labelledby="create-veb-label" aria-hidden="true">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -179,10 +183,10 @@ th
                 <div style="float:right">
 {% comment %}
                     <form
-                        style="display: inline;" 
-                        class="test-form" 
-                        id="test-ve" 
-                        action="{% url "value_equation_sandbox" value_equation_id=value_equation.id %}" 
+                        style="display: inline;"
+                        class="test-form"
+                        id="test-ve"
+                        action="{% url "value_equation_sandbox" value_equation_id=value_equation.id %}"
                         method="GET" >
                         <button style="display: inline;"  class="btn btn-info btn-mini" title="Test this value equation" >{% trans "Value Equation Sandbox" %}</button>
                     </form>
@@ -190,10 +194,10 @@ th
 {% comment %}
                     {% if user.is_superuser %}
                     <form
-                        style="display: inline;" 
-                        class="indent" 
-                        id="make-live" 
-                        action="{% url "value_equation_live_test" value_equation_id=value_equation.id %}" 
+                        style="display: inline;"
+                        class="indent"
+                        id="make-live"
+                        action="{% url "value_equation_live_test" value_equation_id=value_equation.id %}"
                         method="POST" >
                         {% csrf_token %}
                         <button style="display: inline;"  class="btn btn-primary btn-mini" title="Make value equation live or test" >
@@ -203,7 +207,7 @@ th
                     {% endif %}
 {% endcomment %}
                 </div>
-
+{% comment %}
                 <div>Context: <b>
                     {% if value_equation.context_agent %}
                         {{ value_equation.context_agent.nick }}
@@ -211,27 +215,29 @@ th
                         None
                     {% endif %}</b>
                 </div>
-                <div class="indent">
+{% endcomment %}
+                <div class=""><p>
                     Bucket percentages are calculated using the method: <b>{{ value_equation.get_percentage_behavior_display }}</b>
+                    </p>
                 </div>
                 {% if value_equation.description %}
                     <div class="notes"> {{ value_equation.description|urlize|linebreaks }} </div>
-                {% endif %}    
-     
+                {% endif %}
+
                 {% if value_equation.buckets.all %}
                     {% for bucket in value_equation.buckets.all %}
-                        <div class="veb">
-                            <span class="name">{{ bucket }}</span>
+                        <div class="infobox">
+                            <span class="name">{{ bucket }}</span> &nbsp;
 
                             {% if user == value_equation.created_by or user.is_superuser %}
                                 <div style="display: inline;" >
                                     <a href="#change-veb{{ bucket.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Change" %}</a>
                                 </div>
                                 <form
-                                    style="display: inline;" 
-                                    class="delete-form" 
-                                    id="deleteBucketForm{{ bucket.id }}" 
-                                    action="{% url "delete_value_equation_bucket_work" bucket_id=bucket.id %}" 
+                                    style="display: inline;"
+                                    class="delete-form"
+                                    id="deleteBucketForm{{ bucket.id }}"
+                                    action="{% url "delete_value_equation_bucket_work" bucket_id=bucket.id %}"
                                     method="POST" >
                                     {% csrf_token %}
                                     <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this value equation bucket" >{% trans "Delete" %}</button>
@@ -253,7 +259,7 @@ th
                                         </form>
                                     </div>
                                 </div>
-                    
+
                                 {% if bucket.filter_method %}
                                   <div style="display: inline;" >
                                     <a href="#create-vebr{{ bucket.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">{% trans "Add a Bucket Rule" %}</a>
@@ -280,21 +286,21 @@ th
 
                             {% if bucket.filter_method %}<div class="indent2">Filter method: <b>{{ bucket.get_filter_method_display }}</b></div>{% endif %}
                             {% if bucket.distribution_agent %}<div class="indent2">Distribute directly to: <b>{{ bucket.distribution_agent }}</b></div>{% endif %}
-                        
+
                             {% if bucket.bucket_rules.all %}
-                                {% for rule in bucket.bucket_rules.all %}                            
+                                {% for rule in bucket.bucket_rules.all %}
                                     <div class="vebr">
-                                        Rule for: <b>{{ rule.event_type.name }}</b> 
+                                        Rule for: <b>{{ rule.event_type.name }}</b>
 
                                         {% if user == value_equation.created_by or user.is_superuser %}
                                             <div style="display: inline;" >
                                                 <a href="#change-vebr{{ rule.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Change" %}</a>
                                             </div>
                                             <form
-                                                style="display: inline;" 
-                                                class="delete-form" 
-                                                id="deleteBucketRuleForm{{ rule.id }}" 
-                                                action="{% url "delete_value_equation_bucket_rule_work" rule_id=rule.id %}" 
+                                                style="display: inline;"
+                                                class="delete-form"
+                                                id="deleteBucketRuleForm{{ rule.id }}"
+                                                action="{% url "delete_value_equation_bucket_rule_work" rule_id=rule.id %}"
                                                 method="POST" >
                                                 {% csrf_token %}
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete this value equation bucket rule" >{% trans "Delete" %}</button>
@@ -322,10 +328,10 @@ th
                                         {% if agent %}
                                         <div style="float:right">
                                             <form
-                                                style="display: inline;" 
-                                                class="test-form" 
-                                                id="test-vebr{{ rule.id }}" 
-                                                action="." 
+                                                style="display: inline;"
+                                                class="test-form"
+                                                id="test-vebr{{ rule.id }}"
+                                                action="."
                                                 method="POST" >
                                                 {% csrf_token %}
                                                 <input type="hidden" id="test{{ rule.id }}" name="test" value= "{{ rule.id }}" />
@@ -357,7 +363,7 @@ th
                             <th>{% trans "Value" %}</th>
                             <th>{% trans "Claim Value" %}</th>
                         </thead>
-                        <tbody> 
+                        <tbody>
                             {% for tr in test_results %}
                                 <tr class="{% cycle 'odd' 'even' %}">
                                     <td>{{ tr.event_date }}</td>
@@ -367,12 +373,12 @@ th
                                     <td>{{ tr.claim_amount }}</td>
                                 </tr>
                             {% endfor %}
-                        <tbody> 
+                        <tbody>
                     </table>
                 {% endif %}
 
             </div>
-         
+
           </div>
         {% endif %}
 
@@ -390,19 +396,19 @@ th
     <script type="text/javascript">
 
     $(document).ready(function(){
-    
+
         $('#distribution').addClass('active');
 
         $(".chzn-select").chosen();
 
         $( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
         })
-        
+
         $.validator.addClassRules("event-type-selector", { required: true });
         $.validator.addClassRules("required-field", { required: true });
         $.validator.addClassRules("integer", { digits: true });
@@ -415,8 +421,8 @@ th
             "Please enter a number with no more than 2 decimal places"
         );
 
-        $.validator.addClassRules("quantity", { 
-            required: true, 
+        $.validator.addClassRules("quantity", {
+            required: true,
             quantity: true,
         });
 
@@ -430,7 +436,7 @@ th
         });
 
         $(".event-type-selector").change(getDefaultEquation);
-        
+
         function getDefaultEquation(event)
         {
             var eventTypeId = event.target.value;
@@ -439,7 +445,7 @@ th
                 var targetId = event.target.id;
                 var prefix = targetId.split('-')[0];
                 var equationFieldName = "#" + prefix + "-claim_creation_equation";
-                
+
                 var jsonUrl = encodeURI("/work/json-default-equation-work/" + eventTypeId + "/");
                 $.get(jsonUrl,
                     function(data){

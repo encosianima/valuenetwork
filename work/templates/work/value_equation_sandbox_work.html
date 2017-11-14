@@ -39,7 +39,7 @@
     font-size: 1.2em;
     color: firebrick;
 }
-tr.even td 
+tr.even td
 {
     color:#000000;
     background-color:#EAF2D3;
@@ -69,9 +69,9 @@ img {
     margin-top: 40px;
 }
 #form-section {
-    border: solid 1px gainsboro;
+    /*border: solid 1px gainsboro;
     padding: 10px;
-    background-color: #F5FFE0; /*#F2F7E5;*/
+    background-color: #F5FFE0;*/ /*#F2F7E5;*/
 }
 .order, .shipment-event {
     width: 96%;
@@ -84,29 +84,33 @@ img {
 {% block body_base %}
     <div class="container">
         {% include "_messages.html" %}
-       
+
         <legend>
-            {% trans "Value Equation Sandbox" %}
-            <a class="indent" href="{% url "edit_value_equation_work" agent_id=context_agent.id value_equation_id=ve.id %}">{% trans "Edit Value Equation" %}</a> 
+            <a class="" href="{% url 'members_agent' agent_id=context_agent.id %}">{{ context_agent.name }}</a> >
+            <a class="" href="{% url "value_equations_work" agent_id=context_agent.id %}">{% trans "Value Equations" %}</a> >
+            <a class="" href="{% url "edit_value_equation_work" agent_id=context_agent.id value_equation_id=ve.id %}">{{ ve }}</a> > {% trans "Testing Sandbox" %}
+
 {% comment %}
             {% if ve.live and user.is_staff %}
                 <a class="indent" href="{% url "create_distribution_using_value_equation" agent_id=ve.context_agent.id value_equation_id=ve.id %}">{% trans "Distribute Income" %}</a>
             {% endif %}
 {% endcomment %}
-            <a class="indent" href="{% url "value_equations_work" agent_id=context_agent.id %}">{% trans "Value Equations List" %}</a>
         </legend>
 
-        <div class="note">({% trans "Your distribution will be displayed but will not be saved." %})</div>
+        <h2>
+            {{ ve }} - {% trans "Sandbox" %}
+        </h2>
+        <p>{% trans "Your distribution will be displayed but will not be saved." %}</p>
         <div class="row-fluid">
-            <div class="span6" id="form-section">
-                <p class="hdg">{% trans "Distribution" %}:</p>
+            <div class="span6 infobox" id="form-section">
+                <h3>{% trans "Distribution" %}:</h3>
                 <form id="headerForm" class="validateMe" action="." method="POST" >
                     {% csrf_token %}
-                    <p>{% trans "Value Equation" %}</p>
-                    <p><b>{{ ve }}</b></p>
+                    <!--<p>{% trans "Value Equation" %}</p>
+                    <p><b>{{ ve }}</b></p>-->
                     <p{% trans ">Amount to distribute" %}</p>
                     <p>{{ header_form.amount_to_distribute }}</p>
-                    <span class="hdg">{% trans "Bucket filters" %}:</span>
+                    <h3>{% trans "Bucket filters" %}:</h3>
                     <div id="filters">
                         {% for bucket in buckets %}
                             <div class="bucket"><span class="name">{{ bucket.name }}</span><span class="pct"> {{ bucket.percentage }}</span>%</div>
@@ -118,9 +122,9 @@ img {
                                     <div id="div-start_date" class="control-group  " style="display:inline;" >
 
                                         <div class="controls" style="display:inline;">
-                                            {{ bucket.form.start_date }} 
+                                            {{ bucket.form.start_date }}
                                         </div>
-                                    </div>                                    
+                                    </div>
                                     through
                                     <div id="div-end_date" class="control-group  " style="display:inline;">
 
@@ -135,7 +139,7 @@ img {
                                         </div>
                                     </div>
                                 {% else %}
-                                    {{ bucket.form|as_bootstrap }} 
+                                    {{ bucket.form|as_bootstrap }}
                                 {% endif %}
                               </div>
                             {% endif %}
@@ -148,14 +152,14 @@ img {
 
             <div class="span6">
 
-                <div id="loading" style="display: none;" >Calculating, please be patient... <img src="https://i.stack.imgur.com/FhHRx.gif"></img></div> 
-  
+                <div id="loading" style="display: none;" >Calculating, please be patient... <img src="https://i.stack.imgur.com/FhHRx.gif"></img></div>
+
                 {% if agent_totals %}
                   <div id="distributions">
 {% comment %}
-                    <form 
-                        id="change-ve" 
-                        action="{% url "edit_value_equation" value_equation_id=ve.id %}" 
+                    <form
+                        id="change-ve"
+                        action="{% url "edit_value_equation" value_equation_id=ve.id %}"
                         method="GET" >
                         <button style="display: inline;"  class="btn btn-info" title="Change this value equation" >{% trans "Change Value Equation" %}</button>
                     </form>
@@ -166,7 +170,7 @@ img {
                             <th>{% trans "Agent" %}</th>
                             <th style="text-align: right;">{% trans "Distribution Amount" %}</th>
                         </thead>
-                        <tbody> 
+                        <tbody>
                             {% for at in agent_totals %}
                                 <tr class="{% cycle 'odd' 'even' %}">
                                     <td>{{ at.to_agent.name }}</td>
@@ -177,7 +181,7 @@ img {
                                 <th> Total </th>
                                 <td  style="text-align: right;"> {{ total }} </td>
                             </tr>
-                        <tbody> 
+                        <tbody>
                     </table>
                   </div>
 
@@ -192,7 +196,7 @@ img {
                             <th style="text-align: right;">{% trans "Distr Amount" %}</th>
                             <th style="text-align: right;">{% trans "Rate" %}</th>
                         </thead>
-                        <tbody> 
+                        <tbody>
                             {% for sub in agent_subtotals %}
                                 <tr class="{% cycle 'odd' 'even' %}">
                                     <td>{{ sub.agent.nick }}</td>
@@ -203,7 +207,7 @@ img {
                                     <td style="text-align: right;" >{{ sub.rate }}</td>
                                 </tr>
                             {% endfor %}
-                        <tbody> 
+                        <tbody>
                     </table>
                   </div>
                 {% endif %}
@@ -226,7 +230,7 @@ img {
                         <th>{% trans "Distributed" %}</th>
                         <th>{% trans "Explanation" %}</th>
                     </thead>
-                    <tbody> 
+                    <tbody>
                         {% for detail in details %}
                             <tr class="{% cycle 'odd' 'even' %}">
                                 <td>{{ detail.vebr.value_equation_bucket.name }}</td>
@@ -235,7 +239,7 @@ img {
                                 <td>{{ detail.event_date }}</td>
                                 <td>{{ detail.event_type }} - {{ detail.resource_type }}</td>
                                 <td>
-                                    {{ detail.quantity }} 
+                                    {{ detail.quantity }}
                                     {% if detail.unit_of_quantity %}
                                         {{ detail.unit_of_quantity.abbrev }}
                                     {% endif %}
@@ -251,11 +255,11 @@ img {
                             <td>{{ hours }}</td>
                             <th  colspan="3"></th>
                         </tr>
-                    <tbody> 
-                </table> 
+                    <tbody>
+                </table>
             </div>
         {% endif %}
-       
+
     </div>
 {% endblock %}
 {% block extra_script %}
@@ -270,11 +274,11 @@ img {
     <script type="text/javascript">
 
     $(document).ready(function(){
-    
+
         $('#distribution').addClass('active');
-    
+
         $("#calculate").click(showLoading);
-        
+
         function showLoading()
         {
             $("#loading").show();
@@ -282,17 +286,17 @@ img {
             $("#subtotals").hide();
             $("#detail-section").hide();
         }
-        
-        {% if agent_totals %}         
+
+        {% if agent_totals %}
             $("#loading").hide();
         {% endif %}
 
         $(".chzn-select").chosen();
-        
+
         $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
-        
+
         $( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
@@ -307,7 +311,7 @@ img {
             "Please enter a number less than 1000000 with no more than 2 decimal places"
         );
 
-        jQuery.validator.setDefaults({ 
+        jQuery.validator.setDefaults({
             success: function(label) {
                 label
                     .text('').addClass('valid')
@@ -316,7 +320,7 @@ img {
         });
 
         $.validator.addClassRules("quantity", { required: true, quantity: true, });
-        //$.validator.addClassRules("date-entry", { date: true, required: false });       
+        //$.validator.addClassRules("date-entry", { date: true, required: false });
 
         $('.validateMe').each( function(){
             var form = $(this);
@@ -338,7 +342,7 @@ img {
         }
 
 /* reloading the page instead of ajax call for now - too difficult to build the input fields
-        $("#id_value_equation").change(getBuckets); 
+        $("#id_value_equation").change(getBuckets);
 
         function getBuckets()
         {
@@ -352,9 +356,9 @@ img {
                 for(var i=0 ; i<data.length ; i++)
                 {
                     var sequence = data[i].fields['sequence'];
-                    var name = data[i].fields['name']; 
-                    var pct = data[i].fields['percentage']; 
-                    var agent = data[i].fields['agent_name']; 
+                    var name = data[i].fields['name'];
+                    var pct = data[i].fields['percentage'];
+                    var agent = data[i].fields['agent_name'];
                     var filterMethod = data[i].fields['filter_method'];
 
                     filters = filters + '<div class="bucket"><span class="name">' + name + '</span><span class="pct">' + pct + '</span>%</div>'
@@ -364,7 +368,7 @@ img {
                         filters = filters + '<div class="filt">'
                         if (filterMethod == 'dates') {
                             filters = filters + '<p>Enter start and end dates (both optional)</p>'
-                          
+
 
                         }
                     }
