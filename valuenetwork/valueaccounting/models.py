@@ -12481,8 +12481,8 @@ class EconomicEvent(models.Model):
         qty_help = "up to 2 decimal places"
         if unit:
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
-        from valuenetwork.valueaccounting.forms import InputEventForm
-        return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
+        from valuenetwork.valueaccounting.forms import InputEventAgentForm
+        return InputEventAgentForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
 
     def change_form_old(self, data=None):
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
