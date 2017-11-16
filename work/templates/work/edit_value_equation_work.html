@@ -31,10 +31,10 @@
     margin: 0 5px 7px 5px;
 }
 .vebr {
-    background-color: #E6EFEF;
-    border: solid 1px gainsboro;
-    padding: 4px;
-    margin: 0 5px 7px 5px;
+    /*background-color: #E6EFEF;
+    border: solid 1px gainsboro;*/
+    padding: 8px 10px;
+    margin: 5px 0 5px 5px;
 }
 .notes {
     margin-left: 1em;
@@ -291,7 +291,7 @@ th
 
                             {% if bucket.bucket_rules.all %}
                                 {% for rule in bucket.bucket_rules.all %}
-                                    <div class="vebr">
+                                    <div class="vebr infobox2">
                                         Rule for: <b>{{ rule.event_type.name }}</b>
 
                                         {% if user == value_equation.created_by or user.is_superuser %}
