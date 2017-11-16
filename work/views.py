@@ -663,6 +663,8 @@ def create_your_project(request):
     return HttpResponseRedirect("/work/your-projects/")
 
 
+
+
 #    A G E N T   P A G E
 
 @login_required
@@ -1429,6 +1431,7 @@ def joinaproject_request_internal(request, agent_id = False):
             jn_req.project = project
             if request.user.agent.agent:
               jn_req.agent = request.user.agent.agent
+              jn_req.name = request.user.agent.agent.name
             jn_req.save()
 
             #request.POST._mutable = True
@@ -7730,7 +7733,7 @@ def project_history_csv(request):
 def fake_kanban(request, agent_id):
     project = get_object_or_404(EconomicAgent, pk=agent_id)
     agent = get_agent(request)
-    
+
     """
     event_list = project.contribution_events()
     event_list = project.all_events()
@@ -7752,7 +7755,7 @@ def fake_kanban(request, agent_id):
                 event_list = event_list.filter(event_date__lte=end)
     event_ids = ",".join([str(event.id) for event in event_list])
     """
-    
+
     return render(request, "work/fake_kanban.html", {
         "project": project,
         "agent": agent,

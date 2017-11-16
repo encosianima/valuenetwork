@@ -1553,6 +1553,11 @@ class InputEventAgentForm(forms.ModelForm):
     description = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={'class': 'input-xxlarge',}))
+    is_contribution = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Request payment",
+        widget=forms.CheckboxInput()) 
 
     class Meta:
         model = EconomicEvent
