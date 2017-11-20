@@ -194,7 +194,7 @@ class ResourceTypeFacetInline(admin.TabularInline):
     model = ResourceTypeFacetValue
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'resource_class', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list', 'context_agent')
+    list_display = ('name', 'resource_class', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list', 'context_agent', 'ocp_artwork_type')
     list_filter = ['facets__facet_value']
     search_fields = ['name', 'context_agent__name']
     list_editable = ['unit', 'unit_of_use', 'substitutable', 'resource_class',]
