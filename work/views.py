@@ -2126,6 +2126,20 @@ def delete_request(request, join_request_id):
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
 
 @login_required
+def confirm_request(request, join_request_id):
+    jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    if jn_req.agent:
+        raise ValidationError("This request already has an agent !!!")
+    if not jn_req.project:
+        raise ValidationError("This request has no project ??!!!")
+    user_agent = get_agent(request)
+    if not user_agent in jn_req.project.agent.managers():
+        raise ValidationError("You don't have permission to do this !!!")
+    jn_req.create_useragent_randompass(request)
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', jn_req.project.agent.id, 'join-requests'))
+
+@login_required
 def accept_request(request, join_request_id):
     mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
     mbr_req.state = "accepted"

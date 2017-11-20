@@ -16,6 +16,11 @@ form.action-form {
     display: inline-block;
 }
 
+.help-text {
+    color: #777;
+    font-size: 1em;
+}
+
 </style>
 
 {% endblock %}
@@ -74,7 +79,7 @@ form.action-form {
                                 {% if project.share_types %}
                                   {% trans "Shares:" %}
                                   {% if req.pending_shares %}<span class="error">{% trans "Pending" %}</span>
-                                  {% else %}<span class="ok">{% trans "Acquired" %}</span>{% endif %}
+                                  {% else %}<span class="complete">{% trans "Acquired" %}</span>{% endif %}
                                   <br />
                                 {% endif %}
 
@@ -142,7 +147,16 @@ form.action-form {
                                           <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Save" %}' />
                                       </form> -->
                                     {% endif %}
-                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account" %}</a>
+
+                                    <form
+                                        class="action-form"
+                                        id="create-form{{ req.id }}"
+                                        action="{% url "confirm_request" join_request_id=req.id %}"
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Confirm Email" %}' /> <span class="help-text">{% trans "sends random pass and auto-creates user+agent, OR" %}</span>
+                                    </form>
+                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account (manual)" %}</a>
                                     <div class="modal hide fade" id="create-agent{{ req.id }}" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
