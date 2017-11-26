@@ -39,7 +39,7 @@
     margin-left: 3em;
 }
 .btn {
-    margin-left: 2em;
+    margin-left: 0.5em;
 }
 .modal {
     width: 600px;
@@ -76,6 +76,16 @@ th
           {% else %}
             <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span>
           {% endif %}
+          {% if jn_req.duplicated %}
+            &nbsp; <span class="error">{% trans "DUPLICATED!" %} <form
+                                          style="display:inline;"
+                                          id="delete-form{{ jn_req.id }}"
+                                          action="{% url "delete_request" join_request_id=jn_req.id %}"
+                                          method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete this" %}' />
+                                    </form> {% trans "or see the other" %} <a href="{% url 'project_feedback' agent_id=jn_req.project.agent.id join_request_id=jn_req.duplicated.id %}">{% trans "join request" %}</a></span>
+          {% endif %}
           </span>
           <div class="subnav">
             {% if user_agent in agent.managers or user_agent == agent %}
@@ -111,7 +121,7 @@ th
             </tr>
             <tr>
                 <th style="display:block; width:180px;">{% trans "Username" %}:</th>
-                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %}</td>
+                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %} {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span> {% if user_agent == req.agent %}<em>{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>{% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>{% endif %}{% endif %}</td>
             </tr>
             <tr>
                 <th>{% trans "Type" %}:</th>

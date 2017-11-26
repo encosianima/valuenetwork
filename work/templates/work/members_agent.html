@@ -5,6 +5,7 @@
 {% load bootstrap_tags %}
 {% load thumbnail %}
 {% load mptt_tags %}
+{% load comments %}
 
 {% with user_agent as user %}
 
@@ -484,7 +485,7 @@
                       </tr>
                       {% if agent.project.joining_style == 'moderated' %}
                         <tr>
-                          <th>{% trans "Custom Form:" %}</th>
+                          <th>{% trans "Project Slug:" %}</th>
                           <td>{% if agent.project.fobi_slug %}
                                 {{ agent.project.fobi_slug }} {% if user_agent.is_staff %} / <a href="/fobi/view/{{ agent.project.fobi_slug }}/" target="_blank">{% trans "View Custom Form Fields" %}</a>{% endif %}
                                 {% if not agent.project.fobi_form %}
@@ -886,8 +887,9 @@
                                 {% if req.id %}
                                     {% if assoc.state == "potential" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
                                     &nbsp;
+                                    {% get_comment_count for req as ncom  %}
                                     <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
-                                        <b>{% trans "Feedback" %}</b>
+                                        <b>{% trans "Feedback" %}</b> {{ ncom }}
                                     </a>
                                     {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% endif %}

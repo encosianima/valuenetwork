@@ -1094,13 +1094,19 @@ def project_login(request, form_slug = False):
                 agent = user.agent.agent
                 req = JoinRequest.objects.filter(project=project, agent=agent)
                 if len(req) > 1:
-                    pass # TODO raise error, create notice or repair the multiple join requests of this agent with this project
+                    #pass # TODO raise error, create notice or repair the multiple join requests of this agent with this project
+                    raise ValidationError("This agent has more than one request to join this project! "+str(req))
                 elif len(req) == 0:
                     # redirect to the internal joinaproject form
                     return HttpResponseRedirect(reverse('project_joinform', args=(project.agent.id,)))
 
-                elif len(req) == 1 and req[0].pending_shares() and req[0].payment_url():
-                    return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                elif len(req) == 1:
+                    if req[0].pending_shares() and req[0].payment_url():
+                        return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                    elif req[0].check_user_pass():
+                        return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                    else:
+                        pass #raise ValidationError("This agent has only one request to this project but something is wrong "+str(req[0].check_user_pass()))
 
                 #return HttpResponse(str(agent.nick))
                 # Redirect to a success page.

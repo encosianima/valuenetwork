@@ -1,5 +1,6 @@
 from django.db import models, connection
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 
@@ -354,6 +355,7 @@ import simplejson as json
 import random
 import hashlib
 
+from django_comments.models import Comment
 
 USER_TYPE_CHOICES = (
     #('participant', _('project participant (no membership)')),
@@ -361,10 +363,6 @@ USER_TYPE_CHOICES = (
     ('collective', _('collective')),
 )
 
-PAYMENT_STATUS_CHOICES = (
-    ('pending', _('pending')),
-    ('complete', _('complete')),
-)
 
 class JoinRequest(models.Model):
     # common fields for all projects
@@ -409,9 +407,8 @@ class JoinRequest(models.Model):
         blank=True, null=True,
         help_text=_("this join request is linked to this Ocp Exchange"))
 
-    """payment_status = models.CharField(_('payment status'),
-        max_length=12, choices=PAYMENT_STATUS_CHOICES,
-        editable=False, null=True, blank=True)"""
+    """notes = models.CharField(_('request notes'),
+        max_length=255, null=True, blank=True)"""
 
     def fobi_slug(self):
       if self.project.fobi_slug:
@@ -783,7 +780,7 @@ class JoinRequest(models.Model):
 
     def create_useragent_randompass(self, request=None, hash_func=hashlib.sha256):
         from work.forms import ProjectAgentCreateForm # if imported generally it breaks other imports, requires a deep imports rebuild TODO
-        randpass = hash_func(str(random.SystemRandom().getrandbits(64))).hexdigest()[:20]
+        randpass = hash_func(str(random.SystemRandom().getrandbits(64))).hexdigest()[:settings.RANDOM_PASSWORD_LENGHT]
 
         at = None
         password = None
@@ -842,20 +839,30 @@ class JoinRequest(models.Model):
                         agent = agent,
                         user = user)
                     au.save()
-                    #agent.request_faircoin_address()
 
                     name = data["name"]
+
+                    con_typ = ContentType.objects.get(model='joinrequest')
+
+                    comm = Comment(
+                        content_type=con_typ,
+                        object_pk=self.pk,
+                        user_name=self.project.agent.nick,
+                        user_email=self.project.agent.email_address,
+                        submit_date=datetime.date.today(),
+                        comment=_("%(pass)s is the initial random password for user %(user)s, used to verify the email address %(mail)s") % {'pass': password, 'user': username, 'mail': email},
+                        site=Site.objects.get_current()
+                    )
+                    comm.save()
+
                     if notification:
                         managers = project.agent.managers()
                         users = [agent.user().user,]
-                        for manager in managers:
-                            if manager.user():
-                                users.append(manager.user().user)
+                        #for manager in managers:
+                        #    if manager.user():
+                        #        users.append(manager.user().user)
                         #users = User.objects.filter(is_staff=True)
                         if users:
-                            #allusers = chain(users, agent)
-                            #users = list(users)
-                            #users.append(agent.user)
                             site_name = get_site_name(request)
                             notification.send(
                                 users,
@@ -876,6 +883,33 @@ class JoinRequest(models.Model):
             raise ValidationError("The form to autocreate user+agent from the join request is not valid. "+str(form.errors))
         return password
 
+    def check_user_pass(self):
+        con_typ = ContentType.objects.get(model='joinrequest')
+        coms = Comment.objects.filter(content_type=con_typ, object_pk=self.pk)
+        for c in coms:
+            first = c.comment.split(' ')[0]
+            if len(first) == settings.RANDOM_PASSWORD_LENGHT:
+                if self.agent.user().user.check_password(first):
+                    return _("Warning!")
+        return False
+
+    def duplicated(self):
+        if self.agent:
+            reqs = JoinRequest.objects.filter(project=self.project, agent=self.agent)
+            if len(reqs) > 1:
+                for req in reqs:
+                    if not req == self:
+                        return req
+            elif reqs:
+                return False
+        else:
+            reqs = JoinRequest.objects.filter(project=self.project, requested_username=self.requested_username)
+            if len(reqs) > 1:
+                for req in reqs:
+                    if not req == self:
+                        return req
+            elif reqs:
+                return False
 
 
 class NewFeature(models.Model):

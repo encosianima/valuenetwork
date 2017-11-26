@@ -746,6 +746,8 @@ class WorkSettingsView(LoginRequiredMixin, FormView):
         initial = super(WorkSettingsView, self).get_initial()
         if self.primary_email_address:
             initial["email"] = self.primary_email_address.email
+        else:
+            initial["email"] = self.request.user.email
         initial["timezone"] = self.request.user.account.timezone
         initial["language"] = self.request.user.account.language
         return initial

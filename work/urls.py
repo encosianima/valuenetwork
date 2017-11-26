@@ -112,7 +112,7 @@ urlpatterns = [
         name="confirm_request"),
     url(r'^create-ocp-acount/(?P<join_request_id>\d+)/$', work.views.create_account_for_join_request,
         name="create_account_for_join_request"),
-    url(r"^comments/$", work.views.comments, name="comments"),
+    # url(r"^comments/$", work.views.comments, name="comments"),
 
     url(r'^payment-url/(?P<paymode>.+)/(?P<join_request_id>\d+)/$', work.views.payment_url, name="payment_url"),
 
