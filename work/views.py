@@ -1715,282 +1715,12 @@ def project_update_payment_status(request, project_slug=None):
                 try:
                     unit = Unit.objects.get(abbrev=unit.lower())
                 except:
-                    raise ValidationError("Not fount a Unit with abbreviation: "+unit.lower())
-                if not unit.ocp_unit_type:
-                    raise ValidationError("The Unit has not any ocp_unit_type: "+str(unit))
+                    raise ValidationError("Not found a Unit with abbreviation: "+unit.lower())
+                punit = req.payment_unit()
+                if not unit == punit:
+                    raise ValidationError("The unit in the post is not the same as in the join_request!! "+str(unit)+" != "+str(punit))
 
-                unit_rts = EconomicResourceType.objects.filter(ocp_artwork_type__general_unit_type__id=unit.ocp_unit_type.id)
-                if unit_rts:
-                    unit_rt = unit_rts.get(ocp_artwork_type__clas__contains='_digital')
-                    #raise ValidationError("The unit resource type: "+str(unit_rt))
-                else:
-                    raise ValidationError("The unit is not related any resource type: "+str(unit_rts))
-
-            if status and req.agent:
-                if not req.exchange:
-                    ex = req.create_exchange(status)
-                    #raise ValidationError("The exchange has been created? "+str(ex))
-                    #return HttpResponse('error')
-                else:
-                    ex = req.exchange
-
-                xt = ex.exchange_type
-                tts = xt.transfer_types.all()
-                if not tts:
-                    raise ValidationError("This exchange type has not transfer types: "+str(xt))
-                elif len(tts) < 2:
-                    raise ValidationError("This exchange type has less than 2 transfer types: "+str(xt))
-
-                #tt_share = tts.get(name__contains="Share")
-                #tt_pay = tts.get(name__contains="Payment")
-
-                et_give = EventType.objects.get(name="Give")
-                et_receive = EventType.objects.get(name="Receive")
-
-                xfers = ex.transfers.all()
-                if len(xfers) < len(tts):
-                    for tt in tts:
-                        try:
-                            xfer = xfers.get(transfer_type=tt)
-                        except:
-                            xfer_name = tt.name
-                            #if tt.is_reciprocal:
-                            #    xfer_name = xfer_name + " from " + from_agent.nick
-                            #else:
-                            #    xfer_name = xfer_name + " of " + rt.name
-
-                            xfer, created = Transfer.objects.get_or_create(
-                                name=xfer_name,
-                                transfer_type = tt,
-                                exchange = ex,
-                                context_agent = project.agent,
-                            )
-                            if created:
-                                xfer.created_by = req.agent.user().user
-                                xfer.transfer_date = datetime.date.today()
-                            else:
-                                xfer.edited_by = req.agent.user().user
-                            xfer.save()
-                xfers = ex.transfers.all()
-                xfer_pay = None
-                xfer_share = None
-                try:
-                    xfer_pay = xfers.get(transfer_type__is_currency=True)
-                except:
-                    raise ValidationError("Can't get a transfer type with is_currency in the exchange: "+str(ex))
-                try:
-                    xfer_share = xfers.get(transfer_type__inherit_types=True) #exchange_type__ocp_record_type__ocpRecordType_ocp_artwork_type__resource_type__isnull=False)
-                except:
-                    raise ValidationError("Can't get a transfer type related shares in the exchange: "+str(ex))
-
-                if xfer_pay:
-                    xfer_pay.notes += str(datetime.date.today())+' '+req.payment_gateway()+': '+status
-                    xfer_pay.save()
-
-                if req.agent and amount and xfer_pay:
-                    evts = xfer_pay.events.all()
-                    coms = xfer_pay.commitments.all()
-                    commit_pay = None
-                    commit_pay2 = None
-                    if len(coms):
-                        # if has various commitments? TODO
-                        commit_pay = coms[0]
-                        if coms[1]:
-                          commit_pay2 = coms[1]
-                        if not commit_pay2:
-                          commit_pay2 = commit_pay
-
-                    if status == 'complete' or status == 'published':
-
-                        if len(evts):
-                            raise ValidationError("The payment transfer already has events! "+str(evts))
-                        else:
-                            evt, created = EconomicEvent.objects.get_or_create(
-                                event_type = et_give,
-                                #event_date = datetime.date.today(),
-                                resource_type = unit_rt,
-                                #resource=event_res,
-                                transfer = xfer_pay,
-                                exchange_stage = ex.exchange_type,
-                                context_agent = project.agent,
-                                quantity = amount,
-                                unit_of_quantity = unit,
-                                value = amount,
-                                unit_of_value = unit,
-                                from_agent = req.agent,
-                                to_agent = project.agent,
-                                is_contribution = xfer_pay.transfer_type.is_contribution,
-                                is_to_distribute = xfer_pay.transfer_type.is_to_distribute,
-                                event_reference = gateref,
-                                created_by = req.agent.user().user,
-                                commitment = commit_pay,
-                            )
-                            #evt.save()
-
-                            evt2, created = EconomicEvent.objects.get_or_create(
-                                event_type = et_receive,
-                                event_date = datetime.date.today(),
-                                resource_type = unit_rt,
-                                #resource
-                                transfer = xfer_pay,
-                                exchange_stage = ex.exchange_type,
-                                context_agent = project.agent,
-                                quantity = amount,
-                                unit_of_quantity = unit,
-                                value = amount,
-                                unit_of_value = unit,
-                                from_agent = req.agent,
-                                to_agent = project.agent,
-                                is_contribution = xfer_pay.transfer_type.is_contribution,
-                                is_to_distribute = xfer_pay.transfer_type.is_to_distribute,
-                                event_reference = gateref,
-                                created_by = req.agent.user().user,
-                                commitment = commit_pay2,
-                            )
-                            #evt2.save()
-
-                        # create commitments
-                        sh_com, created = Commitment.objects.get_or_create(
-                            event_type = et_give,
-                            commitment_date = datetime.date.today(),
-                            due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
-                            resource_type = account_type,
-                            exchange = ex,
-                            transfer = xfer_share,
-                            exchange_stage = ex.exchange_type,
-                            context_agent = project.agent,
-                            quantity = amount,
-                            unit_of_quantity = account_type.unit,
-                            value = amount,
-                            unit_of_value = account_type.unit_of_price,
-                            from_agent = project.agent,
-                            to_agent = req.agent,
-                            #description = description,
-                            created_by = req.agent.user().user,
-                        )
-
-                        sh_com2, created = Commitment.objects.get_or_create(
-                            event_type = et_receive,
-                            commitment_date = datetime.date.today(),
-                            due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
-                            resource_type = account_type,
-                            exchange = ex,
-                            transfer = xfer_share,
-                            exchange_stage = ex.exchange_type,
-                            context_agent = project.agent,
-                            quantity = amount,
-                            unit_of_quantity = account_type.unit,
-                            value = amount,
-                            unit_of_value = account_type.unit_of_price,
-                            from_agent = project.agent,
-                            to_agent = req.agent,
-                            #description = description,
-                            created_by = req.agent.user().user,
-                        )
-                        # create share events
-                        """if not evts:
-                            # transfer shares
-                            user_rts = list(set([arr.resource.resource_type for arr in req.agent.resource_relationships()]))
-                            for rt in user_rts:
-                                if rt == account_type: # match the account type to update the value
-                                    rss = list(set([arr.resource for arr in req.agent.resource_relationships()]))
-                                    for rs in rss:
-                                        if rs.resource_type == rt:
-                                            rs.price_per_unit += amount # update the price_per_unit with payment amount
-                                            rs.save()
-                        sh_evt, created = EconomicEvent.objects.get_or_create(
-                            event_type = et_give,
-                            event_date = datetime.date.today(),
-                            resource_type = account_type,
-                            #resource=event_res,
-                            transfer = xfer_share,
-                            exchange_stage = ex.exchange_type,
-                            context_agent = project.agent,
-                            quantity = 1,
-                            unit_of_quantity = account_type.unit,
-                            value = amount,
-                            unit_of_value = account_type.unit_of_price,
-                            from_agent = project.agent,
-                            to_agent = req.agent,
-                            is_contribution = False, #xfer_pay.transfer_type.is_contribution,
-                            is_to_distribute = False, #xfer_pay.transfer_type.is_to_distribute,
-                            #event_reference = gateref,
-                            created_by = req.agent.user().user,
-                        )
-                        sh_evt2, created = EconomicEvent.objects.get_or_create(
-                            event_type = et_receive,
-                            event_date = datetime.date.today(),
-                            resource_type = account_type,
-                            #resource=event_res,
-                            transfer = xfer_share,
-                            exchange_stage = ex.exchange_type,
-                            context_agent = project.agent,
-                            quantity = 1,
-                            unit_of_quantity = account_type.unit,
-                            value = amount,
-                            unit_of_value = account_type.unit_of_price,
-                            from_agent = project.agent,
-                            to_agent = req.agent,
-                            is_contribution = False, #xfer_pay.transfer_type.is_contribution,
-                            is_to_distribute = False, #xfer_pay.transfer_type.is_to_distribute,
-                            #event_reference = gateref,
-                            created_by = req.agent.user().user,
-                        )"""
-
-
-                        return HttpResponse('OK')
-
-                    elif status == 'pending':
-                        if not commit_pay:
-                            commit_pay, created = Commitment.objects.get_or_create(
-                                event_type = et_give,
-                                commitment_date = datetime.date.today(),
-                                due_date = datetime.date.today() + datetime.timedelta(days=2), # TODO custom process delaytime by project
-                                resource_type = unit_rt,
-                                exchange = ex,
-                                transfer = xfer_pay,
-                                exchange_stage = ex.exchange_type,
-                                context_agent = project.agent,
-                                quantity = amount,
-                                unit_of_quantity = unit,
-                                value = amount,
-                                unit_of_value = unit,
-                                from_agent = req.agent,
-                                to_agent = project.agent,
-                                #description = description,
-                                created_by = req.agent.user().user,
-                            )
-                        if not commit_pay2:
-                            commit_pay2, created = Commitment.objects.get_or_create(
-                                event_type = et_receive,
-                                commitment_date = datetime.date.today(),
-                                due_date = datetime.date.today() + datetime.timedelta(days=2), # TODO custom process delaytime by project
-                                resource_type = unit_rt,
-                                exchange = ex,
-                                transfer = xfer_pay,
-                                exchange_stage = ex.exchange_type,
-                                context_agent = project.agent,
-                                quantity = amount,
-                                unit_of_quantity = unit,
-                                value = amount,
-                                unit_of_value = unit,
-                                from_agent = req.agent,
-                                to_agent = project.agent,
-                                #description = description,
-                                created_by = req.agent.user().user,
-                            )
-
-                        return HttpResponse('OK')
-
-                    else:
-                        raise ValidationError("The status is not implemented: "+status)
-                        return HttpResponse('error')
-                else:
-                    raise ValidationError("The request has no agent yet! ")
-                    return HttpResponse('no agent')
-            else:
-                raise ValidationError("The notification has no status! "+status)
-                return HttpResponse('error')
+            req.update_payment_status(status, gateref)
 
         else:
             raise ValidationError("Can't find a false join request: "+str(req))
@@ -2162,6 +1892,33 @@ def accept_request(request, join_request_id):
 
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
+
+@login_required
+def update_share_payment(request, join_request_id):
+    jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    if not jn_req.agent:
+        raise ValidationError("This request has no agent ?!!")
+    if not jn_req.project:
+        raise ValidationError("This request has no project ??!!!")
+    user_agent = get_agent(request)
+    if not user_agent in jn_req.project.agent.managers():
+        raise ValidationError("You don't have permission to do this !!!")
+    if request.method == "POST":
+        status = request.POST.get("status")
+        gateref = request.POST.get("reference")
+        notes = request.POST.get("notes")
+        next = request.POST.get("next")
+        if not next:
+            next = "join_requests"
+        if status:
+            jn_req.update_payment_status(status, gateref, notes)
+        else:
+            raise ValidationError("Missing status ("+str(status)+") !") # or gateway reference ("+str(gateref)+") !")
+    else:
+        raise ValidationError("The request has no POST data!")
+
+    return redirect(next, agent_id=jn_req.project.agent.id) #'/%s/%s/%s/'
+        #% ('work/agent', jn_req.project.agent.id, 'join-requests'))
 
 
 from itertools import chain
@@ -3905,12 +3662,15 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         #    xx = list(x.transfer_list)
         #except AttributeError:
         x.list_name = x.show_name(agent)
+        flip = False
+        if not str(x) == x.list_name:
+            flip = True
 
         x.transfer_list = list(x.transfers.all())
 
         for transfer in x.transfer_list:
 
-            transfer.list_name = transfer.show_name(agent)
+            transfer.list_name = transfer.show_name(agent, flip) # "2nd arg is 'forced'
 
             if transfer.quantity():
               if transfer.transfer_type.is_incoming(x, agent): #reciprocal:
@@ -3963,10 +3723,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                       #rt = transfer.resource_type()
                       rt.cur = False
                       if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
-                        ancs = rt.ocp_artwork_type.get_ancestors(False,True)
-                        for an in ancs:
-                          if an.clas == "currency":
-                            rt.cur = True
+                        rt.cur = rt.ocp_artwork_type.is_currency()
 
                         if rt.cur and rt.ocp_artwork_type.general_unit_type:
                           if rt.ocp_artwork_type.general_unit_type.ocp_unit_type:
@@ -4189,11 +3946,23 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
             }
             add_work_form = WorkEventContextAgentForm(initial=work_init, context_agent=context_agent)
 
+            fliped = []
             for slot in slots:
                 slot.flip = False
                 slot.list_name = slot.show_name(context_agent)
                 if not slot.list_name == slot.name:
                     slot.flip = True
+                    fliped.append(slot)
+            if len(fliped) < len(slots) and len(fliped) > 0:
+                for slot in slots:
+                    if not slot in fliped:
+                        slot.list_name = slot.show_name(context_agent, True) # 2nd arg is 'forced' (no need commitments or events)
+                        slot.flip = True
+                        if slot.is_income:
+                            slot.is_income = False
+                        fliped.append(slot)
+
+            for slot in slots:
 
                 ta_init = slot.default_to_agent
                 fa_init = slot.default_from_agent
@@ -4208,12 +3977,12 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                     #slot.default_from_agent = fa_init
                     #slot.default_to_agent = ta_init
 
-                    if slot.inherit_types:
+                    if True or slot.inherit_types:
                         #pass
                         if slot.is_income:
-                            slot.is_income = False
-                        #else:
-                        #    pass #slot.is_income = True
+                            pass #slot.is_income = False
+                        else:
+                            pass #slot.is_income = True
 
                 xfer_init = {
                     "from_agent": fa_init,

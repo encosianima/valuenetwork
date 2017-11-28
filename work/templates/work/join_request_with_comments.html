@@ -111,6 +111,12 @@ th
         {% with jn_req as req %}
         <table style="/*display:block; max-width:1024px; width:100%;*/" class="table table-bordered table-hover table-condensed" >
           <tbody style="display:block;">
+            {% if request.user.is_superuser %}
+              <tr>
+                <th><em>(debug)</em></th>
+                <td><em>req.id: {{ req.id }} &nbsp; unit:<b>{{ req.payment_unit }}</b>&nbsp; unit_rt:<b>{{ req.payment_unit_rt }}</b>&nbsp; is_currency:<b>{{ req.payment_unit_rt.ocp_artwork_type.is_currency }}</b></em></td>
+              </tr>
+            {% endif %}
             <tr>
                 <th>{% trans "Date" %}:</th>
                 <td>{{ req.request_date }}</td>
@@ -121,7 +127,7 @@ th
             </tr>
             <tr>
                 <th style="display:block; width:180px;">{% trans "Username" %}:</th>
-                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %} {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span> {% if user_agent == req.agent %}<em>{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>{% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>{% endif %}{% endif %}</td>
+                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %} {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span> {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>{% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>{% endif %}{% endif %}</td>
             </tr>
             <tr>
                 <th>{% trans "Type" %}:</th>
@@ -162,7 +168,10 @@ th
             {% if req.pending_shares %}
               <tr><th>{% trans "Shares Pending" %}:</th>
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
-                {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
+                  {% if req.exchange %}
+                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b>
+                  {% endif %}
+                  {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
                     {% if req.payment_url %}
                         {% if req.payment_fees and req.payment_fees_payer == req.agent %}
                            (+ {{ req.payment_fees }} {% trans "gateway fees" %})
@@ -183,10 +192,8 @@ th
                     {% else %}
                         <span class="error">{% trans "ERROR: request without a payment option!" %}</span>
                     {% endif %}
-                    {% if req.exchange %}
-                        &nbsp; {% trans "related the exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b>
-                    {% endif %}
-                {% endif %}
+
+                  {% endif %}
                 </td>
               </tr>
             {% endif %}
@@ -197,6 +204,7 @@ th
                   </td>
               </tr>
             {% endif %}
+
             <!-- <tr>
                 <th>{% trans "Languages" %}:</th>
                 <td>{{ req.native_language }}</td>

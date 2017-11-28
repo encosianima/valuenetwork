@@ -8055,7 +8055,7 @@ class TransferType(models.Model):
         prefix=self.form_prefix()
         return TransferTypeForm(instance=self, prefix=prefix)
 
-    def show_name(self, agent=None):
+    def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
         newname = name
         if agent:
@@ -8063,9 +8063,13 @@ class TransferType(models.Model):
             gives = self.transfers.filter(events__from_agent=agent)
             if not gives:
                 gives = self.transfers.filter(commitments__from_agent=agent)
+            if not gives:
+                gives = forced
             takes = self.transfers.filter(events__to_agent=agent)
             if not takes:
                 takes = self.transfers.filter(commitments__to_agent=agent)
+            if not takes:
+                takes = forced
 
             if hasattr(self.exchange_type, 'ocp_record_type') and self.exchange_type.ocp_record_type:
                 x_actions = self.exchange_type.ocp_record_type.x_actions()
@@ -8304,7 +8308,7 @@ class Exchange(models.Model):
               slot.status = 'empty'
         return slots
 
-    def show_name(self, agent=None):
+    def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
         newname = None
         if self.transfers:
@@ -8315,17 +8319,18 @@ class Exchange(models.Model):
             if hasattr(self.exchange_type, 'ocp_record_type'):
                 et_name = str(self.exchange_type.ocp_record_type)
                 actions = self.exchange_type.ocp_record_type.x_actions()
-                for action in actions:
+                if actions:
+                  for action in actions:
                     opposite = action.opposite()
                     if opposite:
                         if action.clas and opposite.clas:
                             newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
                         else:
                             newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
-                        if take_ts:
+                        if take_ts or forced:
                             if action.clas == 'buy' or action.clas == 'receive':
                                 name = newname
-                        if give_ts:
+                        if give_ts or forced:
                             if action.clas == 'sell' or action.clas == 'give':
                                 name = newname
 
@@ -8992,7 +8997,7 @@ class Transfer(models.Model):
         return agents
 
 
-    def show_name(self, agent=None):
+    def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
         newname = name
         if agent:
@@ -9000,9 +9005,13 @@ class Transfer(models.Model):
             gives = self.events.filter(from_agent=agent)
             if not gives:
                 gives = self.commitments.filter(from_agent=agent)
+            if not gives:
+                gives = forced
             takes = self.events.filter(to_agent=agent)
             if not takes:
                 takes = self.commitments.filter(to_agent=agent)
+            if not takes:
+                takes = forced
 
             if hasattr(self.exchange.exchange_type, 'ocp_record_type'):
                 x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()

@@ -256,7 +256,7 @@ h3.trtheading {
                                     </a>
                                     {% endif %}
                                 {% endif %}
-                                {% if False and slot.add_xfer_form.errors %}<br>
+                                {% if request.user.is_superuser and slot.add_xfer_form.errors %}<br>
                                   errors: {{ slot.add_xfer_form.errors }}
                                 {% endif %}
 
@@ -396,7 +396,7 @@ h3.trtheading {
                             {% endif %}
 
                             {% for xfer in slot.xfers %}
-                                <div class="event"><span class="{{ xfer.status }}">&#9679;{% if False and request.user.is_superuser %} {{ xfer.status }}{% endif %}</span>
+                                <div class="event">{% if xfer.commitments.all or xfer.events.all %}<span class="{{ xfer.status }}">&#9679;</span>{% endif %}
                                     {% if xfer.commitments.all %}
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ xfer.commit_text }}
@@ -654,7 +654,7 @@ h3.trtheading {
                                                 {% endif %}
                                             </div>
                                         {% endif %}
-                                    {% else %}
+                                    {% elif xfer.events.all %}
                                         <span class="event-label">{% trans "Transfer" %}:</span> {{ xfer.event_text }}
                                         {% if logger or xfer.events.first.created_by == request.user or xfer.events.first.to_agent == request.user.agent.agent or xfer.events.first.to_agent in request.user.agent.agent.managed_projects %}
                                           {% if not exchange.join_request.agent == request.user.agent.agent %}
@@ -734,6 +734,8 @@ h3.trtheading {
                                         {% if xfer.events.first.description %}
                                             <div class="notes"> {{ xfer.events.first.description|urlize|linebreaks }} </div>
                                         {% endif %}
+                                    {% else %}
+                                        <em class="">{% trans "This transfer has not any event or commitment yet..." %}</em>
                                     {% endif %}
                                 </div>
                             {% endfor %}
@@ -903,7 +905,7 @@ h3.trtheading {
                             {% endif %}
 
                             {% for xfer in slot.xfers %}
-                                <div class="event"><span class="{{ xfer.status }}">&#9679;{% if False and request.user.is_superuser %} {{ xfer.status }}{% endif %}</span>
+                                <div class="event">{% if xfer.commitments.all or xfer.events.all %}<span class="{{ xfer.status }}">&#9679; </span>{% endif %}
                                     {% if xfer.commitments.all %}
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ xfer.commit_text }}
@@ -1158,7 +1160,7 @@ h3.trtheading {
                                                 {% endif %}
                                             </div>
                                         {% endif %}
-                                    {% else %}
+                                    {% elif xfer.events.all %}
                                         <span class="event-label">{% trans "Transfer" %}: </span>{{ xfer.event_text }}
                                         {% if logger or xfer.events.first.created_by == request.user or xfer.events.first.from_agent == request.user.agent.agent or xfer.events.first.from_agent in request.user.agent.agent.managed_projects  %}
                                           {% if not exchange.join_request.agent == request.user.agent.agent %}
@@ -1238,6 +1240,8 @@ h3.trtheading {
                                         {% if xfer.event_description %}
                                             <div class="notes"> {{ xfer.event_description|urlize|linebreaks }} </div>
                                         {% endif %}
+                                    {% else %}
+                                        <em class="">{% trans "This transfer has not any event or commitment yet..." %}</em>
                                     {% endif %}
                                 </div>
                             {% endfor %}

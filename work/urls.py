@@ -110,6 +110,8 @@ urlpatterns = [
         name="delete_request"),
     url(r'^confirm-request/(?P<join_request_id>\d+)/$', work.views.confirm_request,
         name="confirm_request"),
+    url(r'^update-status/(?P<join_request_id>\d+)/$', work.views.update_share_payment,
+        name="update_share_payment"),
     url(r'^create-ocp-acount/(?P<join_request_id>\d+)/$', work.views.create_account_for_join_request,
         name="create_account_for_join_request"),
     # url(r"^comments/$", work.views.comments, name="comments"),

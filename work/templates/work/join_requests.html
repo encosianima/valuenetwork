@@ -79,8 +79,30 @@ form.action-form {
                             <td>
                                 {% if project.share_types %}
                                   {% trans "Shares:" %}
-                                  {% if req.pending_shares %}<span class="error">{% trans "Pending" %}</span>
-                                  {% else %}<span class="complete">{% trans "Acquired" %}</span>{% endif %}
+                                  {% if req.pending_shares %}
+                                      <span class="error">{% trans "Pending" %}</span>
+                                  {% else %}
+                                      <span class="complete">{% trans "Acquired" %}</span>
+                                  {% endif %}
+                                  {% if req.exchange %}&nbsp; <b><a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">Exchange</a></b>
+                                  {% else %}
+                                    {% if not req.payment_option.key == 'ccard' %}
+                                      <form
+                                          class="action-form"
+                                          id="status-form{{ req.id }}"
+                                          action="{% url "update_share_payment" join_request_id=req.id %}"
+                                          method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="pending">
+                                        <input type="hidden" name="notes" value="dis iz a tezt note">
+                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' />
+                                      </form>
+                                    {% endif %}
+                                    {% if False and req.exchange_type %}
+                                        <br />ET: {{ req.exchange_type }}
+                                    {% endif %}
+                                  {% endif %}
+
                                   <br />
                                 {% endif %}
 
