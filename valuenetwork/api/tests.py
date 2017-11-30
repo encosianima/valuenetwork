@@ -849,6 +849,13 @@ class APITest(TestCase):
 '''
 # agent data
 
+# user agent is authorized to create objects within that scope
+query($token: String) {
+  viewer(token: $token) {
+    userIsAuthorizedToCreate(scopeId:23) 
+  }
+}
+
 query($token: String) {
   viewer(token: $token) {
     agent(id:39) {
@@ -1566,6 +1573,8 @@ query($token: String) {
       plannedDuration
       isFinished
       note
+      userIsAuthorizedToUpdate
+      userIsAuthorizedToDelete
     }
   }
 }
@@ -2000,6 +2009,8 @@ query ($token: String) {
         id
         name
       }
+      userIsAuthorizedToUpdate
+      userIsAuthorizedToDelete
     }
   }
 }
@@ -2198,6 +2209,9 @@ query ($token: String) {
       involvedAgents {
         name
       }
+      userIsAuthorizedToUpdate
+      userIsAuthorizedToDelete
+      isDeletable
     }
   }
 }
