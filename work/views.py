@@ -741,9 +741,10 @@ def members_agent(request, agent_id):
         skills = EconomicResourceType.objects.filter(behavior="work")
         arts = agent.resource_types.filter(event_type=et_work)
         agent.skills = []
-        user = agent.user().user
-        suggestions = user.skill_suggestion.all()
-        agent.suggested_skills = [sug.resource_type for sug in suggestions]
+        if agent.user():
+            user = agent.user().user
+            suggestions = user.skill_suggestion.all()
+            agent.suggested_skills = [sug.resource_type for sug in suggestions]
         for art in arts:
             agent.skills.append(art.resource_type)
         for skil in agent.skills:
@@ -5301,7 +5302,7 @@ def non_process_logging(request):
     ctx_qs = member.related_context_queryset()
     if ctx_qs:
         context_agent = ctx_qs[0]
-        if context_agent.project.resource_type_selection == "project":
+        if context_agent.project and context_agent.project.resource_type_selection == "project":
             rts = rts.filter(context_agent=context_agent)
         else:
             rts = rts.filter(Q(context_agent=context_agent)|Q(context_agent=None))
