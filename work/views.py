@@ -711,7 +711,7 @@ def members_agent(request, agent_id):
     if not agent.username():
         init = {"username": agent.nick,}
         user_form = UserCreationForm(initial=init)
-    has_associations = agent.all_has_associates()
+    has_associations = agent.all_has_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
     is_associated_with = agent.all_is_associates()
     assn_form = AssociationForm(agent=agent)
 
@@ -761,7 +761,7 @@ def members_agent(request, agent_id):
     elif agent.is_context_agent():
         try:
           fobi_name = get_object_or_404(FormEntry, slug=agent.project.fobi_slug)
-          entries = agent.project.join_requests.filter(agent__isnull=True)
+          entries = agent.project.join_requests.filter(agent__isnull=True, state='new')
         except:
           entries = []
 

@@ -858,10 +858,11 @@
                   </h4>
                   <ul>
                     {% for assoc in has_associations %}
-                        {% ifchanged assoc.association_type %}
-                            <h4>{{ assoc.association_type.inverse_label }}: </h4>
+                        {% ifchanged assoc.association_type and assoc.state %}
+                            <h4>{% if not assoc.state == 'active' %}{% trans "has candidates" %}{% else %}
+                                {{ assoc.association_type.inverse_label }}{% endif %}: </h4>
                         {% endifchanged %}
-                        {% if user_agent in agent.managers and not assoc.state == 'inactive' %}
+                        {% if user_agent in agent.managers and not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
                             {% with assoc.is_associate.membership_request_id as id %}
                                 {% if id %}
@@ -877,7 +878,7 @@
                             {% for req in assoc.is_associate.joinaproject_requests %}
                               {% if req.project.agent == agent %}
                                 {% if req.id %}
-                                    {% if not assoc.state == "accepted" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
+                                    {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
                                     &nbsp;
                                     <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
                                         <b>{% trans "Feedback" %}</b>
@@ -887,7 +888,7 @@
                               {% endif %}
                             {% endfor %}
                           </li>
-                        {% elif not assoc.state == "inactive" %}
+                        {% elif not assoc.state == "inactive" and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a> {% if assoc.state == "inactive" %}{% trans "(inactive)" %}{% endif %}</li>
                         {% endif %}
                     {% endfor %}
@@ -947,7 +948,8 @@
 
 
 
-  {% if agent.project and not user_agent in agent.managers and not user_agent in agent.participants and not agent.project in user_agent.joinaproject_requests_projects %}
+  {% if agent.project and not user_agent in agent.managers %}
+    {% if not user_agent in agent.participants or user_agent.req %}
     <div id="join-this-project"  class="span5">
       <h3>
         {% trans "Join this project:" %}
@@ -979,7 +981,7 @@
         </div>
       {% endif %}
     </div>
-
+    {% endif %}
   {% endif %}
         </div>
     </div>
