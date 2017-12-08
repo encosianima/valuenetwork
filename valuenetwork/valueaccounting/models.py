@@ -1412,6 +1412,20 @@ class EconomicAgent(models.Model):
         agent_ids = self.has_associates.filter(association_type__association_behavior__in=both).filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
 
+    def candidates(self):
+        agents = None
+        if self.project and self.project.join_requests:
+            agent_ids = self.project.join_requests.filter(state='new').values_list('agent')
+            agents = EconomicAgent.objects.filter(pk__in=agent_ids)
+        return agents
+
+    def declined_agents(self):
+        agents = None
+        if self.project and self.project.join_requests:
+            agent_ids = self.project.join_requests.filter(state='declined').values_list('agent')
+            agents = EconomicAgent.objects.filter(pk__in=agent_ids)
+        return agents
+
     #def affiliates(self):
     #    agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
     #    return EconomicAgent.objects.filter(pk__in=agent_ids)
