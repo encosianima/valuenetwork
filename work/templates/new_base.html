@@ -232,7 +232,7 @@
                                 </li>
                             {% endif %}
                         {% endwith %}
-                    {% else %}
+                    {% elif request.user.agent.agent.need_tasks and request.user.agent.agent.is_participant %}
                         <li id="my-tasks" class="dropdown">
                           <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Tasks' %} <b class="caret"></b></a>
                           <ul class="subnav dropdown-menu" id="tasks-menu">

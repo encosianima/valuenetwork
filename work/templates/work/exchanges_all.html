@@ -588,7 +588,7 @@ hr {
                     {% endif %}
                 </div> <!-- end tabs -->
               </div>
-              {% if request.user.is_superuser %}<span style="font-size:0.8em;color:#666;">(debug) <b>Contexts:</b>
+              {% if False and request.user.is_superuser %}<span style="font-size:0.8em;color:#666;">(debug) <b>Contexts:</b>
                 {% for ag in context_agent.related_all_agents %} {{ ag.name }} {% if not ag.nick == ag.name %}({{ ag.nick }}){% endif %}, {% endfor %}
               </span>{% endif %}
               <span id="new_name"></span>
@@ -691,8 +691,8 @@ hr {
 		  {% if exchanges %}
         <h3>
           {% trans "List of Exchanges" %}{% if not user.is_staff and not request.user.agent.agent in context_agent.managers %}
-            <span>({% trans "related to you" %})</span>
-          {% endif %}: &nbsp;<span style="font-size:80%">{{ exchanges.count }}</span>
+            <span>({% trans "related to you" %}):</span>
+          {% else %}: &nbsp;<span style="font-size:80%">{{ exchanges.count }}</span>{% endif %}
         </h3>
 			  <ul>
 			    {% for x in exchanges %}
