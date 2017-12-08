@@ -748,18 +748,22 @@ class EconomicAgent(models.Model):
             return False
 
     def is_participant(self):
-        fcaas = None
-        if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
-          reqs = self.joinaproject_requests()
-          if reqs:
-            for req in reqs:
-              fcaas = self.is_associate_of.filter(
+        fcaas = self.is_associate_of.filter(
                 association_type__association_behavior="member",
-                has_associate=req.project.agent,
+                #has_associate=req.project.agent,
                 state="active")
-              if fcaas:
-                break
-                return True
+
+        #if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
+        #  reqs = self.joinaproject_requests()
+        #  if reqs:
+        #    for req in reqs:
+        #      aas = self.is_associate_of.filter(
+        #        association_type__association_behavior="member",
+        #        has_associate=req.project.agent,
+        #        state="active")
+        #      if aas:
+        #        break
+        #        return True
         if fcaas:
             return True
         else:
@@ -1395,7 +1399,8 @@ class EconomicAgent(models.Model):
         return EconomicAgent.objects.filter(pk__in=agent_ids)
 
     def participants(self): #returns a list or None
-        agent_ids = self.has_associates.filter(association_type__association_behavior="member").filter(state="active").values_list('is_associate')
+        both = ["member","manager"]
+        agent_ids = self.has_associates.filter(association_type__association_behavior__in=both).filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
 
     #def affiliates(self):
