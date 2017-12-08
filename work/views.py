@@ -671,7 +671,7 @@ def create_your_project(request):
 def members_agent(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
-    if not user_agent or not user_agent.is_participant or not user_agent.is_active_freedom_coop_member:
+    if not user_agent or not user_agent.is_participant: # or not agent in user_agent.related_all_agents(): # or not user_agent.is_active_freedom_coop_member:
         return render(request, 'work/no_permission.html')
 
     user_is_agent = False
@@ -910,9 +910,18 @@ def edit_relations(request, agent_id):
         assn_form = AssociationForm(agent=agent,data=request.POST)
         if assn_form.is_valid():
             member_assn = AgentAssociation.objects.get(id=int(request.POST.get("member")))
-            assn_type = AgentAssociationType.objects.get(id=int(request.POST.get("new_association_type")))
-            member_assn.association_type = assn_type
-            member_assn.save()
+            if request.POST.get("new_association_type"):
+                assn_type = AgentAssociationType.objects.get(id=int(request.POST.get("new_association_type")))
+                member_assn.association_type = assn_type
+                member_assn.save()
+            elif member_assn and agent.project:
+                # check there's no join request
+                reqs = agent.project.join_requests.filter(agent=member_assn.subject) # .subject is the new VF property (is_associate)
+                if reqs:
+                    raise ValidationError("Can't disable the relation because there's still a join-request: "+str(reqs))
+                else:
+                    member_assn.state = 'inactive'
+                    member_assn.save()
 
     return HttpResponseRedirect('/%s/%s/'
         % ('work/agent', agent.id))
@@ -1824,13 +1833,23 @@ def join_project(request, project_id):
         project = get_object_or_404(EconomicAgent, pk=project_id)
         user_agent = get_agent(request)
         association_type = AgentAssociationType.objects.get(identifier="participant")
-        aa = AgentAssociation(
-            is_associate=user_agent,
-            has_associate=project,
-            association_type=association_type,
-            state="active",
+        aas = AgentAssociation.objects.filter(is_associate=user_agent, has_associate=project)
+        if aas:
+            if len(aas) > 1:
+                raise ValidationError("This agent ("+str(user_agent)+") has more than one existent relations with the project: "+str(project))
+            else:
+                aa = aas[0]
+                aa.association_type = association_type
+                aa.state = 'active'
+                aa.save()
+        else:
+            aa = AgentAssociation(
+                is_associate=user_agent,
+                has_associate=project,
+                association_type=association_type,
+                state="active",
             )
-        aa.save()
+            aa.save()
 
     return HttpResponseRedirect("/work/your-projects/")
 
