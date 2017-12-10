@@ -1209,13 +1209,14 @@ class EconomicAgent(models.Model):
           txs = ex.transfers.all()#filter(events__unit_of_value__ocp_unit_type__isnull=False) #exchange_type.transfer_types.all()
           for tx in txs:
             uv = tx.unit_of_value()
-            if uv and not uv.ocp_unit_type.id in uids:
-              # mptt: get_ancestors(ascending=False, include_self=False)
-              #ancs = uv.ocp_unit_type.get_ancestors(False, True)
-              #for an in ancs:
-              #  if not an.id in uids:
-              #    uids.append(an.id)
-              uids.append(uv.ocp_unit_type.id)
+            if uv and hasattr(uv, 'gen_unit'):
+              if not uv.gen_unit.unit_type.id in uids:
+                # mptt: get_ancestors(ascending=False, include_self=False)
+                #ancs = uv.ocp_unit_type.get_ancestors(False, True)
+                #for an in ancs:
+                #  if not an.id in uids:
+                #    uids.append(an.id)
+                uids.append(uv.gen_unit.unit_type.id)
             #rt = tx.resource_type()
             #if rt.unit_of_value and rt.unit_of_value.ocp_unit_type:
               #ancs = rt.unit_of_value.ocp_unit_type.get_ancestors(False, True)
@@ -1225,10 +1226,10 @@ class EconomicAgent(models.Model):
               #pass #uids.append(rt.unit_of_value.ocp_unit_type.id)
             uq = tx.unit_of_quantity()
             if uq:
-              if not hasattr(uq, 'ocp_unit_type'):
-                raise ValidationError("The unit has not ocp_unit_type! "+str(uq))
+              if not hasattr(uq, 'gen_unit'):
+                raise ValidationError("The unit has not gen_unit! "+str(uq))
               else:
-                if uq.ocp_unit_type.clas == 'each':
+                if uq.gen_unit.unit_type.clas == 'each':
                   rt = tx.resource_type()
                   if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
                     ancs = rt.ocp_artwork_type.get_ancestors(False,True)
@@ -1258,11 +1259,11 @@ class EconomicAgent(models.Model):
                 rtun = rt.unit
                 #rtut = rtun.unit_type
               if rtun:
-                if not hasattr(rtun, 'ocp_unit_type'):
-                  raise ValidationError("The resource_type unit has not ocp_unit_type! "+str(rtun))
+                if not hasattr(rtun, 'gen_unit'):
+                  raise ValidationError("The resource_type unit has not gen_unit! "+str(rtun))
                 else:
-                  if not rtun.ocp_unit_type.id in uids:
-                    uids.append(rtun.ocp_unit_type.id)
+                  if not rtun.gen_unit.unit_type.id in uids:
+                    uids.append(rtun.gen_unit.unit_type.id)
 
         return uids
 

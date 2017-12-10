@@ -759,7 +759,7 @@ class JobAdmin(MPTTModelAdmin):
 
 class UnitAdmin(admin.ModelAdmin):
   model = Unit
-  list_display = ['name', 'code', 'unit_type',]
+  list_display = ['name', 'code', 'unit_type', 'ocp_unit']
   list_filter = ('unit_type',)
 
 

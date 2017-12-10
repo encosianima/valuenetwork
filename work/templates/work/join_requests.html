@@ -84,7 +84,7 @@ form.action-form {
                                   {% else %}
                                       <span class="complete">{% trans "Acquired" %}</span>
                                   {% endif %}
-                                  {% if req.exchange %}&nbsp; <b><a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">Exchange</a></b>
+                                  {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
                                   {% else %}
                                     {% if not req.payment_option.key == 'ccard' %}
                                       <form
@@ -94,13 +94,16 @@ form.action-form {
                                           method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" name="status" value="pending">
-                                        <input type="hidden" name="notes" value="dis iz a tezt note">
-                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' />
+                                        <!-- <input type="hidden" name="notes" value="dis iz a tezt note"> -->
+                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
                                       </form>
                                     {% endif %}
                                     {% if False and req.exchange_type %}
                                         <br />ET: {{ req.exchange_type }}
                                     {% endif %}
+                                  {% endif %}
+                                  {% if False and req.payment_account_type %}
+                                    <br />Account: {{ req.payment_account_type }}
                                   {% endif %}
 
                                   <br />
@@ -262,8 +265,15 @@ form.action-form {
                       <td>{% if req.agent %} <a href="{% url "members_agent" agent_id=req.agent.id %}"><b><em>{{ req.agent.username }}</em></b></a> {% elif req.requested_username %} {{ req.requested_username }} {% else %} ?? {% endif %}</td>
                       <td>{% if req.agent %} {{ req.agent.agent_type }} {% else %} {{ req.type_of_user }} {% endif %}</td>
 
-                      <td>{% if req.email_address %}<a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a>
-                          {% else %} <em>{{ req.agent.email }}</em> {% endif %}</td>
+                      <td>{% if req.email_address %}
+                              <a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a>
+                          {% else %}
+                              <em>{{ req.agent.email }}</em>
+                          {% endif %}
+                          {% if req.check_user_pass %}
+                              <br /><span class="error">{% trans "not verified" %}</span>
+                          {% endif %}
+                      </td>
                       <td>{% if req.phone_number %} {{ req.phone_number }} {% else %} <em>{{ req.agent.phone_primary }}</em> {% endif %}</td>
                       <td>{% if req.address %} {{ req.address }} {% else %} <em>{{ req.agent.primary_location }}</em> {% endif %}</td>
                       <td>{% if req.website %} {{ req.website }} {% else %} <em>{{ req.agent.url }}</em> {% endif %}</td>

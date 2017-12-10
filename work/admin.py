@@ -62,7 +62,7 @@ from general.admin import J_jobInline
 
 class Ocp_Type_Artwork_Admin(MPTTModelAdmin):
   model = Ocp_Artwork_Type
-  list_display = ['name', 'clas', 'facet', 'facet_value', 'resource_type', 'context_agent', 'general_unit_type']
+  list_display = ['name', 'clas', 'facet', 'facet_value', 'resource_type', 'context_agent', 'general_unit_type', 'rel_material_type', 'rel_nonmaterial_type']
   def formfield_for_foreignkey(self, db_field, request, **kwargs):
     if db_field.name == 'parent':
       try:
@@ -85,7 +85,7 @@ admin.site.register(Ocp_Skill_Type, Ocp_Type_Skill_Admin)
 
 class Ocp_Type_Unit_Admin(MPTTModelAdmin):
   model = Ocp_Unit_Type
-  list_display = ['name', 'clas', 'general_unit', 'ocp_unit']
+  list_display = ['name', 'clas', 'units']
   def formfield_for_foreignkey(self, db_field, request, **kwargs):
     if db_field.name == 'parent':
       try:
@@ -96,3 +96,10 @@ class Ocp_Type_Unit_Admin(MPTTModelAdmin):
     return super(Ocp_Type_Unit_Admin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 admin.site.register(Ocp_Unit_Type, Ocp_Type_Unit_Admin)
+
+
+"""class Gen_Unit_Admin(admin.ModelAdmin):
+    model = Gen_Unit
+    list_display = ['name','ocp_unit']
+
+admin.site.register(Gen_Unit, Gen_Unit_Admin)"""

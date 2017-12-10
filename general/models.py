@@ -956,20 +956,27 @@ class Asset(Material):
 
 # - - - - - U N I T S
 
+from valuenetwork.valueaccounting.models import Unit as Ocp_Unit
+
 @python_2_unicode_compatible
 class Unit(Artwork):	# Create own ID's
-	unit_type = TreeForeignKey('Unit_Type', blank=True, null=True, verbose_name=_(u"Type of Unit"))
-	code = models.CharField(max_length=4, verbose_name=_(u"Code or Symbol"))
+    unit_type = TreeForeignKey('Unit_Type', blank=True, null=True, verbose_name=_(u"Type of Unit"))
+    code = models.CharField(max_length=4, verbose_name=_(u"Code or Symbol"))
 
-	region = TreeForeignKey('Region', blank=True, null=True, verbose_name=_(u"related use Region"))
-	#human = models.ForeignKey('Human', blank=True, null=True, verbose_name=_(u"related Entity"))
+    region = TreeForeignKey('Region', blank=True, null=True, verbose_name=_(u"related use Region"))
+    #human = models.ForeignKey('Human', blank=True, null=True, verbose_name=_(u"related Entity"))
 
-	class Meta:
-		verbose_name= _(u'Unit')
-		verbose_name_plural= _(u'o- Units')
+    ocp_unit = models.OneToOneField(Ocp_Unit, blank=True, null=True, verbose_name=_(u"OCP Unit"), related_name="gen_unit")
 
-	def __str__(self):
-		return self.unit_type.name+': '+self.name
+    class Meta:
+    	verbose_name= _(u'Unit')
+    	verbose_name_plural= _(u'o- Units')
+
+    def __str__(self):
+        if self.ocp_unit:
+            return self.name+' <'
+        else:
+            return self.unit_type.name+': '+self.name
 
 class Unit_Type(Artwork_Type):
 	unitType_artwork_type = models.OneToOneField('Artwork_Type', primary_key=True, parent_link=True, on_delete=models.CASCADE)

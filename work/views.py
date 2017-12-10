@@ -2314,7 +2314,7 @@ def new_skill_type(request, agent_id):
               out = None
               if hasattr(data["unit_type"], 'id'):
                 gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                out = gut.ocp_unit
+                out = gut.ocp_unit()
               new_rt = EconomicResourceType(
                 name=data["name"],
                 description=data["description"],
@@ -2440,7 +2440,7 @@ def edit_skill_type(request, agent_id):
             out = None
             if hasattr(data["unit_type"], 'id'):
               gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-              out = gut.ocp_unit
+              out = gut.ocp_unit()
             edid = request.POST.get("edid")
             if edid == '':
               raise ValidationError("Missing id of the edited skill! (edid)")
@@ -2595,7 +2595,7 @@ def new_resource_type(request, agent_id):
                 out = None
                 if hasattr(data["unit_type"], 'id'):
                     gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                    out = gut.ocp_unit
+                    out = gut.ocp_unit()
                 if hasattr(data, "substitutable"):
                     substi = data["substitutable"]
                 else:
@@ -2718,7 +2718,7 @@ def edit_resource_type(request, agent_id):
                 out = None
                 if hasattr(data["unit_type"], 'id'):
                     gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                    out = gut.ocp_unit
+                    out = gut.ocp_unit()
                 edid = request.POST.get("edid")
                 if edid == '':
                     raise ValidationError("Missing edid!")
@@ -3686,13 +3686,13 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                 uq = rt.unit
 
               if uq:
-                if not hasattr(uq, 'ocp_unit_type'):
-                  raise ValidationError("The unit has not ocp_unit_type! "+str(uq))
+                if not hasattr(uq, 'gen_unit'):
+                  raise ValidationError("The unit has not gen_unit! "+str(uq))
                 for to in total_transfers:
-                  if to['unit'] == uq.ocp_unit_type.id:
+                  if to['unit'] == uq.gen_unit.unit_type.id:
 
-                    to['name'] = uq.ocp_unit_type.name
-                    to['clas'] = uq.ocp_unit_type.clas
+                    to['name'] = uq.gen_unit.unit_type.name
+                    to['clas'] = uq.gen_unit.unit_type.clas
 
                     if transfer.transfer_type.is_incoming(x, agent): #is_reciprocal:
                       if transfer.events.all():
@@ -3719,21 +3719,21 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             to['outcommit'] = (to['outcommit']*1) + (transfer.quantity()*1)
                       #to['debug'] += str(x.id)+':'+str([str(ev.event_type.name)+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_receive_events()])+sign+' - '
 
-                    if uq.ocp_unit_type.clas == 'each':
+                    if uq.gen_unit.unit_type.clas == 'each':
                       #rt = transfer.resource_type()
                       rt.cur = False
                       if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
                         rt.cur = rt.ocp_artwork_type.is_currency()
 
-                        if rt.cur and rt.ocp_artwork_type.general_unit_type:
-                          if rt.ocp_artwork_type.general_unit_type.ocp_unit_type:
-                            to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type.general_unit_type.ocp_unit_type.name)+sign+' - '
+                        if rt.cur: # and rt.ocp_artwork_type.general_unit_type:
+                          if rt.ocp_artwork_type.general_unit_type:
+                            to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type.general_unit_type.name)+sign+' - '
                           else:
                             to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type)+sign+'-MISSING UNIT! '
                           for ttr in total_transfers:
-                            if ttr['unit'] == rt.ocp_artwork_type.general_unit_type.ocp_unit_type.id:
-                              ttr['name'] = rt.ocp_artwork_type.general_unit_type.ocp_unit_type.name
-                              ttr['clas'] = rt.ocp_artwork_type.general_unit_type.ocp_unit_type.clas
+                            if ttr['unit'] == rt.ocp_artwork_type.general_unit_type.id:
+                              ttr['name'] = rt.ocp_artwork_type.general_unit_type.name
+                              ttr['clas'] = rt.ocp_artwork_type.general_unit_type.clas
 
                               if transfer.events.all():
                                 if sign == '<':
@@ -3755,19 +3755,19 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                         to['debug'] += '::'+str(rt)+'!!'+sign+'::'
 
                       #to['debug'] += str(x.transfer_give_events())+':'
-                    elif uq.ocp_unit_type.clas == 'faircoin':
+                    elif uq.gen_unit.unit_type.clas == 'faircoin':
 
-                      fairunit = uq.ocp_unit_type.id
+                      fairunit = uq.gen_unit.unit_type.id
 
                       to['balnote'] = (to['income']*1) - (to['outgo']*1)
                       #to['debug'] += str(x.transfer_give_events())+':'
 
-                    elif uq.ocp_unit_type.clas == 'euro':
+                    elif uq.gen_unit.unit_type.clas == 'euro':
                       to['balance'] = (to['income']*1) - (to['outgo']*1)
 
                       to['debug'] += str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name for ev in transfer.events.all()])+sign+' - '
                     else:
-                      to['debug'] += 'U:'+str(uq.ocp_unit_type.name)+sign
+                      to['debug'] += 'U:'+str(uq.gen_unit.unit_type.name)+sign
 
               else: # not uq
                 pass #raise ValidationError("the transfer has not unit of quantity! "+str(uq))
