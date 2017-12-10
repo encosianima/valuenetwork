@@ -192,7 +192,8 @@ class AssociationForm(forms.Form):
     new_association_type = forms.ModelChoiceField(
         queryset=AgentAssociationType.objects.member_types(),
         label=_("Choose a new relationship"),
-        empty_label=None,
+        empty_label=_("------ (inactive)"),
+        required=False,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}),
     )

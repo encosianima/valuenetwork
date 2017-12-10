@@ -100,6 +100,13 @@
 
 
       {% if projects %}
+       {% for req in agent.project_join_requests.all %}
+          {% if req.state == 'new' %}
+            <h4 style="line-height:1.7em;">
+              {% trans "You're joining:" %} <a href="{% url "members_agent" agent_id=req.project.agent.id %}" >{{ req.project.agent.name }}</a> &nbsp; <span style="font-size: 0.9em; font-weight: normal;">({% trans "see the" %} <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">{% trans "Feedback page" %}</a>)</span>
+            </h4>
+          {% endif %}
+       {% endfor %}
        {% if managed_projects %}
         <h3>
           {% trans "Projects coordinated by you:" %}
