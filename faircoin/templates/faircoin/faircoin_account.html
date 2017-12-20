@@ -337,6 +337,11 @@
             $( "#help" ).text("Show Help");
         })
 
+        $('input#id_quantity').change(function(){
+            var val = $(this).val();
+            $(this).val(val.split(',').join('.'));
+        });
+
         //$('td.td-role > select').addClass('select-role');
         //$('td.td-agent > select').addClass('select-agent');
 
@@ -371,10 +376,10 @@
 
         jQuery.validator.addMethod("quantity",
             function(value, element) {
-                var isValidQuantity = /^\d{0,6}(\.\d{0,2})?$/.test(value);
+                var isValidQuantity = /^\d{0,6}(\.\d{0,4})?$/.test(value);
                 return this.optional(element) || isValidQuantity;
             },
-            "Please enter a number less than 1000000 with no more than 2 decimal places"
+            "Please enter a number less than 1000000 with no more than 4 decimal places"
         );
 
         $.validator.addClassRules("quantity", { quantity: true });
@@ -387,8 +392,8 @@
         }, "Cannot be more than balance - network fee, " + limit );
 
         jQuery.validator.addMethod("notLessThanMinimum", function(value, element) {
-            return this.optional(element) || (parseFloat(value) >= 1.0 );
-        }, "Must be at least 1 FairCoin");
+            return this.optional(element) || (parseFloat(value) >= 0.01 );
+        }, "Must be at least 0.01 FairCoin");
 
 
         $('#resource-change-form').validate(

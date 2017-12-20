@@ -6,7 +6,12 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.valueaccounting.models import EconomicAgent
 
 class SendFairCoinsForm(forms.Form):
-    quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'faircoins input-small',}),min_value=Decimal('1.0'))
+    quantity = forms.DecimalField(
+        widget=forms.TextInput(attrs={'class': 'faircoins input-small',}),
+        min_value=Decimal('0.01'),
+        decimal_places=4,
+        #localize=True
+    )
     to_address = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'input-xlarge',}),
         required=None
@@ -40,6 +45,7 @@ class SendFairCoinsForm(forms.Form):
         data = super(SendFairCoinsForm, self).clean()
         if data["to_address"]:
             data["to_address"] = data["to_address"].strip()
+        data["quantity"] = Decimal(data["quantity"])
         #touser = data["to_user"]
         if data["to_user"] and not data["to_address"]:
            touser = data["to_user"]

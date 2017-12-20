@@ -212,6 +212,7 @@ th, td {
   {% endif %}
 
   {% if agent.is_active_freedom_coop_member or agent.need_projects %}
+    {% if agent.is_participant %}
     <div id="home-projects" class="home-block" >
       <h3>
         {% trans "Projects:" %}
@@ -235,8 +236,9 @@ th, td {
         </li>
       </ul>
     </div>
+    {% endif %}
   {% endif %}
-  {% if agent.need_tasks %}
+  {% if agent.need_tasks and agent.is_participant %}
     <div id="home-tasks" class="home-block" >
       <h3>
         {% trans "Tasks:" %}

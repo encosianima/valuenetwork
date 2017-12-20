@@ -671,7 +671,7 @@ def create_your_project(request):
 def members_agent(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
-    if not user_agent or not user_agent.is_participant or not user_agent.is_active_freedom_coop_member:
+    if not user_agent or not user_agent.is_participant: # or not agent in user_agent.related_all_agents(): # or not user_agent.is_active_freedom_coop_member:
         return render(request, 'work/no_permission.html')
 
     user_is_agent = False
@@ -711,7 +711,7 @@ def members_agent(request, agent_id):
     if not agent.username():
         init = {"username": agent.nick,}
         user_form = UserCreationForm(initial=init)
-    has_associations = agent.all_has_associates()
+    has_associations = agent.all_has_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
     is_associated_with = agent.all_is_associates()
     assn_form = AssociationForm(agent=agent)
 
@@ -741,9 +741,10 @@ def members_agent(request, agent_id):
         skills = EconomicResourceType.objects.filter(behavior="work")
         arts = agent.resource_types.filter(event_type=et_work)
         agent.skills = []
-        user = agent.user().user
-        suggestions = user.skill_suggestion.all()
-        agent.suggested_skills = [sug.resource_type for sug in suggestions]
+        if agent.user():
+            user = agent.user().user
+            suggestions = user.skill_suggestion.all()
+            agent.suggested_skills = [sug.resource_type for sug in suggestions]
         for art in arts:
             agent.skills.append(art.resource_type)
         for skil in agent.skills:
@@ -760,7 +761,7 @@ def members_agent(request, agent_id):
     elif agent.is_context_agent():
         try:
           fobi_name = get_object_or_404(FormEntry, slug=agent.project.fobi_slug)
-          entries = agent.project.join_requests.filter(agent__isnull=True)
+          entries = agent.project.join_requests.filter(agent__isnull=True, state='new')
         except:
           entries = []
 
@@ -909,9 +910,18 @@ def edit_relations(request, agent_id):
         assn_form = AssociationForm(agent=agent,data=request.POST)
         if assn_form.is_valid():
             member_assn = AgentAssociation.objects.get(id=int(request.POST.get("member")))
-            assn_type = AgentAssociationType.objects.get(id=int(request.POST.get("new_association_type")))
-            member_assn.association_type = assn_type
-            member_assn.save()
+            if request.POST.get("new_association_type"):
+                assn_type = AgentAssociationType.objects.get(id=int(request.POST.get("new_association_type")))
+                member_assn.association_type = assn_type
+                member_assn.save()
+            elif member_assn and agent.project:
+                # check there's no join request
+                reqs = agent.project.join_requests.filter(agent=member_assn.subject) # .subject is the new VF property (is_associate)
+                if reqs:
+                    raise ValidationError("Can't disable the relation because there's still a join-request: "+str(reqs))
+                else:
+                    member_assn.state = 'inactive'
+                    member_assn.save()
 
     return HttpResponseRedirect('/%s/%s/'
         % ('work/agent', agent.id))
@@ -1823,13 +1833,23 @@ def join_project(request, project_id):
         project = get_object_or_404(EconomicAgent, pk=project_id)
         user_agent = get_agent(request)
         association_type = AgentAssociationType.objects.get(identifier="participant")
-        aa = AgentAssociation(
-            is_associate=user_agent,
-            has_associate=project,
-            association_type=association_type,
-            state="active",
+        aas = AgentAssociation.objects.filter(is_associate=user_agent, has_associate=project)
+        if aas:
+            if len(aas) > 1:
+                raise ValidationError("This agent ("+str(user_agent)+") has more than one existent relations with the project: "+str(project))
+            else:
+                aa = aas[0]
+                aa.association_type = association_type
+                aa.state = 'active'
+                aa.save()
+        else:
+            aa = AgentAssociation(
+                is_associate=user_agent,
+                has_associate=project,
+                association_type=association_type,
+                state="active",
             )
-        aa.save()
+            aa.save()
 
     return HttpResponseRedirect("/work/your-projects/")
 
@@ -5301,7 +5321,7 @@ def non_process_logging(request):
     ctx_qs = member.related_context_queryset()
     if ctx_qs:
         context_agent = ctx_qs[0]
-        if context_agent.project.resource_type_selection == "project":
+        if context_agent.project and context_agent.project.resource_type_selection == "project":
             rts = rts.filter(context_agent=context_agent)
         else:
             rts = rts.filter(Q(context_agent=context_agent)|Q(context_agent=None))

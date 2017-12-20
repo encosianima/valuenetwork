@@ -757,18 +757,22 @@ class EconomicAgent(models.Model):
             return False
 
     def is_participant(self):
-        fcaas = None
-        if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
-          reqs = self.joinaproject_requests()
-          if reqs:
-            for req in reqs:
-              fcaas = self.is_associate_of.filter(
+        fcaas = self.is_associate_of.filter(
                 association_type__association_behavior="member",
-                has_associate=req.project.agent,
+                #has_associate=req.project.agent,
                 state="active")
-              if fcaas:
-                break
-                return True
+
+        #if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
+        #  reqs = self.joinaproject_requests()
+        #  if reqs:
+        #    for req in reqs:
+        #      aas = self.is_associate_of.filter(
+        #        association_type__association_behavior="member",
+        #        has_associate=req.project.agent,
+        #        state="active")
+        #      if aas:
+        #        break
+        #        return True
         if fcaas:
             return True
         else:
@@ -1404,8 +1408,23 @@ class EconomicAgent(models.Model):
         return EconomicAgent.objects.filter(pk__in=agent_ids)
 
     def participants(self): #returns a list or None
-        agent_ids = self.has_associates.filter(association_type__association_behavior="member").filter(state="active").values_list('is_associate')
+        both = ["member","manager"]
+        agent_ids = self.has_associates.filter(association_type__association_behavior__in=both).filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
+
+    def candidates(self):
+        agents = None
+        if self.project and self.project.join_requests:
+            agent_ids = self.project.join_requests.filter(state='new').values_list('agent')
+            agents = EconomicAgent.objects.filter(pk__in=agent_ids)
+        return agents
+
+    def declined_agents(self):
+        agents = None
+        if self.project and self.project.join_requests:
+            agent_ids = self.project.join_requests.filter(state='declined').values_list('agent')
+            agents = EconomicAgent.objects.filter(pk__in=agent_ids)
+        return agents
 
     #def affiliates(self):
     #    agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
@@ -10085,9 +10104,9 @@ class Commitment(models.Model):
                 unit_string = unit.name
             qty_help = " ".join(["unit:", unit_string, ", up to 2 decimal places"])
         if init:
-            return InputEventAgentForm(qty_help=qty_help, prefix=prefix, initial=init, data=data)
+            return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, prefix=prefix, initial=init, data=data)
         else:
-            return InputEventAgentForm(qty_help=qty_help, prefix=prefix, data=data)
+            return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, prefix=prefix, data=data)
 
     def consumption_event_form(self):
         from valuenetwork.valueaccounting.forms import InputEventForm
@@ -12491,7 +12510,7 @@ class EconomicEvent(models.Model):
         if unit:
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         from valuenetwork.valueaccounting.forms import InputEventAgentForm
-        return InputEventAgentForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
+        return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, instance=self, prefix=prefix, data=data)
 
     def change_form_old(self, data=None):
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
