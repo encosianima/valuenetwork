@@ -1548,7 +1548,7 @@ class InputEventForm(forms.ModelForm):
 class InputEventAgentForm(forms.ModelForm):
     from_agent = forms.ModelChoiceField(
         required=True,
-        queryset=EconomicAgent.objects.individuals(),
+        queryset=EconomicAgent.objects.all(),
         label="Work done by",
         empty_label=None,
         widget=forms.Select(
@@ -1568,10 +1568,12 @@ class InputEventAgentForm(forms.ModelForm):
         model = EconomicEvent
         fields = ('event_date', 'from_agent', 'quantity', 'is_contribution', 'description', )
 
-    def __init__(self, qty_help=None, *args, **kwargs):
+    def __init__(self, qty_help=None, context_agent=None, *args, **kwargs):
         super(InputEventAgentForm, self).__init__(*args, **kwargs)
         if qty_help:
             self.fields["quantity"].help_text = qty_help
+        if context_agent:
+            self.fields["from_agent"].queryset = context_agent.all_members()
 
 #may be obsolete
 class WorkContributionChangeForm(forms.ModelForm):

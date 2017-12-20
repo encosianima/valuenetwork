@@ -10095,9 +10095,9 @@ class Commitment(models.Model):
                 unit_string = unit.name
             qty_help = " ".join(["unit:", unit_string, ", up to 2 decimal places"])
         if init:
-            return InputEventAgentForm(qty_help=qty_help, prefix=prefix, initial=init, data=data)
+            return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, prefix=prefix, initial=init, data=data)
         else:
-            return InputEventAgentForm(qty_help=qty_help, prefix=prefix, data=data)
+            return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, prefix=prefix, data=data)
 
     def consumption_event_form(self):
         from valuenetwork.valueaccounting.forms import InputEventForm
@@ -12501,7 +12501,7 @@ class EconomicEvent(models.Model):
         if unit:
             qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
         from valuenetwork.valueaccounting.forms import InputEventAgentForm
-        return InputEventAgentForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
+        return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, instance=self, prefix=prefix, data=data)
 
     def change_form_old(self, data=None):
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm
