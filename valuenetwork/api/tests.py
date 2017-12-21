@@ -1053,6 +1053,37 @@ query ($token: String) {
 
 query ($token: String) {
   viewer(token: $token) {
+    agent(id: 7) {
+      name
+      agentRelationships(category: MEMBER) {
+        id
+        subject {
+          name
+          type
+          ownedEconomicResources (resourceClassificationId: 28) {
+            createdDate
+            resourceClassifiedAs {
+              name
+            }
+            currentQuantity {
+              numericValue
+              unit {
+                name
+              }
+            }
+          }
+        }
+        relationship {
+          label
+          category
+        }
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
     agent(id: 39) {
       name
       agentRelationships(roleId: 2) {
@@ -2681,6 +2712,52 @@ mutation ($token: String!) {
   }
 }
 
+#create a resource with an event
+mutation ($token: String!) {
+  createEconomicEvent(token: $token, action: "take", start: "2017-12-01", 
+    scopeId: 39, note: "creating a resource", affectedNumericValue: "5", 
+    affectedResourceClassifiedAsId: 38, affectedUnitId: 4, resourceCurrentLocationId: 7, 
+    resourceTrackingIdentifier: "lynn-test-1234", createResource: true) {
+    economicEvent {
+      id
+      action
+      start
+      inputOf {
+        name
+      }
+      outputOf {
+        name
+      }
+      provider {
+        name
+      }
+      receiver {
+        name
+      }
+      scope {
+        name
+      }
+      affects {
+        trackingIdentifier
+        resourceClassifiedAs {
+          name
+        }
+        currentLocation {
+          name
+        }
+      }
+      affectedQuantity {
+        numericValue
+        unit {
+          name
+        }
+      }
+      note
+      url
+    }
+  }
+}
+
 mutation ($token: String!) {
   updateEconomicEvent(token: $token, id: 350, start: "2017-10-02", scopeId: 39, 
     note: "testing more", affectedResourceClassifiedAsId: 17, affectsId: 11, 
@@ -2747,6 +2824,9 @@ mutation ($token: String!) {
       }
       note
       image
+      currentLocation {
+        id
+      }
     }
   }
 }
