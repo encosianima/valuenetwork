@@ -6671,7 +6671,8 @@ class ProcessTypeResourceType(models.Model):
 
     def create_commitment_for_process(self, process, user, inheritance):
         #pr changed
-        if self.event_type.relationship == "out":
+        #changed for work commitment.due_date
+        if self.event_type.relationship == "out" or self.event_type.is_work():
             due_date = process.end_date
         else:
             due_date = process.start_date
@@ -6929,9 +6930,15 @@ class Process(models.Model):
     def save_api(self):
         self.save()
         for ct in self.incoming_commitments():
-            if ct.due_date != self.start_date:
-                ct.due_date = self.start_date
-                ct.save()
+            #changed for work commitment.due_date
+            if ct.is_work():
+                if ct.due_date != self.end_date:
+                    ct.due_date = self.end_date
+                    ct.save()
+            else:
+                if ct.due_date != self.start_date:
+                    ct.due_date = self.start_date
+                    ct.save()
         for ct in self.outgoing_commitments():
             if ct.due_date != self.end_date:
                 ct.due_date = self.end_date
@@ -7468,7 +7475,8 @@ class Process(models.Model):
             to_agent=None,
             order=None,
             ):
-        if event_type.relationship == "out":
+        #changed for work commitment.due_date
+        if event_type.relationship == "out" or event_type.is_work():
             due_date = self.end_date
         else:
             due_date = self.start_date
@@ -9774,10 +9782,17 @@ class Commitment(models.Model):
                         propagators.append(dep)
                         explode = False
                 else:
-                    if dep.due_date == old_ct.process.start_date:
-                        if dep.quantity == old_ct.quantity:
-                            propagators.append(dep)
-                            explode = False
+                    #changed for work commitment.due_date
+                    if dep.is_work():
+                        if dep.due_date == old_ct.process.due_date:
+                            if dep.quantity == old_ct.quantity:
+                                propagators.append(dep)
+                                explode = False
+                    else:
+                        if dep.due_date == old_ct.process.start_date:
+                            if dep.quantity == old_ct.quantity:
+                                propagators.append(dep)
+                                explode = False
         if new_rt != old_rt:
             for ex_ct in old_ct.associated_producing_commitments():
                 if ex_ct.order_item == order_item:
