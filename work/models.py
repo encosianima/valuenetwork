@@ -2068,7 +2068,12 @@ def create_unit_types(**kwargs):
 
 
     # FairCoin
-    ocp_fair = Unit.objects.get(name='FairCoin')
+    ocp_fair, created = Unit.objects.get_or_create(name='FairCoin')
+    if created:
+        print "- created a main ocp Unit: 'FairCoin'!"
+    ocp_fair.abbrev = 'fair'
+    ocp_fair.save()
+
     gen_curr_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Currency',
         parent=gen_unitt
@@ -2156,8 +2161,9 @@ def create_unit_types(**kwargs):
             print "- created Ocp_Artwork_Types: 'FairCoin'"
     else:
         fair_rt = fair_rts[0]
+    fair_rt.clas = 'fair_digital'
     fair_rt.resource_type = ocp_fair_rt
-    fair_rt.ocp_unit_type = gen_fair_typ
+    fair_rt.general_unit_type = gen_fair_typ
     fair_rt.save()
 
 
@@ -2240,7 +2246,7 @@ def create_unit_types(**kwargs):
         if digi:
             digi.clas = 'euro_digital'
             digi.resource_type = digi_rt
-            digi.ocp_unit_type = gen_euro_typ
+            digi.general_unit_type = gen_euro_typ
             digi.save()
         else:
             raise ValidationError("Can't find an Ocp_Artwork_Type named 'Euro digital' artw: "+str(artw_euros))
@@ -2248,7 +2254,7 @@ def create_unit_types(**kwargs):
         if cash:
             cash.clas = 'euro_cash'
             cash.resource_type = cash_rt
-            cash.ocp_unit_type = gen_euro_typ
+            cash.general_unit_type = gen_euro_typ
             cash.save()
         else:
             raise ValidationError("Can't find an Ocp_Artwork_Type named 'Euro cash' artw: "+str(artw_euros))
@@ -2258,6 +2264,41 @@ def create_unit_types(**kwargs):
 
 
     # Shares
+
+    gen_share_typs = Ocp_Unit_Type.objects.filter(name='Shares')
+    if not gen_share_typs:
+        gen_share_typs = Ocp_Unit_Type.objects.filter(name='Shares currency')
+    if not gen_share_typs:
+        gen_share_typ, created = Ocp_Unit_Type.objects.get_or_create(
+            name='Shares currency',
+            parent=gen_curr_typ)
+        if created:
+            print "- created Ocp_Unit_Type: 'Shares currency'"
+    else:
+        gen_share_typ = gen_share_typs[0]
+    gen_share_typ.name = 'Shares currency'
+    gen_share_typ.parent = gen_curr_typ
+    gen_share_typ.clas = 'shares_currency'
+    gen_share_typ.save()
+
+
+    artw_share = Ocp_Artwork_Type.objects.filter(name='Share')
+    if not artw_share:
+        artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(name='Shares')
+        if created:
+            print "- created Ocp_Artwork_Type branch: 'Shares'"
+    else:
+        artw_sh = artw_share[0]
+    artw_sh.name = 'Shares'
+    artw_sh.clas = 'shares'
+    artw_sh.parent = digcur_typ
+    artw_sh.resource_type = None
+    artw_sh.general_unit_type = gen_share_typ
+    artw_sh.save()
+
+
+    ## FreedomCoop
+
     ocp_shares = Unit.objects.filter(name='Share')
     if not ocp_shares:
         ocp_shares = Unit.objects.filter(name='FreedomCoop Share')
@@ -2275,22 +2316,6 @@ def create_unit_types(**kwargs):
     ocp_share.unit_type = 'value'
     ocp_share.abbrev = 'FdC'
     ocp_share.save()
-
-    gen_share_typs = Ocp_Unit_Type.objects.filter(name='Shares')
-    if not gen_share_typs:
-        gen_share_typs = Ocp_Unit_Type.objects.filter(name='Shares currency')
-    if not gen_share_typs:
-        gen_share_typ, created = Ocp_Unit_Type.objects.get_or_create(
-            name='Shares currency',
-            parent=gen_curr_typ)
-        if created:
-            print "- created Ocp_Unit_Type: 'Shares currency'"
-    else:
-        gen_share_typ = gen_share_typs[0]
-    gen_share_typ.name = 'Shares currency'
-    gen_share_typ.parent = gen_curr_typ
-    gen_share_typ.clas = 'share_currency'
-    gen_share_typ.save()
 
     gen_fdc_typs = Ocp_Unit_Type.objects.filter(name='FreedomCoop Shares')
     if not gen_fdc_typs:
@@ -2310,7 +2335,7 @@ def create_unit_types(**kwargs):
     if created:
         print "- created General.Unit: 'FreedomCoop Share'"
     fdc_share.code = 'FdC'
-    fdc_share.unit_type = gen_share_typ
+    fdc_share.unit_type = gen_fdc_typ
     fdc_share.ocp_unit = ocp_share
     fdc_share.save()
 
@@ -2325,16 +2350,6 @@ def create_unit_types(**kwargs):
         share_rt.behavior = 'other'
         share_rt.save()
 
-    artw_share = Ocp_Artwork_Type.objects.filter(name='Share')
-    if not artw_share:
-        artw_share = Ocp_Artwork_Type.objects.filter(name='Shares')
-    if len(artw_share) == 1:
-        artw_sh = artw_share[0]
-        artw_sh.name = 'Shares'
-        artw_sh.parent = digcur_typ
-        artw_sh.resource_type = None
-        artw_sh.ocp_unit_type = gen_share_typ
-        artw_sh.save()
     artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
         name='FreedomCoop Share'
     )
@@ -2342,8 +2357,81 @@ def create_unit_types(**kwargs):
         print "- created Ocp_Artwork_Type: 'FreedomCoop Share'"
     artw_fdc.parent = Type.objects.get(id=artw_sh.id)
     artw_fdc.resource_type = share_rt
-    artw_fdc.ocp_unit_type = gen_fdc_typ
+    artw_fdc.general_unit_type = Unit_Type.objects.get(id=gen_fdc_typ.id)
     artw_fdc.save()
+
+
+    ## BankOfTheCommons
+
+    boc_ag = EconomicAgent.objects.filter(nick="BoC")
+    if not boc_ag:
+        boc_ag = EconomicAgent.objects.filter(nick="BotC")
+    if not boc_ag:
+        print "- WARNING: the BoC agent don't exist, not created any unit for shares"
+        return
+    else:
+        boc_ag = boc_ag[0]
+
+    ocpboc_shares = Unit.objects.filter(name='BankOfTheCommons Share')
+    if not ocpboc_shares:
+        ocpboc_share, created = Unit.objects.get_or_create(
+            name='BankOfTheCommons Share',
+            unit_type='value',
+            abbrev='BotC'
+        )
+        if created:
+            print "- created OCP Unit: 'BankOfTheCommons Share (BotC)'"
+    else:
+        ocpboc_share = ocpboc_shares[0]
+    ocpboc_share.name = 'BankOfTheCommons Share'
+    ocpboc_share.unit_type = 'value'
+    ocpboc_share.abbrev = 'BotC'
+    ocpboc_share.save()
+
+    gen_boc_typs = Ocp_Unit_Type.objects.filter(name='BankOfTheCommons Shares')
+    if not gen_boc_typs:
+        gen_boc_typ, created = Ocp_Unit_Type.objects.get_or_create(
+            name='BankOfTheCommons Shares',
+            parent=gen_share_typ)
+        if created:
+            print "- created Ocp_Unit_Type: 'BankOfTheCommons Shares'"
+    else:
+        gen_boc_typ = gen_boc_typs[0]
+    gen_boc_typ.clas = 'bank-of-the-commons_shares'
+    gen_boc_typ.save()
+
+
+    boc_share, created = Gene_Unit.objects.get_or_create(
+        name='BankOfTheCommons Share',
+        code='BotC')
+    if created:
+        print "- created General.Unit: 'BankOfTheCommons Share'"
+    boc_share.code = 'BotC'
+    boc_share.unit_type = gen_boc_typ
+    boc_share.ocp_unit = ocpboc_share
+    boc_share.save()
+
+    share_rt, created = EconomicResourceType.objects.get_or_create(
+        name='BankOfTheCommons Share',
+        unit=ocp_each,
+        inventory_rule='yes',
+        behavior='other'
+    )
+    if created:
+        print "- created EconomicResourceType: 'BankOfTheCommons Share'"
+
+    share_rt.context_agent = boc_ag
+    share_rt.save()
+
+    artw_boc, created = Ocp_Artwork_Type.objects.get_or_create(
+        name='BankOfTheCommons Share'
+    )
+    if created:
+        print "- created Ocp_Artwork_Type: 'BankOfTheCommons Share'"
+    artw_boc.parent = Type.objects.get(id=artw_sh.id)
+    artw_boc.resource_type = share_rt
+    artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
+    artw_boc.save()
 
 
 post_migrate.connect(create_unit_types)
