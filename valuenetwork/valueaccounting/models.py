@@ -925,7 +925,24 @@ class EconomicAgent(models.Model):
             if proc.independent_demand():
                 if proc.independent_demand() not in plans:
                     plans.append(proc.independent_demand())
+        plans.sort(lambda x, y: cmp(x.due_date, y.due_date))
         return plans
+
+    def finished_plans(self):
+        plans = self.all_plans()
+        closed_plans = []
+        for plan in plans:
+            if not plan.has_open_processes(): 
+                closed_plans.append(plan)
+        return closed_plans
+
+    def unfinished_plans(self):
+        plans = self.all_plans()
+        open_plans = []
+        for plan in plans:
+            if plan.has_open_processes(): 
+                open_plans.append(plan)
+        return open_plans
 
     def resources_created(self):
         creations = []
