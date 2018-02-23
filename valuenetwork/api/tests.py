@@ -1337,6 +1337,71 @@ query ($token: String) {
   }
 }
 
+# notification data
+
+query ($token: String) {
+  viewer(token: $token) {
+    allNotificationTypes {
+      id
+      label
+      display
+      description
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    notificationSetting(id: 2) {
+      id
+      agent {
+        name
+      }
+      send
+      notificationType {
+        id
+        label
+        display
+        description
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    allNotificationSettings {
+      id
+      agent {
+        name
+      }
+      send
+      notificationType {
+        label
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    agent(id: 6) {
+      name
+      agentNotificationSettings {
+        id
+        agent {
+          name
+        }
+        send
+        notificationType {
+          id
+          label
+        }
+      }
+    }
+  }
+}
+
 # unit data
 
 query($token: String) {
@@ -1382,6 +1447,9 @@ query($token: String) {
       category
       processCategory
       note
+      classificationFacetValues {
+        name
+      }
     }
   }
 }
@@ -1415,10 +1483,43 @@ query ($token: String) {
 
 query ($token: String) {
   viewer(token: $token) {
+    resourceClassificationsByFacetValues(facetValues: "Material: Product,Material: Raw material,Non-material: Digital,Non-material: Formation") {
+      id
+      name
+      classificationResources {
+        id
+        trackingIdentifier
+        currentQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
     resourceClassificationsByAction(action: PRODUCE) {
       name
       category
       processCategory
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allFacets {
+      id
+      name
+      description
+      facetValues {
+        value
+        description
+      }
     }
   }
 }
@@ -1466,6 +1567,9 @@ query ($token: String) {
       }
       image
       note
+      resourceContacts {
+        name
+      }
     }
   }
 }
@@ -2849,6 +2953,21 @@ mutation ($token: String!) {
       note
       image
       primaryLocation {
+        name
+      }
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createNotificationSetting(token: $token, notificationTypeId: 1, agentId: 107, send: true) {
+    notificationSetting {
+      id
+      notificationType {
+        display
+      }
+      send
+      agent {
         name
       }
     }

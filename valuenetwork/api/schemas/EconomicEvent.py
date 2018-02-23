@@ -154,7 +154,6 @@ class CreateEconomicEvent(AuthedMutation):
             request_distribution = False
         if resource_current_location_id:
             current_location = Location.objects.get(pk=resource_current_location_id)
-        #import pdb; pdb.set_trace()
         if not affects:
             if create_resource:
                 if not resource_note:
