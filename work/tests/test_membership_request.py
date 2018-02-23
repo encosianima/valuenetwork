@@ -47,7 +47,7 @@ class MembershipRequestTestCase(LiveServerTestCase):
 
         # Anonymous user fills the membership request form.
         s.get('%s%s' % (self.live_server_url, "/freedom-coop"))
-        self.wait_loading(s, '//title[contains(text(), "Freedom Coop")]')
+        self.wait_loading(s, '//title[contains(text(), "OCP: Open Collaborative Platform")]')
         s.find_element_by_id("join-page-but").click()
         self.wait_loading(s, '//title[contains(text(), "Request Membership at FreedomCoop")]')
         s.find_element_by_id("id_name").send_keys("test_name01")
@@ -59,7 +59,7 @@ class MembershipRequestTestCase(LiveServerTestCase):
 
         # Admin login.
         s.get('%s%s' % (self.live_server_url, "/freedom-coop"))
-        self.wait_loading(s, '//title[contains(text(), "Freedom Coop")]')
+        self.wait_loading(s, '//title[contains(text(), "OCP: Open Collaborative Platform")]')
         s.find_element_by_id("id_username").send_keys("admin_user")
         s.find_element_by_id("id_password").send_keys("admin_passwd")
         s.find_element_by_xpath('//button[@type="submit"]').click()
