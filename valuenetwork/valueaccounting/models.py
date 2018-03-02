@@ -543,23 +543,32 @@ class EconomicAgent(models.Model):
         return tp
 
     # basic authorization in one place for use by the api(s) initially
-    def is_authorized(self, object_to_mutate):
+    def is_authorized(self, object_to_mutate=None, context_agent_id=None):
         user = self.my_user()
         if not user:
             return False
         if self.is_superuser():
             return True
-        if object_to_mutate.context_agent not in self.is_member_of():
+        if context_agent_id:
+            context_agent = EconomicAgent.objects.get(pk=context_agent_id)
+        elif object_to_mutate:
+            context_agent = object_to_mutate.context_agent
+        else:
             return False
-        if object_to_mutate.pk: #update or delete
-            if type(object_to_mutate) is EconomicEvent or type(object_to_mutate) is Commitment:
-                if object_to_mutate.created_by == user:
-                    return True
+        if context_agent not in self.is_member_of():
+            return False
+        if object_to_mutate: 
+            if object_to_mutate.pk: #update or delete
+                if type(object_to_mutate) is EconomicEvent:
+                    if object_to_mutate.created_by == user:
+                        return True
+                    else:
+                        return False
                 else:
-                    return False
-            else:
+                    return True
+            else: #create
                 return True
-        else: #create
+        else: #create check ahead
             return True
 
     def recipes(self):
@@ -576,6 +585,11 @@ class EconomicAgent(models.Model):
             else:
                     resource_types.append(rt)
         return resource_types
+
+    def notification_settings(self):
+        from pinax.notifications.models import NoticeSetting
+        user = self.my_user()
+        return NoticeSetting.objects.filter(user=user)
 
     def membership_request(self):
         reqs = self.membership_requests.all()
@@ -916,7 +930,24 @@ class EconomicAgent(models.Model):
             if proc.independent_demand():
                 if proc.independent_demand() not in plans:
                     plans.append(proc.independent_demand())
+        plans.sort(lambda x, y: cmp(x.due_date, y.due_date))
         return plans
+
+    def finished_plans(self):
+        plans = self.all_plans()
+        closed_plans = []
+        for plan in plans:
+            if not plan.has_open_processes(): 
+                closed_plans.append(plan)
+        return closed_plans
+
+    def unfinished_plans(self):
+        plans = self.all_plans()
+        open_plans = []
+        for plan in plans:
+            if plan.has_open_processes(): 
+                open_plans.append(plan)
+        return open_plans
 
     def resources_created(self):
         creations = []
@@ -2221,6 +2252,71 @@ class EconomicResourceTypeManager(models.Manager):
         except EconomicResourceType.DoesNotExist:
             raise ValidationError("Membership Share does not exist by that name")
         return share
+
+    #moved this logic from views for use in api
+    def resource_types_by_facet_values(self, fvs_string=None):
+        """ Logic:
+            Facet values in different Facets are ANDed.
+            Ie, a resource type must have all of those facet values.
+            Facet values in the same Facet are ORed.
+            Ie, a resource type must have at least one of those facet values.
+        """
+        rts = EconomicResourceType.objects.all()
+        resource_types = []
+        facets = Facet.objects.all()
+        if fvs_string:
+            vals = fvs_string.split(",")
+            if vals[0] == "all":
+                for rt in rts:
+                    if rt.onhand_qty()>0:
+                        resource_types.append(rt)
+            else:
+                fvs = []
+                for val in vals:
+                    val_split = val.split(":")
+                    fname = val_split[0]
+                    fvalue = val_split[1].strip()
+                    fvs.append(FacetValue.objects.get(facet__name=fname,value=fvalue))
+                fv_ids = [fv.id for fv in fvs]
+                rt_facet_values = ResourceTypeFacetValue.objects.filter(facet_value__id__in=fv_ids)
+                rts = [rtfv.resource_type for rtfv in rt_facet_values]
+                answer = []
+                singles = [] #Facets with only one facet_value in the Pattern
+                multis = []  #Facets with more than one facet_value in the Pattern
+                aspects = {}
+                for fv in fvs:
+                    if fv.facet not in aspects:
+                        aspects[fv.facet] = []
+                    aspects[fv.facet].append(fv)
+                for facet, fvs in aspects.items():
+                    if len(fvs) > 1:
+                        for fv in fvs:
+                            multis.append(fv)
+                    else:
+                        singles.append(fvs[0])
+                single_ids = [s.id for s in singles]
+                for rt in rts:
+                    rt_singles = [rtfv.facet_value for rtfv in rt.facets.filter(facet_value_id__in=single_ids)]
+                    rt_multis = [rtfv.facet_value for rtfv in rt.facets.exclude(facet_value_id__in=single_ids)]
+                    if set(rt_singles) == set(singles):
+                        if not rt in answer:
+                            if multis:
+                                # if multis intersect
+                                if set(rt_multis) & set(multis):
+                                    answer.append(rt)
+                            else:
+                                answer.append(rt)
+                answer_ids = [a.id for a in answer]
+                rts = list(EconomicResourceType.objects.filter(id__in=answer_ids))
+                for rt in rts:
+                    if rt.onhand_qty()>0:
+                        resource_types.append(rt)
+                resource_types.sort(key=lambda rt: rt.label())
+        else:
+            for rt in rts:
+                if rt.onhand_qty()>0:
+                    resource_types.append(rt)
+        return resource_types
 
 
 INVENTORY_RULE_CHOICES = (
@@ -6403,6 +6499,13 @@ class EconomicResource(models.Model):
 
     def all_contacts(self):
         return self.agent_resource_roles.filter(is_contact=True)
+
+    def all_contact_agents(self):
+        arrs = self.all_contacts()
+        answer = []
+        for arr in arrs:
+            answer.append(arr.agent)
+        return answer
 
     def all_related_agents(self):
         arrs = self.agent_resource_roles.all()
