@@ -1,9 +1,9 @@
 import requests, json, logging, time
 from random import randint
-from logging.handlers import TimedRotatingFileHandler
+#from logging.handlers import TimedRotatingFileHandler
 
 from django.conf import settings
-
+"""
 def init_logger():
     logger = logging.getLogger("faircoin")
     logger.setLevel(logging.INFO)
@@ -14,10 +14,10 @@ def init_logger():
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     return logger
-
+"""
 url = "http://localhost:8069"
 timeout = 7
-logger = init_logger()
+#logger = init_logger()
 
 # Send command to the daemon.
 def send_command(cmd, params):
@@ -25,21 +25,21 @@ def send_command(cmd, params):
     random_id = randint(1,10000)
     headers = {'content-type': 'application/json'}
     data = json.dumps({'method': cmd, 'params': params, 'jsonrpc': '2.0', 'id': random_id })
-    logger.debug('Command: %s (params: %s)' %(cmd, params))
+    #logger.debug('Command: %s (params: %s)' %(cmd, params))
 
     try:
         response = requests.post(url, headers=headers, data=data, timeout=timeout)
     except requests.exceptions.ConnectionError as e:
-        logger.error("Cannot connect to faircoin daemon: %s" % e)
+        #logger.error("Cannot connect to faircoin daemon: %s" % e)
         return "ERROR"
     except requests.exceptions.Timeout as e:
-        logger.error("Timeout connecting to faircoin daemon: %s" % e)
+        #logger.error("Timeout connecting to faircoin daemon: %s" % e)
         return "ERROR"
 
     try:
         r = response.json()
         if int(response.status_code) == 200:
-            logger.debug('Response: %s' %(r['result']))
+            #logger.debug('Response: %s' %(r['result']))
             out = r['result']
         else:
             out = 'ERROR'
