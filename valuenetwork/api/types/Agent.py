@@ -10,7 +10,7 @@ import graphene
 from graphene_django.types import DjangoObjectType
 
 from django.db.models import Q
-from valuenetwork.valueaccounting.models import EconomicAgent
+from valuenetwork.valueaccounting.models import EconomicAgent, EconomicResourceType
 import valuenetwork.api.types as types
 from valuenetwork.api.types.AgentRelationship import AgentRelationship, AgentRelationshipCategory, AgentRelationshipRole
 from valuenetwork.api.models import Organization as OrganizationModel, Person as PersonModel, formatAgentList
@@ -32,9 +32,11 @@ class Agent(graphene.Interface):
     image = graphene.String(source='image')
     note = graphene.String(source='note')
     primary_location = graphene.Field(lambda: types.Place)
+    email = graphene.String(source='email')
 
     owned_economic_resources = graphene.List(lambda: types.EconomicResource,
-                                             category=types.EconomicResourceCategory())
+                                             category=types.EconomicResourceCategory(),
+                                             resourceClassificationId=graphene.Int())
 
     agent_processes = graphene.List(lambda: types.Process,
                                     is_finished=graphene.Boolean())
@@ -57,8 +59,10 @@ class Agent(graphene.Interface):
     agent_recipes = graphene.List(lambda: types.ResourceClassification)
 
     #agent_recipe_bundles = graphene.List(ResourceClassification)
-    
+
     faircoin_address = graphene.String()
+
+    agent_notification_settings = graphene.List(lambda: types.NotificationSetting)
 
 
     def resolve_primary_location(self, args, *rargs):
@@ -66,25 +70,24 @@ class Agent(graphene.Interface):
 
     def resolve_owned_economic_resources(self, args, context, info):
         type = args.get('category', types.EconomicResourceCategory.NONE)
+        resource_class_id = args.get('resourceClassificationId', None)
         org = _load_identified_agent(self)
+        resources = None
         if org:
             if type == types.EconomicResourceCategory.CURRENCY:
-                return org.owned_currency_resources()
+                resources = org.owned_currency_resources()
             elif type == types.EconomicResourceCategory.INVENTORY:
-                return org.owned_inventory_resources()
-            return org.owned_resources()
-        return None
-    
-    def resolve_owned_economic_resources(self, args, context, info):
-        type = args.get('category', types.EconomicResourceCategory.NONE)
-        org = _load_identified_agent(self)
-        if org:
-            if type == types.EconomicResourceCategory.CURRENCY:
-                return org.owned_currency_resources()
-            elif type == types.EconomicResourceCategory.INVENTORY:
-                return org.owned_inventory_resources()
-            return org.owned_resources()
-        return None
+                resources = org.owned_inventory_resources()
+            else:
+                resources = org.owned_resources()
+            if resource_class_id:
+                rc = EconomicResourceType.objects.get(pk=resource_class_id)
+                resources_temp = []
+                for res in resources:
+                    if res.resource_type == rc:
+                        resources_temp.append(res)
+                resources = resources_temp
+        return resources
 
     # if an organization, this returns processes done in that context
     # if a person, this returns proceses the person has worked on
@@ -107,15 +110,14 @@ class Agent(graphene.Interface):
     def resolve_agent_plans(self, args, context, info):
         agent = _load_identified_agent(self)
         if agent:
-            agent_plans = agent.all_plans()
             finished = args.get('is_finished', None)
             if finished != None:
                 if not finished:
-                    return agent_plans.filter(finished=False)
+                    return agent.unfinished_plans()
                 else:
-                    return agent_plans.filter(finished=True)
+                    return agent.finished_plans()
             else:
-                return agent_plans
+                return agent.all_plans()
         return None
 
     # returns events where an agent is a provider, receiver, or scope agent, excluding exchange related events
@@ -174,7 +176,6 @@ class Agent(graphene.Interface):
             return agent.active_association_types()
         return None
 
-    # returns resource classifications that have a recipe, for this and parent agents
     def resolve_agent_recipes(self, args, context, info):
         agent = _load_identified_agent(self)
         if agent:
@@ -184,6 +185,11 @@ class Agent(graphene.Interface):
     def resolve_faircoin_address(self, args, *rargs):
         agent = _load_identified_agent(self)
         return agent.faircoin_address()
+
+    def resolve_agent_notification_settings(self, args, context, info):
+        agent = _load_identified_agent(self)
+        return agent.notification_settings()
+
 
     # returns resource classifications that have a recipe, for this and parent agents
     #def resolve_agent_recipe_bundles(self, args, context, info):
@@ -200,7 +206,7 @@ class Person(DjangoObjectType):
     class Meta:
         interfaces = (Agent, )
         model = PersonModel #EconomicAgent
-        only_fields = ('id', 'name', 'image', 'primary_location')
+        only_fields = ('id', 'name', 'image', 'note', 'primary_location', 'email')
 
 
 # Organization - an Agent which is not a Person, and can be further classified from there
@@ -210,7 +216,4 @@ class Organization(DjangoObjectType):
     class Meta:
         interfaces = (Agent, )
         model = OrganizationModel #EconomicAgent
-        only_fields = ('id', 'name', 'image', 'note', 'primary_location')
-
-
-
+        only_fields = ('id', 'name', 'image', 'note', 'primary_location', 'email')
