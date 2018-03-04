@@ -1221,6 +1221,8 @@ class EconomicAgent(models.Model):
             resp = False
         if self in noneed:
             resp = False
+        if not self.is_participant():
+            resp = False
         return resp
 
     def invoicing_candidates(self):
