@@ -1088,9 +1088,10 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
@@ -1110,9 +1111,10 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
@@ -1132,9 +1134,10 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
@@ -1152,19 +1155,23 @@ class EconomicAgent(models.Model):
     def need_projects(self):
         resp = True
         ags = self.related_contexts()
+        if self in ags and len(ags) > 1:
+            ags.remove(self)
         if ags and len(ags) < 2: # only one project
             if ags[0].project and ags[0].project.services():
                 if not 'projects' in ags[0].project.services():
                     resp = False
+        #import pdb; pdb.set_trace()
         return resp
 
     def need_tasks(self):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
