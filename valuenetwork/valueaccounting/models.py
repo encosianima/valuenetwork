@@ -557,7 +557,7 @@ class EconomicAgent(models.Model):
             return False
         if context_agent not in self.is_member_of():
             return False
-        if object_to_mutate: 
+        if object_to_mutate:
             if object_to_mutate.pk: #update or delete
                 if type(object_to_mutate) is EconomicEvent:
                     if object_to_mutate.created_by == user:
@@ -937,7 +937,7 @@ class EconomicAgent(models.Model):
         plans = self.all_plans()
         closed_plans = []
         for plan in plans:
-            if not plan.has_open_processes(): 
+            if not plan.has_open_processes():
                 closed_plans.append(plan)
         return closed_plans
 
@@ -945,7 +945,7 @@ class EconomicAgent(models.Model):
         plans = self.all_plans()
         open_plans = []
         for plan in plans:
-            if plan.has_open_processes(): 
+            if plan.has_open_processes():
                 open_plans.append(plan)
         return open_plans
 
@@ -1152,6 +1152,8 @@ class EconomicAgent(models.Model):
                 if ag.project and ag.project.services():
                     if not 'faircoins' in ag.project.services():
                         noneed.append(ag)
+                else:
+                    noneed.append(ag)
             except:
                 pass
         if len(ags)-add == len(noneed):
@@ -1175,6 +1177,8 @@ class EconomicAgent(models.Model):
                 if ag.project and ag.project.services():
                     if not 'exchanges' in ag.project.services():
                         noneed.append(ag)
+                else:
+                    noneed.append(ag)
             except:
                 pass
         if len(ags)-add == len(noneed):
@@ -1209,6 +1213,8 @@ class EconomicAgent(models.Model):
                 if ag.project and ag.project.services():
                     if not 'tasks' in ag.project.services():
                         noneed.append(ag)
+                #else:
+                #    noneed.append(ag)
             except:
                 pass
         if len(ags)-add == len(noneed):
