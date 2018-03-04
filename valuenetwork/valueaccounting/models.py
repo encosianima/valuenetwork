@@ -557,7 +557,7 @@ class EconomicAgent(models.Model):
             return False
         if context_agent not in self.is_member_of():
             return False
-        if object_to_mutate: 
+        if object_to_mutate:
             if object_to_mutate.pk: #update or delete
                 if type(object_to_mutate) is EconomicEvent:
                     if object_to_mutate.created_by == user:
@@ -937,7 +937,7 @@ class EconomicAgent(models.Model):
         plans = self.all_plans()
         closed_plans = []
         for plan in plans:
-            if not plan.has_open_processes(): 
+            if not plan.has_open_processes():
                 closed_plans.append(plan)
         return closed_plans
 
@@ -945,7 +945,7 @@ class EconomicAgent(models.Model):
         plans = self.all_plans()
         open_plans = []
         for plan in plans:
-            if plan.has_open_processes(): 
+            if plan.has_open_processes():
                 open_plans.append(plan)
         return open_plans
 
@@ -1119,9 +1119,10 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
@@ -1141,15 +1142,18 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
                     if not 'faircoins' in ag.project.services():
                         noneed.append(ag)
+                else:
+                    noneed.append(ag)
             except:
                 pass
         if len(ags)-add == len(noneed):
@@ -1163,15 +1167,18 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
                     if not 'exchanges' in ag.project.services():
                         noneed.append(ag)
+                else:
+                    noneed.append(ag)
             except:
                 pass
         if len(ags)-add == len(noneed):
@@ -1183,25 +1190,31 @@ class EconomicAgent(models.Model):
     def need_projects(self):
         resp = True
         ags = self.related_contexts()
+        if self in ags and len(ags) > 1:
+            ags.remove(self)
         if ags and len(ags) < 2: # only one project
             if ags[0].project and ags[0].project.services():
                 if not 'projects' in ags[0].project.services():
                     resp = False
+        #import pdb; pdb.set_trace()
         return resp
 
     def need_tasks(self):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
                     if not 'tasks' in ag.project.services():
                         noneed.append(ag)
+                #else:
+                #    noneed.append(ag)
             except:
                 pass
         if len(ags)-add == len(noneed):

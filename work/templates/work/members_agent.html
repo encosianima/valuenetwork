@@ -949,7 +949,7 @@
 
 
   {% if agent.project and not user_agent in agent.managers %}
-    {% if not user_agent in agent.participants or user_agent.req %}
+    {% if not user_agent in agent.participants %}
     <div id="join-this-project"  class="span5">
       <h3>
         {% trans "Join this project:" %}
