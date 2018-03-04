@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from valuenetwork.valueaccounting.models import *
+from pinax.notifications.models import NoticeSetting, NoticeType
 from valuenetwork.api.models import *
 from .schema import schema
 import datetime
@@ -10,6 +11,9 @@ logger = logging.getLogger("graphql.execution.executor").addHandler(logging.Null
 # Note: if you want to see the executor error messages,
 # comment out the line above and uncomment the one below:
 #logging.basicConfig()
+
+class MockContext:
+    user = None
 
 class APITest(TestCase):
     @classmethod
@@ -36,6 +40,18 @@ class APITest(TestCase):
             agent_user, _ = AgentUser.objects.get_or_create(agent=test_agent, user=test_user)
             test_agent.users.add(agent_user)
         test_agent.save()
+        notice_type = NoticeType(
+            label="api_test",
+            display="api test",
+            default=0,
+            )
+        notice_type.save()
+        notice_set = NoticeSetting(
+            notice_type=notice_type,
+            send=True,
+            user=test_user,
+            )
+        notice_set.save()
         org1 = EconomicAgent(
             name="org1",
             nick="org1",
@@ -769,85 +785,215 @@ class APITest(TestCase):
         self.assertEqual(nextProcesses[0]['name'], 'proc3')
         self.assertEqual(process['processClassifiedAs']['name'], 'pt1')
 
+    def test_plan(self):
+        result = schema.execute('''
+                mutation {
+                  createToken(username: "testUser11222", password: "123456") {
+                    token
+                  }
+                }
+                ''')
+        call_result = result.data['createToken']
+        token = call_result['token']
+        test_agent = EconomicAgent.objects.get(name="testUser11222")
 
-#    def test_create_update_delete_process(self):
-#        result = schema.execute('''
-#                mutation {
-#                  createToken(username: "testUser11222", password: "123456") {
-#                    token
-#                  }
-#                }
-#                ''')
-#        call_result = result.data['createToken']
-#        token = call_result['token']
-#        test_agent = EconomicAgent.objects.get(name="testUser11222")
+        query = '''
+                query {
+                  viewer(token: "''' + token + '''") {
+                    agent(id: 2) {
+                      name
+                      ownedEconomicResources(category: INVENTORY) {
+                        id
+                        resourceClassifiedAs {
+                          name
+                          category
+                          processCategory
+                        }
+                        trackingIdentifier
+                        currentQuantity {
+                          numericValue
+                          unit {
+                            name
+                          }
+                        }
+                        image
+                        note
+                      }
+                      agentProcesses (isFinished: false) {
+                        name
+                        isFinished
+                      }
+                      agentPlans {
+                        name
+                        due
+                        note
+                      }
+                    }
+                  }
+                }
+                '''
+        result = schema.execute(query)
+        agent = result.data['viewer']['agent']
+        ownedEconomicResources = result.data['viewer']['agent']['ownedEconomicResources']
+        processes = result.data['viewer']['agent']['agentProcesses']
+        plans = result.data['viewer']['agent']['agentPlans']
+        self.assertEqual(agent['name'], 'org1')
+        self.assertEqual(ownedEconomicResources[0]['resourceClassifiedAs']['name'], 'product1')
+        self.assertEqual(ownedEconomicResources[0]['resourceClassifiedAs']['processCategory'], 'produced')
+        self.assertEqual(len(ownedEconomicResources), 2)
+        self.assertEqual(ownedEconomicResources[0]['currentQuantity']['unit']['name'], 'Each')
+        self.assertEqual(len(processes), 1)
+        self.assertEqual(processes[0]['name'], 'proc1')
+        self.assertEqual(len(plans), 1)
+        self.assertEqual(plans[0]['name'], 'order1')
 
-#        result1 = schema.execute('''
-#                mutation {
-#                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2) {
-#                    process {
-#                        name
-#                        scope {
-#                            name
-#                        }
-#                        isFinished
-#                        plannedStart
-#                        plannedDuration
-#                    }
-#                  }
-#                }
-#                ''')
-#        #import pdb; pdb.set_trace()
-#        self.assertEqual(result1.data['createProcess']['process']['name'], "Make something cool")
-#        self.assertEqual(result1.data['createProcess']['process']['scope']['name'], "org1")
-#        self.assertEqual(result1.data['createProcess']['process']['isFinished'], False)
-#        self.assertEqual(result1.data['createProcess']['process']['plannedStart'], "2017-07-07")
-#        self.assertEqual(result1.data['createProcess']['process']['plannedDuration'], "7 days, 0:00:00")
+    def test_notification_settings(self):
+        result = schema.execute('''
+                mutation {
+                  createToken(username: "testUser11222", password: "123456") {
+                    token
+                  }
+                }
+                ''')
+        call_result = result.data['createToken']
+        token = call_result['token']
+        test_agent = EconomicAgent.objects.get(name="testUser11222")
 
-#        result2 = schema.execute('''
-#                    mutation {
-#                        updateProcess(token: "''' + token + '''", id: 4, plannedDuration: 10, isFinished: true) {
-#                            process {
-#                                name
-#                                scope {
-#                                    name
-#                                }
-#                                isFinished
-#                                plannedStart
-#                                plannedDuration
-#                            }
-#                        }
-#                    }
-#                    ''')
+        #result1 = schema.execute('''
+        #        mutation {
+        #          createNotificationSetting(token: "''' + token + '''", notificationTypeId: 1, agentId: 1, send: true) {
+        #            notificationSetting {
+        #              id
+        #              notificationType {
+        #                id
+        #                display
+        #                label
+        #                description
+        #              }
+        #              send
+        #              agent {
+        #                name
+        #              }
+        #            }
+        #          }
+        #        }
+        #        ''')
+        #import pdb; pdb.set_trace()
+        #self.assertEqual(result1.data['createNotificationSetting']['notificationSetting']['send'], True)
 
-#        self.assertEqual(result2.data['updateProcess']['process']['name'], "Make something cool")
-#        self.assertEqual(result2.data['updateProcess']['process']['scope']['name'], "org1")
-#        self.assertEqual(result2.data['updateProcess']['process']['isFinished'], True)
-#        self.assertEqual(result2.data['updateProcess']['process']['plannedStart'], "2017-07-07")
-#        self.assertEqual(result2.data['updateProcess']['process']['plannedDuration'], "10 days, 0:00:00")
+        query = '''
+                query {
+                  viewer(token: "''' + token + '''") {
+                    agent(id: 1) {
+                        name
+                        agentNotificationSettings {
+                            id
+                            agent {
+                              name
+                            }
+                            send
+                            notificationType {
+                              id
+                              label
+                              display
+                              description
+                            }
+                        }
+                    }
+                  }
+                }
+                '''
+        result5 = schema.execute(query)
+        notifSettings = result5.data['viewer']['agent']['agentNotificationSettings']
+        self.assertEqual(notifSettings[0]['id'], "1")
+        self.assertEqual(notifSettings[0]['notificationType']['label'], "api_test")
 
-#        result3 = schema.execute('''
-#                    mutation {
-#                        deleteProcess(token: "''' + token + '''", id: 4) {
-#                            process {
-#                                name
-#                            }
-#                        }
-#                    }
-#                    ''')
 
-#        proc = None
-#        try:
-#            proc = Process.objects.get(pk=4)
-#        except:
-#            pass
-#        self.assertEqual(proc, None)
+
+    def test_create_update_delete_process(self):
+        result = schema.execute('''
+                mutation {
+                  createToken(username: "testUser11222", password: "123456") {
+                    token
+                  }
+                }
+                ''', context_value=MockContext())
+        call_result = result.data['createToken']
+        token = call_result['token']
+        test_agent = EconomicAgent.objects.get(name="testUser11222")
+
+        result1 = schema.execute('''
+                mutation {
+                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2) {
+                    process {
+                        name
+                        scope {
+                            name
+                        }
+                        isFinished
+                        plannedStart
+                        plannedDuration
+                    }
+                  }
+                }
+                ''', context_value=MockContext())
+        self.assertEqual(result1.data['createProcess']['process']['name'], "Make something cool")
+        self.assertEqual(result1.data['createProcess']['process']['scope']['name'], "org1")
+        self.assertEqual(result1.data['createProcess']['process']['isFinished'], False)
+        self.assertEqual(result1.data['createProcess']['process']['plannedStart'], "2017-07-07")
+        self.assertEqual(result1.data['createProcess']['process']['plannedDuration'], "7 days, 0:00:00")
+
+        result2 = schema.execute('''
+                    mutation {
+                        updateProcess(token: "''' + token + '''", id: 4, plannedDuration: 10, isFinished: true) {
+                            process {
+                                name
+                                scope {
+                                    name
+                                }
+                                isFinished
+                                plannedStart
+                                plannedDuration
+                            }
+                        }
+                    }
+                    ''', context_value=MockContext())
+
+        self.assertEqual(result2.data['updateProcess']['process']['name'], "Make something cool")
+        self.assertEqual(result2.data['updateProcess']['process']['scope']['name'], "org1")
+        self.assertEqual(result2.data['updateProcess']['process']['isFinished'], True)
+        self.assertEqual(result2.data['updateProcess']['process']['plannedStart'], "2017-07-07")
+        self.assertEqual(result2.data['updateProcess']['process']['plannedDuration'], "10 days, 0:00:00")
+
+        result3 = schema.execute('''
+                    mutation {
+                        deleteProcess(token: "''' + token + '''", id: 4) {
+                            process {
+                                name
+                            }
+                        }
+                    }
+                    ''', context_value=MockContext())
+
+        proc = None
+        try:
+            proc = Process.objects.get(pk=4)
+        except:
+            pass
+        self.assertEqual(proc, None)
 
 
 ######################### SAMPLE QUERIES #####################
 
 '''
 # agent data
+
+# user agent is authorized to create objects within that scope
+query($token: String) {
+  viewer(token: $token) {
+    userIsAuthorizedToCreate(scopeId:23) 
+  }
+}
 
 query($token: String) {
   viewer(token: $token) {
@@ -1046,6 +1192,37 @@ query ($token: String) {
 
 query ($token: String) {
   viewer(token: $token) {
+    agent(id: 7) {
+      name
+      agentRelationships(category: MEMBER) {
+        id
+        subject {
+          name
+          type
+          ownedEconomicResources (resourceClassificationId: 28) {
+            createdDate
+            resourceClassifiedAs {
+              name
+            }
+            currentQuantity {
+              numericValue
+              unit {
+                name
+              }
+            }
+          }
+        }
+        relationship {
+          label
+          category
+        }
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
     agent(id: 39) {
       name
       agentRelationships(roleId: 2) {
@@ -1110,6 +1287,7 @@ query($token: String) {
       name
       image
       note
+      email
       type
       __typename
     }
@@ -1298,6 +1476,71 @@ query ($token: String) {
   }
 }
 
+# notification data
+
+query ($token: String) {
+  viewer(token: $token) {
+    allNotificationTypes {
+      id
+      label
+      display
+      description
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    notificationSetting(id: 2) {
+      id
+      agent {
+        name
+      }
+      send
+      notificationType {
+        id
+        label
+        display
+        description
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    allNotificationSettings {
+      id
+      agent {
+        name
+      }
+      send
+      notificationType {
+        label
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    agent(id: 6) {
+      name
+      agentNotificationSettings {
+        id
+        agent {
+          name
+        }
+        send
+        notificationType {
+          id
+          label
+        }
+      }
+    }
+  }
+}
+
 # unit data
 
 query($token: String) {
@@ -1343,6 +1586,9 @@ query($token: String) {
       category
       processCategory
       note
+      classificationFacetValues {
+        name
+      }
     }
   }
 }
@@ -1376,10 +1622,43 @@ query ($token: String) {
 
 query ($token: String) {
   viewer(token: $token) {
+    resourceClassificationsByFacetValues(facetValues: "Material: Product,Material: Raw material,Non-material: Digital,Non-material: Formation") {
+      id
+      name
+      classificationResources {
+        id
+        trackingIdentifier
+        currentQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
     resourceClassificationsByAction(action: PRODUCE) {
       name
       category
       processCategory
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allFacets {
+      id
+      name
+      description
+      facetValues {
+        value
+        description
+      }
     }
   }
 }
@@ -1427,6 +1706,9 @@ query ($token: String) {
       }
       image
       note
+      resourceContacts {
+        name
+      }
     }
   }
 }
@@ -1566,6 +1848,8 @@ query($token: String) {
       plannedDuration
       isFinished
       note
+      userIsAuthorizedToUpdate
+      userIsAuthorizedToDelete
     }
   }
 }
@@ -1636,9 +1920,9 @@ query($token: String) {
 
 query($token: String) {
   viewer(token: $token) {
-    agent(id:26) {
+    agent(id:39) {
       name
-      agentPlans {
+      agentPlans (isFinished: false) {
         id
         name
         due
@@ -2000,6 +2284,8 @@ query ($token: String) {
         id
         name
       }
+      userIsAuthorizedToUpdate
+      userIsAuthorizedToDelete
     }
   }
 }
@@ -2198,6 +2484,9 @@ query ($token: String) {
       involvedAgents {
         name
       }
+      userIsAuthorizedToUpdate
+      userIsAuthorizedToDelete
+      isDeletable
     }
   }
 }
@@ -2667,6 +2956,52 @@ mutation ($token: String!) {
   }
 }
 
+#create a resource with an event
+mutation ($token: String!) {
+  createEconomicEvent(token: $token, action: "take", start: "2017-12-01", 
+    scopeId: 39, note: "creating a resource", affectedNumericValue: "5", 
+    affectedResourceClassifiedAsId: 38, affectedUnitId: 4, resourceCurrentLocationId: 7, 
+    resourceTrackingIdentifier: "lynn-test-1234", createResource: true) {
+    economicEvent {
+      id
+      action
+      start
+      inputOf {
+        name
+      }
+      outputOf {
+        name
+      }
+      provider {
+        name
+      }
+      receiver {
+        name
+      }
+      scope {
+        name
+      }
+      affects {
+        trackingIdentifier
+        resourceClassifiedAs {
+          name
+        }
+        currentLocation {
+          name
+        }
+      }
+      affectedQuantity {
+        numericValue
+        unit {
+          name
+        }
+      }
+      note
+      url
+    }
+  }
+}
+
 mutation ($token: String!) {
   updateEconomicEvent(token: $token, id: 350, start: "2017-10-02", scopeId: 39, 
     note: "testing more", affectedResourceClassifiedAsId: 17, affectsId: 11, 
@@ -2733,6 +3068,9 @@ mutation ($token: String!) {
       }
       note
       image
+      currentLocation {
+        id
+      }
     }
   }
 }
@@ -2741,6 +3079,51 @@ mutation ($token: String!) {
   deleteEconomicResource(token: $token, id: 34) {
     economicResource {
       trackingIdentifier
+    }
+  }
+}
+
+mutation ($token: String!) {
+  updatePerson(token: $token, id: 74, note: "test", name: "test agent", primaryLocationId: 24,
+  image: "https://testocp.freedomcoop.eu/site_media/media/photos/what_is_it.JPG") {
+    person {
+      id
+      name
+      note
+      image
+      primaryLocation {
+        name
+      }
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createNotificationSetting(token: $token, notificationTypeId: 1, agentId: 107, send: true) {
+    notificationSetting {
+      id
+      notificationType {
+        display
+      }
+      send
+      agent {
+        name
+      }
+    }
+  }
+}
+
+mutation ($token: String!) {
+  updateNotificationSetting (token: $token, id: 137, send: true) {
+    notificationSetting {
+      id
+      notificationType {
+        display
+      }
+      send
+      agent {
+        name
+      }
     }
   }
 }
