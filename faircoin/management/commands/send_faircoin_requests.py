@@ -7,10 +7,7 @@ from django.conf import settings
 #logger = logging.getLogger("faircoin_cron")
 #logger.setLevel(logging.INFO)
 #fhpath = "/".join([settings.PROJECT_ROOT, "faircoin/faircoin_cron.log",])
-#fh = TimedRotatingFileHandler(fhpath,
-                            when="d",
-                            interval=1,
-                            backupCount=7)
+#fh = TimedRotatingFileHandler(fhpath, when="d", interval=1, backupCount=7)
 #fh.setLevel(logging.INFO)
 #formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 #fh.setFormatter(formatter)
