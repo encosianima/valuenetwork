@@ -36,7 +36,8 @@ class Agent(graphene.Interface):
 
     owned_economic_resources = graphene.List(lambda: types.EconomicResource,
                                              category=types.EconomicResourceCategory(),
-                                             resourceClassificationId=graphene.Int())
+                                             resourceClassificationId=graphene.Int(),
+                                             page=graphene.Int())
 
     agent_processes = graphene.List(lambda: types.Process,
                                     is_finished=graphene.Boolean())
@@ -64,6 +65,8 @@ class Agent(graphene.Interface):
 
     agent_notification_settings = graphene.List(lambda: types.NotificationSetting)
 
+    member_relationships = graphene.List(AgentRelationship)
+
 
     def resolve_primary_location(self, args, *rargs):
         return self.primary_location
@@ -71,6 +74,7 @@ class Agent(graphene.Interface):
     def resolve_owned_economic_resources(self, args, context, info):
         type = args.get('category', types.EconomicResourceCategory.NONE)
         resource_class_id = args.get('resourceClassificationId', None)
+        page = args.get('page', None)
         org = _load_identified_agent(self)
         resources = None
         if org:
@@ -87,6 +91,17 @@ class Agent(graphene.Interface):
                     if res.resource_type == rc:
                         resources_temp.append(res)
                 resources = resources_temp
+            if page:
+                from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+                paginator = Paginator(resources, 25)
+                try:
+                    resources = paginator.page(page)
+                except PageNotAnInteger:
+                    # If page is not an integer, deliver first page.
+                    resources = paginator.page(1)
+                except EmptyPage:
+                    # If page is out of range (e.g. 9999), deliver last page of results.
+                    resources = paginator.page(paginator.num_pages)
         return resources
 
     # if an organization, this returns processes done in that context
@@ -190,6 +205,20 @@ class Agent(graphene.Interface):
         agent = _load_identified_agent(self)
         return agent.notification_settings()
 
+    #Returns member type associations ordered by the type (hard-coded manager then member).
+    def resolve_member_relationships(self, args, context, info):
+        agent = _load_identified_agent(self)
+        if agent:
+            assocs = agent.all_active_associations()
+            filtered_assocs = []
+            for assoc in assocs:
+                if assoc.association_type.association_behavior == "manager":
+                    filtered_assocs.append(assoc)
+            for assoc in assocs:
+                if assoc.association_type.association_behavior == "member":
+                    filtered_assocs.append(assoc)
+            return filtered_assocs            
+        return None
 
     # returns resource classifications that have a recipe, for this and parent agents
     #def resolve_agent_recipe_bundles(self, args, context, info):

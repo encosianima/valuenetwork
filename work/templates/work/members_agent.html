@@ -185,7 +185,7 @@
                  {% endfor %}
                {% endif %}
                {% if user_agent.is_staff or user_agent in agent.managers or user_agent in agent.participants or user_agent == agent %}
-                   {% if agent.need_skills %}
+                   {% if agent.need_tasks %}
                        <a class="indent" href="{% url "project_history" agent_id=agent.id %}">{% trans "Contributions" %}</a>
                    {% endif %}
                {% endif %}
@@ -269,7 +269,7 @@
                 </form>
             {% endif %}
 
-            {% if user_agent and user_agent in agent.managers or user.is_staff %}
+            {% if user_agent in agent.managers or user_agent == agent or user.is_staff %}
                 <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -949,7 +949,7 @@
 
 
   {% if agent.project and not user_agent in agent.managers %}
-    {% if not user_agent in agent.participants or user_agent.req %}
+    {% if not user_agent in agent.participants %}
     <div id="join-this-project"  class="span5">
       <h3>
         {% trans "Join this project:" %}
