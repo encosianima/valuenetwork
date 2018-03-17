@@ -16,7 +16,7 @@ def init_logger():
     return logger
 """
 url = "http://localhost:8069"
-timeout = 7
+timeout = 45
 #logger = init_logger()
 
 # Send command to the daemon.
