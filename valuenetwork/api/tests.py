@@ -2000,6 +2000,10 @@ query ($token: String) {
         id
         name
       }
+      validations {
+        id
+        validationDate
+      }
     }
   }
 }

@@ -46,9 +46,8 @@ class EconomicEvent(DjangoObjectType):
         only_fields = ('id')
 
     fulfills = graphene.List(lambda: types.Fulfillment)
-
-    #def resolve_process(self, args, *rargs):
-    #    return self.process
+    
+    validations = graphene.List(lambda: types.Validation)
 
     def resolve_input_of(self, args, *rargs):
         return self.input_of
@@ -90,6 +89,9 @@ class EconomicEvent(DjangoObjectType):
             ff_list.append(fulfillment)
             return ff_list
         return []
+
+    def resolve_validations(self, args, context, info):
+        return self.validations.all()
 
 
 class Fulfillment(DjangoObjectType):
