@@ -204,6 +204,7 @@ INSTALLED_APPS = [
     'valuenetwork.valueaccounting.apps.ValueAccountingAppConfig',
     'valuenetwork.equipment',
     'valuenetwork.board',
+    'validation',
     'account',
     'work.apps.WorkAppConfig',
     'multicurrency',
@@ -244,6 +245,9 @@ PAYMENT_GATEWAYS = {} # Fill the object in local_settings.py with custom gateway
 
 
 PINAX_NOTIFICATIONS_QUEUE_ALL = True
+PINAX_NOTIFICATIONS_BACKENDS = [
+        ("email", "pinax.notifications.backends.email.EmailBackend", 1),
+    ]
 
 THUMBNAIL_DEBUG = True
 

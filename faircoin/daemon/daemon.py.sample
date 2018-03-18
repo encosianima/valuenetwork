@@ -25,7 +25,7 @@ my_port = config.getint('main','port')
 
 wallet_path = config.get('electrum','wallet_path')
 password = config.get('electrum', 'password')
-default_fee = config.getint('network','fee')
+default_fee = int(config.getint('network','fee') / 1000 ) # fee per byte in satohis
 
 stopping = False
 
@@ -73,7 +73,9 @@ def is_valid(address):
 
 #check if an address is from the wallet
 def is_mine(address):
-    return wallet.is_mine(address)
+    res =  wallet.is_mine(address)
+    logging.debug("Is mine %s %s" %(address, res))
+    return res
 
 # create new address for users or any other entity
 def new_fair_address(entity_id, entity = 'generic'):
@@ -83,14 +85,11 @@ def new_fair_address(entity_id, entity = 'generic'):
     """
     while network.is_connected():
         new_address = wallet.create_new_address(False)
-        callback = lambda response: logging.debug(util.json_encode(response.get('result')))
-        network.send([('blockchain.address.subscribe',[new_address])], callback)
         check_label = wallet.get_label(new_address)
         check_history = wallet.get_address_history(new_address)
-        # It checks if address is labeled or has history yet, a gap limit protection.
-        # This can be removed when we have good control of gap limit.
         if not check_label and not check_history:
             wallet.set_label(new_address, entity + ': ' + str(entity_id))
+            logging.debug("New address: %s - %s" %(new_address, entity_id))
             return new_address
     return False
 
@@ -98,52 +97,50 @@ def new_fair_address(entity_id, entity = 'generic'):
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_address_balance(address):
     bal = wallet.get_addr_balance(address)
-    #logging.debug("Address : %s Balance : %s " %(address, bal))
+    logging.debug("Address : %s Balance : %s " %(address, bal))
     return bal
 
 #read the history of an address
 def get_address_history(address):
-    return wallet.get_address_history(address)
+    history = wallet.get_address_history(address)
+    #logging.debug("Address : %s History : \n%s " %(address, history))
+    return history
 
 # make a transfer from an adress of the wallet
 def make_transaction_from_address(address_origin, address_end, amount):
     logging.debug("Trying broadcast transaction\n       Origin : %s\n       End    : %s\n       Amount : %s" %(address_origin, address_end, amount))
+    # Validate inputs
     if not is_valid(address_end):
         logging.error("The address %s is not a valid faircoin address" %address_end)
         return False
     if not is_mine(address_origin):
         logging.error("The address %s does not belong to this wallet" %address_origin)
         return False
-    # Fix old address generated, can be removed on new database
-    wallet.add_address(address_origin)
-    #callback = lambda response: logging.debug(util.json_encode(response.get('result')))
-    #network.send([('blockchain.address.subscribe',[address_origin])], callback)
+    if amount > 0:
+        output = [(TYPE_ADDRESS, address_end, amount)]
+    else:
+        logging.error("Amount negative: %d" %(amount) )
+        return False
+    # Get utxos for address
     inputs = [address_origin]
     coins = wallet.get_spendable_coins(domain = inputs)
-    amount_total = int(amount)
-
-    if amount_total > 0:
-        output = [(TYPE_ADDRESS, address_end, int(amount_total))]
-    else:
-        logging.error("Amount negative: %d" %(amount_total) )
-        return False
-
     config = electrumfair.SimpleConfig()
+    # Build and sign tx
     try:
-        tx = wallet.make_unsigned_transaction(coins, output, config, fixed_fee=default_fee, change_addr=address_origin)
+        tx = wallet.make_unsigned_transaction(coins, output, config, change_addr=address_origin)
     except NotEnoughFunds:
-        logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount_total)
+        logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount)
         logging.error("Confirmed : %s -- Unconfirmed: %s -- Unmature : %s " %wallet.get_addr_balance(address_origin))
         return False
     wallet.sign_transaction(tx, password)
+    # Broadcast tx
     rec_tx_state, rec_tx_out = network.broadcast(tx, 30)
     if rec_tx_state:
         logging.info("SUCCESS. The transaction %s has been broadcasted." %rec_tx_out)
-        return rec_tx_out, default_fee
+        return rec_tx_out, rec_tx_state
     else:
-         logging.error("Sending %s fairs to the address %s" %(amount_total, address_end ) )
-         logging.error("%s" %rec_tx_out)
-         return False
+        logging.error("Sending %s fairs to the address %s\n%s" %(amount, address_end, rec_tx_out))
+        return False
 
 def get_confirmations(tx):
     """Return the number of confirmations of a monitored transaction
@@ -161,19 +158,23 @@ def get_transaction(tx_hash):
     return raw_tx
 
 def import_key(privkey, entity_id, entity = 'generic'):
+    logging.info("trying importing key")
     try:
         address = wallet.import_key(privkey, password)
     except Exception as e:
+        logging.error("ERROR importing key %s" %(e))
         return 'ERROR', str(e)
+    logging.info("import_key addres generated %s" %(address))
     try:
         wallet.set_label(address, entity + ': ' + str(entity_id))
     except:
         pass
+    wallet.import_address(address)
     wallet.synchronize()
     return 'ok', address
 
 def add_address(add):
-    wallet.import_address(add)
+    wallet.add_address(add)
     return 'ok'
 
 if __name__ == '__main__':
@@ -186,7 +187,6 @@ if __name__ == '__main__':
     logging.debug("---------------------------------")
     logging.debug("Starting electrum...")
     out_queue = Queue.Queue()
-    # start network
     c = electrumfair.SimpleConfig()
     network = electrumfair.Network(c)
     network.start()

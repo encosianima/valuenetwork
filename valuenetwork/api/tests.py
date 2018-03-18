@@ -12,6 +12,9 @@ logger = logging.getLogger("graphql.execution.executor").addHandler(logging.Null
 # comment out the line above and uncomment the one below:
 #logging.basicConfig()
 
+class MockContext:
+    user = None
+
 class APITest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -905,80 +908,77 @@ class APITest(TestCase):
         self.assertEqual(notifSettings[0]['id'], "1")
         self.assertEqual(notifSettings[0]['notificationType']['label'], "api_test")
 
+    def test_create_update_delete_process(self):
+        result = schema.execute('''
+                mutation {
+                  createToken(username: "testUser11222", password: "123456") {
+                    token
+                  }
+                }
+                ''', context_value=MockContext())
+        call_result = result.data['createToken']
+        token = call_result['token']
+        test_agent = EconomicAgent.objects.get(name="testUser11222")
 
+        result1 = schema.execute('''
+                mutation {
+                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2) {
+                    process {
+                        name
+                        scope {
+                            name
+                        }
+                        isFinished
+                        plannedStart
+                        plannedDuration
+                    }
+                  }
+                }
+                ''', context_value=MockContext())
+        self.assertEqual(result1.data['createProcess']['process']['name'], "Make something cool")
+        self.assertEqual(result1.data['createProcess']['process']['scope']['name'], "org1")
+        self.assertEqual(result1.data['createProcess']['process']['isFinished'], False)
+        self.assertEqual(result1.data['createProcess']['process']['plannedStart'], "2017-07-07")
+        self.assertEqual(result1.data['createProcess']['process']['plannedDuration'], "7 days, 0:00:00")
 
-#    def test_create_update_delete_process(self):
-#        result = schema.execute('''
-#                mutation {
-#                  createToken(username: "testUser11222", password: "123456") {
-#                    token
-#                  }
-#                }
-#                ''')
-#        call_result = result.data['createToken']
-#        token = call_result['token']
-#        test_agent = EconomicAgent.objects.get(name="testUser11222")
+        result2 = schema.execute('''
+                    mutation {
+                        updateProcess(token: "''' + token + '''", id: 4, plannedDuration: 10, isFinished: true) {
+                            process {
+                                name
+                                scope {
+                                    name
+                                }
+                                isFinished
+                                plannedStart
+                                plannedDuration
+                            }
+                        }
+                    }
+                    ''', context_value=MockContext())
 
-#        result1 = schema.execute('''
-#                mutation {
-#                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2) {
-#                    process {
-#                        name
-#                        scope {
-#                            name
-#                        }
-#                        isFinished
-#                        plannedStart
-#                        plannedDuration
-#                    }
-#                  }
-#                }
-#                ''')
-#        #import pdb; pdb.set_trace()
-#        self.assertEqual(result1.data['createProcess']['process']['name'], "Make something cool")
-#        self.assertEqual(result1.data['createProcess']['process']['scope']['name'], "org1")
-#        self.assertEqual(result1.data['createProcess']['process']['isFinished'], False)
-#        self.assertEqual(result1.data['createProcess']['process']['plannedStart'], "2017-07-07")
-#        self.assertEqual(result1.data['createProcess']['process']['plannedDuration'], "7 days, 0:00:00")
+        self.assertEqual(result2.data['updateProcess']['process']['name'], "Make something cool")
+        self.assertEqual(result2.data['updateProcess']['process']['scope']['name'], "org1")
+        self.assertEqual(result2.data['updateProcess']['process']['isFinished'], True)
+        self.assertEqual(result2.data['updateProcess']['process']['plannedStart'], "2017-07-07")
+        self.assertEqual(result2.data['updateProcess']['process']['plannedDuration'], "10 days, 0:00:00")
 
-#        result2 = schema.execute('''
-#                    mutation {
-#                        updateProcess(token: "''' + token + '''", id: 4, plannedDuration: 10, isFinished: true) {
-#                            process {
-#                                name
-#                                scope {
-#                                    name
-#                                }
-#                                isFinished
-#                                plannedStart
-#                                plannedDuration
-#                            }
-#                        }
-#                    }
-#                    ''')
+        result3 = schema.execute('''
+                    mutation {
+                        deleteProcess(token: "''' + token + '''", id: 4) {
+                            process {
+                                name
+                            }
+                        }
+                    }
+                    ''', context_value=MockContext())
 
-#        self.assertEqual(result2.data['updateProcess']['process']['name'], "Make something cool")
-#        self.assertEqual(result2.data['updateProcess']['process']['scope']['name'], "org1")
-#        self.assertEqual(result2.data['updateProcess']['process']['isFinished'], True)
-#        self.assertEqual(result2.data['updateProcess']['process']['plannedStart'], "2017-07-07")
-#        self.assertEqual(result2.data['updateProcess']['process']['plannedDuration'], "10 days, 0:00:00")
-
-#        result3 = schema.execute('''
-#                    mutation {
-#                        deleteProcess(token: "''' + token + '''", id: 4) {
-#                            process {
-#                                name
-#                            }
-#                        }
-#                    }
-#                    ''')
-
-#        proc = None
-#        try:
-#            proc = Process.objects.get(pk=4)
-#        except:
-#            pass
-#        self.assertEqual(proc, None)
+        proc = None
+        try:
+            proc = Process.objects.get(pk=4)
+        except:
+            pass
+        self.assertEqual(proc, None)
 
 
 ######################### SAMPLE QUERIES #####################
@@ -2322,6 +2322,10 @@ query ($token: String) {
       }
       userIsAuthorizedToUpdate
       userIsAuthorizedToDelete
+      validations {
+        id
+        validationDate
+      }
     }
   }
 }
@@ -2385,6 +2389,37 @@ query ($token: String) {
   }
 }
 
+# validation data
+
+query($token: String) {
+  viewer(token: $token) {
+    validation(id:5) {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+      }
+      validationDate
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allValidations {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+      }
+      validationDate
+    }
+  }
+}
 
 # commitment data
 
@@ -3160,6 +3195,35 @@ mutation ($token: String!) {
       agent {
         name
       }
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createValidation(token: $token, validatedById: 6, economicEventId: 392) {
+    validation {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+        affectedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+      validationDate
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deleteValidation(token: $token, id: 4) {
+    validation {
+      validationDate
     }
   }
 }
