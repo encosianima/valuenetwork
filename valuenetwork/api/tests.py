@@ -12,6 +12,9 @@ logger = logging.getLogger("graphql.execution.executor").addHandler(logging.Null
 # comment out the line above and uncomment the one below:
 #logging.basicConfig()
 
+class MockContext:
+    user = None
+
 class APITest(TestCase):
     @classmethod
     def setUpClass(cls):
