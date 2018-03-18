@@ -11,7 +11,7 @@ class ApiTypesAppConfig(AppConfig):
         'Adding from .models import CommentMixin imports CommentMixin so that you can use it
         inside the ready() method. It does not magically add it to the comment module so that
         you can access it as comments.CommentMixin
-        
+
         You could assign it to the comments module in the ready() method.'
         from .models import CommentMixin
         comments.CommentMixin = CommentsMixin
@@ -39,6 +39,7 @@ class ApiTypesAppConfig(AppConfig):
         types.Transfer = Transfer
         from valuenetwork.api.types.Place import Place
         types.Place = Place
+        from valuenetwork.api.types.Validation import Validation
+        types.Validation = Validation
         super(ApiTypesAppConfig, self).ready()
 
-        

@@ -1,0 +1,26 @@
+#
+# Validation: Confirmation that a claim/commitment related to economic events is valid.
+#
+
+import graphene
+from graphene_django.types import DjangoObjectType
+import valuenetwork.api.types as types
+from valuenetwork.valueaccounting.models import EconomicEvent, EconomicAgent
+from validation.models import Validation as ValidationProxy
+from valuenetwork.api.models import formatAgent
+
+
+class Validation(DjangoObjectType):
+    agent = graphene.Field(lambda: types.Agent)
+    economic_event = graphene.Field(lambda: types.EconomicEvent)
+
+    class Meta:
+        model = ValidationProxy
+        only_fields = ('id', 'validation_date')
+
+
+    def resolve_agent(self, args, *rargs):
+        return formatAgent(self.agent)
+
+    def resolve_economic_event(self, args, *rargs):
+        return self.economic_event

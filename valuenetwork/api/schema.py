@@ -27,6 +27,7 @@ import valuenetwork.api.schemas.ProcessClassification
 import valuenetwork.api.schemas.Commitment
 import valuenetwork.api.schemas.Plan
 import valuenetwork.api.schemas.Place
+import valuenetwork.api.schemas.Validation
 from valuenetwork.api.schemas.helpers import hash_password
 
 
@@ -48,6 +49,7 @@ class ViewerQuery(
     valuenetwork.api.schemas.Commitment.Query,
     valuenetwork.api.schemas.Plan.Query,
     valuenetwork.api.schemas.Place.Query,
+    valuenetwork.api.schemas.Validation.Query,
     graphene.ObjectType
 ):
     def __init__(self, *args, **kwargs):
@@ -87,6 +89,8 @@ class Mutation(graphene.ObjectType):
     delete_plan = valuenetwork.api.schemas.Plan.DeletePlan.Field()
     update_economic_resource = valuenetwork.api.schemas.EconomicResource.UpdateEconomicResource.Field()
     delete_economic_resource = valuenetwork.api.schemas.EconomicResource.DeleteEconomicResource.Field()
+    create_validation = valuenetwork.api.schemas.Validation.CreateValidation.Field()
+    delete_validation = valuenetwork.api.schemas.Validation.DeleteValidation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
