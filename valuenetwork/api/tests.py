@@ -2063,6 +2063,37 @@ query ($token: String) {
   }
 }
 
+# validation data
+
+query($token: String) {
+  viewer(token: $token) {
+    validation(id:5) {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+      }
+      validationDate
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allValidations {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+      }
+      validationDate
+    }
+  }
+}
 
 # commitment data
 
@@ -2741,6 +2772,35 @@ mutation ($token: String!) {
   deleteEconomicResource(token: $token, id: 34) {
     economicResource {
       trackingIdentifier
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createValidation(token: $token, validatedById: 6, economicEventId: 392) {
+    validation {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+        affectedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+      validationDate
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deleteValidation(token: $token, id: 4) {
+    validation {
+      validationDate
     }
   }
 }

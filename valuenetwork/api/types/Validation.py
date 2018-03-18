@@ -11,7 +11,7 @@ from valuenetwork.api.models import formatAgent
 
 
 class Validation(DjangoObjectType):
-    agent = graphene.Field(lambda: types.Agent)
+    validated_by = graphene.Field(lambda: types.Agent)
     economic_event = graphene.Field(lambda: types.EconomicEvent)
 
     class Meta:
@@ -19,8 +19,8 @@ class Validation(DjangoObjectType):
         only_fields = ('id', 'validation_date')
 
 
-    def resolve_agent(self, args, *rargs):
-        return formatAgent(self.agent)
+    def resolve_validated_by(self, args, *rargs):
+        return formatAgent(self.validated_by)
 
     def resolve_economic_event(self, args, *rargs):
-        return self.economic_event
+        return self.event

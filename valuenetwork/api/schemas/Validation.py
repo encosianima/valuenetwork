@@ -10,6 +10,7 @@ import datetime
 from valuenetwork.valueaccounting.models import EconomicAgent, EconomicEvent, AgentUser
 from validation.models import Validation as ValidationProxy
 from valuenetwork.api.types.Validation import Validation
+#from valuenetwork.api.models import formatAgent
 from six import with_metaclass
 from django.contrib.auth.models import User
 from .Auth import AuthedInputMeta, AuthedMutation
@@ -38,27 +39,26 @@ class Query(graphene.AbstractType):
 class CreateValidation(AuthedMutation):
     class Input(with_metaclass(AuthedInputMeta)):
         economic_event_id = graphene.Int(required=True)
-        agent_id = graphene.Int(required=True)
+        validated_by_id = graphene.Int(required=True)
 
     validation = graphene.Field(lambda: Validation)
 
     @classmethod
     def mutate(cls, root, args, context, info):
-        #import pdb; pdb.set_trace()
         economic_event_id = args.get('economic_event_id')
-        agent_id = args.get('agent_id')
+        validated_by_id = args.get('validated_by_id')
 
         economic_event = EconomicEvent.objects.get(pk=economic_event_id)
-        agent = EconomicAgent.objects.get(pk=agent_id)
+        agent = EconomicAgent.objects.get(pk=validated_by_id)
         validation = ValidationProxy(
-            economic_event=economic_event,
-            agent=agent,
+            event=economic_event,
+            validated_by=agent,
         )
 
         user_agent = AgentUser.objects.get(user=context.user).agent
-        is_authorized = user_agent.is_authorized(object_to_mutate=process)
+        is_authorized = user_agent.is_authorized(object_to_mutate=validation)
         if is_authorized:
-            process.save()  
+            validation.save()  
         else:
             raise PermissionDenied('User not authorized to perform this action.')
 
