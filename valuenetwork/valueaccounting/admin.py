@@ -170,10 +170,28 @@ admin.site.register(ProcessPattern, ProcessPatternAdmin)
 class AgentUserInline(admin.TabularInline):
     model = AgentUser
 
+class EconomicAgentContextAgentFilter(admin.SimpleListFilter):
+    title = 'context agent'
+    parameter_name = 'context_agent__id__exact'
+
+    def lookups(self, request, model_admin):
+        queryset = EconomicAgent.objects.context_agents().order_by('name')
+        context_agents = []
+        for economic_agent in queryset:
+            context_agents.append(
+                (str(economic_agent.id), economic_agent.name)
+            )
+        return context_agents
+
+    def queryset(self, request, queryset):
+        if self.parameter_name in request.GET:
+            related_economic_agent_ids = EconomicAgent.objects.get(pk=request.GET[self.parameter_name]).related_all_agents_queryset().values_list("pk", flat=True)
+            return queryset.filter(id__in=related_economic_agent_ids)
+        return queryset
 
 class EconomicAgentAdmin(admin.ModelAdmin):
     list_display = ('nick', 'name', 'agent_type', 'url', 'address', 'email', 'slug', 'created_date')
-    list_filter = ['agent_type',]
+    list_filter = ('agent_type', EconomicAgentContextAgentFilter)
     search_fields = ['name', 'address']
     inlines = [ AgentUserInline, ]
 

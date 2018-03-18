@@ -17,10 +17,12 @@ class ApiTypesAppConfig(AppConfig):
         comments.CommentMixin = CommentsMixin
         """
 
-        from valuenetwork.api.types.EconomicResource import EconomicResource, EconomicResourceCategory, ResourceClassification
+        from valuenetwork.api.types.EconomicResource import EconomicResource, EconomicResourceCategory, ResourceClassification, Facet, FacetValue
         types.EconomicResource = EconomicResource
         types.EconomicResourceCategory = EconomicResourceCategory
         types.ResourceClassification = ResourceClassification
+        types.Facet = Facet
+        types.FacetFalue = FacetValue
         from valuenetwork.api.types.Agent import Agent
         types.Agent = Agent
         from valuenetwork.api.types.Process import Process
@@ -41,5 +43,6 @@ class ApiTypesAppConfig(AppConfig):
         types.Place = Place
         from valuenetwork.api.types.Validation import Validation
         types.Validation = Validation
+        from valuenetwork.api.types.NotificationSetting import NotificationSetting
+        types.NotificationSetting = NotificationSetting
         super(ApiTypesAppConfig, self).ready()
-

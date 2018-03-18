@@ -245,6 +245,9 @@ PAYMENT_GATEWAYS = {} # Fill the object in local_settings.py with custom gateway
 
 
 PINAX_NOTIFICATIONS_QUEUE_ALL = True
+PINAX_NOTIFICATIONS_BACKENDS = [
+        ("email", "pinax.notifications.backends.email.EmailBackend", 1),
+    ]
 
 THUMBNAIL_DEBUG = True
 
