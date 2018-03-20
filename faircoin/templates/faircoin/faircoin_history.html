@@ -58,7 +58,8 @@
               {% else %}
                 <span class="error"><b>{% trans "Not available now" %}</b></span>
               {% endif %}
-            <br />Address: <a target="_blank" href="https://chain.fair-coin.org/address/{{ resource.faircoin_address.address }}">{{ resource.faircoin_address.address}}</a>
+            <br />Address: <a href="https://chain.fair.to/address?address={{ resource.faircoin_address.address }}" target="_blank" >{{resource.faircoin_address.address}}</a>
+
         </p>
 
 

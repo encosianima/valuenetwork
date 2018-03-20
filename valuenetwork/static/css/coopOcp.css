@@ -176,6 +176,7 @@ div#my_tasks table, div#take-new-task table {
   background-color: #f0f0da;
   padding: 7px 15px;
   max-width: 540px;
+  width: 540px;
   float: left;
   margin-right: 13px;
   margin-top: 13px;

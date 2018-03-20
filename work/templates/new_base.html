@@ -98,8 +98,8 @@
                         {% endif %}
                     {% endif %}
 
-                    {% if request.user.agent.agent.is_active_freedom_coop_member or request.user.agent.agent.is_participant or request.user.agent.agent.managed_projects %}
-                      {% if request.user.agent.agent.related_contexts|length == 1 %}
+                    {% if request.user.agent.agent.need_projects and not request.user.agent.agent.is_participant_candidate %}
+                      {% if not request.user.agent.agent.is_context and request.user.agent.agent.related_contexts|length == 1 %}
                         {% with request.user.agent.agent.related_contexts|first as ag %}
                             {% if 'projects' in ag.project.services %}
                               <li id="my-projects" class="dropdown">
@@ -163,7 +163,37 @@
                               </li>
                             {% endif %}
                         {% endwith %}
-                      {% else %}
+                      {% elif not request.user.agent.agent.is_context and request.user.agent.agent.related_contexts|length > 1 %}
+                        <li id="my-projects" class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Projects' %} <b class="caret"></b></a>
+                          <ul class="subnav dropdown-menu" id="projects-menu">
+                            <li id="your-projects" >
+                              <a href="{% url 'your_projects' %}"
+                              title="{% trans 'Your projects list' %}"
+                              >{% trans 'Your projects' %}</a>
+                            </li>
+                            {% if request.user.agent.agent.need_tasks %}
+                              <li id="project-work" >
+                                <a href="{% url 'project_work' %}"
+                                title="{% trans 'List of project related tasks' %}"
+                                >{% trans 'Your project tasks' %}</a>
+                              </li>
+                            {% endif %}
+                            {% if request.user.agent.agent.managed_projects %}
+                              <li id="project-orders" >
+                                <a href="{% url 'order_list' %}"
+                                title="{% trans 'Open orders in your projects' %}"
+                                >{% trans 'Your project open orders' %}</a>
+                              </li>
+                              <li id="project-process" >
+                                <a href="{% url "plan_work" rand=1 %}"
+                                title="{% trans 'Plan process tasks for a project' %}"
+                                >{% trans 'Plan project process' %}</a>
+                              </li>
+                            {% endif %}
+                          </ul>
+                        </li>
+                      {% elif request.user.agent.agent.is_context and request.user.agent.agent.related_contexts|length > 2 %}
                         <li id="my-projects" class="dropdown">
                           <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Projects' %} <b class="caret"></b></a>
                           <ul class="subnav dropdown-menu" id="projects-menu">
@@ -199,6 +229,7 @@
                             </li> -->
                           </ul>
                         </li>
+                      {% else %} <li>projects?</li>
                       {% endif %}
                     {% endif %}
                     {% if request.user.agent.agent.related_contexts|length == 1 %}
@@ -262,7 +293,7 @@
                     {% endif %}
                     {% if not request.user.agent.agent.is_active_freedom_coop_member %}
                       {% with request.user.agent.agent.membership_request.id as id %}
-                        {% if id %}
+                        {% if id and request.user.agent.agent.joinaproject_requests|length == 0 %}
                           <li id="membership" >
                             <a href="{% url 'membership_discussion' membership_request_id=id %}"
                               title="{% trans 'Your membership process' %}"
@@ -326,7 +357,7 @@
                     </li> -->
                     {% endif %}
 
-                    {% if not request.user.agent.agent.is_active_freedom_coop_member and request.user.agent.agent.membership_request %}
+                    {% if not request.user.agent.agent.is_active_freedom_coop_member and request.user.agent.agent.membership_request and request.user.agent.agent.related_contexts|length < 2 %}
                     <li id="profile" >
                       <a href="{% url 'profile' %}"
                       title="{% trans 'Your personal information and skills' %}"

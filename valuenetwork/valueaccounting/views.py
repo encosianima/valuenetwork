@@ -8677,9 +8677,10 @@ def change_work_event(request, event_id):
     event = get_object_or_404(EconomicEvent, id=event_id)
     commitment = event.commitment
     process = event.process
+    context_agent = event.context_agent
     if request.method == "POST":
         prefix = event.form_prefix()
-        form = InputEventAgentForm(instance=event, prefix=prefix, data=request.POST)
+        form = InputEventAgentForm(context_agent=context_agent, instance=event, prefix=prefix, data=request.POST)
         if form.is_valid():
             data = form.cleaned_data
             form.save()

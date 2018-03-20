@@ -52,7 +52,6 @@ class CreateProcess(AuthedMutation):
 
     @classmethod
     def mutate(cls, root, args, context, info):
-        #import pdb; pdb.set_trace()
         name = args.get('name')
         planned_start = args.get('planned_start')
         planned_duration = args.get('planned_duration')
@@ -122,7 +121,7 @@ class UpdateProcess(AuthedMutation):
             if scope_id:
                 scope = EconomicAgent.objects.get(pk=scope_id)
                 process.context_agent=scope
-            if is_finished:
+            if is_finished != None:
                 process.finished=is_finished
             process.changed_by=context.user
 
