@@ -34,7 +34,7 @@ from faircoin import utils as faircoin_utils
 from faircoin.models import FaircoinTransaction
 
 from fobi.models import FormEntry
-from general.models import Artwork_Type, Unit_Type
+from general.models import Artwork_Type #, Unit_Type
 
 if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
@@ -692,9 +692,12 @@ def members_agent(request, agent_id):
     if project:
         init = {"joining_style": project.joining_style, "visibility": project.visibility, "resource_type_selection": project.resource_type_selection, "fobi_slug": project.fobi_slug }
         change_form = ProjectCreateForm(instance=agent, initial=init)
+    elif agent.is_individual():
+        change_form = WorkAgentCreateForm(instance=agent)
     else:
         change_form = ProjectCreateForm(instance=agent) #AgentCreateForm(instance=agent)
 
+    """ not used yet...
     nav_form = InternalExchangeNavForm(data=request.POST or None)
     if agent:
         if request.method == "POST":
@@ -703,6 +706,7 @@ def members_agent(request, agent_id):
                 ext = data["exchange_type"]
             return HttpResponseRedirect('/%s/%s/%s/%s/'
                 % ('work/exchange', ext.id, 0, agent.id))
+    """
 
     context_ids = [c.id for c in agent.related_all_agents()]
     context_ids.append(agent.id)
@@ -878,7 +882,7 @@ def members_agent(request, agent_id):
         "photo_size": (128, 128),
         "change_form": change_form,
         "user_form": user_form,
-        "nav_form": nav_form,
+        #"nav_form": nav_form,
         "assn_form": assn_form,
         "upload_form": upload_form,
         "user_agent": user_agent,
@@ -1012,6 +1016,13 @@ def change_your_project(request, agent_id):
     if not user_agent:
         return render(request, 'work/no_permission.html')
     if request.method == "POST":
+      if agent.is_individual():
+        agn_form = WorkAgentCreateForm(instance=agent, data=request.POST or None)
+        if agn_form.is_valid():
+            agent = agn_form.save(commit=False)
+            #agent.is_context = True
+            agent.save()
+      else:
         try:
           project = agent.project
         except:
@@ -1090,6 +1101,24 @@ def project_login(request, form_slug = False):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
+                agent = user.agent.agent
+                req = JoinRequest.objects.filter(project=project, agent=agent)
+                if len(req) > 1:
+                    #pass # TODO raise error, create notice or repair the multiple join requests of this agent with this project
+                    raise ValidationError("This agent has more than one request to join this project! "+str(req))
+                elif len(req) == 0:
+                    # redirect to the internal joinaproject form
+                    return HttpResponseRedirect(reverse('project_joinform', args=(project.agent.id,)))
+
+                elif len(req) == 1:
+                    if req[0].pending_shares() and req[0].payment_url():
+                        return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                    elif req[0].check_user_pass():
+                        return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                    else:
+                        pass #raise ValidationError("This agent has only one request to this project but something is wrong "+str(req[0].check_user_pass()))
+
+                #return HttpResponse(str(agent.nick))
                 # Redirect to a success page.
                 return HttpResponseRedirect(reverse('my_dashboard'))
             else:
@@ -1131,7 +1160,7 @@ def joinaproject_request(request, form_slug = False):
         except:
             user_agent = False
 
-        if project.visibility != "public" and not user_agent:
+        if not project or project.visibility != "public": # or not user_agent:
             return HttpResponseRedirect('/%s/' % ('home'))
 
         fobi_slug = project.fobi_slug
@@ -1166,7 +1195,22 @@ def joinaproject_request(request, form_slug = False):
             type_of_user = data["type_of_user"]
             name = data["name"]
             surname = data["surname"]
-            #description = data["description"]
+
+            """
+            email = data["email_address"]
+            requser = data["requested_username"]
+            existuser = None
+            existemail = None
+            exist_user = EconomicAgent.objects.filter(nick=requser) #User.objects.filter(username=requser)
+            exist_email = EconomicAgent.objects.filter(email=email)
+            if len(exist_user) > 0:
+                existuser = exist_user[0]
+            if len(exist_email) > 0:
+                existemail = exist_email[0]
+            login_form = None
+            if existuser or existemail:
+                login_form = WorkLoginUsernameForm(initial={'username': requser}) # data=request.POST or None,
+            """
 
             jn_req = join_form.save(commit=False)
             jn_req.project = project
@@ -1267,10 +1311,20 @@ def joinaproject_request(request, form_slug = False):
             #    fc_aa.save()
 
             event_type = EventType.objects.get(relationship="todo")
-            description = "Create an Agent and User for the Join Request from "
-            description += name
             join_url = get_url_starter(request) + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
             context_agent = jn_req.project.agent #EconomicAgent.objects.get(name__icontains="Membership Request")
+
+            if jn_req.payment_url(): # its a credit card payment, create the user and the agent
+
+                password = jn_req.create_useragent_randompass(request or None)
+                description = "Check the automatically created Agent and User for the Join Request of "
+                description += name+' '
+                description += "with random password: "+password
+
+            else:
+                description = "Create an Agent and User for the Join Request from "
+                description += name
+
             resource_types = EconomicResourceType.objects.filter(behavior="work")
             rts = resource_types.filter(
                 Q(name__icontains="Admin")|
@@ -1318,6 +1372,9 @@ def joinaproject_request(request, form_slug = False):
             return render(request, "work/joinaproject_thanks.html", {
                 "project": project,
                 "jn_req": jn_req,
+                #"existuser": existuser,
+                #"existemail": existemail,
+                #"login_form": login_form
                 #"fobi_form": fobi_form,
                 #"field_map": field_name_to_label_map,
                 #"post": escapejs(json.dumps(request.POST)),
@@ -1344,6 +1401,9 @@ def joinaproject_request_internal(request, agent_id = False):
     form_slug = project.fobi_slug
     if form_slug and form_slug == 'freedom-coop':
         return redirect('membership_request')
+    usr_agent = request.user.agent.agent
+    reqs = JoinRequest.objects.filter(project=project, agent=usr_agent)
+
     join_form = JoinRequestInternalForm(data=request.POST or None)
     fobi_form = False
     cleaned_data = False
@@ -1472,7 +1532,8 @@ def joinaproject_request_internal(request, agent_id = False):
             # add relation candidate
             if jn_req.agent:
                 ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
-                if ass_type:
+                ass = AgentAssociation.objects.filter(is_associate=jn_req.agent, has_associate=jn_req.project.agent)
+                if ass_type and not ass:
                   fc_aa = AgentAssociation(
                     is_associate=jn_req.agent,
                     has_associate=jn_req.project.agent,
@@ -1531,8 +1592,7 @@ def joinaproject_request_internal(request, agent_id = False):
                         }
                     )
 
-            return HttpResponseRedirect('/%s/'
-                % ('work/your-projects'))
+            return HttpResponseRedirect(reverse('members_agent', args=(proj_agent.id,))) #'/%s/' % ('work/your-projects'))
 
 
     kwargs = {'initial': {'fobi_initial_data':form_slug} }
@@ -1544,6 +1604,7 @@ def joinaproject_request_internal(request, agent_id = False):
         "fobi_form": fobi_form,
         "project": project,
         "post": escapejs(json.dumps(request.POST)),
+        "reqs": reqs,
     })
 
 
@@ -1603,7 +1664,81 @@ def project_total_shares(request, project_slug=None):
         "total_holders": project.share_holders(),
     })
 
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
+def project_update_payment_status(request, project_slug=None):
+    project = False
+    if project_slug:
+        project = get_object_or_404(Project, fobi_slug=project_slug.strip('/'))
+    if project and request.POST:
+        req_id = request.POST["order_id"]
+        price = request.POST["price"]
+        status = request.POST["status"]
+        email = request.POST["email"]
+        lang = request.POST["lang"]
+        token = request.POST["token"]
+        unit = request.POST["unit"]
+        gateref = request.POST["reference"]
+
+        req = None
+        unit_rt = None
+
+        try:
+            req = get_object_or_404(JoinRequest, id=req_id*1)
+        except:
+            raise ValidationError("Can't find a join request with id: "+str(req_id))
+            #return HttpResponse('error')
+
+        if req:
+            account_type = req.payment_account_type()
+            balance = 0
+            amount = req.payment_amount()
+
+            if not token == req.payment_token():
+                pass #raise ValidationError("The token is not valid! "+str(token))
+                #return HttpResponse('error')
+
+            if not project == req.project:
+                raise ValidationError("The project is not the request project! "+str(project)+" != "+str(req.project))
+                #return HttpResponse('error')
+
+            if not str(amount) == str(price):
+                raise ValidationError("The payment amount and the request amount are not equal! price:"+str(price)+" amount:"+str(amount))
+                #return HttpResponse('error')
+
+            if not email == req.email_address:
+                raise ValidationError("The payment email and the request email are not equal! email:"+str(email)+" reqemail:"+str(req.email_address))
+                #return HttpResponse('error')
+
+            if not account_type:
+                raise ValidationError("The payment is not related any account type?")
+                #return HttpResponse('error')
+
+            if not gateref:
+                raise ValidationError("The payment is not related any gateway reference?")
+                #return HttpResponse('error')
+
+            if not unit:
+                raise ValidationError("The payment is not related any unit?")
+            else:
+                try:
+                    unit = Unit.objects.get(abbrev=unit.lower())
+                except:
+                    raise ValidationError("Not found a Unit with abbreviation: "+unit.lower())
+                punit = req.payment_unit()
+                if not unit == punit:
+                    raise ValidationError("The unit in the post is not the same as in the join_request!! "+str(unit)+" != "+str(punit))
+
+            req.update_payment_status(status, gateref)
+
+        else:
+            raise ValidationError("Can't find a false join request: "+str(req))
+            return HttpResponse('error')
+
+    else:
+        raise ValidationError("Can't find a project or request:POST: "+str(request.POST))
+        return HttpResponse('error')
 
 
 @login_required
@@ -1726,12 +1861,29 @@ def undecline_request(request, join_request_id):
 @login_required
 def delete_request(request, join_request_id):
     mbr_req = get_object_or_404(JoinRequest, pk=join_request_id)
-    mbr_req.delete()
+    if mbr_req.fobi_data:
+        fd = get_object_or_404(SavedFormDataEntry, id=mbr_req.fobi_data.id)
+        fd.delete()
     if mbr_req.agent:
       pass # delete user and agent?
+    mbr_req.delete()
 
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
+
+@login_required
+def confirm_request(request, join_request_id):
+    jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    if jn_req.agent:
+        raise ValidationError("This request already has an agent !!!")
+    if not jn_req.project:
+        raise ValidationError("This request has no project ??!!!")
+    user_agent = get_agent(request)
+    if not user_agent in jn_req.project.agent.managers():
+        raise ValidationError("You don't have permission to do this !!!")
+    jn_req.create_useragent_randompass(request)
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', jn_req.project.agent.id, 'join-requests'))
 
 @login_required
 def accept_request(request, join_request_id):
@@ -1750,6 +1902,33 @@ def accept_request(request, join_request_id):
 
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
+
+@login_required
+def update_share_payment(request, join_request_id):
+    jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
+    if not jn_req.agent:
+        raise ValidationError("This request has no agent ?!!")
+    if not jn_req.project:
+        raise ValidationError("This request has no project ??!!!")
+    user_agent = get_agent(request)
+    if not user_agent in jn_req.project.agent.managers():
+        raise ValidationError("You don't have permission to do this !!!")
+    if request.method == "POST":
+        status = request.POST.get("status")
+        gateref = request.POST.get("reference")
+        notes = request.POST.get("notes")
+        next = request.POST.get("next")
+        if not next:
+            next = "join_requests"
+        if status:
+            jn_req.update_payment_status(status, gateref, notes)
+        else:
+            raise ValidationError("Missing status ("+str(status)+") !") # or gateway reference ("+str(gateref)+") !")
+    else:
+        raise ValidationError("The request has no POST data!")
+
+    return redirect(next, agent_id=jn_req.project.agent.id) #'/%s/%s/%s/'
+        #% ('work/agent', jn_req.project.agent.id, 'join-requests'))
 
 
 from itertools import chain
@@ -1861,7 +2040,7 @@ def project_feedback(request, agent_id, join_request_id):
     jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
     project = agent.project
     allowed = False
-    if user_agent and jn_req:
+    if user_agent and jn_req and project == jn_req.project:
       if user_agent.is_staff() or user_agent in agent.managers():
         allowed = True
       elif jn_req.agent == request.user.agent.agent: #in user_agent.joinaproject_requests():
@@ -2155,7 +2334,7 @@ def new_skill_type(request, agent_id):
               out = None
               if hasattr(data["unit_type"], 'id'):
                 gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                out = gut.ocpUnitType_ocp_unit
+                out = gut.ocp_unit()
               new_rt = EconomicResourceType(
                 name=data["name"],
                 description=data["description"],
@@ -2281,7 +2460,7 @@ def edit_skill_type(request, agent_id):
             out = None
             if hasattr(data["unit_type"], 'id'):
               gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-              out = gut.ocpUnitType_ocp_unit
+              out = gut.ocp_unit()
             edid = request.POST.get("edid")
             if edid == '':
               raise ValidationError("Missing id of the edited skill! (edid)")
@@ -2408,6 +2587,353 @@ def edit_skill_type(request, agent_id):
             % ('work/agent', agent.id))
     else:
         raise ValidationError("Has no next page specified! "+str(next))
+
+
+
+
+
+#   R E S O U R C E   T Y P E S
+
+@login_required
+def new_resource_type(request, agent_id):
+    agent = EconomicAgent.objects.get(id=agent_id)
+    new_rt = request.POST.get("new_resource_type")
+    if not new_rt:
+        edit_rt = request.POST.get("edit_resource_type")
+        if edit_rt:
+          #raise ValidationError("Edit skill type? redirect")
+          return edit_resource_type(request, agent.id)
+        else:
+          raise ValidationError("New resource type, invalid")
+
+    Rtype_form = NewResourceTypeForm(agent=agent, data=request.POST)
+    if Rtype_form.is_valid():
+        data = Rtype_form.cleaned_data
+        if hasattr(data["resource_type"], 'id'):
+            parent_rt = Ocp_Artwork_Type.objects.get(id=data["resource_type"].id)
+            if parent_rt.id:
+                out = None
+                if hasattr(data["unit_type"], 'id'):
+                    gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
+                    out = gut.ocp_unit()
+                if hasattr(data, "substitutable"):
+                    substi = data["substitutable"]
+                else:
+                    substi = False
+                new_rt = EconomicResourceType(
+                    name=data["name"],
+                    description=data["description"],
+                    unit=out,
+                    price_per_unit=data["price_per_unit"],
+                    substitutable=substi,
+                    context_agent=data["context_agent"],
+                    url=data["url"],
+                    photo_url=data["photo_url"],
+                    parent=data["parent"],
+                    created_by=request.user,
+                )
+                #try:
+                new_rt.save()
+                #except:
+                #  raise ValidationError('Cannot save new resource type:'+str(new_oat)+' Parent:'+str(parent_rt))
+
+                # mptt: get_ancestors(ascending=False, include_self=False)
+                ancs = parent_rt.get_ancestors(True, True)
+                for an in ancs:
+                    if an.clas != 'Artwork':
+                        an = Ocp_Artwork_Type.objects.get(id=an.id)
+                        if an.resource_type:
+                          new_rtfv = None
+                          for fv in an.resource_type.facets.all():
+                            new_rtfv = ResourceTypeFacetValue(
+                              resource_type=new_rt,
+                              facet_value=fv.facet_value
+                            )
+                            new_rtfv.save()
+                          if new_rtfv:
+                            break
+                        if an.facet_value:
+                          new_rtfv = ResourceTypeFacetValue(
+                              resource_type=new_rt,
+                              facet_value=an.facet_value
+                          )
+                          new_rtfv.save()
+                          break
+
+                rel_material = None
+                rel_nonmaterial = None
+                if hasattr(data["related_type"], 'id'):
+                    rrt = Ocp_Artwork_Type.objects.get(id=data["related_type"].id)
+                    # mptt: get_ancestors(ascending=False, include_self=False)
+                    rrt_ancs = rrt.get_ancestors(False, True)
+                    for an in rrt_ancs: # see if is child of material or non-material
+                        if an.clas == 'Material':
+                          #try:
+                          #  mat = Material_Type.objects.get(id=rrt.id)
+                          #except:
+                          #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
+                          rel_material = rrt #mat
+                          break
+                        if an.clas == 'Nonmaterial':
+                          #try:
+                          #  non = Nonmaterial_Type.objects.get(id=rrt.id)
+                          #except:
+                          #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
+                          rel_nonmaterial = rrt #non
+                          break
+
+                new_oat = Ocp_Artwork_Type(
+                    name=data["name"],
+                    description=data["description"],
+                    resource_type=new_rt,
+                    rel_material_type=rel_material,
+                    rel_nonmaterial_type=rel_nonmaterial,
+                )
+                # mptt: insert_node(node, target, position='last-child', save=False)
+                try:
+                    new_res = Ocp_Artwork_Type.objects.insert_node(new_oat, parent_rt, 'last-child', True)
+                except:
+                    raise ValidationError('Cannot insert node:'+str(new_oat)+' Parent:'+str(parent_rt))
+
+                #nav_form = ExchangeNavForm(agent=agent, data=None)
+                #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
+                #Stype_form = NewSkillTypeForm(agent=agent, data=None)
+
+            else: # have no parent_type id
+                pass
+        else: # have no parent resource field
+            pass
+    else:
+        pass #raise ValidationError(Rtype_form.errors)
+
+    next = request.POST.get("next")
+    if next == "exchanges_all":
+        return HttpResponseRedirect('/%s/%s/%s/'
+            % ('work/agent', agent.id, 'exchanges'))
+    elif next == "members_agent":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('work/agent', agent.id))
+    else:
+        raise ValidationError("Has no next page specified! "+str(next))
+
+
+
+@login_required
+def edit_resource_type(request, agent_id):
+    edit_rt = request.POST.get("edit_resource_type")
+    if not edit_rt:
+        new_rt = request.POST.get("new_resource_type")
+        if new_rt:
+          raise ValidationError("New resource type? redirect")
+        else:
+          raise ValidationError("Edit resource type, invalid")
+
+    agent = EconomicAgent.objects.get(id=agent_id)
+    Rtype_form = NewResourceTypeForm(agent=agent, data=request.POST)
+    if Rtype_form.is_valid():
+        data = Rtype_form.cleaned_data
+        if hasattr(data["resource_type"], 'id'):
+            parent_rt = Ocp_Artwork_Type.objects.get(id=data["resource_type"].id)
+            if parent_rt.id:
+                out = None
+                if hasattr(data["unit_type"], 'id'):
+                    gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
+                    out = gut.ocp_unit()
+                edid = request.POST.get("edid")
+                if edid == '':
+                    raise ValidationError("Missing edid!")
+                else:
+                    #raise ValidationError("Lets edit "+edid)
+                    idar = edid.split('_')
+                    if idar[0] == "Rid":
+                        grt = Ocp_Artwork_Type.objects.get(id=idar[1])
+                        grt.name = data["name"]
+                        grt.description = data["description"]
+                        moved = False
+                        if not grt.parent == parent_rt:
+                          # mptt: move_to(target, position='first-child')
+                          grt.move_to(parent_rt, 'last-child')
+                          moved = True
+
+                        rel_material = None
+                        rel_nonmaterial = None
+                        if hasattr(data["related_type"], 'id'):
+                          rrt = Ocp_Artwork_Type.objects.get(id=data["related_type"].id)
+                          # mptt: get_ancestors(ascending=False, include_self=False)
+                          rrt_ancs = rrt.get_ancestors(False, True)
+                          for an in rrt_ancs: # see if is child of material or non-material
+                            if an.clas == 'Material':
+                              #try:
+                              #  mat = Material_Type.objects.get(id=rrt.id)
+                              #except:
+                              #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
+                              rel_material = rrt #mat
+                              break
+                            if an.clas == 'Nonmaterial':
+                              #try:
+                              #  non = Nonmaterial_Type.objects.get(id=rrt.id)
+                              #except:
+                              #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
+                              rel_nonmaterial = rrt #non
+                              break
+                        grt.rel_material_type = rel_material
+                        grt.rel_nonmaterial_type = rel_nonmaterial
+
+                        grt.save()
+
+                        if not grt.resource_type:
+                          #pass #raise ValidationError("There's no resource type! create it?")
+                          if hasattr(data, "substitutable"):
+                            substi = data["substitutable"]
+                          else:
+                            substi = False
+                          new_rt = EconomicResourceType(
+                            name=data["name"],
+                            description=data["description"],
+                            unit=out,
+                            price_per_unit=data["price_per_unit"],
+                            substitutable=substi,
+                            context_agent=data["context_agent"],
+                            url=data["url"],
+                            photo_url=data["photo_url"],
+                            parent=data["parent"],
+                            created_by=request.user,
+                          )
+                          new_rt.save()
+                          grt.resource_type = new_rt
+                          grt.save()
+
+                          # mptt: get_ancestors(ascending=False, include_self=False)
+                          ancs = parent_rt.get_ancestors(True, True)
+                          for an in ancs:
+                            if an.clas != 'Artwork':
+                              an = Ocp_Artwork_Type.objects.get(id=an.id)
+                              if an.resource_type:
+                                new_rtfv = None
+                                for fv in an.resource_type.facets.all():
+                                  new_rtfv = ResourceTypeFacetValue(
+                                    resource_type=new_rt,
+                                    facet_value=fv.facet_value
+                                  )
+                                  new_rtfv.save()
+                                if new_rtfv:
+                                  break
+                              if an.facet_value:
+                                new_rtfv = ResourceTypeFacetValue(
+                                    resource_type=new_rt,
+                                    facet_value=an.facet_value
+                                )
+                                new_rtfv.save()
+                                break
+
+                        else:
+                          rt = grt.resource_type;
+                          rt.name = data["name"]
+                          rt.description = data["description"]
+                          rt.unit = out
+                          rt.price_per_unit = data["price_per_unit"]
+                          rt.substitutable = data["substitutable"]
+                          rt.context_agent = data["context_agent"]
+                          rt.url = data["url"]
+                          rt.photo_url = data["photo_url"]
+                          rt.parent = data["parent"]
+                          rt.edited_by = request.user
+                          if moved:
+                            old_rtfvs = ResourceTypeFacetValue.objects.filter(resource_type=rt)
+                            for rtfv in old_rtfvs:
+                              rtfv.delete()
+                            # mptt: get_ancestors(ascending=False, include_self=False)
+                            ancs = parent_rt.get_ancestors(True, True)
+                            for an in ancs:
+                              if an.clas != 'Artwork':
+                                an = Ocp_Artwork_Type.objects.get(id=an.id)
+                                if an.resource_type:
+                                  new_rtfv = None
+                                  for fv in an.resource_type.facets.all():
+                                    new_rtfv = ResourceTypeFacetValue(
+                                      resource_type=rt,
+                                      facet_value=fv.facet_value
+                                    )
+                                    new_rtfv.save()
+                                  if new_rtfv:
+                                    break
+                                if an.facet_value:
+                                  new_rtfv = ResourceTypeFacetValue(
+                                      resource_type=rt,
+                                      facet_value=an.facet_value
+                                  )
+                                  new_rtfv.save()
+                                  break
+                          rt.save()
+
+                        mkfv = request.POST.get("facetvalue")
+                        if mkfv == 'on' and not moved:
+                            #raise ValidationError("Insert FacetValue: "+str(grt.resource_type.facets.first().facet_value.facet))
+                            new_fv, created = FacetValue.objects.get_or_create(
+                                facet=grt.resource_type.facets.first().facet_value.facet,
+                                value=grt.name
+                            )
+                            grt.facet_value = new_fv
+                            grt.save()
+                            rtfvs = grt.resource_type.facets.all()
+                            if rtfvs:
+                                for rtfv in rtfvs:
+                                    if rtfv.facet_value == grt.resource_type.facets.first().facet_value:
+                                        rtfv.facet_value = new_fv
+                                        rtfv.save()
+                                        break
+                            else:
+                                new_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+                                    resource_type=grt.resource_type,
+                                    facet_value=new_fv
+                                )
+                            desc = grt.get_descendants() # true: include self
+                            for des in desc:
+                                ort = Ocp_Artwork_Type.objects.get(id=des.id)
+                                if ort.resource_type:
+                                    rtfvs = ort.resource_type.facets.all()
+                                    if rtfvs:
+                                        for rtfv in rtfvs:
+                                            if rtfv.facet_value != new_fv: #parent_rt.resource_type.facets.first().facet_value:
+                                                rtfv.facet_value = new_fv
+                                                rtfv.save()
+                                                break
+                                            else:
+                                                pass #raise ValidationError("the first fv is already the new fv: "+str(new_fv))
+                                    else:
+                                        new_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+                                            resource_type=ort.resource_type,
+                                            facet_value=new_fv
+                                        )
+
+                        #nav_form = ExchangeNavForm(agent=agent, data=None)
+                        #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
+                        #Stype_form = NewSkillTypeForm(agent=agent, data=None)
+
+                    else: # is not Rid
+                        pass
+
+
+            else: # have no parent_type id
+                pass
+        else: # have no parent resource field
+            pass
+    else: # form invalid
+        raise ValidationError("form errors: "+str(Rtype_form.errors))
+
+    next = request.POST.get("next")
+    if next == "exchanges_all":
+        return exchanges_all(request, agent.id) # HttpResponseRedirect('/%s/%s/%s/'
+            # % ('work/agent', agent.id, 'exchanges'))
+    elif next == "members_agent":
+        return HttpResponseRedirect('/%s/%s/'
+            % ('work/agent', agent.id))
+    else:
+        raise ValidationError("Has no next page specified! "+str(next))
+
+
+
+
 
 
 
@@ -2626,7 +3152,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
               pass #raise ValidationError(nav_form.errors)
 
         # there's no new_exchange, is it a new resource type?
-        new_resource_type = request.POST.get("new_resource_type")
+        """new_resource_type = request.POST.get("new_resource_type")
         if new_resource_type:
             if Rtype_form.is_valid():
                 data = Rtype_form.cleaned_data
@@ -2636,7 +3162,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                     out = None
                     if hasattr(data["unit_type"], 'id'):
                       gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                      out = gut.ocpUnitType_ocp_unit
+                      out = gut.ocp_unit
                     if hasattr(data, "substitutable"):
                       substi = data["substitutable"]
                     else:
@@ -2689,26 +3215,26 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                       rrt_ancs = rrt.get_ancestors(False, True)
                       for an in rrt_ancs: # see if is child of material or non-material
                         if an.clas == 'Material':
-                          try:
-                            mat = Material_Type.objects.get(id=rrt.id)
-                          except:
-                            mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
-                          rel_material = mat
+                          #try:
+                          #  mat = Material_Type.objects.get(id=rrt.id)
+                          #except:
+                          #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
+                          rel_material = rrt #mat
                           break
                         if an.clas == 'Nonmaterial':
-                          try:
-                            non = Nonmaterial_Type.objects.get(id=rrt.id)
-                          except:
-                            non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
-                          rel_nonmaterial = non
+                          #try:
+                          #  non = Nonmaterial_Type.objects.get(id=rrt.id)
+                          #except:
+                          #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
+                          rel_nonmaterial = rrt #non
                           break
 
                     new_oat = Ocp_Artwork_Type(
                       name=data["name"],
                       description=data["description"],
                       resource_type=new_rt,
-                      ocpArtworkType_material_type=rel_material,
-                      ocpArtworkType_nonmaterial_type=rel_nonmaterial,
+                      rel_material_type=rel_material,
+                      rel_nonmaterial_type=rel_nonmaterial,
                     )
                     # mptt: insert_node(node, target, position='last-child', save=False)
                     try:
@@ -2738,7 +3264,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                     out = None
                     if hasattr(data["unit_type"], 'id'):
                       gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                      out = gut.ocpUnitType_ocp_unit
+                      out = gut.ocp_unit
                     edid = request.POST.get("edid")
                     if edid == '':
                       raise ValidationError("Missing edid!")
@@ -2763,21 +3289,21 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                           rrt_ancs = rrt.get_ancestors(False, True)
                           for an in rrt_ancs: # see if is child of material or non-material
                             if an.clas == 'Material':
-                              try:
-                                mat = Material_Type.objects.get(id=rrt.id)
-                              except:
-                                mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
-                              rel_material = mat
+                              #try:
+                              #  mat = Material_Type.objects.get(id=rrt.id)
+                              #except:
+                              #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
+                              rel_material = rrt #mat
                               break
                             if an.clas == 'Nonmaterial':
-                              try:
-                                non = Nonmaterial_Type.objects.get(id=rrt.id)
-                              except:
-                                non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
-                              rel_nonmaterial = non
+                              #try:
+                              #  non = Nonmaterial_Type.objects.get(id=rrt.id)
+                              #except:
+                              #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
+                              rel_nonmaterial = rrt #non
                               break
-                        grt.ocpArtworkType_material_type = rel_material
-                        grt.ocpArtworkType_nonmaterial_type = rel_nonmaterial
+                        grt.rel_material_type = rel_material
+                        grt.rel_nonmaterial_type = rel_nonmaterial
 
                         grt.save()
 
@@ -2876,7 +3402,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                   else: # have no parent_type id
                     pass
                 else: # have no parent resource field
-                  pass
+                  pass"""
 
         # there's no new_resource_type = request.POST.get("new_resource_type")
         """new_skill_type = request.POST.get("new_skill_type")
@@ -2890,7 +3416,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                     out = None
                     if hasattr(data["unit_type"], 'id'):
                       gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                      out = gut.ocpUnitType_ocp_unit
+                      out = gut.ocp_unit
                     new_rt = EconomicResourceType(
                       name=data["name"],
                       description=data["description"],
@@ -2961,7 +3487,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                     out = None
                     if hasattr(data["unit_type"], 'id'):
                       gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                      out = gut.ocpUnitType_ocp_unit
+                      out = gut.ocp_unit
                     edid = request.POST.get("edid")
                     if edid == '':
                       raise ValidationError("Missing id of the edited skill! (edid)")
@@ -3139,7 +3665,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                 #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
                 #Stype_form = NewSkillTypeForm(agent=agent, data=None)
         else:
-          exchanges = Exchange.objects.filter(context_agent=agent) #.none()
+          exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #Exchange.objects.filter(context_agent=agent) #.none()
           selected_values = "all"
     else:
         exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
@@ -3155,9 +3681,17 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         #try:
         #    xx = list(x.transfer_list)
         #except AttributeError:
+        x.list_name = x.show_name(agent)
+        flip = False
+        if not str(x) == x.list_name:
+            flip = True
+
         x.transfer_list = list(x.transfers.all())
 
         for transfer in x.transfer_list:
+
+            transfer.list_name = transfer.show_name(agent, flip) # "2nd arg is 'forced'
+
             if transfer.quantity():
               if transfer.transfer_type.is_incoming(x, agent): #reciprocal:
                 sign = '<'
@@ -3165,47 +3699,61 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                 sign = '>'
               uq = transfer.unit_of_quantity()
               rt = transfer.resource_type()
+              uv = transfer.unit_of_value()
+              if uv:
+                uq = uv
               if not uq and rt:
                 uq = rt.unit
-              if uq:
-                if not hasattr(uq, 'ocp_unit_type'):
-                  raise ValidationError("The unit has not ocp_unit_type! "+str(uq))
-                for to in total_transfers:
-                  if to['unit'] == uq.ocp_unit_type.id:
 
-                    to['name'] = uq.ocp_unit_type.name
-                    to['clas'] = uq.ocp_unit_type.clas
+              if uq:
+                if not hasattr(uq, 'gen_unit'):
+                  raise ValidationError("The unit has not gen_unit! "+str(uq))
+                for to in total_transfers:
+                  if to['unit'] == uq.gen_unit.unit_type.id:
+
+                    to['name'] = uq.gen_unit.unit_type.name
+                    to['clas'] = uq.gen_unit.unit_type.clas
 
                     if transfer.transfer_type.is_incoming(x, agent): #is_reciprocal:
                       if transfer.events.all():
-                        to['income'] = (to['income']*1) + (transfer.quantity()*1)
+                        if uv:
+                            to['income'] = (to['income']*1) + (transfer.value()*1)
+                        else:
+                            to['income'] = (to['income']*1) + (transfer.quantity()*1)
                       else:
-                        to['incommit'] = (to['incommit']*1) + (transfer.quantity()*1)
+                        if uv:
+                            to['incommit'] = (to['incommit']*1) + (transfer.value()*1)
+                        else:
+                            to['incommit'] = (to['incommit']*1) + (transfer.quantity()*1)
                       #to['debug'] += str(x.id)+':'+str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_give_events()])+sign+' - '
                     else:
                       if transfer.events.all():
-                        to['outgo'] = (to['outgo']*1) + (transfer.quantity()*1)
+                        if uv:
+                            to['outgo'] = (to['outgo']*1) + (transfer.value()*1)
+                        else:
+                            to['outgo'] = (to['outgo']*1) + (transfer.quantity()*1)
                       else:
-                        to['outcommit'] = (to['outcommit']*1) + (transfer.quantity()*1)
+                        if uv:
+                            to['outcommit'] = (to['outcommit']*1) + (transfer.value()*1)
+                        else:
+                            to['outcommit'] = (to['outcommit']*1) + (transfer.quantity()*1)
                       #to['debug'] += str(x.id)+':'+str([str(ev.event_type.name)+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_receive_events()])+sign+' - '
 
-                    if uq.ocp_unit_type.clas == 'each':
-                      rt = transfer.resource_type()
+                    if uq.gen_unit.unit_type.clas == 'each':
+                      #rt = transfer.resource_type()
                       rt.cur = False
                       if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
-                        ancs = rt.ocp_artwork_type.get_ancestors(False,True)
-                        for an in ancs:
-                          if an.clas == "currency":
-                            rt.cur = True
-                        if rt.cur and rt.ocp_artwork_type.ocpArtworkType_unit_type:
-                          if rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type:
-                            to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type.name)+sign+' - '
+                        rt.cur = rt.ocp_artwork_type.is_currency()
+
+                        if rt.cur: # and rt.ocp_artwork_type.general_unit_type:
+                          if rt.ocp_artwork_type.general_unit_type:
+                            to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type.general_unit_type.name)+sign+' - '
                           else:
                             to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type)+sign+'-MISSING UNIT! '
                           for ttr in total_transfers:
-                            if ttr['unit'] == rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type.id:
-                              ttr['name'] = rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type.name
-                              ttr['clas'] = rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type.clas
+                            if ttr['unit'] == rt.ocp_artwork_type.general_unit_type.id:
+                              ttr['name'] = rt.ocp_artwork_type.general_unit_type.name
+                              ttr['clas'] = rt.ocp_artwork_type.general_unit_type.clas
 
                               if transfer.events.all():
                                 if sign == '<':
@@ -3219,26 +3767,30 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                                 if sign == '>':
                                   ttr['outcommit'] = (ttr['outcommit']*1) + (transfer.quantity()*1)
                               break
+
+                        else:
+                            pass #raise ValidationError("Not rt.cur or rt.ocp_artwork_type.general_unit_type! rt: "+str(rt))
+
                       elif rt:
                         to['debug'] += '::'+str(rt)+'!!'+sign+'::'
 
                       #to['debug'] += str(x.transfer_give_events())+':'
-                    elif uq.ocp_unit_type.clas == 'faircoin':
+                    elif uq.gen_unit.unit_type.clas == 'faircoin':
 
-                      fairunit = uq.ocp_unit_type.id
+                      fairunit = uq.gen_unit.unit_type.id
 
                       to['balnote'] = (to['income']*1) - (to['outgo']*1)
                       #to['debug'] += str(x.transfer_give_events())+':'
 
-                    elif uq.ocp_unit_type.clas == 'euro':
+                    elif uq.gen_unit.unit_type.clas == 'euro':
                       to['balance'] = (to['income']*1) - (to['outgo']*1)
 
                       to['debug'] += str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name for ev in transfer.events.all()])+sign+' - '
                     else:
-                      to['debug'] += 'U:'+str(uq.ocp_unit_type)+sign
+                      to['debug'] += 'U:'+str(uq.gen_unit.unit_type.name)+sign
 
               else: # not uq
-                pass #total_transfers[1]['debug'] += ' :: '+str(transfer.name)+sign
+                pass #raise ValidationError("the transfer has not unit of quantity! "+str(uq))
             else: # not quantity
                 pass
 
@@ -3356,33 +3908,19 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
             return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
                   % ('work/agent', context_agent.id, 'exchange-logging-work', 0, exchange.id))
 
-            '''exchange_form = ExchangeContextForm()
-            slots = exchange_type.slots()
-            return render(request, "work/exchange_logging_work.html", {
-                "use_case": use_case,
-                "exchange_type": exchange_type,
-                "exchange_form": exchange_form,
-                "agent": agent,
-                "context_agent": context_agent,
-                "user": request.user,
-                "logger": logger,
-                "slots": slots,
-                "total_t": 0,
-                "total_rect": 0,
-                "help": get_help("exchange"),
-            })'''
         else:
             raise ValidationError("System Error: No agent, not allowed to create exchange.")
 
     elif exchange_id != "0": #existing exchange
         exchange = get_object_or_404(Exchange, id=exchange_id)
+        exchange.list_name = exchange.show_name(context_agent)
 
         if request.method == "POST":
             exchange_form = ExchangeContextForm(instance=exchange, data=request.POST)
             if exchange_form.is_valid():
                 exchange = exchange_form.save()
-                return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-                    % ('work/agent', context_agent.id, 'exchange-logging-work', 0, exchange.id))
+                #return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+                #    % ('work/agent', context_agent.id, 'exchange-logging-work', 0, exchange.id))
 
         exchange_type = exchange.exchange_type
         use_case = exchange_type.use_case
@@ -3413,6 +3951,9 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
         if agent:
             if request.user == exchange.created_by or context_agent in agent.managed_projects() or context_agent == agent:
                 logger = True
+                if hasattr(exchange, 'join_request') and exchange.join_request: #hasattr(exchange, 'join_request')
+                    if exchange.join_request.agent == agent:
+                        logger = False
 
             for event in work_events:
                 event.changeform = WorkEventContextAgentForm(
@@ -3425,13 +3966,44 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
             }
             add_work_form = WorkEventContextAgentForm(initial=work_init, context_agent=context_agent)
 
+            fliped = []
             for slot in slots:
+                slot.flip = False
+                slot.list_name = slot.show_name(context_agent)
+                if not slot.list_name == slot.name:
+                    slot.flip = True
+                    fliped.append(slot)
+            if len(fliped) < len(slots) and len(fliped) > 0:
+                for slot in slots:
+                    if not slot in fliped:
+                        slot.list_name = slot.show_name(context_agent, True) # 2nd arg is 'forced' (no need commitments or events)
+                        slot.flip = True
+                        if slot.is_income:
+                            slot.is_income = False
+                        fliped.append(slot)
+
+            for slot in slots:
+
                 ta_init = slot.default_to_agent
                 fa_init = slot.default_from_agent
                 if not ta_init:
                     ta_init = agent
                 if not fa_init:
                     fa_init = agent
+
+                if slot.flip:
+                    #fa_init = ta_init
+                    #ta_init = slot.default_from_agent
+                    #slot.default_from_agent = fa_init
+                    #slot.default_to_agent = ta_init
+
+                    if True or slot.inherit_types:
+                        #pass
+                        if slot.is_income:
+                            pass #slot.is_income = False
+                        else:
+                            pass #slot.is_income = True
+
                 xfer_init = {
                     "from_agent": fa_init,
                     "to_agent": ta_init,
@@ -3452,6 +4024,8 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                 slot.add_commit_form = ContextTransferCommitmentForm(initial=commit_init, prefix="ACM" + str(slot.id), context_agent=context_agent, transfer_type=slot)
 
                 slot.add_ext_agent = ContextExternalAgent() #initial=None, prefix="AGN"+str(slot.id))#, context_agent=context_agent)
+
+
 
     else:
         raise ValidationError("System Error: No exchange or use case.")
@@ -3541,6 +4115,13 @@ def add_transfer(request, exchange_id, transfer_type_id):
                     to_agent = context_agent
                 else:
                     to_agent = data["to_agent"]
+                if hasattr(exchange, 'join_request') and exchange.join_request:
+                    if transfer_type.is_currency:
+                        to_agent = exchange.join_request.project.agent
+                        from_agent = exchange.join_request.agent
+                    elif transfer_type.is_share():
+                        to_agent = exchange.join_request.agent
+                        from_agent = exchange.join_request.project.agent
 
                 rt = data["resource_type"]
                 if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
@@ -3745,6 +4326,14 @@ def add_transfer_commitment_work(request, exchange_id, transfer_type_id):
                 else:
                     to_agent = data["to_agent"]
 
+                if hasattr(exchange, 'join_request') and exchange.join_request:
+                    if transfer_type.is_currency:
+                        to_agent = exchange.join_request.project.agent
+                        from_agent = exchange.join_request.agent
+                    elif transfer_type.is_share():
+                        to_agent = exchange.join_request.agent
+                        from_agent = exchange.join_request.project.agent
+
                 rt = data["resource_type"]
                 if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
                     gen_rt = data["ocp_resource_type"]
@@ -3862,12 +4451,24 @@ def change_transfer_commitments_work(request, transfer_id):
                 due_date = data["due_date"]
                 if transfer_type.give_agent_is_context:
                     from_agent = context_agent
+                    if data["from_agent"]:
+                        from_agent = data["from_agent"]
                 else:
                     from_agent = data["from_agent"]
                 if transfer_type.receive_agent_is_context:
                     to_agent = context_agent
+                    if data["to_agent"]:
+                        to_agent = data["to_agent"]
                 else:
                     to_agent = data["to_agent"]
+
+                if hasattr(exchange, 'join_request') and exchange.join_request:
+                    if transfer_type.is_currency:
+                        to_agent = exchange.join_request.project.agent
+                        from_agent = exchange.join_request.agent
+                    elif transfer_type.is_share():
+                        to_agent = exchange.join_request.agent
+                        from_agent = exchange.join_request.project.agent
 
                 rt = data["resource_type"]
                 if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
@@ -3936,12 +4537,24 @@ def transfer_from_commitment(request, transfer_id):
             event_date = data["event_date"]
             if transfer_type.give_agent_is_context:
                 from_agent = context_agent
+                if data["from_agent"]:
+                    from_agent = data["from_agent"]
             else:
                 from_agent = data["from_agent"]
             if transfer_type.receive_agent_is_context:
                 to_agent = context_agent
+                if data["to_agent"]:
+                    to_agent = data["to_agent"]
             else:
                 to_agent = data["to_agent"]
+
+            if hasattr(exchange, 'join_request') and exchange.join_request:
+                if transfer_type.is_currency:
+                    to_agent = exchange.join_request.project.agent
+                    from_agent = exchange.join_request.agent
+                elif transfer_type.is_share():
+                    to_agent = exchange.join_request.agent
+                    from_agent = exchange.join_request.project.agent
 
             rt = data["resource_type"]
             if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
@@ -4040,10 +4653,10 @@ def transfer_from_commitment(request, transfer_id):
 
 
 @login_required
-def change_transfer_events(request, transfer_id, context_agent_id=None):
+def change_transfer_events_work(request, transfer_id, context_agent_id=None):
     transfer = get_object_or_404(Transfer, pk=transfer_id)
     if context_agent_id:
-      context_agent = get_object_or_404(EconomicAgent, pk=context_agent_id)
+        context_agent = get_object_or_404(EconomicAgent, pk=context_agent_id)
     if request.method == "POST":
         events = transfer.events.all()
         transfer_type = transfer.transfer_type
@@ -4066,6 +4679,7 @@ def change_transfer_events(request, transfer_id, context_agent_id=None):
               #else:
               #  context_agent = events[0].from_agent
         form = ContextTransferForm(data=request.POST, transfer_type=transfer_type, context_agent=context_agent, posting=True, prefix=transfer.form_prefix() + "E")
+
         if form.is_valid():
             data = form.cleaned_data
             et_give = EventType.objects.get(name="Give")
@@ -4081,6 +4695,14 @@ def change_transfer_events(request, transfer_id, context_agent_id=None):
                     to_agent = context_agent
                 else:
                     to_agent = data["to_agent"]
+
+                if hasattr(exchange, 'join_request') and exchange.join_request:
+                    if transfer_type.is_currency:
+                        to_agent = exchange.join_request.project.agent
+                        from_agent = exchange.join_request.agent
+                    elif transfer_type.is_share():
+                        to_agent = exchange.join_request.agent
+                        from_agent = exchange.join_request.project.agent
 
                 rt = data["resource_type"]
                 if data["ocp_resource_type"]: #next and next == "exchange-work": # bumbum
@@ -4466,7 +5088,7 @@ def project_all_resources(request, agent_id):
     })
 
 
-def new_resource_type(request, agent_id, Rtype):
+"""def new_resource_type(request, agent_id, Rtype):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     user_agent = get_agent(request)
     if not (agent == user_agent or user_agent in agent.managers()):
@@ -4475,7 +5097,7 @@ def new_resource_type(request, agent_id, Rtype):
     # process savings TODO
 
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/agent', agent.id, 'resources'))
+        % ('work/agent', agent.id, 'resources'))"""
 
 
 

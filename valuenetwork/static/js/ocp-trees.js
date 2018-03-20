@@ -92,7 +92,7 @@ $(document).ready(function(){
       if($mod){
         $mod.find('#name_action').text("Edit \""+name+'"');
         $mod.find('#id_name').val(name);
-        if(obj['description']) $mod.find('#id_description').val(obj['description']);
+        if(obj['description']) $mod.find('#id_description').val(obj['description'].split('<br>').join('\n'));
         if(obj['substi'] == 'False' || obj['substi'] == '') $mod.find('#id_substitutable').val(obj['substi']).prop('checked', false);
         else if(obj['substi'] && obj['substi'] == 'True') $mod.find('#id_substitutable').val(obj['substi']).prop('checked', true);
         $mod.find('#id_substitutable').change(function(){

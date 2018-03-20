@@ -39,7 +39,7 @@
     margin-left: 3em;
 }
 .btn {
-    margin-left: 2em;
+    margin-left: 0.5em;
 }
 .modal {
     width: 600px;
@@ -60,22 +60,31 @@ th
         {% include "_messages.html" %}
     <div>
         <legend>
-          {% if jn_req.agent.is_active_freedom_coop_member or user_agent.is_participant %}
-            {% trans "Feedback with" %} {{ agent.name }}
-          {% elif user_agent in agent.managers or user_agent == agent %}
+          {% if user_agent in agent.managers or user_agent == agent %}
             <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a> >
             {% if agent.project.fobi_slug and agent.project.join_requests %}
               <a class="indent" href="{% url 'join_requests' agent_id=agent.id %}">{% trans "Join Requests" %}</a> >
             {% endif %}
             {{ jn_req.agent.name }}
           {% else %}
-            {% trans "Your joining request for " %}<a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>
+            {% if jn_req.agent %}<a class="indent" href="{% url 'members_agent' agent_id=jn_req.agent.id %}">{{ jn_req.agent.name }}</a> > {% endif %}
+            {% trans "Feedback with" %} <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>
           {% endif %}
            &nbsp; <span style="font-weight:normal; font-size:80%;">
           {% if jn_req.agent %}
             ({% if jn_req.state == 'new' %}{% trans "pending" %}{% else %}{{ jn_req.state }}{% endif %})
           {% else %}
             <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span>
+          {% endif %}
+          {% if jn_req.duplicated %}
+            &nbsp; <span class="error">{% trans "DUPLICATED!" %} <form
+                                          style="display:inline;"
+                                          id="delete-form{{ jn_req.id }}"
+                                          action="{% url "delete_request" join_request_id=jn_req.id %}"
+                                          method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete this" %}' />
+                                    </form> {% trans "or see the other" %} <a href="{% url 'project_feedback' agent_id=jn_req.project.agent.id join_request_id=jn_req.duplicated.id %}">{% trans "join request" %}</a></span>
           {% endif %}
           </span>
           <div class="subnav">
@@ -102,6 +111,12 @@ th
         {% with jn_req as req %}
         <table style="/*display:block; max-width:1024px; width:100%;*/" class="table table-bordered table-hover table-condensed" >
           <tbody style="display:block;">
+            {% if request.user.is_superuser %}
+              <tr>
+                <th><em>(debug)</em></th>
+                <td><em>req.id: {{ req.id }} &nbsp; unit:<b>{{ req.payment_unit }}</b>&nbsp; unit_rt:<b>{{ req.payment_unit_rt }}</b>&nbsp; is_currency:<b>{{ req.payment_unit_rt.ocp_artwork_type.is_currency }}</b></em></td>
+              </tr>
+            {% endif %}
             <tr>
                 <th>{% trans "Date" %}:</th>
                 <td>{{ req.request_date }}</td>
@@ -112,7 +127,7 @@ th
             </tr>
             <tr>
                 <th style="display:block; width:180px;">{% trans "Username" %}:</th>
-                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %}</td>
+                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %} {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span> {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>{% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>{% endif %}{% endif %}</td>
             </tr>
             <tr>
                 <th>{% trans "Type" %}:</th>
@@ -153,12 +168,18 @@ th
             {% if req.pending_shares %}
               <tr><th>{% trans "Shares Pending" %}:</th>
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
-                {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
+                  {% if req.exchange %}
+                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b>
+                  {% endif %}
+                  {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
                     {% if req.payment_url %}
-                        <form action="{{ req.payment_url }}" method="POST" style="display:inline">
+                        {% if req.payment_fees and req.payment_fees_payer == req.agent %}
+                           (+ {{ req.payment_fees }} {% trans "gateway fees" %})
+                        {% endif %}
+                        <form action="{{ req.payment_url }}" method="POST" style="display:inline" target="_blank">
                             {% csrf_token %}
                             <input type="hidden" name="order_id" id="order_id" value="{{ req.pk }}" />
-                            <input type="hidden" name="amount" id="amount" value="{{ req.pending_shares }}" />
+                            <input type="hidden" name="amount" id="amount" value="{{ req.payment_total_with_fees }}" />
                             <input type="hidden" name="email" id="email" value="{{ req.email_address }}" />
                             <input type="hidden" name="first_name" id="first_name" value="{{ req.name }}" />
                             <input type="hidden" name="last_name" id="last_name" value="{{ req.surname }}" />
@@ -171,7 +192,8 @@ th
                     {% else %}
                         <span class="error">{% trans "ERROR: request without a payment option!" %}</span>
                     {% endif %}
-                {% endif %}
+
+                  {% endif %}
                 </td>
               </tr>
             {% endif %}
@@ -182,6 +204,7 @@ th
                   </td>
               </tr>
             {% endif %}
+
             <!-- <tr>
                 <th>{% trans "Languages" %}:</th>
                 <td>{{ req.native_language }}</td>

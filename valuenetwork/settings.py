@@ -237,6 +237,10 @@ MAP_LATITUDE = 45.5601062
 MAP_LONGITUDE = -73.7120832
 MAP_ZOOM = 11
 
+RANDOM_PASSWORD_LENGHT = 20
+
+ACCOUNT_NOTIFY_ON_PASSWORD_CHANGE = False
+
 # multicurrency settings
 MULTICURRENCY = {} #Fill the dict in local_settings.py with private data.
 

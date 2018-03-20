@@ -5,6 +5,7 @@
 {% load bootstrap_tags %}
 {% load thumbnail %}
 {% load mptt_tags %}
+{% load comments %}
 
 {% with user_agent as user %}
 
@@ -216,6 +217,8 @@
                     {% trans "This agent is not yet a regular ocp's 'project', only is pending to be defined the visibility and the joining style." %}
                   </div>
                   {% endif %}
+                {% elif user.is_staff or user_agent == agent or user_agent in agent.managers %}
+                    <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
                 {% endif %}
                 {% if not agent.faircoin_address and not agent.multicurrencyauth_set.count %}
                   {% if agent.need_faircoins %}
@@ -481,7 +484,7 @@
                       </tr>
                       {% if agent.project.joining_style == 'moderated' %}
                         <tr>
-                          <th>{% trans "Custom Form:" %}</th>
+                          <th>{% trans "Project Slug:" %}</th>
                           <td>{% if agent.project.fobi_slug %}
                                 {{ agent.project.fobi_slug }} {% if user_agent.is_staff %} / <a href="/fobi/view/{{ agent.project.fobi_slug }}/" target="_blank">{% trans "View Custom Form Fields" %}</a>{% endif %}
                                 {% if not agent.project.fobi_form %}
@@ -499,7 +502,13 @@
                               {% for typ in agent.project.share_types %}
                                 <li>{{ typ }}</li>
                               {% endfor %}
-                            </ul></td>
+                            </ul>
+                            {% if request.user.is_superuser and agent.project.join_requests %}
+                                {% with agent.project.join_requests.all|first as req %}
+                                    <span class="smaller">(AT: {{ req.payment_account_type }})</span>
+                                {% endwith %}
+                            {% endif %}
+                            </td>
                           </tr>
                         {% endif %}
                         {% if agent.project.share_totals %}
@@ -537,8 +546,14 @@
                         {% endif %}
                         {% if agent.project.custom_css %}
                           <tr>
-                            <th>{% trans "Custom Login Css:" %}</th>
+                            <th>{% trans "Custom CSS:" %}</th>
                             <td>{{ agent.project.custom_css }}</td>
+                          </tr>
+                        {% endif %}
+                        {% if agent.project.custom_js %}
+                          <tr>
+                            <th>{% trans "Custom JS:" %}</th>
+                            <td>{{ agent.project.custom_js }}</td>
                           </tr>
                         {% endif %}
                       {% endif %}
@@ -880,8 +895,9 @@
                                 {% if req.id %}
                                     {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
                                     &nbsp;
+                                    {% get_comment_count for req as ncom  %}
                                     <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
-                                        <b>{% trans "Feedback" %}</b>
+                                        <b>{% trans "Feedback" %}</b> {{ ncom }}
                                     </a>
                                     {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% endif %}

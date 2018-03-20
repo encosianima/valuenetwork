@@ -1079,11 +1079,16 @@ class EconomicAgent(models.Model):
         agents = [ag.has_associate for ag in self.is_associate_of.all()]
         # get also parents of parents contexts
         grand_parents = []
+        mates = []
         for agn in agents:
-          grand_parents.extend([ag.has_associate for ag in agn.is_associate_of.all()])
+            grand_parents.extend([ag.has_associate for ag in agn.is_associate_of.all()])
+            if self.is_individual():
+                mates.extend([ag.is_associate for ag in agn.has_associates.all()])
         agents.extend(grand_parents)
         if childs:
           agents.extend([ag.is_associate for ag in self.has_associates.all()])
+        if self.is_individual():
+            agents.extend(mates)
         if self.is_context and not self in agents:
           agents.extend([self])
         grandgrand_parents = [] # get grandparents of parents. TODO: recursive parents until root
@@ -1254,13 +1259,14 @@ class EconomicAgent(models.Model):
           txs = ex.transfers.all()#filter(events__unit_of_value__ocp_unit_type__isnull=False) #exchange_type.transfer_types.all()
           for tx in txs:
             uv = tx.unit_of_value()
-            if uv and not uv.ocp_unit_type.id in uids:
-              # mptt: get_ancestors(ascending=False, include_self=False)
-              #ancs = uv.ocp_unit_type.get_ancestors(False, True)
-              #for an in ancs:
-              #  if not an.id in uids:
-              #    uids.append(an.id)
-              uids.append(uv.ocp_unit_type.id)
+            if uv and hasattr(uv, 'gen_unit'):
+              if not uv.gen_unit.unit_type.id in uids:
+                # mptt: get_ancestors(ascending=False, include_self=False)
+                #ancs = uv.ocp_unit_type.get_ancestors(False, True)
+                #for an in ancs:
+                #  if not an.id in uids:
+                #    uids.append(an.id)
+                uids.append(uv.gen_unit.unit_type.id)
             #rt = tx.resource_type()
             #if rt.unit_of_value and rt.unit_of_value.ocp_unit_type:
               #ancs = rt.unit_of_value.ocp_unit_type.get_ancestors(False, True)
@@ -1270,10 +1276,10 @@ class EconomicAgent(models.Model):
               #pass #uids.append(rt.unit_of_value.ocp_unit_type.id)
             uq = tx.unit_of_quantity()
             if uq:
-              if not hasattr(uq, 'ocp_unit_type'):
-                raise ValidationError("The unit has not ocp_unit_type! "+str(uq))
+              if not hasattr(uq, 'gen_unit'):
+                raise ValidationError("The unit has not gen_unit! "+str(uq))
               else:
-                if uq.ocp_unit_type.clas == 'each':
+                if uq.gen_unit.unit_type.clas == 'each':
                   rt = tx.resource_type()
                   if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
                     ancs = rt.ocp_artwork_type.get_ancestors(False,True)
@@ -1281,13 +1287,21 @@ class EconomicAgent(models.Model):
                     for an in ancs:
                       if an.clas == "currency":
                         cur = True
-                    if cur:
-                      if hasattr(rt.ocp_artwork_type, 'ocpArtworkType_unit_type') and rt.ocp_artwork_type.ocpArtworkType_unit_type.id:
-                        if rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type:
-                          if not rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type.id in uids:
-                            uids.append(rt.ocp_artwork_type.ocpArtworkType_unit_type.ocp_unit_type.id)
-                        #pass
-                      #raise ValidationError("The RT:"+str(rt.ocp_artwork_type)+" unit:"+str(rt.ocp_artwork_type.ocpArtworkType_unit_type))
+                    if cur or rt.ocp_artwork_type.is_account():
+                      if hasattr(rt.ocp_artwork_type, 'general_unit_type') and rt.ocp_artwork_type.general_unit_type.id:
+                        #if rt.ocp_artwork_type.general_unit_type.ocp_unit_type:
+                        if not rt.ocp_artwork_type.general_unit_type.id in uids:
+                            uids.append(rt.ocp_artwork_type.general_unit_type.id)
+                        else:
+                            pass #raise ValidationError("the unit type is already in uids: "+str(uids))
+                      else:
+                          raise ValidationError("The rt has not any related general_unit_type! "+str(rt.ocp_artwork_type))
+                    else:
+                        pass #raise ValidationError("The rt is not related currency or accounts: "+str(rt.ocp_artwork_type.is_account()))
+                  else:
+                      raise ValidationError("The resource type has not a related ocp_artwork_type! "+str(rt))
+                else:
+                    pass #raise ValidationError("The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.ocp_unit_type))
             else:
               rt = tx.resource_type()
               rtun = None
@@ -1295,14 +1309,14 @@ class EconomicAgent(models.Model):
                 rtun = rt.unit
                 #rtut = rtun.unit_type
               if rtun:
-                if not hasattr(rtun, 'ocp_unit_type'):
-                  raise ValidationError("The resource_type unit has not ocp_unit_type! "+str(rtun))
+                if not hasattr(rtun, 'gen_unit'):
+                  raise ValidationError("The resource_type unit has not gen_unit! "+str(rtun))
                 else:
-                  if not rtun.ocp_unit_type.id in uids:
-                    uids.append(rtun.ocp_unit_type.id)
+                  if not rtun.gen_unit.unit_type.id in uids:
+                    uids.append(rtun.gen_unit.unit_type.id)
 
         return uids
-    #
+
 
     def task_assignment_candidates(self):
         answer = []
@@ -1903,7 +1917,7 @@ def create_agent_types(**kwargs):
     AgentType.create('Network', 'network', True)
     print "created agent types"
 
-post_migrate.connect(create_agent_types)
+#post_migrate.connect(create_agent_types)
 
 #def create_agent_association_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -1915,7 +1929,7 @@ def create_agent_association_types(**kwargs):
     AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer')
     print "created agent association types"
 
-post_migrate.connect(create_agent_association_types)
+#post_migrate.connect(create_agent_association_types)
 
 RELATIONSHIP_STATE_CHOICES = (
     ('active', _('active')),
@@ -2414,6 +2428,13 @@ class EconomicResourceType(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def description_str(self):
+        if self.description:
+            stri = self.description.replace("\n\r", "<br>").replace("\r\n", "<br>").replace("\r", "<br>").replace("\n", "<br>")
+            return stri
+        else:
+            return self.description
 
     @models.permalink
     def get_absolute_url(self):
@@ -3747,7 +3768,7 @@ def create_use_cases(**kwargs):
     UseCase.create('demand_xfer', _('Outgoing Exchange'))
     print "created use cases"
 
-post_migrate.connect(create_use_cases)
+#post_migrate.connect(create_use_cases)
 
 #def create_event_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -3790,7 +3811,7 @@ def create_event_types(**kwargs):
 
     print "created event types"
 
-post_migrate.connect(create_event_types)
+#post_migrate.connect(create_event_types)
 
 class UseCaseEventType(models.Model):
     use_case = models.ForeignKey(UseCase,
@@ -3885,7 +3906,7 @@ def create_usecase_eventtypes(**kwargs):
 
     print "created use case event type associations"
 
-post_migrate.connect(create_usecase_eventtypes)
+#post_migrate.connect(create_usecase_eventtypes)
 
 
 class PatternUseCase(models.Model):
@@ -8043,7 +8064,6 @@ class Process(models.Model):
 
 
 #from general.models import Material_Type, Nonmaterial_Type, Artwork_Type
-#from work.models import Ocp_Material_Type, Ocp_Nonmaterial_Type
 
 class TransferType(models.Model):
     name = models.CharField(_('name'), max_length=128)
@@ -8174,11 +8194,18 @@ class TransferType(models.Model):
                 return True
               elif tx.from_agent() == context_agent:
                 return False
-        elif not transfers:
+        else:
             return self.is_reciprocal
 
-        #return None
-        #pass
+    def is_share(self):
+        rel_typ = None
+        if self.inherit_types:
+            if self.exchange_type.ocp_record_type:
+                if self.exchange_type.ocp_record_type.ocpRecordType_ocp_artwork_type:
+                    rel_typ = self.exchange_type.ocp_record_type.ocpRecordType_ocp_artwork_type
+                    return rel_typ.is_share()
+
+        return rel_typ
 
     def form_prefix(self):
         return "-".join(["TT", str(self.id)])
@@ -8187,6 +8214,47 @@ class TransferType(models.Model):
         from valuenetwork.valueaccounting.forms import TransferTypeForm
         prefix=self.form_prefix()
         return TransferTypeForm(instance=self, prefix=prefix)
+
+    def show_name(self, agent=None, forced=False):
+        name = self.__unicode__()
+        newname = name
+        if agent:
+          if self.transfers:
+            gives = self.transfers.filter(events__from_agent=agent)
+            if not gives:
+                gives = self.transfers.filter(commitments__from_agent=agent)
+            if not gives:
+                gives = forced
+            takes = self.transfers.filter(events__to_agent=agent)
+            if not takes:
+                takes = self.transfers.filter(commitments__to_agent=agent)
+            if not takes:
+                takes = forced
+
+            if hasattr(self.exchange_type, 'ocp_record_type') and self.exchange_type.ocp_record_type:
+                x_actions = self.exchange_type.ocp_record_type.x_actions()
+                for action in x_actions:
+                    opposite = action.opposite()
+                    if opposite:
+                        if takes and action.clas == 'give':
+                            if action.clas and opposite.clas:
+                                newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                            if name == newname:
+                                newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                            if not name == newname:
+                                name = newname
+                                break
+                        if gives and action.clas == 'receive':
+                            if action.clas and opposite.clas:
+                                newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                            if name == newname:
+                                newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                            if not name == newname:
+                                name = newname
+                                break
+                    #import pdb; pdb.set_trace()
+        return name
+
 
 
 class TransferTypeFacetValue(models.Model):
@@ -8234,10 +8302,10 @@ class ExchangeManager(models.Manager):
         return exchanges
 
     def exchanges_by_date_and_context(self, start, end, agent):
-        return Exchange.objects.filter(start_date__range=[start, end]).filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__to_agent=agent) ).distinct() # | Q(context_agent__isnull=False, context_agent=agent) ) # bumbum add Q's from and to agent
+        return Exchange.objects.filter(start_date__range=[start, end]).filter( Q(context_agent__isnull=False, context_agent=agent) | Q(transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct() # | Q(context_agent__isnull=False, context_agent=agent) ) # bumbum add Q's from and to agent, also for commitments
 
     def exchanges_by_type(self, agent):
-        return Exchange.objects.filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__to_agent=agent) ).distinct().order_by(Lower('exchange_type__ocp_record_type__name').asc()) # bumbum add Q's from and to agent
+        return Exchange.objects.filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct().order_by(Lower('exchange_type__ocp_record_type__name').asc()) # bumbum add Q's from and to agent, also for commitments
 
 
 class Exchange(models.Model):
@@ -8388,7 +8456,62 @@ class Exchange(models.Model):
                 if not slot.receive_agent_is_context:
                     slot.default_to_agent = None #logged on agent
 
+            pend = []
+            for xf in slot.xfers:
+              if xf.status() == 'pending':
+                pend.append(xf)
+            if len(pend):
+              slot.status = pend[0].status()
+            elif slot.xfers:
+              slot.status = slot.xfers[0].status()
+            else:
+              slot.status = 'empty'
         return slots
+
+    def show_name(self, agent=None, forced=False):
+        name = self.__unicode__()
+        newname = None
+        if self.transfers:
+            give_ts = self.transfers.filter( Q(events__isnull=False, events__from_agent=agent) | Q(commitments__isnull=False, commitments__from_agent=agent) ).exclude(transfer_type__is_currency=False)
+            take_ts = self.transfers.filter( Q(events__isnull=False, events__to_agent=agent) | Q(commitments__isnull=False, commitments__to_agent=agent) ).exclude(transfer_type__is_currency=False)
+            et_name = str(self.exchange_type)
+            action = ''
+            if hasattr(self.exchange_type, 'ocp_record_type'):
+                et_name = str(self.exchange_type.ocp_record_type)
+                actions = self.exchange_type.ocp_record_type.x_actions()
+                if actions:
+                  for action in actions:
+                    opposite = action.opposite()
+                    if opposite:
+                        if action.clas and opposite.clas:
+                            newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                        else:
+                            newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                        if take_ts or forced:
+                            if action.clas == 'buy' or action.clas == 'receive':
+                                name = newname
+                        if give_ts or forced:
+                            if action.clas == 'sell' or action.clas == 'give':
+                                name = newname
+
+                        #import pdb; pdb.set_trace()
+                        #return str(action.clas)+' -> '+str(opposite.clas)+': '+name #+' GIVE: '+str(give_ts)+' - TAKE: '+str(take_ts)
+        return name
+
+    def status(self):
+        status = '??'
+        arr = []
+        trans = self.transfers.all()
+        for tr in trans:
+          if 'pending' in tr.status() or 'empty' in tr.status():
+            arr.append(tr)
+        if len(arr) < 1 and trans: #len(self.transfers.all()):
+          status = trans[0].status() #arr[0] #'complete'
+        elif arr:
+          status = arr[0].status()
+        else:
+          status = 'empty'
+        return status
 
     def has_reciprocal(self):
         slots = self.exchange_type.transfer_types.all()
@@ -8407,6 +8530,20 @@ class Exchange(models.Model):
             for event in transfer.events.all():
                 events.append(event)
         return events
+
+    def xfer_events(self): # the above function fails, so rename and works
+        events = []
+        for transfer in self.transfers.all():
+            for event in transfer.events.all():
+                events.append(event)
+        return events
+
+    def xfer_commitments(self):
+        commits = []
+        for transfer in self.transfers.all():
+            for commit in transfer.commitments.all():
+                commits.append(commit)
+        return commits
 
     def transfer_events(self):
         #todo exchange redesign fallout?
@@ -8911,6 +9048,11 @@ class Transfer(models.Model):
                 if commit.unit_of_quantity:
                     unit = commit.unit_of_quantity.name
 
+        if unit in resource_string:
+            unit = ''
+        if unit == 'Each' and resource_string:
+            unit = ''
+
         return " ".join([
         #    name,
             show_name,
@@ -8922,6 +9064,7 @@ class Transfer(models.Model):
             "on",
             self.transfer_date.strftime('%Y-%m-%d'),
             ])
+
 
     @property #ValueFlows
     def exchange_agreement(self):
@@ -9013,6 +9156,65 @@ class Transfer(models.Model):
                 agents.append(self.context_agent)
         return agents
 
+
+    def show_name(self, agent=None, forced=False):
+        name = self.__unicode__()
+        newname = name
+        if agent:
+          if self.events or self.commitments:
+            gives = self.events.filter(from_agent=agent)
+            if not gives:
+                gives = self.commitments.filter(from_agent=agent)
+            if not gives:
+                gives = forced
+            takes = self.events.filter(to_agent=agent)
+            if not takes:
+                takes = self.commitments.filter(to_agent=agent)
+            if not takes:
+                takes = forced
+
+            if hasattr(self.exchange.exchange_type, 'ocp_record_type'):
+                x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
+                for action in x_actions:
+                    opposite = action.opposite()
+                    if opposite:
+                        if action.clas and opposite.clas:
+                            newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                        if name == newname:
+                            newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+
+                        if takes and action.clas == 'give' and not name == newname:
+                            name = newname
+                            break
+                        if gives and action.clas == 'receive' and not name == newname:
+                            name = newname
+                            break
+                    #import pdb; pdb.set_trace()
+        return name
+
+    def status(self):
+        if self.exchange.exchange_type.use_case.identifier == 'intrnl_xfer':
+            need_evts = 2
+        else:
+            need_evts = 1
+        status = '??'
+        comits = self.commitments.filter(transfer=self)
+        events = self.events.filter(transfer=self)
+        if len(comits):
+          if len(events) < len(comits) or not len(events) >= need_evts:
+            status = 'pending' #str([ev.id for ev in events])+' '+str([co.id for co in comits])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
+          elif len(events) == len(comits): #need_evts:
+            status = 'complete'
+        elif len(events):
+          if len(events) >= need_evts:
+            status = 'complete' #str([ev.id for ev in events])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' complete'
+          else:
+            status = 'pending' #str([ev.id for ev in events])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
+        else:
+          status = 'empty'
+        return status
+
+
     def commit_text(self):
         text = None
         give = None
@@ -9038,6 +9240,8 @@ class Transfer(models.Model):
             qty = str(either.quantity)
             if either.unit_of_quantity:
                 unit = either.unit_of_quantity.abbrev
+                if unit in resource.lower() or unit == "EA":
+                    unit = ''
             if give:
                 if give.to_agent and give.from_agent:
                     give_text = "GIVE to " + give.to_agent.nick
@@ -9104,6 +9308,8 @@ class Transfer(models.Model):
             qty = str(either.quantity)
             if either.unit_of_quantity:
                 unit = either.unit_of_quantity.abbrev
+                if unit in resource.lower() or unit == "EA":
+                    unit = ''
             if give:
                 if give.event_date:
                     give_text = "GIVE on " + str(give.event_date)
@@ -9151,6 +9357,8 @@ class Transfer(models.Model):
             qty = str(either.quantity)
             if either.unit_of_quantity:
                 unit = either.unit_of_quantity.abbrev
+                if unit in resource.lower() or unit == "EA":
+                    unit = ''
             if give:
                 if give.to_agent:
                     give_text = "GIVE to " + give.to_agent.nick
@@ -11571,14 +11779,14 @@ class EconomicEventManager(models.Manager):
     def contributions(self):
         return EconomicEvent.objects.filter(is_contribution=True)
 
-TX_STATE_CHOICES = (
+"""TX_STATE_CHOICES = (
     ('new', _('New')),
     ('pending', _('Pending')),
     ('broadcast', _('Broadcast')),
     ('confirmed', _('Confirmed')),
     ('external', _('External')),
     ('error', _('Error')),
-)
+)"""
 
 class EconomicEvent(models.Model):
     event_type = models.ForeignKey(EventType,

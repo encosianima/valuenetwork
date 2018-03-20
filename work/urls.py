@@ -79,6 +79,7 @@ urlpatterns = [
     #url(r"^agent/(?P<agent_id>\d+)/create-user-agent/$", work.views.create_project_user_and_agent, name="create_project_user_and_agent"),
     url(r'^assign-skills/(?P<agent_id>\d+)/$', work.views.assign_skills, name="assign_skills"),
     url(r'^new_skill_type/(?P<agent_id>\d+)/$', work.views.new_skill_type, name="new_skill_type"),
+    url(r'^new_resource_type/(?P<agent_id>\d+)/$', work.views.new_resource_type, name="new_resource_type"),
     url(r'^my-tasks/$', work.views.my_tasks, name="my_tasks"),
     url(r'^take-new-tasks/$', work.views.take_new_tasks, name="take_new_tasks"),
     url(r'^home/$', work.views.my_dashboard, name="home"),
@@ -107,9 +108,13 @@ urlpatterns = [
         name="undecline_request"),
     url(r'^delete-request/(?P<join_request_id>\d+)/$', work.views.delete_request,
         name="delete_request"),
+    url(r'^confirm-request/(?P<join_request_id>\d+)/$', work.views.confirm_request,
+        name="confirm_request"),
+    url(r'^update-status/(?P<join_request_id>\d+)/$', work.views.update_share_payment,
+        name="update_share_payment"),
     url(r'^create-ocp-acount/(?P<join_request_id>\d+)/$', work.views.create_account_for_join_request,
         name="create_account_for_join_request"),
-    url(r"^comments/$", work.views.comments, name="comments"),
+    # url(r"^comments/$", work.views.comments, name="comments"),
 
     url(r'^payment-url/(?P<paymode>.+)/(?P<join_request_id>\d+)/$', work.views.payment_url, name="payment_url"),
 
@@ -122,7 +127,7 @@ urlpatterns = [
 
     url(r"^agent/(?P<agent_id>\d+)/resources/$", work.views.project_all_resources, name="project_resources"),
     url(r"^agent/(?P<agent_id>\d+)/resources/(?P<resource_id>\d+)/$", work.views.project_resource, name="project_resource"),
-    url(r"^agent/(?P<agent_id>\d+)/resources/new/(?P<Rtype>[\w-]+)/$", work.views.new_resource_type, name="new_resource_type"),
+    #url(r"^agent/(?P<agent_id>\d+)/resources/new/(?P<Rtype>[\w-]+)/$", work.views.new_resource_type, name="new_resource_type"),
     url(r"^agent/(?P<agent_id>\d+)/change-resource/(?P<resource_id>\d+)/$", work.views.change_resource, name="change_resource"),
 
 
@@ -136,8 +141,8 @@ urlpatterns = [
         name="delete_transfer_commitments"),
     url(r'^transfer-from-commitment/(?P<transfer_id>\d+)/$', work.views.transfer_from_commitment,
         name="transfer_from_commitment"),
-    url(r'^change-transfer-events/(?P<transfer_id>\d+)/(?P<context_agent_id>\d+)/$', work.views.change_transfer_events,
-        name="change_transfer_events"),
+    url(r'^change-transfer-events/(?P<transfer_id>\d+)/(?P<context_agent_id>\d+)/$', work.views.change_transfer_events_work,
+        name="change_transfer_events_work"),
     url(r'^delete-transfer-events/(?P<transfer_id>\d+)/$', work.views.delete_transfer_events,
         name="delete_transfer_events"),
 
