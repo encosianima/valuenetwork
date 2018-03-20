@@ -1871,7 +1871,7 @@ def create_agent_types(**kwargs):
     AgentType.create('Network', 'network', True)
     print "created agent types"
 
-post_migrate.connect(create_agent_types)
+#post_migrate.connect(create_agent_types)
 
 #def create_agent_association_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -1883,7 +1883,7 @@ def create_agent_association_types(**kwargs):
     AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer')
     print "created agent association types"
 
-post_migrate.connect(create_agent_association_types)
+#post_migrate.connect(create_agent_association_types)
 
 RELATIONSHIP_STATE_CHOICES = (
     ('active', _('active')),
@@ -2319,8 +2319,11 @@ class EconomicResourceType(models.Model):
         return self.name
 
     def description_str(self):
-        stri = self.description.replace("\n\r", "<br>").replace("\r\n", "<br>").replace("\r", "<br>").replace("\n", "<br>")
-        return stri
+        if self.description:
+            stri = self.description.replace("\n\r", "<br>").replace("\r\n", "<br>").replace("\r", "<br>").replace("\n", "<br>")
+            return stri
+        else:
+            return self.description
 
     @models.permalink
     def get_absolute_url(self):
@@ -3654,7 +3657,7 @@ def create_use_cases(**kwargs):
     UseCase.create('demand_xfer', _('Outgoing Exchange'))
     print "created use cases"
 
-post_migrate.connect(create_use_cases)
+#post_migrate.connect(create_use_cases)
 
 #def create_event_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -3697,7 +3700,7 @@ def create_event_types(**kwargs):
 
     print "created event types"
 
-post_migrate.connect(create_event_types)
+#post_migrate.connect(create_event_types)
 
 class UseCaseEventType(models.Model):
     use_case = models.ForeignKey(UseCase,
@@ -3792,7 +3795,7 @@ def create_usecase_eventtypes(**kwargs):
 
     print "created use case event type associations"
 
-post_migrate.connect(create_usecase_eventtypes)
+#post_migrate.connect(create_usecase_eventtypes)
 
 
 class PatternUseCase(models.Model):
