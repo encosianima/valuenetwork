@@ -92,6 +92,18 @@ span.error {
 .error {
   color: #b34;
 }
+span.pending {
+  color: #f27003;
+  font-weight: bold;
+}
+span.complete {
+  color: #3b4;
+  font-weight: bold;
+}
+span.empty {
+  color: #b34;
+  font-weight: bold;
+}
 
 .link-normal {
   font-size: 13px;
@@ -186,7 +198,7 @@ div#my_tasks table, div#take-new-task table {
   color: #333;
   font-weight: normal;
   font-size: 13px;
-  line-height: 18px;
+  line-height: 19px;
   max-height: 450px;
 }
 .modal-body p.help-block {

@@ -29,3 +29,5 @@ PyJWT
 six
 selenium
 mock
+passlib
+bcrypt

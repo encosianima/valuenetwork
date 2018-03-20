@@ -17,6 +17,19 @@
 ul, li {
   min-height: 23px;
 }
+ul.xlist {
+  list-style: none;
+  margin-left: 0;
+}
+ul.tlist {
+  list-style: none;
+  margin-left: 1.4em;
+}
+span.pending, span.complete, span.empty {
+  display: block;
+  float: left;
+  padding: 0 0.5em 0.2em 0;
+}
 
 .totals {
     /*border: solid 2px firebrick;
@@ -286,6 +299,11 @@ hr {
                   <a class="indent" href="{% url "manage_faircoin_account" resource_id=context_agent.faircoin_resource.id %}">{% trans "Wallet" %}</a>
                 {% endif %}
                 <a class="indent" href="{% url "project_resources" agent_id=context_agent.id %}">{% trans "Resources" %}</a>
+                {% if request.user.agent.agent in context_agent.managers %}
+                    {% if context_agent.project.fobi_slug and context_agent.project.join_requests %}
+                      <a class="indent" href="{% url 'join_requests' agent_id=context_agent.id %}">{% trans "Join Requests" %}</a>
+                    {% endif %}
+                {% endif %}
               {% endif %}
               {% if request.user.agent.agent.need_projects %}
                   <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
@@ -472,12 +490,12 @@ hr {
                                     var R_{{ node.id }}_obj = {
                                       "name":"{% if node.resource_type %}{{ node.resource_type.name }}{% else %}{{ node.name }}{% endif %}",
                                       "parent":"{{ node.parent.id }}",
-                                      "description":"{{ node.resource_type.description }}",
+                                      "description":"{{ node.resource_type.description_str|safe }}",
                                       "context":"{{ node.resource_type.context_agent.id }}",
                                       "substi":"{{ node.resource_type.substitutable }}",
                                       "unit":"{{ node.resource_type.unit.ocp_unit_type.id }}",
                                       "price":"{% if node.resource_type.price_per_unit %}{{ node.resource_type.price_per_unit }}{% endif %}",
-                                      "related":"{% if node.ocpArtworkType_material_type %}{{ node.ocpArtworkType_material_type.id }}{% elif node.ocpArtworkType_nonmaterial_type %}{{ node.ocpArtworkType_nonmaterial_type.id }}{% endif %}",
+                                      "related":"{% if node.rel_material_type %}{{ node.rel_material_type.id }}{% elif node.rel_nonmaterial_type %}{{ node.rel_nonmaterial_type.id }}{% endif %}",
                                       "parentrecipe":"{{ node.resource_type.parent.id }}",
                                       "url":"{{ node.resource_type.url }}",
                                       "photo_url":"{{ node.resource_type.photo_url }}",
@@ -536,7 +554,7 @@ hr {
                                     var S_{{ node.id }}_obj = {
                                       "name":"{% if node.resource_type %}{{ node.resource_type.name }}{% else %}{{ node.name }}{% endif %}",
                                       "parent":"{{ node.parent.id }}",
-                                      "description":"{{ node.resource_type.description }}",
+                                      "description":"{{ node.resource_type.description_str|safe }}",
                                       "context":"{{ node.resource_type.context_agent.id }}",
                                       //"substi":"{{ node.resource_type.substitutable }}",
                                       "unit":"{{ node.resource_type.unit.ocp_unit_type.id }}",
@@ -608,7 +626,7 @@ hr {
                 <h3><span id="name_action">{% trans "Add a new " %}</span> {% trans "Resource Type:" %}</h3>
               </div>
               <div class="modal-body">
-                <form class="validateMe" id="resourceForm" enctype="multipart/form-data" action="" method="POST" >
+                <form class="validateMe" id="resourceForm" enctype="multipart/form-data" action="{% url "new_resource_type" agent_id=context_agent.id %}" method="POST" >
                   {% csrf_token %}
                   {% for fil in Rtype_form %}
                     <div class="modal-field">
@@ -694,14 +712,25 @@ hr {
             <span>({% trans "related to you" %}):</span>
           {% else %}: &nbsp;<span style="font-size:80%">{{ exchanges.count }}</span>{% endif %}
         </h3>
-			  <ul>
+			  <ul class="xlist">
 			    {% for x in exchanges %}
 
             {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent in x.related_agents %}
-                    <li>
-                        <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"><b>{{ x }}</b></a>  {% trans "created by" %} {{ x.created_by }}
+                    <li><span class="{{ x.status }}">&#9679;</span>
+                        <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"><b>{{ x.list_name|safe }}</b></a>
+                        {% if user.is_staff and not x.join_request %}{% trans "created by" %} {{ x.created_by }} {% endif %}
+                        {% if x.join_request %} &nbsp;{% trans "related this" %}
+                            {% if context_agent == x.join_request.project.agent %}
+                                <a href="{% url "project_feedback" agent_id=x.join_request.project.agent.id join_request_id=x.join_request.id %}" style="font-weight:bold;">{% trans "Membership Request" %}</a>
+                                {% trans "from" %} <a href="{% url "members_agent" agent_id=x.join_request.agent.id %}" style="font-weight:bold;">
+                                {{ x.join_request.agent.name }}</a>
+                            {% else %}
+                                <a href="{% url "project_feedback" agent_id=x.join_request.project.agent.id join_request_id=x.join_request.id %}" style="font-weight:bold;">{% trans "Membership Request" %}</a>
+                                {% trans "to join" %} <a href="{% url "members_agent" agent_id=x.join_request.project.agent.id %}" style="font-weight:bold;">{{ x.join_request.project.agent.name }}</a>
+                            {% endif %}
+                        {% endif %}
                         {% if user == x.created_by or user.is_superuser%}
-                            <a class="btn btn-info btn-mini" href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a>
+                            <!-- <a class="btn btn-info btn-mini" href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a> -->
                             {% if x.is_deletable %}
                                 <form
                                     style="display: inline;"
@@ -711,20 +740,20 @@ hr {
                                     method="POST" >
                                     {% csrf_token %}
                                     <input type="hidden" id="next" name="next" value="exchanges-all" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >{% trans "Delete" %}</button>
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >{% trans "X" %}</button>
                                 </form>
                             {% endif %}
                         {% endif %}
                     </li>
-                    {% if x.transfers.all %}
-                        <ul>
-                            {% for transfer in x.transfers.all %}
-                                <li>{{ transfer }} </li>
+                    {% if x.transfer_list %}
+                        <ul class="tlist">
+                            {% for transfer in x.transfer_list %}
+                                <li><span class="{{ transfer.status }}">&#9679;</span> {{ transfer.list_name|safe }} </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
                     {% if x.work_events %}
-                        <ul>
+                        <ul class="wlist">
                             {% for event in x.work_events %}
                                 <li>{{ event }} </li>
                             {% endfor %}

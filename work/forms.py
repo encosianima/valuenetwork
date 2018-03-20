@@ -13,11 +13,12 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.valueaccounting.models import *
 from work.models import *
 from valuenetwork.valueaccounting.forms import *
+from account.forms import LoginForm
 from general.models import Unit_Type
 
 from django.shortcuts import get_object_or_404
 
-from general.models import Record_Type, Material_Type, Nonmaterial_Type, Artwork_Type
+#from general.models import Record_Type, Material_Type, Nonmaterial_Type, Artwork_Type
 from mptt.forms import TreeNodeChoiceField
 from work.utils import *
 
@@ -205,6 +206,7 @@ class AssociationForm(forms.Form):
 
 
 
+
 #     J O I N   R E Q U E S T S
 
 
@@ -213,6 +215,7 @@ class JoinRequestForm(forms.ModelForm):
     captcha = CaptchaField(help_text=_("Is a math operation: Please put the result (don't copy the symbols)"))
 
     project = None
+    exchange = None
     '''forms.ModelChoiceField(
         queryset=Project.objects.filter(joining_style='moderated', visibility='public'),
         empty_label=None,
@@ -221,11 +224,23 @@ class JoinRequestForm(forms.ModelForm):
 
     class Meta:
         model = JoinRequest
-        exclude = ('agent', 'project', 'fobi_data',)
+        exclude = ('agent', 'project', 'fobi_data', 'exchange')
 
     def clean(self):
         data = super(JoinRequestForm, self).clean()
-        type_of_user = data["type_of_user"]
+        username = data["requested_username"]
+        email = data["email_address"]
+        nome = data["name"]
+        exist_name = EconomicAgent.objects.filter(name=nome)
+        exist_user = EconomicAgent.objects.filter(nick=username)
+        exist_email = EconomicAgent.objects.filter(email=email)
+        if len(exist_name) > 0:
+            self.add_error('name', _("The name is already used by user: ")+str(exist_name[0].nick))
+        if len(exist_user) > 0:
+            self.add_error('requested_username', _("The username already exists. Please login before filling this form or choose another username."))
+        if len(exist_email) > 0:
+            self.add_error('email_address', _("The email is already in the system for username: ")+str(exist_email[0].nick))
+        #type_of_user = data["type_of_user"]
         #number_of_shares = data["number_of_shares"]
         #if type_of_user == "collective":
             #if int(number_of_shares) < 2:
@@ -243,6 +258,7 @@ class JoinRequestInternalForm(forms.ModelForm):
     captcha = None #CaptchaField()
 
     project = None
+    exchange = None
     '''forms.ModelChoiceField(
         queryset=Project.objects.filter(joining_style='moderated', visibility='public'),
         empty_label=None,
@@ -251,7 +267,7 @@ class JoinRequestInternalForm(forms.ModelForm):
 
     class Meta:
         model = JoinRequest
-        exclude = ('agent', 'project', 'fobi_data', 'type_of_user', 'name', 'surname', 'requested_username', 'email_address', 'phone_number', 'address',)
+        exclude = ('agent', 'project', 'exchange', 'fobi_data', 'type_of_user', 'name', 'surname', 'requested_username', 'email_address', 'phone_number', 'address',)
 
     def clean(self):
         data = super(JoinRequestInternalForm, self).clean()
@@ -400,7 +416,10 @@ class ExchangeNavForm(forms.Form):
                     self.fields["resource_type"].queryset = Ocp_Artwork_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ).order_by('tree_id','lft') #| Q(resource_type__context_agent__isnull=True) )
                     self.fields["skill_type"].queryset = Ocp_Skill_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ).order_by('tree_id','lft') #| Q(resource_type__context_agent__isnull=True) )
 
-                exchanges = Exchange.objects.filter(context_agent=agent)
+                today = datetime.date.today()
+                end =  today
+                start = today - datetime.timedelta(days=365)
+                exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #filter(Q(context_agent=agent), Q(transfers__events__from_agent=agent), Q(transfers__events__to_agent=agent))
                 ex_types = [ex.exchange_type.id for ex in exchanges]
                 self.fields["used_exchange_type"].queryset = ExchangeType.objects.filter(id__in=ex_types)
 
@@ -1067,7 +1086,8 @@ class ContextTransferForm(forms.Form):
 
     def clean(self):
         data = super(ContextTransferForm, self).clean()
-        if not hasattr(data, 'ocp_resource_type'):
+        #import pdb; pdb.set_trace()
+        if not 'ocp_resource_type' in data:
           self.add_error('ocp_resource_type', "There's no resource_type?")
           return data
         ocp_rt = data["ocp_resource_type"]

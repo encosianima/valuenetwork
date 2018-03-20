@@ -3,6 +3,7 @@
 {% load staticfiles %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load comments %}
 
 {% block head_title %}{% trans "Your Project Join Requests" %}{% endblock %}
 
@@ -14,6 +15,11 @@
 
 form.action-form {
     display: inline-block;
+}
+
+.help-text {
+    color: #777;
+    font-size: 1em;
 }
 
 </style>
@@ -73,12 +79,55 @@ form.action-form {
                             <td>
                                 {% if project.share_types %}
                                   {% trans "Shares:" %}
-                                  {% if req.pending_shares %}<span class="error">{% trans "Pending" %}</span>
-                                  {% else %}<span class="ok">{% trans "Acquired" %}</span>{% endif %}
+                                  {% if req.pending_shares %}
+                                      <span class="error">{% trans "Pending" %}</span>
+                                  {% else %}
+                                      <span class="complete">{% trans "Acquired" %}</span>
+                                  {% endif %}
+                                  {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
+                                  {% else %}
+                                    {% if not req.payment_option.key == 'ccard' %}
+                                      <form
+                                          class="action-form"
+                                          id="status-form{{ req.id }}"
+                                          action="{% url "update_share_payment" join_request_id=req.id %}"
+                                          method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="pending">
+                                        <!-- <input type="hidden" name="notes" value="dis iz a tezt note"> -->
+                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                                      </form>
+                                    {% endif %}
+                                    {% if request.user.is_superuser and req.exchange_type %}
+                                        <span class="help-text"><br />ET: {{ req.exchange_type }}
+                                            <!-- <br />AccT: {{ req.payment_account_type }}
+                                            <br />UT: {{ req.payment_unit }} RT: {{ req.payment_unit_rt }} -->
+                                        </span>
+                                    {% endif %}
+                                  {% endif %}
+                                  {% if False and req.payment_account_type %}
+                                    <br />Account: {{ req.payment_account_type }}
+                                  {% endif %}
+
                                   <br />
                                 {% endif %}
 
-                                <a class="btn btn-info btn-mini" href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"><b>{% trans "Feedback" %}</b>
+                                {% if req.duplicated %}
+                                    <em class="error">{% trans "Duplicated!" %}</em>
+                                    <form
+                                          class="action-form"
+                                          id="delete-form{{ req.id }}"
+                                          action="{% url "delete_request" join_request_id=req.id %}"
+                                          method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete?" %}' />
+                                    </form>
+                                    ({% trans "see the other" %} <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.duplicated.id %}">{% trans "request" %}</a>)
+                                    <br />
+                                    {% trans "This request:" %}
+                                {% endif %}
+                                {% get_comment_count for req as ncom  %}
+                                <a class="btn btn-info btn-mini" href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"><b>{% trans "Feedback:" %}</b> {{ ncom }}
                                 </a>
 
                                 {% if state == "declined" %}
@@ -127,6 +176,7 @@ form.action-form {
                                         {% csrf_token %}
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
                                     </form>
+
                                   {% else %}
                                     {% if req.possible_agent %}<br>
                                       "<a href="{% url 'members_agent' agent_id=req.possible_agent.id %}">{{ req.possible_agent }}</a>" {% trans "is taken, choose this agent?" %}
@@ -142,7 +192,16 @@ form.action-form {
                                           <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Save" %}' />
                                       </form> -->
                                     {% endif %}
-                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account" %}</a>
+
+                                    <form
+                                        class="action-form"
+                                        id="create-form{{ req.id }}"
+                                        action="{% url "confirm_request" join_request_id=req.id %}"
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Confirm Email" %}' /> <span class="help-text">{% trans "sends random pass and auto-creates user+agent, OR" %}</span>
+                                    </form>
+                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account (manual)" %}</a>
                                     <div class="modal hide fade" id="create-agent{{ req.id }}" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -209,8 +268,15 @@ form.action-form {
                       <td>{% if req.agent %} <a href="{% url "members_agent" agent_id=req.agent.id %}"><b><em>{{ req.agent.username }}</em></b></a> {% elif req.requested_username %} {{ req.requested_username }} {% else %} ?? {% endif %}</td>
                       <td>{% if req.agent %} {{ req.agent.agent_type }} {% else %} {{ req.type_of_user }} {% endif %}</td>
 
-                      <td>{% if req.email_address %}<a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a>
-                          {% else %} <em>{{ req.agent.email }}</em> {% endif %}</td>
+                      <td>{% if req.email_address %}
+                              <a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a>
+                          {% else %}
+                              <em>{{ req.agent.email }}</em>
+                          {% endif %}
+                          {% if req.check_user_pass %}
+                              <br /><span class="error">{% trans "not verified" %}</span>
+                          {% endif %}
+                      </td>
                       <td>{% if req.phone_number %} {{ req.phone_number }} {% else %} <em>{{ req.agent.phone_primary }}</em> {% endif %}</td>
                       <td>{% if req.address %} {{ req.address }} {% else %} <em>{{ req.agent.primary_location }}</em> {% endif %}</td>
                       <td>{% if req.website %} {{ req.website }} {% else %} <em>{{ req.agent.url }}</em> {% endif %}</td>

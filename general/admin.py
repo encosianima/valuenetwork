@@ -727,9 +727,31 @@ class RelationAdmin(MPTTModelAdmin):
   model = Relation
   list_display = ['name', 'verb', 'clas']
 
+
+class J_jobInline(admin.StackedInline):
+  model = rel_Job_Jobs
+  extra = 0
+  fk_name = 'job1'
+  raw_id_fields = ('job2',)
+  fieldsets = (
+    (' ', {
+      'classes': ('collapse',),
+      'fields': (('job2', 'relation'),)
+    }),
+  )
+  def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+    if db_field.name == 'relation':
+      rel = Relation.objects.get(clas='rel_job_jobs')
+      kwargs['queryset'] = Relation.objects.filter(lft__gt=rel.lft, rght__lt=rel.rght, tree_id=rel.tree_id)
+    return super(J_jobInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 class JobAdmin(MPTTModelAdmin):
   model = Job
   list_display = ['name', 'verb', 'clas']
+  inlines = [
+    J_jobInline,
+  ]
 
 
 
@@ -737,7 +759,7 @@ class JobAdmin(MPTTModelAdmin):
 
 class UnitAdmin(admin.ModelAdmin):
   model = Unit
-  list_display = ['name', 'code', 'unit_type',]
+  list_display = ['name', 'code', 'unit_type', 'ocp_unit']
   list_filter = ('unit_type',)
 
 

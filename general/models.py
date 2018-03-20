@@ -554,24 +554,46 @@ class Relation(Art):	# Create own ID's (TREE)
 
 @python_2_unicode_compatible
 class Job(Art):		# Create own ID's (TREE)
-	#art = models.OneToOneField('Art', primary_key=True, parent_link=True)
-	clas = models.CharField(blank=True, verbose_name=_(u"Class"), max_length=50,
-													help_text=_(u"Django model or python class associated to the Job'"))
+    #art = models.OneToOneField('Art', primary_key=True, parent_link=True)
+    clas = models.CharField(blank=True, verbose_name=_(u"Clas"), max_length=50, help_text=_(u"Django model or python class associated to the Job"))
+    jobs = models.ManyToManyField(
+        'self',
+        through='rel_Job_Jobs',
+        through_fields=('job1', 'job2'),
+        symmetrical=False,
+        blank=True,
+        verbose_name=_("related Skills"))
 
+    class Meta:
+        verbose_name= _(u'Skill')
+        verbose_name_plural= _(u'a- Skills')
+    def __str__(self):
+        if self.clas is None or self.clas == '':
+            return self.name#+', '+self.verb
+        else:
+            return self.name+' ('+self.clas+')'
+
+
+@python_2_unicode_compatible
+class rel_Job_Jobs(models.Model):
+	job1 = models.ForeignKey('Job', on_delete=models.CASCADE, related_name="rel_jobs1")
+	job2 = TreeForeignKey('Job', on_delete=models.CASCADE, related_name="rel_jobs2") #, verbose_name=_(u"related Jobs")
+	relation = TreeForeignKey('Relation', related_name='jo_job+', blank=True, null=True)
 	class Meta:
-		verbose_name= _(u'Skill')
-		verbose_name_plural= _(u'a- Skills')
+		verbose_name = _(u"J_job")
+		verbose_name_plural = _(u"Related jobs")
 	def __str__(self):
-		if self.clas is None or self.clas == '':
-			return self.name#+', '+self.verb
+		if self.relation.gerund is None or self.relation.gerund == '':
+			return self.job1.__str__()
 		else:
-			return self.name+' ('+self.clas+')'
-
-
+			return '('+self.job1.name+') '+self.relation.gerund+' > '+self.job2.__str__()
 
 #rel_tit = Relation.objects.get(clas='holder')
 
+
+
 #	 S P A C E S - (Regions, Places, Addresses...)
+
 @python_2_unicode_compatible
 class Space(models.Model):	# Abstact
 	name = models.CharField(verbose_name=_(u"Name"), max_length=100, help_text=_(u"The name of the Space"))
@@ -934,20 +956,27 @@ class Asset(Material):
 
 # - - - - - U N I T S
 
+from valuenetwork.valueaccounting.models import Unit as Ocp_Unit
+
 @python_2_unicode_compatible
 class Unit(Artwork):	# Create own ID's
-	unit_type = TreeForeignKey('Unit_Type', blank=True, null=True, verbose_name=_(u"Type of Unit"))
-	code = models.CharField(max_length=4, verbose_name=_(u"Code or Symbol"))
+    unit_type = TreeForeignKey('Unit_Type', blank=True, null=True, verbose_name=_(u"Type of Unit"))
+    code = models.CharField(max_length=4, verbose_name=_(u"Code or Symbol"))
 
-	region = TreeForeignKey('Region', blank=True, null=True, verbose_name=_(u"related use Region"))
-	#human = models.ForeignKey('Human', blank=True, null=True, verbose_name=_(u"related Entity"))
+    region = TreeForeignKey('Region', blank=True, null=True, verbose_name=_(u"related use Region"))
+    #human = models.ForeignKey('Human', blank=True, null=True, verbose_name=_(u"related Entity"))
 
-	class Meta:
-		verbose_name= _(u'Unit')
-		verbose_name_plural= _(u'o- Units')
+    ocp_unit = models.OneToOneField(Ocp_Unit, blank=True, null=True, verbose_name=_(u"OCP Unit"), related_name="gen_unit")
 
-	def __str__(self):
-		return self.unit_type.name+': '+self.name
+    class Meta:
+    	verbose_name= _(u'Unit')
+    	verbose_name_plural= _(u'o- Units')
+
+    def __str__(self):
+        if self.ocp_unit:
+            return self.name+' <'
+        else:
+            return self.unit_type.name+': '+self.name
 
 class Unit_Type(Artwork_Type):
 	unitType_artwork_type = models.OneToOneField('Artwork_Type', primary_key=True, parent_link=True, on_delete=models.CASCADE)
