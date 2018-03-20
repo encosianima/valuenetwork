@@ -503,7 +503,13 @@
                               {% for typ in agent.project.share_types %}
                                 <li>{{ typ }}</li>
                               {% endfor %}
-                            </ul></td>
+                            </ul>
+                            {% if request.user.is_superuser and agent.project.join_requests %}
+                                {% with agent.project.join_requests.all|first as req %}
+                                    <span class="smaller">(AT: {{ req.payment_account_type }})</span>
+                                {% endwith %}
+                            {% endif %}
+                            </td>
                           </tr>
                         {% endif %}
                         {% if agent.project.share_totals %}
