@@ -98,8 +98,11 @@ form.action-form {
                                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
                                       </form>
                                     {% endif %}
-                                    {% if False and req.exchange_type %}
-                                        <br />ET: {{ req.exchange_type }}
+                                    {% if request.user.is_superuser and req.exchange_type %}
+                                        <span class="help-text"><br />ET: {{ req.exchange_type }}
+                                            <!-- <br />AccT: {{ req.payment_account_type }}
+                                            <br />UT: {{ req.payment_unit }} RT: {{ req.payment_unit_rt }} -->
+                                        </span>
                                     {% endif %}
                                   {% endif %}
                                   {% if False and req.payment_account_type %}
