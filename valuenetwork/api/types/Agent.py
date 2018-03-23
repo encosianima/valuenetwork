@@ -241,6 +241,8 @@ class Agent(graphene.Interface):
                     if event.event_date.year == year and event.event_date.month == month:
                         if event.is_double_validated():
                             count = count + 1
+                else:
+                    count = count + 1
             return count
         return None
 
