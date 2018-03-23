@@ -68,6 +68,8 @@ class Agent(graphene.Interface):
 
     member_relationships = graphene.List(AgentRelationship)
 
+    validated_events_count = graphene.Int(month=graphene.Int(), year=graphene.Int())
+
 
     def resolve_primary_location(self, args, *rargs):
         return self.primary_location
@@ -221,7 +223,25 @@ class Agent(graphene.Interface):
             for assoc in assocs:
                 if assoc.association_type.association_behavior == "member":
                     filtered_assocs.append(assoc)
-            return filtered_assocs            
+            return filtered_assocs
+        return None
+
+    def resolve_validated_events_count(self, args, *rargs):
+        agent = _load_identified_agent(self)
+        month = args.get('month')
+        year = args.get('year')
+        val_month = False
+        if month and year:
+            val_month=True
+        if agent:
+            events = agent.involved_in_events().exclude(event_type__name="Give").exclude(event_type__name="Receive")
+            count = 0
+            for event in events:
+                if val_month:
+                    if event.event_date.year == year and event.event_date.month == month:
+                        if event.is_double_validated():
+                            count = count + 1
+            return count
         return None
 
     # returns resource classifications that have a recipe, for this and parent agents

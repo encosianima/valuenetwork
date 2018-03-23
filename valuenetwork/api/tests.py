@@ -1001,6 +1001,7 @@ query($token: String) {
       image
       note
       type
+      validatedEventsCount(month:12, year:2017)
     }
   }
 }
