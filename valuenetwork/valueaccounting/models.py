@@ -12187,6 +12187,13 @@ class EconomicEvent(models.Model):
                     else:
                         resource.revert_to_previous_stage()
 
+    def is_double_validated(self):
+        from validation import models
+        count = self.validations.count()
+        if count > 1:
+            return True
+        else:
+            return False
 
     def due_date(self):
         if self.commitment:
