@@ -49,6 +49,8 @@ class EconomicEvent(DjangoObjectType):
     
     validations = graphene.List(lambda: types.Validation)
 
+    is_validated = graphene.Boolean()
+
     user_is_authorized_to_update = graphene.Boolean()
 
     user_is_authorized_to_delete = graphene.Boolean()
@@ -96,6 +98,9 @@ class EconomicEvent(DjangoObjectType):
 
     def resolve_validations(self, args, context, info):
         return self.validations.all()
+    
+    def resolve_is_validated(self, args, *rargs):
+        return self.is_double_validated()
 
     def resolve_user_is_authorized_to_update(self, args, context, *rargs):
         token = rargs[0].variable_values['token']
