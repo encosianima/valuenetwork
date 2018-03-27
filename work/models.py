@@ -747,7 +747,7 @@ class JoinRequest(models.Model):
                     obj = gates[self.project.fobi_slug][payopt['key']]
                 except:
                     pass
-            if obj and obj['unit']:
+            if obj:
                 try:
                     unit = Unit.objects.get(abbrev=obj['unit'].lower())
                 except:
@@ -756,7 +756,9 @@ class JoinRequest(models.Model):
 
     def payment_unit_rt(self):
         unit = self.payment_unit()
-        if not unit.gen_unit:
+        if not unit:
+            return None
+        elif not unit.gen_unit:
             raise ValidationError("The Unit has not any gen_unit: "+str(unit))
         unit_rts = EconomicResourceType.objects.filter(ocp_artwork_type__general_unit_type__id=unit.gen_unit.unit_type.id)
         if unit_rts:
@@ -2168,7 +2170,15 @@ def create_unit_types(**kwargs):
 
 
     # Euros
-    ocp_euro = Unit.objects.get(name='Euro')
+    ocp_euro, created = Unit.objects.get_or_create(
+        name='Euro',
+        unit_type='value',
+        abbrev='eur'
+    )
+    if created:
+        print "- created Unit: 'Euro'"
+    ocp_euro.symbol = '€'
+    ocp_euro.save()
     gen_fiat_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Fiat Currency',
         parent=gen_curr_typ
