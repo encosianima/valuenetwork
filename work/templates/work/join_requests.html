@@ -77,11 +77,22 @@ form.action-form {
                     <tr class="{% cycle 'odd' 'even' %}">
                       {% if True or state != "accepted" %}
                             <td>
+                                {% if not req.fobi_data %}
+                                  <span class="error">ERROR!</span>
+                                  <form
+                                        class="action-form"
+                                        id="delete-form{{ req.id }}"
+                                        action="{% url "delete_request" join_request_id=req.id %}"
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
+                                  </form>
+                                {% endif %}
                                 {% if project.share_types %}
                                   {% trans "Shares:" %}
                                   {% if req.pending_shares %}
                                       <span class="error">{% trans "Pending" %}</span>
-                                  {% else %}
+                                  {% elif req.fobi_data %}
                                       <span class="complete">{% trans "Acquired" %}</span>
                                   {% endif %}
                                   {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
