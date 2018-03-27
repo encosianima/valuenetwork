@@ -56,7 +56,7 @@ class CreateValidation(AuthedMutation):
         )
 
         user_agent = AgentUser.objects.get(user=context.user).agent
-        is_authorized = user_agent.is_authorized(object_to_mutate=validation)
+        is_authorized = user_agent.is_authorized(object_to_mutate=validation, context_agent_id=economic_event.context_agent.id)
         if is_authorized:
             validation.save()  
         else:
@@ -77,7 +77,7 @@ class DeleteValidation(AuthedMutation):
         validation = ValidationProxy.objects.get(pk=id)
         if validation:
             user_agent = AgentUser.objects.get(user=context.user).agent
-            is_authorized = user_agent.is_authorized(object_to_mutate=validation)
+            is_authorized = user_agent.is_authorized(object_to_mutate=validation, context_agent_id=validation.event.context_agent.id)
             if is_authorized:
                 validation.delete() 
             else:
