@@ -30,68 +30,20 @@ def acquire_lock():
     logger.debug("lock acquired.")
     return lock
 
-def create_address_from_file(entity_id, entity):
-    filename = settings.NEW_FAIRCOIN_ADDRESSES_FILE
-    address = None
-    # logger.info("About import privkey for " + str(entity) + ": " + str(entity_id))
-    logger.info("About creating new address from file for " + str(entity) + ": " + str(entity_id))
-    with open(filename, 'r') as fin:
-        try:
-            data = fin.read().splitlines(True)
-            address_in_file, privkey = data[0].strip().split(',')
-        except:
-            logger.critical("Error reading new faircoin addresses file.")
-            return None
-    # try:
-    #     status, address = efn.import_key(privkey, entity_id, entity)
-    # except:
-    #     logger.critical("Error importing key: " + address)
-    #     return None
-    # if status == 'ERROR':
-    #     logger.critical("Error importing key: " + address)
-    #     return None
-    # if address != address_in_file:
-    #     logger.warning("Address returned on importing key is different from the file one.")
-    with open(filename, 'w') as fout:
-        try:
-           fout.writelines(data[1:])
-        except:
-           logger.critical("Error writting new faircoin addresses file.")
-    # logger.info("Private key succesfully imported to wallet for "
-    #     + str(entity) + ": " + str(entity_id) + " (address: " + address + ")")
-    # return address
-    logger.info("Address " + address_in_file + " succesfully imported from file for "
-        + str(entity) + ": " + str(entity_id))
-    return address_in_file
-
 def create_address_for_agent(agent):
     address = None
-    if hasattr(settings, 'NEW_FAIRCOIN_ADDRESSES_FILE'):
-        address = create_address_from_file(
-            entity_id = agent.nick.encode('ascii','ignore'),
-            entity = agent.agent_type.name,
-            )
-        return address
+    used = FaircoinAddress.objects.values_list('address', flat=True)
     if efn.is_connected():
         try:
-            address = efn.new_fair_address(
-                entity_id = agent.nick.encode('ascii','ignore'),
-                entity = agent.agent_type.name,
-                )
+            address = efn.get_unused_address(used)
         except Exception:
             _, e, _ = sys.exc_info()
             logger.critical("an exception occurred in creating a FairCoin address: {0}".format(e))
 
-        if (address is not None) and (address != 'ERROR'):
-            used = EconomicResource.objects.filter(faircoin_address__address=address)
-            if used.count():
-                msg = " ".join(["address already existent! (count[0]=", str(used[0]), ") when creating new address for", agent.name])
+        if (address is None) or (address == 'ERROR'):
+                msg = "CAN NOT CREATE ADDRESS FOR %s" %agent.name])
                 logger.critical(msg)
                 return None #create_address_for_agent(agent)
-        elif address == 'ERROR':
-            msg = " ".join(["address string is ERROR. None returned. agent:", agent.name])
-            logger.critical(msg)
-            return None
     return address
 
 def create_address_for_resource(resource):
@@ -121,7 +73,7 @@ def create_requested_addresses():
 
     if requests:
         if efn.is_connected():
-            logger.debug("broadcast_tx ready to process FairCoin address requests")
+            logger.debug("Request new address")
             for resource in requests:
                 result = create_address_for_resource(resource)
 

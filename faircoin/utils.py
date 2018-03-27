@@ -141,3 +141,6 @@ def import_key(privkey, entity_id, entity = 'generic'):
     format_dict = [privkey, entity_id, entity]
     response = send_command('import_key', format_dict)
     return response
+
+def get_unused_address(db_addresses):
+    return send_command('get_unused_address', db_addresses)

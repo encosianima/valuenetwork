@@ -75,7 +75,7 @@ def is_valid(address):
 def is_mine(address):
     res =  wallet.is_mine(address)
     logging.debug("Is mine %s %s" %(address, res))
-    return res
+    return { "result" : res }
 
 # create new address for users or any other entity
 def new_fair_address(entity_id, entity = 'generic'):
@@ -98,6 +98,7 @@ def new_fair_address(entity_id, entity = 'generic'):
 def get_address_balance(address):
     bal = wallet.get_addr_balance(address)
     logging.debug("Address : %s Balance : %s " %(address, bal))
+    print bal
     return bal
 
 #read the history of an address
@@ -122,18 +123,22 @@ def make_transaction_from_address(address_origin, address_end, amount):
         logging.error("Amount negative: %d" %(amount) )
         return False
     # Get utxos for address
+    logging.debug("get utxo")
     inputs = [address_origin]
     coins = wallet.get_spendable_coins(domain = inputs)
     config = electrumfair.SimpleConfig()
     # Build and sign tx
+    logging.debug("build")
     try:
         tx = wallet.make_unsigned_transaction(coins, output, config, change_addr=address_origin)
     except NotEnoughFunds:
         logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount)
         logging.error("Confirmed : %s -- Unconfirmed: %s -- Unmature : %s " %wallet.get_addr_balance(address_origin))
         return False
+    logging.debug("sign")
     wallet.sign_transaction(tx, password)
     # Broadcast tx
+    logging.debug("broadcast")
     rec_tx_state, rec_tx_out = network.broadcast(tx, 30)
     if rec_tx_state:
         logging.info("SUCCESS. The transaction %s has been broadcasted." %rec_tx_out)
@@ -176,6 +181,21 @@ def import_key(privkey, entity_id, entity = 'generic'):
 def add_address(add):
     wallet.add_address(add)
     return 'ok'
+
+def get_unused_address(db_addresses):
+    wallet_addresses = wallet.get_unused_addresses()
+    for add in wallet_addresses:
+       #logging.info("check address: %s" %add)
+       if add not in db_addresses:
+           logging.info("get_unused_address: %s" %add)
+           return add
+    logging.info("Can not find an unused address, generate one")
+    return False
+
+def get_unused_address_from_file(fname):
+    with open(fname) as f:
+        addresses = f.read().splitlines()
+    return get_unused_address(addresses)
 
 if __name__ == '__main__':
 
@@ -223,6 +243,8 @@ if __name__ == '__main__':
     server.register_function(get_address_history,'get_address_history')
     server.register_function(import_key,'import_key')
     server.register_function(add_address,'add_address')
+    server.register_function(get_unused_address,'get_unused_address')
+    server.register_function(get_unused_address_from_file,'get_unused_address_from_file')
     server.socket.settimeout(1)
 
     while not stopping:
