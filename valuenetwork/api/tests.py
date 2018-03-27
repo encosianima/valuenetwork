@@ -908,8 +908,6 @@ class APITest(TestCase):
         self.assertEqual(notifSettings[0]['id'], "1")
         self.assertEqual(notifSettings[0]['notificationType']['label'], "api_test")
 
-
-
     def test_create_update_delete_process(self):
         result = schema.execute('''
                 mutation {
@@ -1003,6 +1001,10 @@ query($token: String) {
       image
       note
       type
+      validatedEventsCount(month:12, year:2017)
+      eventsCount(month:12, year:2017)
+      eventHoursCount(month:12, year:2017)
+      eventPeopleCount(month:12, year:2017)
     }
   }
 }
@@ -1082,6 +1084,33 @@ query($token: String) {
       name
       image
       type
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    agent(id: 39) {
+      name
+      agentPlans(month:12, year: 2017) {
+        name
+        planProcesses(month:12, year: 2017) {
+          name
+          committedInputs(action: WORK) {
+            note
+            fulfilledBy(requestDistribution: true) {
+              fulfilledBy {
+                provider {
+                  name
+                }
+                requestDistribution
+                note
+                isValidated
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -2233,10 +2262,11 @@ query ($token: String) {
   viewer(token: $token) {
     agent(id: 6) {
       name
-      agentEconomicEvents(latestNumberOfDays: 30) {
+      agentEconomicEvents(latestNumberOfDays: 30, requestDistribution: true) {
         id
         action
         start
+        requestDistribution
         affectedQuantity {
           numericValue
           unit {
@@ -2324,6 +2354,10 @@ query ($token: String) {
       }
       userIsAuthorizedToUpdate
       userIsAuthorizedToDelete
+      validations {
+        id
+        validationDate
+      }
     }
   }
 }
@@ -2387,6 +2421,37 @@ query ($token: String) {
   }
 }
 
+# validation data
+
+query($token: String) {
+  viewer(token: $token) {
+    validation(id:5) {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+      }
+      validationDate
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allValidations {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+      }
+      validationDate
+    }
+  }
+}
 
 # commitment data
 
@@ -2504,10 +2569,11 @@ query ($token: String) {
       plan {
         name
       }
-      fulfilledBy {
+      fulfilledBy (requestDistribution: false) {
         fulfilledBy {
           action
           start
+          requestDistribution
           provider {
             name
           }
@@ -3162,6 +3228,35 @@ mutation ($token: String!) {
       agent {
         name
       }
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createValidation(token: $token, validatedById: 6, economicEventId: 392) {
+    validation {
+      id
+      validatedBy {
+        name
+      }
+      economicEvent {
+        action
+        affectedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+      validationDate
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deleteValidation(token: $token, id: 4) {
+    validation {
+      validationDate
     }
   }
 }

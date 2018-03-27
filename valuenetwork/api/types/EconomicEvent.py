@@ -46,6 +46,10 @@ class EconomicEvent(DjangoObjectType):
         only_fields = ('id')
 
     fulfills = graphene.List(lambda: types.Fulfillment)
+    
+    validations = graphene.List(lambda: types.Validation)
+
+    is_validated = graphene.Boolean()
 
     user_is_authorized_to_update = graphene.Boolean()
 
@@ -91,6 +95,12 @@ class EconomicEvent(DjangoObjectType):
             ff_list.append(fulfillment)
             return ff_list
         return []
+
+    def resolve_validations(self, args, context, info):
+        return self.validations.all()
+    
+    def resolve_is_validated(self, args, *rargs):
+        return self.is_double_validated()
 
     def resolve_user_is_authorized_to_update(self, args, context, *rargs):
         token = rargs[0].variable_values['token']
