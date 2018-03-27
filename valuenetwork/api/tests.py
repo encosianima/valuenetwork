@@ -1105,6 +1105,7 @@ query ($token: String) {
                 }
                 requestDistribution
                 note
+                isValidated
               }
             }
           }
