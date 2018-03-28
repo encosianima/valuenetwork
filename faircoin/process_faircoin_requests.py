@@ -41,7 +41,7 @@ def create_address_for_agent(agent):
             logger.critical("an exception occurred in creating a FairCoin address: {0}".format(e))
 
         if (address is None) or (address == 'ERROR'):
-                msg = "CAN NOT CREATE ADDRESS FOR %s" %agent.name])
+                msg = ("CAN NOT CREATE ADDRESS FOR %s" %(agent.name))
                 logger.critical(msg)
                 return None #create_address_for_agent(agent)
     return address
