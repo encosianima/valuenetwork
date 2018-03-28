@@ -57,11 +57,14 @@ def is_connected():
 
 # Get the network fee.
 def network_fee():
+    """
     response = send_command('fee', '')
     if response == 'ERROR':
         return False
     else:
         return response
+    """
+    return 100000
 
 # A mock function for tests in valueaccounting app.
 def send_fake_faircoins(address_origin, address_end, amount):
