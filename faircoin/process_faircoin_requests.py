@@ -3,15 +3,17 @@ import time
 import logging
 from decimal import *
 
+logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger("faircoin_cron.process")
 
 from django.conf import settings
 from django.db.models import Q
 
 import faircoin.utils as efn
-
+from .models import FaircoinAddress
 from valuenetwork.valueaccounting.models import EconomicAgent, EconomicEvent, EconomicResource
 from valuenetwork.valueaccounting.lockfile import FileLock, AlreadyLocked, LockTimeout, LockFailed
+
 
 #FAIRCOIN_DIVISOR = int(100000000)
 
@@ -32,18 +34,23 @@ def acquire_lock():
 
 def create_address_for_agent(agent):
     address = None
-    used = FaircoinAddress.objects.values_list('address', flat=True)
+    used_query_list = FaircoinAddress.objects.values_list('address', flat=True)
+    used_list = list(used_query_list)
     if efn.is_connected():
         try:
-            address = efn.get_unused_address(used)
+            unused_address = efn.get_unused_addresses()
         except Exception:
             _, e, _ = sys.exc_info()
-            logger.critical("an exception occurred in creating a FairCoin address: {0}".format(e))
-
+            logger.critical("Can not get the list of unused addresses from the wallet: {0}".format(e))
+        for add in unused_address:
+            if add not in used_list:
+                logger.debug("Found unused %s -- %s" %(add, efn.get_address_index(add)))
+                address = add
+                break  
         if (address is None) or (address == 'ERROR'):
                 msg = ("CAN NOT CREATE ADDRESS FOR %s" %(agent.name))
                 logger.critical(msg)
-                return None #create_address_for_agent(agent)
+                return None 
     return address
 
 def create_address_for_resource(resource):
@@ -61,9 +68,7 @@ def create_address_for_resource(resource):
 
 def create_requested_addresses():
     try:
-        requests = EconomicResource.objects.filter(
-            faircoin_address__address="address_requested")
-
+        requests = EconomicResource.objects.filter(faircoin_address__address="address_requested")
         msg = " ".join(["new FairCoin address requests count:", str(requests.count())])
         logger.debug(msg)
     except Exception:
@@ -73,10 +78,8 @@ def create_requested_addresses():
 
     if requests:
         if efn.is_connected():
-            logger.debug("Request new address")
             for resource in requests:
                 result = create_address_for_resource(resource)
-
             msg = " ".join(["created", str(requests.count()), "new faircoin addresses."])
     else:
         msg = "No new faircoin address requests to process."
