@@ -1,26 +1,25 @@
 import requests, json, logging, time
 from random import randint
-#from logging.handlers import TimedRotatingFileHandler
+from logging.handlers import TimedRotatingFileHandler
 
 from django.conf import settings
-"""
 def init_logger():
     logger = logging.getLogger("faircoin")
-    logger.setLevel(logging.INFO)
-    fhpath = "/".join([settings.PROJECT_ROOT, "faircoin/faircoin.log",])
+    logger.setLevel(logging.DEBUG)
+    fhpath = "/home/ocp/logs/faircoin.log"
     fh = TimedRotatingFileHandler(fhpath, when="d", interval=1, backupCount=7)
-    fh.setLevel(logging.INFO)
+    fh.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     return logger
-"""
+
 url = "http://localhost:8069"
 timeout = 45
-#logger = init_logger()
+logger = init_logger()
 
 # Send command to the daemon.
-def send_command(cmd, params):
+def send_command(cmd, params = [] ):
     if params == '': params = []
     random_id = randint(1,10000)
     headers = {'content-type': 'application/json'}
@@ -30,16 +29,16 @@ def send_command(cmd, params):
     try:
         response = requests.post(url, headers=headers, data=data, timeout=timeout)
     except requests.exceptions.ConnectionError as e:
-        #logger.error("Cannot connect to faircoin daemon: %s" % e)
+        logger.error("Cannot connect to faircoin daemon: %s" % e)
         return "ERROR"
     except requests.exceptions.Timeout as e:
-        #logger.error("Timeout connecting to faircoin daemon: %s" % e)
+        logger.error("Timeout connecting to faircoin daemon: %s" % e)
         return "ERROR"
 
     try:
         r = response.json()
         if int(response.status_code) == 200:
-            #logger.debug('Response: %s' %(r['result']))
+            logger.debug('Response: %s' %(r['result']))
             out = r['result']
         else:
             out = 'ERROR'
@@ -143,4 +142,11 @@ def import_key(privkey, entity_id, entity = 'generic'):
     return response
 
 def get_unused_address(db_addresses):
-    return send_command('get_unused_address', db_addresses)
+    request = ('"%s"' %db_addresses)
+    return send_command('get_unused_address', request)
+
+def get_unused_addresses():
+    return send_command('get_unused_addresses')
+
+def get_address_index(address):
+    return send_command('get_address_index', [address])
