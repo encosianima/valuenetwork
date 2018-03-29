@@ -136,8 +136,7 @@ class ExchangeService(object):
             to_resource = to_resources[0]  # shd be only one
             to_agent = to_resource.owner()
         et_give = EventType.objects.get(name="Give")
-        network_fee = faircoin_utils.network_fee()
-        if to_resource and network_fee:
+        if to_resource:
             tt = ExchangeService.faircoin_internal_transfer_type()
             xt = tt.exchange_type
             date = datetime.date.today()
@@ -194,6 +193,7 @@ class ExchangeService(object):
             event=event,
             tx_state=state,
             to_address=recipient,
+            amount=qty,  
         )
         fairtx.save()
 
@@ -309,6 +309,7 @@ class ExchangeService(object):
                         tx_hash=str(tx[0]),
                         tx_state=state,
                         to_address=faircoin_address,
+                        amount=qty,
                     )
                     fairtx.save()
                     tx_included.append(str(tx[0]))

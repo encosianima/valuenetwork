@@ -10,8 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 
-from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent,\
-    EconomicResourceType, Help
+from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent, EconomicResourceType, Help
 from valuenetwork.valueaccounting.forms import EconomicResourceForm
 from valuenetwork.valueaccounting.service import ExchangeService
 from faircoin import utils as faircoin_utils
@@ -51,12 +50,9 @@ def manage_faircoin_account(request, resource_id):
     share_price = False
     number_of_shares = False
     can_pay = False
-
     wallet = faircoin_utils.is_connected()
     if wallet:
         is_wallet_address = faircoin_utils.is_mine(resource.faircoin_address.address)
-        if not is_wallet_address:
-            if resource.is_address_requested(): is_wallet_address = True
         if is_wallet_address:
             send_coins_form = SendFairCoinsForm(agent=resource.owner())
             try:
@@ -64,14 +60,15 @@ def manage_faircoin_account(request, resource_id):
                 confirmed_balance = Decimal(balances[0]) / FAIRCOIN_DIVISOR
                 unconfirmed_balance =  Decimal(balances[0] + balances[1]) / FAIRCOIN_DIVISOR
                 unconfirmed_balance += resource.balance_in_tx_state_new()
-                fee = Decimal(faircoin_utils.network_fee()) / FAIRCOIN_DIVISOR
-                limit = min(confirmed_balance, unconfirmed_balance) - fee
+                #fee = Decimal(faircoin_utils.network_fee()) / FAIRCOIN_DIVISOR
+                limit = Decimal(confirmed_balance) # - Decimal(fee)
             except:
                 confirmed_balance = "Not accessible now"
                 unconfirmed_balance = "Not accessible now"
                 limit = Decimal("0.0")
         else:
             wallet = False
+            if resource.is_address_requested(): is_wallet_address = True
 
     candidate_membership = resource.owner().candidate_membership()
     if candidate_membership:
@@ -143,15 +140,15 @@ def transfer_faircoins(request, resource_id):
             quantity = data["quantity"]
             notes = data["description"]
             address_origin = resource.faircoin_address.address
-            network_fee = faircoin_utils.network_fee()
-            if address_origin and address_end and network_fee:
+            #network_fee = faircoin_utils.network_fee()
+            if address_origin and address_end: # and network_fee:
                 exchange_service = ExchangeService.get()
                 exchange = exchange_service.send_faircoins(
                     from_agent = resource.owner(),
                     recipient = address_end,
                     qty = quantity,
                     resource = resource,
-                    notes = notes
+                    notes = notes,
                 )
                 return HttpResponseRedirect('/%s/%s/'
                     % ('faircoin/faircoin-history', resource.id))

@@ -9,6 +9,7 @@ import logging
 
 import electrumfair
 from electrumfair import util
+from electrumfair import Transaction
 from electrumfair.util import NotEnoughFunds
 from electrumfair.bitcoin import TYPE_ADDRESS
 electrumfair.set_verbosity(True)
@@ -117,15 +118,31 @@ def make_transaction_from_address(address_origin, address_end, amount):
         return False
     # Get utxos for address
     inputs = [address_origin]
-    coins = wallet.get_spendable_coins(domain = inputs)
-    config = electrumfair.SimpleConfig()
+    #config = electrumfair.SimpleConfig()
+    coins = wallet.get_spendable_coins(inputs, config)
     # Build and sign tx
     try:
         tx = wallet.make_unsigned_transaction(coins, output, config, change_addr=address_origin)
     except NotEnoughFunds:
         logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount)
         logging.error("Confirmed : %s -- Unconfirmed: %s -- Unmature : %s " %wallet.get_addr_balance(address_origin))
-        return False
+        # try minus the fee
+        output = [(TYPE_ADDRESS, address_end, int(amount / 10))]
+        try:
+          tx = wallet.make_unsigned_transaction(coins, output, config, change_addr=address_origin)
+        except NotEnoughFunds:
+          logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount)
+          logging.error("Confirmed : %s -- Unconfirmed: %s -- Unmature : %s " %wallet.get_addr_balance(address_origin))
+          return False
+        wallet.sign_transaction(tx, password)
+        fee = config.estimate_fee(tx.estimated_size())
+        output = [(TYPE_ADDRESS, address_end, amount - fee )]
+        try:
+          tx = wallet.make_unsigned_transaction(coins, output, config, change_addr=address_origin)
+        except NotEnoughFunds:
+          logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount)
+          logging.error("Confirmed : %s -- Unconfirmed: %s -- Unmature : %s " %wallet.get_addr_balance(address_origin))
+          return False
     wallet.sign_transaction(tx, password)
     # Broadcast tx
     rec_tx_state, rec_tx_out = network.broadcast(tx, 30)
@@ -201,8 +218,8 @@ if __name__ == '__main__':
         sys.exit(ret)
     logging.debug("---------------------------------")
     logging.debug("Starting electrum...")
-    c = electrumfair.SimpleConfig()
-    network = electrumfair.Network(c)
+    config = electrumfair.SimpleConfig()
+    network = electrumfair.Network(config)
     network.start()
 
     # wait until connected
@@ -218,12 +235,11 @@ if __name__ == '__main__':
         sys.exit(1)
     wallet = electrumfair.Wallet(storage)
     wallet.start_threads(network)
-    cmd_wallet = electrumfair.commands.Commands(c, wallet, network)
+    cmd_wallet = electrumfair.commands.Commands(config, wallet, network)
 
     # server thread
     from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
     server = SimpleJSONRPCServer(( my_host, my_port))
-    server.register_function(fee, 'fee')
     server.register_function(do_stop, 'stop')
     server.register_function(is_connected,'is_connected')
     server.register_function(daemon_is_up,'daemon_is_up')
