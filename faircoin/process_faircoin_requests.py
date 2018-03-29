@@ -88,10 +88,8 @@ def create_requested_addresses():
 def broadcast_tx():
 
     try:
-        events = EconomicEvent.objects.filter(
-            faircoin_transaction__tx_state="new").order_by('pk')
-        events = events.filter(
-            Q(event_type__name='Give')|Q(event_type__name='Distribution'))
+        events = EconomicEvent.objects.filter(faircoin_transaction__tx_state="new").order_by('pk')
+        events = events.filter(Q(event_type__name='Give')|Q(event_type__name='Distribution'))
         msg = " ".join(["new FairCoin event count:", str(events.count())])
         logger.debug(msg)
     except Exception:
@@ -116,7 +114,9 @@ def broadcast_tx():
                         address_origin = event.from_agent.faircoin_address()
                         address_end = event.resource.faircoin_address.address
                     fairtx = event.faircoin_transaction
-                    amount = float(event.quantity) * 1.e8 # In satoshis
+                    logger.debug("event.quantity: %s" %event.quantity)
+                    logger.debug("fairtx.amount: %s" %fairtx.amount)
+                    amount = float(fairtx.amount) * 1.e8 # In satoshis
                     if amount < 1001:
                         fairtx.tx_state = "broadcast"
                         fairtx.tx_hash = "Null"

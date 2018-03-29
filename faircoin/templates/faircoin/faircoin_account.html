@@ -277,8 +277,14 @@
                 {% endif %}
 
                 {% if send_coins_form %}
-                    <h3 id="coinHeader" >{% trans "Send Faircoins" %}</h3>
+                    <h3 id="coinHeader" >{% trans "Send FairCoins" %}</h3>
+                    <hr> 
                     <form id="sendCoinsForm" method="POST" action={% if payment_due %}"#" class="disabled" style="color:#888;" {% else %}"{% url "transfer_faircoins" resource_id=resource.id %}" {% endif %}>
+                          <div id="div_id_send_all" class="control-group">
+                            <div class="controls">
+                              <label>Send all funds</label><input id="id_send_all" type="checkbox" name="send_all"/>
+                            </div> 
+                          </div>
                         {% if payment_due %}
                           {{ send_coins_form|as_bootstrap }}
                           <em>{% trans "(available when full member)" %}</em>
@@ -291,6 +297,11 @@
                         {% else %}
                           {% csrf_token %}
                           {{ send_coins_form|as_bootstrap }}
+                          <div id="div_id_avalaible" class="control-group">
+                            <div class="controls">
+                              <input id="id_avalaible" type="number" name="avalaible" value="{{ confirmed_balance }}" readonly=true />
+                            </div> 
+                          </div>
                           {% if not confirmed_balance == "Not accessible now" %}
                               <button class="btn btn-primary" name="sendCoins" value="coins">{% trans "Send" %}</button>
                           {% else %}
@@ -384,12 +395,11 @@
 
         $.validator.addClassRules("quantity", { quantity: true });
 
-        // limit must include network fee
-        var limit = parseFloat({{ limit }});
-
+        var limit = "{{ limit }}";
+        limit = parseFloat( limit.replace(',', '.'));
         jQuery.validator.addMethod("notMoreThanLimit", function(value, element) {
             return this.optional(element) || (parseFloat(value) <= limit );
-        }, "Cannot be more than balance - network fee, " + limit );
+        }, "Cannot be more than balance: " + limit);
 
         jQuery.validator.addMethod("notLessThanMinimum", function(value, element) {
             return this.optional(element) || (parseFloat(value) >= 0.01 );
@@ -424,6 +434,19 @@
             }
 
         });
+
+        $(document).on('change', 'input[type="checkbox"]', function(e){
+            var x = document.getElementById("id_send_all").checked;
+            if ( x === true ) {
+                var all = "{{ confirmed_balance }}";
+                all = all.replace(',', '.');
+                FormObject = document.forms['sendCoinsForm'];
+                FormObject.elements["quantity"].value = all;
+
+            } else {
+                console.log("Not check");
+            }
+	});
 
     }); // end document.ready
 

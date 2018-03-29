@@ -64,7 +64,7 @@ def network_fee():
     else:
         return response
     """
-    return 100000
+    return 1000000
 
 # A mock function for tests in valueaccounting app.
 def send_fake_faircoins(address_origin, address_end, amount):

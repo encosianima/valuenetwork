@@ -6,12 +6,14 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.valueaccounting.models import EconomicAgent
 
 class SendFairCoinsForm(forms.Form):
+    #avalaible = forms.DecimalField(initial=balance, widget=forms.TextInput(attrs={'readonly':'readonly'}))
     quantity = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'faircoins input-small',}),
-        min_value=Decimal('0.01'),
-        decimal_places=4,
+        min_value=Decimal('0.00000001'),
+        decimal_places=8,
         #localize=True
     )
+    send_all = forms.BooleanField(required=None)
     to_address = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'input-xlarge',}),
         required=None
@@ -23,8 +25,8 @@ class SendFairCoinsForm(forms.Form):
             agent_resource_roles__resource__faircoin_address__address__isnull=False),
         widget=forms.Select(
             attrs={'class': 'chzn-select'}),
-        label=_("If you send to an OCP agent, choose it here to get the address:"),
-        required=None,
+            label=_("If you send to an OCP agent, choose it here to get the address:"),
+            required=None,
     )
     description = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'input-xxlarge',}))
 
@@ -40,6 +42,7 @@ class SendFairCoinsForm(forms.Form):
                 agent_resource_roles__role__is_owner=True,
                 agent_resource_roles__resource__resource_type__behavior="dig_acct",
                 agent_resource_roles__resource__faircoin_address__address__isnull=False)
+        self.fields['send_all'].initial  = False
 
     def clean(self):
         data = super(SendFairCoinsForm, self).clean()
@@ -51,3 +54,4 @@ class SendFairCoinsForm(forms.Form):
            touser = data["to_user"]
            if touser and touser.faircoin_address():
                data["to_address"] = touser.faircoin_address()
+        data['send_all'] = False

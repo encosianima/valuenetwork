@@ -30,6 +30,7 @@ class FaircoinTransaction(models.Model):
     tx_state = models.CharField(_('faircoin transaction state'),
         max_length=12, choices=TX_STATE_CHOICES, blank=True, null=True)
     to_address = models.CharField(_('to address'), max_length=128, blank=True, null=True)
+    amount = models.DecimalField(_('quantity'), max_digits=16, decimal_places=8)
 
     def is_old_blockchain(self):
         fc2_launch_date = date(2017, 7, 18)
