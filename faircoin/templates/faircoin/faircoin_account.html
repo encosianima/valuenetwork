@@ -297,11 +297,6 @@
                         {% else %}
                           {% csrf_token %}
                           {{ send_coins_form|as_bootstrap }}
-                          <div id="div_id_avalaible" class="control-group">
-                            <div class="controls">
-                              <input id="id_avalaible" type="number" name="avalaible" value="{{ confirmed_balance }}" readonly=true />
-                            </div> 
-                          </div>
                           {% if not confirmed_balance == "Not accessible now" %}
                               <button class="btn btn-primary" name="sendCoins" value="coins">{% trans "Send" %}</button>
                           {% else %}
@@ -395,7 +390,7 @@
 
         $.validator.addClassRules("quantity", { quantity: true });
 
-        var limit = "{{ limit }}";
+        var limit = "{{ confirmed_balance }}";
         limit = parseFloat( limit.replace(',', '.'));
         jQuery.validator.addMethod("notMoreThanLimit", function(value, element) {
             return this.optional(element) || (parseFloat(value) <= limit );
@@ -435,16 +430,17 @@
 
         });
 
-        $(document).on('change', 'input[type="checkbox"]', function(e){
+        $(document).on('change', 'input[id="id_send_all"]', function(e){
             var x = document.getElementById("id_send_all").checked;
+            FormObject = document.forms['sendCoinsForm'];
             if ( x === true ) {
                 var all = "{{ confirmed_balance }}";
                 all = all.replace(',', '.');
-                FormObject = document.forms['sendCoinsForm'];
                 FormObject.elements["quantity"].value = all;
-
-            } else {
-                console.log("Not check");
+                FormObject.elements["minus_fee"].checked = true;
+            }  else {
+                FormObject.elements["minus_fee"].checked = false;
+                FormObject.elements["quantity"].value = "0.00";
             }
 	});
 

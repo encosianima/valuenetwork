@@ -114,8 +114,6 @@ def broadcast_tx():
                         address_origin = event.from_agent.faircoin_address()
                         address_end = event.resource.faircoin_address.address
                     fairtx = event.faircoin_transaction
-                    logger.debug("event.quantity: %s" %event.quantity)
-                    logger.debug("fairtx.amount: %s" %fairtx.amount)
                     amount = float(fairtx.amount) * 1.e8 # In satoshis
                     if amount < 1001:
                         fairtx.tx_state = "broadcast"
@@ -123,10 +121,10 @@ def broadcast_tx():
                         fairtx.save()
                         continue
 
-                    logger.info("About to build transaction. Amount: %d" %(int(amount)))
+                    logger.info("About to build transaction. Amount: %d From: %s To: %s Minus Fee: %s" %(int(amount), address_origin, address_end, fairtx.minus_fee))
                     tx_hash = None
                     try:
-                        tx_hash, fee = efn.make_transaction_from_address(address_origin, address_end, int(amount))
+                        tx_hash, fee = efn.make_transaction_from_address(address_origin, address_end, int(amount), fairtx.minus_fee)
                     except Exception:
                         _, e, _ = sys.exc_info()
                         logger.critical("an exception occurred in make_transaction_from_address: {0}".format(e))

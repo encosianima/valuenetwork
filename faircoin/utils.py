@@ -15,7 +15,7 @@ def init_logger():
     return logger
 
 url = "http://localhost:8069"
-timeout = 45
+timeout = 60
 logger = init_logger()
 
 # Send command to the daemon.
@@ -24,7 +24,7 @@ def send_command(cmd, params = [] ):
     random_id = randint(1,10000)
     headers = {'content-type': 'application/json'}
     data = json.dumps({'method': cmd, 'params': params, 'jsonrpc': '2.0', 'id': random_id })
-    #logger.debug('Command: %s (params: %s)' %(cmd, params))
+    logger.debug('Command: %s (params: %s)' %(cmd, params))
 
     try:
         response = requests.post(url, headers=headers, data=data, timeout=timeout)
@@ -55,7 +55,7 @@ def is_connected():
     else:
         return response
 
-# Get the network fee.
+# Get the network fee. DEPRECATED, we use the dinamyc fee by electrum
 def network_fee():
     """
     response = send_command('fee', '')
@@ -127,8 +127,8 @@ def get_transaction_info(tx_hash, address):
         return None, None
 
 # make a transfer from an adress of the wallet
-def make_transaction_from_address(address_origin, address_end, amount):
-    format_dict = [address_origin, address_end, amount]
+def make_transaction_from_address(address_origin, address_end, amount, minus_fee=False):
+    format_dict = [address_origin, address_end, amount, minus_fee]
     response = send_command('make_transaction_from_address', format_dict)
     return response
 
