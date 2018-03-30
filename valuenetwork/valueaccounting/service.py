@@ -126,7 +126,7 @@ class ExchangeService(object):
         return tt
 
 
-    def send_faircoins(self, from_agent, recipient, qty, resource, notes=''):
+    def send_faircoins(self, from_agent, recipient, qty, resource, notes='', minus_fee=False):
         if 'faircoin' not in settings.INSTALLED_APPS:
             return None
         to_resources = EconomicResource.objects.filter(faircoin_address__address=recipient)
@@ -193,15 +193,12 @@ class ExchangeService(object):
             event=event,
             tx_state=state,
             to_address=recipient,
-            amount=qty,  
+            amount=qty,
+            minus_fee=minus_fee,
         )
         fairtx.save()
 
         if to_resource:
-            # The events are saved without fee.
-            # When the wallet constructs the transactions and knows how large is,
-            # it calculates the fee and it will add the fee to the et_give event.
-            # quantity = qty - Decimal(float(network_fee) / 1.e8)
             et_receive = EventType.objects.get(name="Receive")
             event = EconomicEvent(
                 event_type=et_receive,
@@ -220,6 +217,8 @@ class ExchangeService(object):
                 event=event,
                 tx_state=state,
                 to_address=recipient,
+                amount=qty,
+                minus_fee=minus_fee,
             )
             fairtx.save()
 

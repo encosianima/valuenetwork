@@ -6,14 +6,13 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.valueaccounting.models import EconomicAgent
 
 class SendFairCoinsForm(forms.Form):
-    #avalaible = forms.DecimalField(initial=balance, widget=forms.TextInput(attrs={'readonly':'readonly'}))
     quantity = forms.DecimalField(
         widget=forms.TextInput(attrs={'class': 'faircoins input-small',}),
         min_value=Decimal('0.00000001'),
         decimal_places=8,
         #localize=True
     )
-    send_all = forms.BooleanField(required=None)
+    minus_fee = forms.BooleanField(required=False, initial=False, label="Substract fee to quantity")
     to_address = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'input-xlarge',}),
         required=None
@@ -42,16 +41,14 @@ class SendFairCoinsForm(forms.Form):
                 agent_resource_roles__role__is_owner=True,
                 agent_resource_roles__resource__resource_type__behavior="dig_acct",
                 agent_resource_roles__resource__faircoin_address__address__isnull=False)
-        self.fields['send_all'].initial  = False
+        self.fields['minus_fee'].initial  = False
 
     def clean(self):
         data = super(SendFairCoinsForm, self).clean()
         if data["to_address"]:
             data["to_address"] = data["to_address"].strip()
         data["quantity"] = Decimal(data["quantity"])
-        #touser = data["to_user"]
         if data["to_user"] and not data["to_address"]:
            touser = data["to_user"]
            if touser and touser.faircoin_address():
                data["to_address"] = touser.faircoin_address()
-        data['send_all'] = False

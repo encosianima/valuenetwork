@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 from decimal import Decimal
 import json
+import logging
+logger = logging.getLogger("faircoin")
 
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
@@ -57,15 +59,14 @@ def manage_faircoin_account(request, resource_id):
             send_coins_form = SendFairCoinsForm(agent=resource.owner())
             try:
                 balances = faircoin_utils.get_address_balance(resource.faircoin_address.address)
-                confirmed_balance = Decimal(balances[0]) / FAIRCOIN_DIVISOR
-                unconfirmed_balance =  Decimal(balances[0] + balances[1]) / FAIRCOIN_DIVISOR
+                unconfirmed_balance =  Decimal(balances[1]) / FAIRCOIN_DIVISOR
                 unconfirmed_balance += resource.balance_in_tx_state_new()
-                #fee = Decimal(faircoin_utils.network_fee()) / FAIRCOIN_DIVISOR
-                limit = Decimal(confirmed_balance) # - Decimal(fee)
+                confirmed_balance = Decimal(balances[0]) / FAIRCOIN_DIVISOR
+                if unconfirmed_balance < 0:
+                    confirmed_balance += unconfirmed_balance
             except:
                 confirmed_balance = "Not accessible now"
                 unconfirmed_balance = "Not accessible now"
-                limit = Decimal("0.0")
         else:
             wallet = False
             if resource.is_address_requested(): is_wallet_address = True
@@ -93,7 +94,6 @@ def manage_faircoin_account(request, resource_id):
         "is_wallet_address": is_wallet_address,
         "confirmed_balance": confirmed_balance,
         "unconfirmed_balance": unconfirmed_balance,
-        "limit": limit,
         "faircoin_account": faircoin_account,
         "candidate_membership": candidate_membership,
         "payment_due": payment_due,
@@ -138,17 +138,19 @@ def transfer_faircoins(request, resource_id):
             data = send_coins_form.cleaned_data
             address_end = data["to_address"]
             quantity = data["quantity"]
-            notes = data["description"]
+            logger.debug("Post: %s" %request.POST)
+            if ("send_all" in request.POST) and request.POST['send_all']: sub_fee = True
+            else: sub_fee = data['minus_fee'] 
             address_origin = resource.faircoin_address.address
-            #network_fee = faircoin_utils.network_fee()
-            if address_origin and address_end: # and network_fee:
+            if address_origin and address_end and quantity:
                 exchange_service = ExchangeService.get()
                 exchange = exchange_service.send_faircoins(
                     from_agent = resource.owner(),
                     recipient = address_end,
                     qty = quantity,
                     resource = resource,
-                    notes = notes,
+                    notes = data['description'],
+                    minus_fee = sub_fee,
                 )
                 return HttpResponseRedirect('/%s/%s/'
                     % ('faircoin/faircoin-history', resource.id))
