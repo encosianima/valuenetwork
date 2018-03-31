@@ -289,11 +289,11 @@
                           <em>{% trans "(sorry, the wallet is not available now, try later)" %}</em>
                         {% else %}
                           {% csrf_token %}
-                      <div class="span8 resource">
+                      <div class="span6 resource">
                         <table class="table table-bordered" >
                           {% for field in send_coins_form  %}
                             <tr>
-                              <th style="text-align:right;">{{ field.label_tag }}</th>
+                              <th style="text-align:left;">{{ field.label_tag }}</th>
                               <td>{{ field }}</td>
                             <tr>
                           {% endfor %}
@@ -301,9 +301,9 @@
                       </div>
                           {% if not confirmed_balance == "Not accessible now" %}
                               <br/>	
-                              <span><input id="id_send_all" type="checkbox" name="send_all"/></span>
-                              <span>{% trans "Send all funds" %}</span>
-                              <br/><br/></br><div><button class="btn btn-primary style="text-align:right; float:right" name="sendCoins" value="coins">{% trans "Send" %}</button></div>
+                              <span><input id="id_send_all" type="checkbox" name="send_all" style="float:left;"/></span>
+                              <span style="float:left;">{% trans "Send all funds" %}</span>
+                              <span><button class="btn btn-primary" style="float:right;" name="sendCoins" value="coins" onclick="clicked(event)" id="id_send_button">{% trans "Send" %}</button></span>
                           {% else %}
                               <button class="btn btn-danger disabled" disabled><b>{% trans "Not available now" %}</b></button>
                           {% endif %}
@@ -448,9 +448,29 @@
                 FormObject.elements["quantity"].value = "0.00";
             }
 	});
-
     }); // end document.ready
 
+
+function clicked(e) {
+       FormObject = document.forms['sendCoinsForm'];
+       var qty = FormObject.elements["quantity"].value;
+       var toadd = FormObject.elements["to_address"].value;
+       var balance = "{{ confirmed_balance }}";
+       balance = balance.replace(',', '.');
+       if ( parseFloat(qty) > parseFloat(balance) ) {
+           msg = "Insufficient funds confirmed.\n\nYour request       :  " + qty + "\n\nConfirmed funds :  " + balance;   
+           alert(msg);
+           e.preventDefault();
+           return false; 
+       } 
+       var msg = "Please confirm the transaction:\n\n  Send :  " + qty + "  FairCoins\n  To address :  " + toadd + "\n\nThis action is irreversible and can not be undone.";
+       if (confirm(msg)) {
+           return true;
+       } else {
+           e.preventDefault();
+           return false;
+       }
+    }
     </script>
 
 {% endblock %}

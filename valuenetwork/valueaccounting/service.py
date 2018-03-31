@@ -309,6 +309,7 @@ class ExchangeService(object):
                         tx_state=state,
                         to_address=faircoin_address,
                         amount=qty,
+                        minus_fee=False,
                     )
                     fairtx.save()
                     tx_included.append(str(tx[0]))

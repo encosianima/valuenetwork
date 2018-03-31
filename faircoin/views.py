@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 from decimal import Decimal
 import json
 
-
-
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
 from django.forms import ValidationError
@@ -17,6 +15,7 @@ from valuenetwork.valueaccounting.forms import EconomicResourceForm
 from valuenetwork.valueaccounting.service import ExchangeService
 from faircoin import utils as faircoin_utils
 from faircoin.forms import SendFairCoinsForm
+from faircoin.decorators import confirm_password
 
 FAIRCOIN_DIVISOR = Decimal("100000000.00")
 
@@ -212,7 +211,6 @@ def faircoin_history(request, resource_id):
         return render(request, 'work/no_permission.html')
 
 
-
 @login_required
 def edit_faircoin_event_description(request, resource_id):
     agent = get_agent(request)
@@ -226,3 +224,16 @@ def edit_faircoin_event_description(request, resource_id):
         event.save()
         return HttpResponse("Ok", content_type="text/plain")
     return HttpResponse("Fail", content_type="text/plain")
+
+from django.views.generic.edit import UpdateView
+from .forms import ConfirmPasswordForm
+
+class ConfirmPasswordView(UpdateView):
+    form_class = ConfirmPasswordForm
+    template_name = 'faircoin/confirm_password.html'
+
+    def get_object(self):
+        return self.request.user
+
+    def get_success_url(self):
+        return self.request.get_full_path()
