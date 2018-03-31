@@ -1,17 +1,17 @@
 import time
 import logging
 
-from logging.handlers import TimedRotatingFileHandler
+
 from django.conf import settings
 
-logger = logging.getLogger("faircoin_cron")
-logger.setLevel(logging.DEBUG)
-fhpath = "/home/ocp/logs/faircoin_cron.log"
-fh = TimedRotatingFileHandler(fhpath, when="d", interval=1, backupCount=7)
-fh.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+logger = logging.getLogger("ocp")
+
+
+
+
+
+
+
 
 from django.core.management.base import BaseCommand
 
@@ -46,6 +46,6 @@ class Command(BaseCommand):
                 logger.critical("an exception occurred in broadcast_tx: {0}".format(e))
 
             #logger.debug("releasing lock normally...")
-            #shd this be in broadcast.py?
+
             lock.release()
             #logger.debug("released.")

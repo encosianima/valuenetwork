@@ -1,22 +1,11 @@
 import requests, json, logging, time
 from random import randint
-from logging.handlers import TimedRotatingFileHandler
 
 from django.conf import settings
-def init_logger():
-    logger = logging.getLogger("faircoin")
-    logger.setLevel(logging.DEBUG)
-    fhpath = "/home/ocp/logs/faircoin.log"
-    fh = TimedRotatingFileHandler(fhpath, when="d", interval=1, backupCount=7)
-    fh.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    return logger
 
 url = "http://localhost:8069"
 timeout = 60
-logger = init_logger()
+logger = logging.getLogger('ocp')
 
 # Send command to the daemon.
 def send_command(cmd, params = [] ):

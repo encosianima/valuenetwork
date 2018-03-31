@@ -3,8 +3,7 @@ import time
 import logging
 from decimal import *
 
-logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
-logger = logging.getLogger("faircoin_cron.process")
+logger = logging.getLogger("ocp")
 
 from django.conf import settings
 from django.db.models import Q
