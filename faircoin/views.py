@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 from decimal import Decimal
 import json
-import logging
-logger = logging.getLogger("faircoin")
+
+
 
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
@@ -138,7 +138,7 @@ def transfer_faircoins(request, resource_id):
             data = send_coins_form.cleaned_data
             address_end = data["to_address"]
             quantity = data["quantity"]
-            logger.debug("Post: %s" %request.POST)
+
             if ("send_all" in request.POST) and request.POST['send_all']: sub_fee = True
             else: sub_fee = data['minus_fee'] 
             address_origin = resource.faircoin_address.address
