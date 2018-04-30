@@ -2319,7 +2319,30 @@ def create_unit_types(**kwargs):
         cash_rt.behavior = 'other'
         cash_rt.save()
     else:
-        raise ValidationError("There are not ResourceTypes containing 'Euro' in the name!: "+str(ocp_euro_rts))
+        digi_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Euro digital',
+            unit=ocp_euro,
+            unit_of_use=ocp_euro,
+            price_per_unit = 1,
+            unit_of_price=ocp_euro,
+            substitutable=True,
+            inventory_rule='yes',
+            behavior='dig_curr')
+        if created:
+            print "- created EconomicResourceType: 'Euro digital'"
+        cash_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Euro cash',
+            unit=ocp_euro,
+            unit_of_use=ocp_euro,
+            price_per_unit=1,
+            unit_of_price=ocp_euro,
+            substitutable=True,
+            inventory_rule='yes',
+            behavior='other')
+        if created:
+            print "- created EconomicResourceType: 'Euro cash'"
+
+        #raise ValidationError("There are not ResourceTypes containing 'Euro' in the name!: "+str(ocp_euro_rts))
 
     artw_euros = Ocp_Artwork_Type.objects.filter(name__icontains="Euro")
     if len(artw_euros) > 1:
