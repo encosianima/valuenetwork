@@ -10,12 +10,12 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 
-from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent,\
-    EconomicResourceType, Help
+from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent, EconomicResourceType, Help
 from valuenetwork.valueaccounting.forms import EconomicResourceForm
 from valuenetwork.valueaccounting.service import ExchangeService
 from faircoin import utils as faircoin_utils
 from faircoin.forms import SendFairCoinsForm
+from faircoin.decorators import confirm_password
 
 FAIRCOIN_DIVISOR = Decimal("100000000.00")
 
@@ -51,27 +51,24 @@ def manage_faircoin_account(request, resource_id):
     share_price = False
     number_of_shares = False
     can_pay = False
-
     wallet = faircoin_utils.is_connected()
     if wallet:
         is_wallet_address = faircoin_utils.is_mine(resource.faircoin_address.address)
-        if not is_wallet_address:
-            if resource.is_address_requested(): is_wallet_address = True
         if is_wallet_address:
             send_coins_form = SendFairCoinsForm(agent=resource.owner())
             try:
                 balances = faircoin_utils.get_address_balance(resource.faircoin_address.address)
-                confirmed_balance = Decimal(balances[0]) / FAIRCOIN_DIVISOR
-                unconfirmed_balance =  Decimal(balances[0] + balances[1]) / FAIRCOIN_DIVISOR
+                unconfirmed_balance =  Decimal(balances[1]) / FAIRCOIN_DIVISOR
                 unconfirmed_balance += resource.balance_in_tx_state_new()
-                fee = Decimal(faircoin_utils.network_fee()) / FAIRCOIN_DIVISOR
-                limit = min(confirmed_balance, unconfirmed_balance) - fee
+                confirmed_balance = Decimal(balances[0]) / FAIRCOIN_DIVISOR
+                if unconfirmed_balance < 0:
+                    confirmed_balance += unconfirmed_balance
             except:
                 confirmed_balance = "Not accessible now"
                 unconfirmed_balance = "Not accessible now"
-                limit = Decimal("0.0")
         else:
             wallet = False
+            if resource.is_address_requested(): is_wallet_address = True
 
     candidate_membership = resource.owner().candidate_membership()
     if candidate_membership:
@@ -96,7 +93,6 @@ def manage_faircoin_account(request, resource_id):
         "is_wallet_address": is_wallet_address,
         "confirmed_balance": confirmed_balance,
         "unconfirmed_balance": unconfirmed_balance,
-        "limit": limit,
         "faircoin_account": faircoin_account,
         "candidate_membership": candidate_membership,
         "payment_due": payment_due,
@@ -141,17 +137,19 @@ def transfer_faircoins(request, resource_id):
             data = send_coins_form.cleaned_data
             address_end = data["to_address"]
             quantity = data["quantity"]
-            notes = data["description"]
+
+            if ("send_all" in request.POST) and request.POST['send_all']: sub_fee = True
+            else: sub_fee = data['minus_fee'] 
             address_origin = resource.faircoin_address.address
-            network_fee = faircoin_utils.network_fee()
-            if address_origin and address_end and network_fee:
+            if address_origin and address_end and quantity:
                 exchange_service = ExchangeService.get()
                 exchange = exchange_service.send_faircoins(
                     from_agent = resource.owner(),
                     recipient = address_end,
                     qty = quantity,
                     resource = resource,
-                    notes = notes
+                    notes = data['description'],
+                    minus_fee = sub_fee,
                 )
                 return HttpResponseRedirect('/%s/%s/'
                     % ('faircoin/faircoin-history', resource.id))
@@ -213,7 +211,6 @@ def faircoin_history(request, resource_id):
         return render(request, 'work/no_permission.html')
 
 
-
 @login_required
 def edit_faircoin_event_description(request, resource_id):
     agent = get_agent(request)
@@ -227,3 +224,16 @@ def edit_faircoin_event_description(request, resource_id):
         event.save()
         return HttpResponse("Ok", content_type="text/plain")
     return HttpResponse("Fail", content_type="text/plain")
+
+from django.views.generic.edit import UpdateView
+from .forms import ConfirmPasswordForm
+
+class ConfirmPasswordView(UpdateView):
+    form_class = ConfirmPasswordForm
+    template_name = 'faircoin/confirm_password.html'
+
+    def get_object(self):
+        return self.request.user
+
+    def get_success_url(self):
+        return self.request.get_full_path()
