@@ -277,7 +277,6 @@
                 {% endif %}
 
                 {% if send_coins_form %}
-                    <h3 id="coinHeader" >{% trans "Send Faircoins" %}</h3>
                     <form id="sendCoinsForm" method="POST" action={% if payment_due %}"#" class="disabled" style="color:#888;" {% else %}"{% url "transfer_faircoins" resource_id=resource.id %}" {% endif %}>
                         {% if payment_due %}
                           {{ send_coins_form|as_bootstrap }}
@@ -290,9 +289,21 @@
                           <em>{% trans "(sorry, the wallet is not available now, try later)" %}</em>
                         {% else %}
                           {% csrf_token %}
-                          {{ send_coins_form|as_bootstrap }}
+                      <div class="span6 resource">
+                        <table class="table table-bordered" >
+                          {% for field in send_coins_form  %}
+                            <tr>
+                              <th style="text-align:left;">{{ field.label_tag }}</th>
+                              <td>{{ field }}</td>
+                            <tr>
+                          {% endfor %}
+                        </table>
+                      </div>
                           {% if not confirmed_balance == "Not accessible now" %}
-                              <button class="btn btn-primary" name="sendCoins" value="coins">{% trans "Send" %}</button>
+                              <br/>	
+                              <span><input id="id_send_all" type="checkbox" name="send_all" style="float:left;"/></span>
+                              <span style="float:left;">{% trans "Send all funds" %}</span>
+                              <span><button class="btn btn-primary" style="float:right;" name="sendCoins" value="coins" onclick="clicked(event)" id="id_send_button">{% trans "Send" %}</button></span>
                           {% else %}
                               <button class="btn btn-danger disabled" disabled><b>{% trans "Not available now" %}</b></button>
                           {% endif %}
@@ -384,12 +395,11 @@
 
         $.validator.addClassRules("quantity", { quantity: true });
 
-        // limit must include network fee
-        var limit = parseFloat({{ limit }});
-
+        var limit = "{{ confirmed_balance }}";
+        limit = parseFloat( limit.replace(',', '.'));
         jQuery.validator.addMethod("notMoreThanLimit", function(value, element) {
             return this.optional(element) || (parseFloat(value) <= limit );
-        }, "Cannot be more than balance - network fee, " + limit );
+        }, "Cannot be more than balance: " + limit);
 
         jQuery.validator.addMethod("notLessThanMinimum", function(value, element) {
             return this.optional(element) || (parseFloat(value) >= 0.01 );
@@ -425,8 +435,42 @@
 
         });
 
+        $(document).on('change', 'input[id="id_send_all"]', function(e){
+            var x = document.getElementById("id_send_all").checked;
+            FormObject = document.forms['sendCoinsForm'];
+            if ( x === true ) {
+                var all = "{{ confirmed_balance }}";
+                all = all.replace(',', '.');
+                FormObject.elements["quantity"].value = all;
+                FormObject.elements["minus_fee"].checked = true;
+            }  else {
+                FormObject.elements["minus_fee"].checked = false;
+                FormObject.elements["quantity"].value = "0.00";
+            }
+	});
     }); // end document.ready
 
+
+function clicked(e) {
+       FormObject = document.forms['sendCoinsForm'];
+       var qty = FormObject.elements["quantity"].value;
+       var toadd = FormObject.elements["to_address"].value;
+       var balance = "{{ confirmed_balance }}";
+       balance = balance.replace(',', '.');
+       if ( parseFloat(qty) > parseFloat(balance) ) {
+           msg = "Insufficient funds confirmed.\n\nYour request       :  " + qty + "\n\nConfirmed funds :  " + balance;   
+           alert(msg);
+           e.preventDefault();
+           return false; 
+       } 
+       var msg = "Please confirm the transaction:\n\n  Send :  " + qty + "  FairCoins\n  To address :  " + toadd + "\n\nThis action is irreversible and can not be undone.";
+       if (confirm(msg)) {
+           return true;
+       } else {
+           e.preventDefault();
+           return false;
+       }
+    }
     </script>
 
 {% endblock %}

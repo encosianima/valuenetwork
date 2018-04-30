@@ -1,22 +1,21 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 import time, sys, socket, os
 import threading
-import urllib2
-import json
-import Queue
-import sqlite3
 import urllib
+import urllib.request
+import json
 import logging
 
 import electrumfair
 from electrumfair import util
+from electrumfair import Transaction
 from electrumfair.util import NotEnoughFunds
 from electrumfair.bitcoin import TYPE_ADDRESS
 electrumfair.set_verbosity(True)
 
-import ConfigParser
-config = ConfigParser.ConfigParser()
+import configparser
+config = configparser.ConfigParser()
 config.read("daemon.conf")
 
 my_password = config.get('main','password')
@@ -25,16 +24,10 @@ my_port = config.getint('main','port')
 
 wallet_path = config.get('electrum','wallet_path')
 password = config.get('electrum', 'password')
-default_fee = int(config.getint('network','fee') / 1000 ) # fee per byte in satohis
 
 stopping = False
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
-
-def fee():
-    # TODO: test to ask for current fee rate instead of conf value with:
-    # return wallet.relayfee()
-    return default_fee
 
 def do_stop(password):
     global stopping
@@ -74,15 +67,15 @@ def is_valid(address):
 #check if an address is from the wallet
 def is_mine(address):
     res =  wallet.is_mine(address)
-    logging.debug("Is mine %s %s" %(address, res))
+    #logging.debug("Is mine %s %s" %(address, res))
     return res
 
-# create new address for users or any other entity
+# create new address for users or any other entity. DEPRECATED, use get_unused_address. Use this if not unused in wallet only
 def new_fair_address(entity_id, entity = 'generic'):
     """ Return a new address labeled or False if there's no network connection.
     The label is for debugging proposals. It's like 'entity: id'
     We can label like "user: 213" or "user: pachamama" or "order: 67".
-    """
+
     while network.is_connected():
         new_address = wallet.create_new_address(False)
         check_label = wallet.get_label(new_address)
@@ -91,24 +84,25 @@ def new_fair_address(entity_id, entity = 'generic'):
             wallet.set_label(new_address, entity + ': ' + str(entity_id))
             logging.debug("New address: %s - %s" %(new_address, entity_id))
             return new_address
+    """
+    logging.debug("Old method new_fair_address called")
     return False
 
 # get the balance for a determined address
 # Returns a tupla with 3 values: Confirmed, Unmature, Unconfirmed
 def get_address_balance(address):
     bal = wallet.get_addr_balance(address)
-    logging.debug("Address : %s Balance : %s " %(address, bal))
+    #logging.debug("Address : %s Balance : %s " %(address, bal))
     return bal
 
 #read the history of an address
 def get_address_history(address):
     history = wallet.get_address_history(address)
-    #logging.debug("Address : %s History : \n%s " %(address, history))
     return history
 
 # make a transfer from an adress of the wallet
-def make_transaction_from_address(address_origin, address_end, amount):
-    logging.debug("Trying broadcast transaction\n       Origin : %s\n       End    : %s\n       Amount : %s" %(address_origin, address_end, amount))
+def make_transaction_from_address(address_origin, address_end, amount, minus_fee=False):
+    logging.debug("Trying broadcast transaction. Minus fee: %s\n       Origin : %s\n       End    : %s\n       Amount : %s" %(minus_fee, address_origin, address_end, amount))
     # Validate inputs
     if not is_valid(address_end):
         logging.error("The address %s is not a valid faircoin address" %address_end)
@@ -117,30 +111,58 @@ def make_transaction_from_address(address_origin, address_end, amount):
         logging.error("The address %s does not belong to this wallet" %address_origin)
         return False
     if amount > 0:
-        output = [(TYPE_ADDRESS, address_end, amount)]
+        if minus_fee:
+            fee = estimate_fee(address_origin, address_end, amount)
+            logging.debug("Estimated fee: %s" %fee)
+            if not fee:
+                 logging.error("Insufficient funds")
+                 return "ERROR: Insufficient funds"
+            tx = build_tx(address_origin, address_end, amount - fee)
+        else:
+            tx = build_tx(address_origin, address_end, amount)
     else:
         logging.error("Amount negative: %d" %(amount) )
         return False
-    # Get utxos for address
-    inputs = [address_origin]
-    coins = wallet.get_spendable_coins(domain = inputs)
-    config = electrumfair.SimpleConfig()
-    # Build and sign tx
-    try:
-        tx = wallet.make_unsigned_transaction(coins, output, config, change_addr=address_origin)
-    except NotEnoughFunds:
-        logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount)
-        logging.error("Confirmed : %s -- Unconfirmed: %s -- Unmature : %s " %wallet.get_addr_balance(address_origin))
-        return False
-    wallet.sign_transaction(tx, password)
+
+    if not tx:
+        msg = ("ERROR: Can not build the tx")
+        logging.error(msg)
+        return msg
     # Broadcast tx
     rec_tx_state, rec_tx_out = network.broadcast(tx, 30)
     if rec_tx_state:
         logging.info("SUCCESS. The transaction %s has been broadcasted." %rec_tx_out)
         return rec_tx_out, rec_tx_state
     else:
-        logging.error("Sending %s fairs to the address %s\n%s" %(amount, address_end, rec_tx_out))
+        msg = ("ERROR: can not send %s fair to address %s\n%s" %(amount, address_end, rec_tx_out))
+        logging.error(msg)
+        return msg
+
+def build_tx(origin, destination, amount):
+    inputs = [origin]
+    coins = wallet.get_spendable_coins(inputs, config)
+    out = [(TYPE_ADDRESS, destination, amount)]
+    try:
+        tx = wallet.make_unsigned_transaction(coins, out, config, change_addr=origin)
+    except NotEnoughFunds:
+        logging.error("Not enough funds confirmed to make the transaction. Requested Amount : %s " %amount)
+        logging.error("Confirmed : %s -- Unconfirmed: %s -- Unmature : %s " %wallet.get_addr_balance(origin))
         return False
+    except Exception as e:
+        logging.error("Can not build the tx: %s" %e)
+        return e
+    wallet.sign_transaction(tx, password)
+    return tx
+
+def estimate_fee(origin, destination, amount):
+    logging.debug("estimate_fee")
+    logging.debug("origin: %s" %origin)
+    qty = amount - 1000000 # Reduce the amount because fails to build if is the max amount. Limit the minimum capable to send due to negative amount and max due to the size limit on fee
+    tx = build_tx(origin, destination, qty)
+    if tx:
+        return config.estimate_fee(tx.estimated_size())
+    else:
+       return False
 
 def get_confirmations(tx):
     """Return the number of confirmations of a monitored transaction
@@ -177,6 +199,27 @@ def add_address(add):
     wallet.add_address(add)
     return 'ok'
 
+def get_unused_address(db_addresses):
+    wallet_addresses = wallet.get_unused_addresses()
+    for add in wallet_addresses:
+       if add not in db_addresses:
+           logging.info("get_unused_address: %s" %add)
+           return add
+    logging.info("Can not find an unused address, generate one")
+    return False
+
+def get_unused_address_from_file(fname):
+    with open(fname) as f:
+        addresses = f.read().splitlines()
+    return get_unused_address(addresses)
+
+def get_unused_addresses():
+    return wallet.get_unused_addresses()
+
+def get_address_index(address):
+    return wallet.get_address_index(address)
+
+
 if __name__ == '__main__':
 
     if len(sys.argv) > 1:
@@ -186,16 +229,15 @@ if __name__ == '__main__':
         sys.exit(ret)
     logging.debug("---------------------------------")
     logging.debug("Starting electrum...")
-    out_queue = Queue.Queue()
-    c = electrumfair.SimpleConfig()
-    network = electrumfair.Network(c)
+    config = electrumfair.SimpleConfig()
+    network = electrumfair.Network(config)
     network.start()
 
     # wait until connected
     while network.is_connecting():
         time.sleep(0.1)
     if not network.is_connected():
-        print_msg("daemon is not connected")
+        print("Can not connect with a electrum server")
         sys.exit(1)
 
     storage = electrumfair.WalletStorage(wallet_path)
@@ -204,12 +246,11 @@ if __name__ == '__main__':
         sys.exit(1)
     wallet = electrumfair.Wallet(storage)
     wallet.start_threads(network)
-    cmd_wallet = electrumfair.commands.Commands(c, wallet, network)
+    cmd_wallet = electrumfair.commands.Commands(config, wallet, network)
 
     # server thread
     from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
     server = SimpleJSONRPCServer(( my_host, my_port))
-    server.register_function(fee, 'fee')
     server.register_function(do_stop, 'stop')
     server.register_function(is_connected,'is_connected')
     server.register_function(daemon_is_up,'daemon_is_up')
@@ -223,6 +264,10 @@ if __name__ == '__main__':
     server.register_function(get_address_history,'get_address_history')
     server.register_function(import_key,'import_key')
     server.register_function(add_address,'add_address')
+    server.register_function(get_unused_address,'get_unused_address')
+    server.register_function(get_unused_address_from_file,'get_unused_address_from_file')
+    server.register_function(get_unused_addresses,'get_unused_addresses')
+    server.register_function(get_address_index,'get_address_index')
     server.socket.settimeout(1)
 
     while not stopping:

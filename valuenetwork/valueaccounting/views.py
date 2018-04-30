@@ -1266,7 +1266,7 @@ def send_faircoins(request, resource_id):
                     from_agent,
                     address_end,
                     quantity,
-                    resource
+                    resource,
                 )
 
                 return HttpResponseRedirect('/%s/%s/'
