@@ -1956,7 +1956,19 @@ from django.db.models.signals import post_migrate
 
 def create_unit_types(**kwargs):
     # Each
-    ocp_each = Unit.objects.get(name='Each')
+    ocp_eachs = Unit.objects.filter(name='Each')
+    if ocp_eachs:
+        ocp_each = ocp_eachs[0]
+    else:
+        ocp_each, created = Unit.objects.get_or_create(
+            name='Each',
+            unit_type='quantity',
+            abbrev='u.')
+        if created:
+            print "- created Unit: 'Each' (u.)"
+    ocp_each.abbrev = 'u.'
+    ocp_each.save()
+
     gen_unitt = Artwork_Type.objects.get(clas='Unit')
     each_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Each',
@@ -1984,7 +1996,19 @@ def create_unit_types(**kwargs):
     each.save()
 
     # Percent
-    ocp_perc = Unit.objects.get(name='Percent')
+    ocp_percs = Unit.objects.filter(name='Percent')
+    if ocp_percs:
+        ocp_perc = ocp_percs[0]
+    else:
+        ocp_perc, created = Unit.objects.get_or_create(
+            name='Percent',
+            unit_type='percent',
+            abbrev='Pct')
+        if created:
+            print "- created Unit: 'Percent'"
+    ocp_perc.symbol = '%'
+    ocp_perc.save()
+
     perc_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Percent',
         parent=gen_unitt
@@ -2006,7 +2030,23 @@ def create_unit_types(**kwargs):
             print "- created General.Unit for Percent: 'percent'"
 
     # Hours
-    ocp_hour = Unit.objects.get(name='Hours')
+    ocp_hours = Unit.objects.filter(name='Hour')
+    if ocp_hours:
+        ocp_hour = ocp_hours[0]
+        ocp_hour.name = 'Hours'
+        ocp_hour.save()
+    else:
+        ocp_hours = Unit.objects.filter(name='Hours')
+        if ocp_hours:
+            ocp_hour = ocp_hours[0]
+        else:
+            ocp_hour, created = Unit.objects.get_or_create(
+                name='Hours',
+                unit_type='time',
+                abbrev='Hr')
+            if created:
+                print "- created Unit: 'Hours'"
+
     gen_time_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Time',
         parent=gen_unitt
@@ -2031,7 +2071,21 @@ def create_unit_types(**kwargs):
     hour.save()
 
     # Days
-    ocp_day = Unit.objects.get(name='Day')
+    ocp_days = Unit.objects.filter(name='Day')
+    if ocp_days:
+        ocp_day = ocp_days[0]
+    else:
+        ocp_days = Unit.objects.filter(name='Days')
+        if ocp_days:
+            ocp_day = ocp_days[0]
+        else:
+            ocp_day, created = Unit.objects.get_or_create(
+                name='Day',
+                unit_type='time',
+                abbrev='day')
+            if created:
+                print "- created Unit: 'Day'"
+
     days = Gene_Unit.objects.filter(name='Day')
     if not days:
         day, created = Gene_Unit.objects.get_or_create(
@@ -2046,7 +2100,24 @@ def create_unit_types(**kwargs):
 
 
     # Kilos
-    ocp_kilos = Unit.objects.get(name='Kilos')
+    ocp_kilos = Unit.objects.filter(name='Kilos')
+    if ocp_kilos:
+        ocp_kilos = ocp_kilos[0]
+    else:
+        ocp_kilos = Unit.objects.filter(name='Kilo')
+        if ocp_kilos:
+            ocp_kilos = ocp_kilos[0]
+        else:
+            ocp_kilos, created = Unit.objects.get_or_create(
+                name='Kilos',
+                unit_type='weight',
+                abbrev='Kg')
+            if created:
+                print "- created Unit: 'Kilos'"
+    ocp_kilos.name = 'Kilos'
+    ocp_kilos.abbrev = 'Kg'
+    ocp_kilos.save()
+
     gen_weight_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Weight',
         parent=gen_unitt
