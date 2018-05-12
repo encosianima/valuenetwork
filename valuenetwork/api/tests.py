@@ -1088,6 +1088,26 @@ query($token: String) {
   }
 }
 
+query($token: String) {
+  viewer(token: $token) {
+    organizationClassification(id:8) {
+      id
+      name
+      note
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allOrganizationClassifications {
+      id
+      name
+      note
+    }
+  }
+}
+
 query ($token: String) {
   viewer(token: $token) {
     agent(id: 39) {
@@ -2260,6 +2280,35 @@ query ($token: String) {
 
 query ($token: String) {
   viewer(token: $token) {
+    filteredEconomicEvents (action: "give", resourceClassifiedAsId: 28, startDate: "2017-01-01", endDate: "2017-04-27", receiverId: 56, providerId: 26) {
+      id
+      action
+      start
+      affects {
+        resourceClassifiedAs {
+          id
+          name
+          category
+        }
+      }
+      provider {
+        id
+        name
+      }
+      receiver {
+        id
+        name
+      }
+      scope {
+        id
+        name
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
     agent(id: 6) {
       name
       agentEconomicEvents(latestNumberOfDays: 30, requestDistribution: true) {
@@ -3198,6 +3247,39 @@ mutation ($token: String!) {
       primaryLocation {
         name
       }
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createOrganization(token: $token, type: "Organization", name: "test org 2") {
+    organization {
+      id
+      name
+      note
+      image
+      type
+      primaryLocation {
+        name
+      }
+      primaryPhone
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createPerson(token: $token, name: "anne person", note:"test", type: "Individual", primaryLocationId: 24, 
+    image: "https://testocp.freedomcoop.eu/site_media/media/photos/what_is_it.JPG", primaryPhone: "333-444-5555" ) {
+    person {
+      id
+      name
+      note
+      image
+      type
+      primaryLocation {
+        name
+      }
+      primaryPhone
     }
   }
 }
