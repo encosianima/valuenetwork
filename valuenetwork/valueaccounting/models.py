@@ -8856,7 +8856,7 @@ class Transfer(models.Model):
         return None
 
     @property #ValueFlows
-    def planned_start(self):
+    def planned_date(self):
         return self.transfer_date.isoformat()
 
     @property #ValueFlows
