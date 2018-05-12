@@ -316,6 +316,7 @@ class Location(models.Model):
 
 class AgentTypeManager(models.Manager):
 
+    #note the following context agent methods are not valid, context agent flag is on agent now
     def context_agent_types(self):
         return AgentType.objects.filter(is_context=True)
 
@@ -373,6 +374,10 @@ class AgentType(models.Model):
             cls(name=name, party_type=party_type, is_context=is_context).save()
             if verbosity > 1:
                 print "Created %s AgentType" % name
+
+    @property #ValueFlows
+    def note(self):
+        return self.description
 
 
 class AgentAccount(object):
@@ -534,6 +539,10 @@ class EconomicAgent(models.Model):
     @property #ValueFlows
     def note(self):
         return self.description
+
+    @property #ValueFlows
+    def primary_phone(self):
+        return self.phone_primary
 
     @property #ValueFlows
     def type(self):
@@ -9086,7 +9095,7 @@ class Transfer(models.Model):
         return None
 
     @property #ValueFlows
-    def planned_start(self):
+    def planned_date(self):
         return self.transfer_date.isoformat()
 
     @property #ValueFlows
