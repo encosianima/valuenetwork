@@ -234,7 +234,7 @@
                 {% endif %}
                 {% if user_agent in agent.managers or user_agent == agent %}
                     {% for arr in agent.resource_relationships %}
-                        {% if arr.resource.resource_type.ocp_artwork_type.clas == 'MulticurrencyAuth' %}
+                        {% if arr.resource.resource_type.ocp_artwork_type.clas == 'MulticurrencyAuth' and agent.need_multicurrency %}
                           {% if agent.multicurrencyauth_set.count %}
 
                           {% else %}
@@ -355,7 +355,7 @@
                   {% if request.user.is_superuser and agent.user.user %}
                         <tr>
                             <th style="text-align: right;">{% trans "OCP role" %}</th>
-                            <td>{% if agent.user.user.is_superuser %} Superuser {% elif agent.user.user.is_staff %} Staff {% else %} User {% endif %}</td>
+                            <td>{% if agent.user.user.is_superuser %} Superuser {% elif agent.user.user.is_staff %} Staff {% else %} User {% endif %} </td>
                         </tr>
                   {% endif %}
                   <tr>
@@ -408,7 +408,7 @@
                         {% endif %}
                   {% endif %}
 
-                  {% if agent.multicurrencyauth_set.count %}
+                  {% if agent.multicurrencyauth_set.count and agent.need_multicurrency %}
                     {% if user_agent in agent.managers or user_is_agent %}
                       <tr>
                           <th style="text-align: right; vertical-align: top; ">{% trans "Multicurrency Accounts" %}</th>
