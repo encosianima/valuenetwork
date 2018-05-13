@@ -14,6 +14,7 @@ import valuenetwork.api.schemas.Agent
 import valuenetwork.api.schemas.AgentRelationship
 import valuenetwork.api.schemas.AgentRelationshipRole
 import valuenetwork.api.schemas.Organization
+import valuenetwork.api.schemas.OrganizationClassification
 import valuenetwork.api.schemas.Person
 import valuenetwork.api.schemas.EconomicResource
 import valuenetwork.api.schemas.Process
@@ -27,6 +28,7 @@ import valuenetwork.api.schemas.ProcessClassification
 import valuenetwork.api.schemas.Commitment
 import valuenetwork.api.schemas.Plan
 import valuenetwork.api.schemas.Place
+import valuenetwork.api.schemas.Validation
 import valuenetwork.api.schemas.NotificationSetting
 from valuenetwork.api.schemas.helpers import hash_password
 
@@ -36,6 +38,7 @@ class ViewerQuery(
     valuenetwork.api.schemas.AgentRelationship.Query,
     valuenetwork.api.schemas.AgentRelationshipRole.Query,
     valuenetwork.api.schemas.Organization.Query,
+    valuenetwork.api.schemas.OrganizationClassification.Query,
     valuenetwork.api.schemas.Person.Query,
     valuenetwork.api.schemas.EconomicResource.Query,
     valuenetwork.api.schemas.Process.Query,
@@ -49,6 +52,7 @@ class ViewerQuery(
     valuenetwork.api.schemas.Commitment.Query,
     valuenetwork.api.schemas.Plan.Query,
     valuenetwork.api.schemas.Place.Query,
+    valuenetwork.api.schemas.Validation.Query,
     valuenetwork.api.schemas.NotificationSetting.Query,
     graphene.ObjectType
 ):
@@ -75,7 +79,10 @@ class Query(graphene.ObjectType):
 
 class Mutation(graphene.ObjectType):
     create_token = valuenetwork.api.schemas.Auth.CreateToken.Field()
+    create_person = valuenetwork.api.schemas.Agent.CreatePerson.Field()
+    create_organization = valuenetwork.api.schemas.Agent.CreateOrganization.Field()
     update_person = valuenetwork.api.schemas.Agent.UpdatePerson.Field()
+    update_organization = valuenetwork.api.schemas.Agent.UpdateOrganization.Field()
     create_process = valuenetwork.api.schemas.Process.CreateProcess.Field()
     update_process = valuenetwork.api.schemas.Process.UpdateProcess.Field()
     delete_process = valuenetwork.api.schemas.Process.DeleteProcess.Field()
@@ -90,6 +97,8 @@ class Mutation(graphene.ObjectType):
     delete_plan = valuenetwork.api.schemas.Plan.DeletePlan.Field()
     update_economic_resource = valuenetwork.api.schemas.EconomicResource.UpdateEconomicResource.Field()
     delete_economic_resource = valuenetwork.api.schemas.EconomicResource.DeleteEconomicResource.Field()
+    create_validation = valuenetwork.api.schemas.Validation.CreateValidation.Field()
+    delete_validation = valuenetwork.api.schemas.Validation.DeleteValidation.Field()
     create_notification_setting = valuenetwork.api.schemas.NotificationSetting.CreateNotificationSetting.Field()
     update_notification_setting = valuenetwork.api.schemas.NotificationSetting.UpdateNotificationSetting.Field()
 

@@ -41,6 +41,10 @@ class ApiTypesAppConfig(AppConfig):
         types.Transfer = Transfer
         from valuenetwork.api.types.Place import Place
         types.Place = Place
+        from valuenetwork.api.types.Validation import Validation
+        types.Validation = Validation
         from valuenetwork.api.types.NotificationSetting import NotificationSetting
         types.NotificationSetting = NotificationSetting
+        from valuenetwork.api.types.Agent import OrganizationClassification
+        types.OrganizationClassification = OrganizationClassification
         super(ApiTypesAppConfig, self).ready()
