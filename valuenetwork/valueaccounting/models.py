@@ -2867,7 +2867,7 @@ class EconomicResourceType(models.Model):
         processes = []
         new_start_date = start_date
         for pt in pts:
-            p = pt.create_process(new_start_date, user, inheritance)
+            p = pt.create_process(new_start_date, user, inheritance, order)
             new_start_date = p.end_date
             processes.append(p)
         if processes:
@@ -2898,7 +2898,7 @@ class EconomicResourceType(models.Model):
         processes = []
         new_start_date = start_date
         for pt in pts:
-            p = pt.create_process(new_start_date, user)
+            p = pt.create_process(new_start_date, user, order=order)
             new_start_date = p.end_date
             processes.append(p)
         if processes:
@@ -2936,7 +2936,7 @@ class EconomicResourceType(models.Model):
         processes = []
         new_start_date = start_date
         for pt in pts:
-            p = pt.create_process(new_start_date, user, inheritance)
+            p = pt.create_process(new_start_date, user, inheritance, order)
             new_start_date = p.end_date
             processes.append(p)
         if processes:
@@ -4358,6 +4358,7 @@ class Order(models.Model):
         ct.generate_producing_process(user, [], inheritance=None, explode=True)
         return ct
 
+    #TODO: check this and see if new order.plan will help
     def all_processes(self):
         # this method includes only processes for this order
         deliverables = self.commitments.filter(event_type__relationship="out")
@@ -4383,6 +4384,7 @@ class Order(models.Model):
         #this code might need more testing for orders with more than one end process
         return ordered_processes
 
+    #TODO: check this and see if new order.plan will help
     def unordered_processes(self):
         #this cd be cts = order.dependent_commitments.all()
         # or self.all_dependent_commitments()
@@ -4613,7 +4615,7 @@ class ProcessType(models.Model):
     def color(self):
         return "blue"
 
-    def create_process(self, start_date, user, inheritance=None):
+    def create_process(self, start_date, user, inheritance=None, order=None):
         #pr changed
         end_date = start_date + datetime.timedelta(minutes=self.estimated_duration)
         process = Process(
@@ -4625,6 +4627,7 @@ class ProcessType(models.Model):
             url=self.url,
             start_date=start_date,
             end_date=end_date,
+            plan=order,
         )
         process.save()
         input_ctypes = self.all_input_resource_type_relationships()
@@ -6988,6 +6991,9 @@ class Process(models.Model):
         blank=True, null=True,
         limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='processes')
+    plan = models.ForeignKey(Order,
+        blank=True, null=True,
+        verbose_name=_('plan'), related_name='processes')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
     end_date = models.DateField(_('end date'), blank=True, null=True)
@@ -7822,6 +7828,7 @@ class Process(models.Model):
                             url=next_pt.url,
                             end_date=self.start_date,
                             start_date=start_date,
+                            plan=demand,
                         )
                         next_process.save()
                         #this is the output commitment
