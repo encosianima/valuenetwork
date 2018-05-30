@@ -1239,6 +1239,26 @@ class EconomicAgent(models.Model):
             resp = False
         return resp
 
+    def need_multicurrency(self):
+        resp = False
+        ags = self.related_contexts()
+        add = 0
+        if self.is_context and not self in ags:
+            ags.append(self)
+        need = []
+        for ag in ags:
+            try:
+                if ag.project and ag.project.services():
+                    if 'multicurrency' in ag.project.services():
+                        need.append(ag)
+            except:
+                pass
+        if len(need):
+            resp = True
+
+        #import pdb; pdb.set_trace()
+        return resp
+
     def invoicing_candidates(self):
         ctx = self.related_contexts()
         ids = [c.id for c in ctx if c.is_active_freedom_coop_member()]
