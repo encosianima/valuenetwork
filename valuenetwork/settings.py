@@ -213,6 +213,8 @@ INSTALLED_APPS = [
     'valuenetwork.api.types.apps.ApiTypesAppConfig',
     #'valuenetwork.api.schemas',
     #'valuenetwork.api.types',
+    
+    'validation.apps.ValidationConfig',
 
     'faircoin',
 
