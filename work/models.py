@@ -173,6 +173,26 @@ class Project(models.Model):
                     rts_with_clas.append(rt)
         return rts_with_clas
 
+    def shares_account_type(self):
+        at = None
+        form = self.fobi_form()
+        if form:
+            fields = form.formelemententry_set.all()
+            for fi in fields:
+                data = json.loads(fi.plugin_data)
+                name = data.get('name')
+                for rt in self.rts_with_clas():
+                    if rt.ocp_artwork_type.clas == name: # matches the rt clas identifier with the fobi field name
+                        at = rt
+        return at
+
+    def shares_type(self):
+        st = None
+        at = self.shares_account_type()
+        if at:
+            st = at.ocp_artwork_type.rel_nonmaterial_type.resource_type
+        return st
+
     def share_types(self):
         shr_ts = []
         if self.is_moderated() and self.fobi_slug:
@@ -518,7 +538,7 @@ class JoinRequest(models.Model):
 
     def payment_option(self):
         answer = {}
-        if self.project.joining_style == "moderated" and self.fobi_data:
+        if self.project.is_moderated() and self.fobi_data:
             for key in self.fobi_items_keys():
                 if key == "payment_mode": # fieldname specially defined in the fobi form
                     self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
@@ -534,7 +554,7 @@ class JoinRequest(models.Model):
                             for op in opts:
                                 opa = op.split(',')
                                 #import pdb; pdb.set_trace()
-                                if val.strip() == opa[1].strip():
+                                if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
                                     answer['key'] = opa[0]
         return answer
 
@@ -574,43 +594,35 @@ class JoinRequest(models.Model):
         return False
 
     def payment_amount(self):
-        amount = 0
-        if self.project.joining_style == "moderated" and self.fobi_data:
-            rts = list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
-            for rt in rts:
-                if rt.ocp_artwork_type:
-                    for key in self.fobi_items_keys():
-                        if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
-                            self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
-                            entry = self.entries[0]
-                            self.data = json.loads(entry.saved_data)
-                            val = self.data.get(key)
-                            for elem in self.fobi_data.form_entry.formelemententry_set.all():
-                                data = json.loads(elem.plugin_data)
-                                choi = data.get('choices')
-                                if choi:
-                                    opts = choi.split('\r\n')
-                                    for op in opts:
-                                      opa = op.split(',')
-                                      #import pdb; pdb.set_trace()
-                                      if type(val) is str and opa[1].encode('utf-8').strip() == val.encode('utf-8').strip():
-                                        amount = int(opa[0])
-                                        break
-                                elif type(val) is int and val:
-                                    amount = val
-                                    break
+        amount = 'error'
+        if self.project.is_moderated() and self.fobi_data and self.project.shares_account_type():
+            for key in self.fobi_items_keys():
+                if key == self.project.shares_account_type().ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
+                    self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
+                    entry = self.entries[0]
+                    self.data = json.loads(entry.saved_data)
+                    val = self.data.get(key)
+                    if type(val) is int:
+                        return val
+
+                    '''for elem in self.fobi_data.form_entry.formelemententry_set.all():
+                        data = json.loads(elem.plugin_data)
+                        choi = data.get('choices')
+                        if choi:
+                            opts = choi.split('\r\n')
+                            for op in opts:
+                              opa = op.split(',')
+                              #import pdb; pdb.set_trace()
+                              if type(val) is str and opa[1].encode('utf-8').strip() == val.encode('utf-8').strip():
+                                amount = int(opa[0])
+                                break
+                        elif type(val) is int and val:
+                            amount = val
+                            break'''
         return amount
 
     def payment_account_type(self):
-        account_type = None
-        if self.project.joining_style == "moderated" and self.fobi_data:
-            rts = list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
-            for rt in rts:
-                if rt.ocp_artwork_type:
-                    for key in self.fobi_items_keys():
-                        if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
-                            account_type = rt
-        return account_type
+        return self.project.shares_account_type()
 
 
     def payment_secret(self):
@@ -746,7 +758,10 @@ class JoinRequest(models.Model):
                 try:
                     obj = gates[self.project.fobi_slug][payopt['key']]
                 except:
-                    pass
+                    raise ValidationError("Can't find a payment gateway for slug "+self.project.fobi_slug+" named "+str(payopt))
+            else:
+                raise ValidationError("Can't find payment gateways for slug "+self.project.fobi_slug)
+
             if obj:
                 try:
                     unit = Unit.objects.get(abbrev=obj['unit'].lower())
@@ -2400,8 +2415,44 @@ def create_unit_types(**kwargs):
     artw_sh.general_unit_type = gen_share_typ
     artw_sh.save()
 
+    fa_curr, created = Facet.objects.get_or_create(
+        name='Currency'
+    )
+    if created:
+        print "- created Facet: Currency"
+    fa_curr.clas = "Currency_Type"
+    fa_curr.save()
+
+    fv_shs = FacetValue.objects.filter(value='Shares')
+    if fv_shs:
+        fv_sh = fv_shs[0]
+    else:
+        fv_shs = FacetValue.objects.filter(value='CoopShares')
+        if fv_shs:
+            fv_sh = fv_shs[0]
+        else:
+            fv_sh, created = FacetValue.objects.get_or_create(
+                value='CoopShares',
+                facet=fa_curr
+            )
+            if created:
+                print "- created FacetValue: CoopShares"
+    fv_sh.value = 'CoopShares'
+    fv_sh.facet = fa_curr
+    fv_sh.save()
+
+
 
     ## FreedomCoop
+
+    fdc_ag = EconomicAgent.objects.filter(nick="Freedom Coop")
+    if not fdc_ag:
+        fdc_ag = EconomicAgent.objects.filter(nick="FreedomCoop")
+    if not fdc_ag:
+        print "- WARNING: the FreedomCoop agent don't exist, not created any unit for shares"
+        return
+    else:
+        fdc_ag = fdc_ag[0]
 
     ocp_shares = Unit.objects.filter(name='Share')
     if not ocp_shares:
@@ -2452,7 +2503,18 @@ def create_unit_types(**kwargs):
         share_rt.unit = ocp_each
         share_rt.inventory_rule = 'yes'
         share_rt.behavior = 'other'
+        share_rt.price_per_unit = 30
+        share_rt.unit_of_price = ocp_euro
         share_rt.save()
+
+        rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+            resource_type=share_rt,
+            facet_value=fv_sh
+        )
+        if created:
+            print "- created ResourceTypeFacetValue: "+str(share_rt)+" / "+str(fv_sh)
+    else:
+        print "WARNING can't find the FreedomCoop Share rt, or there is more than one!"
 
     artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
         name='FreedomCoop Share'
@@ -2525,7 +2587,16 @@ def create_unit_types(**kwargs):
         print "- created EconomicResourceType: 'BankOfTheCommons Share'"
 
     share_rt.context_agent = boc_ag
+    share_rt.price_per_unit = 1
+    share_rt.unit_of_price = ocp_euro
     share_rt.save()
+
+    rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=share_rt,
+        facet_value=fv_sh
+    )
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(share_rt)+" / "+str(fv_sh)
 
     artw_boc, created = Ocp_Artwork_Type.objects.get_or_create(
         name='BankOfTheCommons Share'
@@ -2626,4 +2697,43 @@ def create_exchange_skills(**kwargs):
 post_migrate.connect(create_exchange_skills)
 
 
+"""
+def migrate_freedomcoop_memberships(**kwargs):
+    fdc = Project.objects.filter(fobi_slug='freedom-coop')
+    if fdc:
+        fdc = fdc[0].agent
+    if fdc:
+        form_entry = None
+        try:
+            form_entry = FormEntry.objects.get(slug=fdc.project.fobi_slug)
+        except:
+            pass
+        if form_entry:
+            form_element_entries = form_entry.formelemententry_set.all()[:]
+
+        else:
+            print "FdC migration error: no form entries"
+
+        old_reqs = MembershipRequest.objects.all()
+        new_reqs = fdc.project.join_requests.all()
+        print "FdC reqs: old-"+str(len(old_reqs))+" <> new-"+str(len(new_reqs))
+        for orq in old_reqs:
+            nrq, created = JoinRequest.objects.get_or_create(
+                project=fdc.project,
+                request_date=orq.request_date,
+                type_of_user=orq.type_of_membership,
+                name=orq.name,
+                surname=orq.surname,
+                requested_username=orq.requested_username,
+                email_address=orq.email_address,
+                phone_number=orq.phone_number,
+                address=orq.address,
+                agent=orq.agent,
+                state=orq.state
+            )
+            if created:
+                print "created FdC JoinRequest: "+nrq.requested_username+" ("+nrq.email_address+")"
+
+post_migrate.connect(migrate_freedomcoop_memberships)
+"""
 

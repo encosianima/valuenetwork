@@ -482,7 +482,7 @@
                         <th>{% trans "Resource Type Visibility:" %}</th>
                         <td>{{ agent.project.resource_type_selection }}</td>
                       </tr>
-                      {% if agent.project.joining_style == 'moderated' %}
+                      {% if agent.project.is_moderated %}
                         <tr>
                           <th>{% trans "Project Slug:" %}</th>
                           <td>{% if agent.project.fobi_slug %}
@@ -504,9 +504,8 @@
                               {% endfor %}
                             </ul>
                             {% if request.user.is_superuser and agent.project.join_requests %}
-                                {% with agent.project.join_requests.all|first as req %}
-                                    <span class="smaller">(AT: {{ req.payment_account_type }})</span>
-                                {% endwith %}
+                                <span class="smaller">(AT: {{ agent.project.shares_account_type }})</span>
+                                <span class="smaller">(ST: {{ agent.project.shares_type }})</span>
                             {% endif %}
                             </td>
                           </tr>

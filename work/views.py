@@ -553,6 +553,109 @@ def membership_discussion(request, membership_request_id):
     if not allowed:
         return render(request, 'work/no_permission.html')
 
+    fdc = Project.objects.filter(fobi_slug='freedom-coop')
+    if fdc:
+        fdc = fdc[0].agent
+
+        form_entry = fdc.project.fobi_form()
+
+        if form_entry:
+            form_element_entries = form_entry.formelemententry_set.all()[:]
+
+            # This is where the most of the magic happens. Our form is being built
+            # dynamically.
+            FormClass = assemble_form_class(
+                form_entry,
+                form_element_entries = form_element_entries,
+                request = request
+            )
+            obj = {}
+            for fil in form_element_entries:
+                filnam = json.loads(fil.plugin_data)['name']
+                if filnam == 'languages':
+                    obj[filnam] = mbr_req.native_language
+                if filnam == 'freedomcoopshares':
+                    obj[filnam] = mbr_req.number_of_shares
+                if filnam == 'fairnetwork_username':
+                    obj[filnam] = mbr_req.fairnetwork
+                if filnam == 'usefaircoin_profile':
+                    obj[filnam] = mbr_req.usefaircoin
+                if filnam == 'fairmarket_shop':
+                    obj[filnam] = mbr_req.fairmarket
+                if filnam == 'otherfaircoopparticipantsreferences':
+                    obj[filnam] = mbr_req.known_member
+                if filnam == 'comments_and_questions':
+                    obj[filnam] = mbr_req.comments_and_questions
+                if filnam == 'description':
+                    obj[filnam] = mbr_req.description
+                if filnam == 'website':
+                    obj[filnam] = mbr_req.website
+                if filnam == 'payment_mode':
+                    obj[filnam] = 'Faircoin'
+            #print "OBJ: "+str(obj)
+            print "FdC shares: "+str(fdc.project.share_types())
+            #print "FdC req_date: "+str(mbr_req.request_date)
+
+            fobi_form = FormClass(obj, request.FILES)
+
+            fire_form_callbacks(form_entry=form_entry, request=request, form=fobi_form, stage=CALLBACK_BEFORE_FORM_VALIDATION)
+            if False and fobi_form.is_valid():
+                #print "valid!"
+                jn_req, created = JoinRequest.objects.get_or_create(
+                    project=fdc.project,
+                    request_date=mbr_req.request_date,
+                    type_of_user=mbr_req.type_of_membership,
+                    name=mbr_req.name,
+                    surname=mbr_req.surname,
+                    requested_username=mbr_req.requested_username,
+                    email_address=mbr_req.email_address,
+                    phone_number=mbr_req.phone_number,
+                    address=mbr_req.address,
+                    agent=mbr_req.agent,
+                    state=mbr_req.state
+                )
+                if created:
+                    print "- created JoinRequest for FdC migration: "+str(jn_req)
+                jn_req.created_date = mbr_req.request_date
+
+
+                # fobi form
+                field_name_to_label_map, cleaned_data = get_processed_form_data(
+                    fobi_form,
+                    form_element_entries
+                )
+                fob_dat, created = SavedFormDataEntry.objects.get_or_create(
+                    form_entry = form_entry,
+                    user = mbr_req.agent.user().user if mbr_req.agent.user().user and mbr_req.agent.user().user.pk else None,
+                    form_data_headers = json.dumps(field_name_to_label_map),
+                    saved_data = json.dumps(cleaned_data),
+                    created = mbr_req.created_date
+                )
+                if created:
+                    print "- created fobi SavedFormDataEntry for FdC migration: "+str(json.dumps(cleaned_data))
+
+                jn_req.fobi_data = fob_dat
+                jn_req.save()
+
+                con_typ = ContentType.objects.get(model='membershiprequest')
+                jr_con_typ = ContentType.objects.get(model='joinrequest')
+                coms = Comment.objects.filter(content_type=con_typ, object_pk=mbr_req.id)
+                #print "Comments: "+str(coms)
+                for com in coms:
+                    jn_com, created = Comment.objects.get_or_create(
+                        content_type=jr_con_typ,
+                        object_pk=jn_req.pk,
+                        user_name=com.user_name,
+                        user_email=com.user_email,
+                        submit_date=com.submit_date,
+                        comment=com.comment,
+                        site=com.site
+                    )
+                    if created:
+                        print "- created Comment for JoinRequest (FdC migration): "+str(com.comment)
+
+                return project_feedback(request, agent_id=fdc.id, join_request_id=jn_req.id)
+
     return render(request, "work/membership_request_with_comments.html", {
         "help": get_help("membership_request"),
         "mbr_req": mbr_req,
@@ -858,8 +961,11 @@ def members_agent(request, agent_id):
                         res.id = None
                         res.pk = None
                         resarr = res.identifier.split(ag.has_associate.nick)
-                        if len(resarr) > 1 and not ag.has_associate.nick == 'Freedom Coop':
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.name #.identifier.split(ag.has_associate.nick)
+                        if len(resarr) > 1: # and not ag.has_associate.nick == 'Freedom Coop':
+                            if (len(resarr) > 2): # cases like BotC
+                                res.identifier = ag.has_associate.nick+resarr[1]+agent.name
+                            else: # cases like FdC
+                                res.identifier = resarr[0]+agent.name
                             res.quantity = 1
                             res.price_per_unit = 0
                             res.save()
@@ -1145,9 +1251,6 @@ import simplejson as json
 from django.utils.html import escape, escapejs
 
 def joinaproject_request(request, form_slug = False):
-    if form_slug and form_slug == 'freedom-coop':
-        return redirect('membership_request')
-
     join_form = JoinRequestForm(data=request.POST or None)
     fobi_form = False
     cleaned_data = False
@@ -1160,6 +1263,11 @@ def joinaproject_request(request, form_slug = False):
                 return joinaproject_request_internal(request, project.agent.id)
         except:
             user_agent = False
+
+        # exception meanwhile
+        #if form_slug == 'freedom-coop' and not user_agent:
+        #    return redirect('membership_request')
+        #
 
         if not project or project.visibility != "public": # or not user_agent:
             return HttpResponseRedirect('/%s/' % ('home'))
@@ -1400,9 +1508,10 @@ def joinaproject_request_internal(request, agent_id = False):
     proj_agent = get_object_or_404(EconomicAgent, id=agent_id)
     project = proj_agent.project
     form_slug = project.fobi_slug
-    if form_slug and form_slug == 'freedom-coop':
-        return redirect('membership_request')
     usr_agent = request.user.agent.agent
+    #if form_slug and form_slug == 'freedom-coop':
+    #    if not usr_agent:
+    #        return redirect('membership_request')
     reqs = JoinRequest.objects.filter(project=project, agent=usr_agent)
 
     join_form = JoinRequestInternalForm(data=request.POST or None)
