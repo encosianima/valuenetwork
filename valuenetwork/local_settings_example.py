@@ -56,6 +56,10 @@ STATIC_URL = "/static/"
 
 #and you can override any other settings in settings.py
 
+# custom log file position
+settings.LOGGING['handlers']['applogfile']['filename'] = '/home/ocp/logs/ocp_debug.log' # put your desired path!
+
+
 # to run the multicurrency service you need to define the connection details with chipchap
 MULTICURRENCY = {
       'client_id': '',
