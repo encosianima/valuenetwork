@@ -45,4 +45,6 @@ class ApiTypesAppConfig(AppConfig):
         types.Validation = Validation
         from valuenetwork.api.types.NotificationSetting import NotificationSetting
         types.NotificationSetting = NotificationSetting
+        from valuenetwork.api.types.Agent import OrganizationClassification
+        types.OrganizationClassification = OrganizationClassification
         super(ApiTypesAppConfig, self).ready()

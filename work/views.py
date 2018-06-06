@@ -746,6 +746,7 @@ def members_agent(request, agent_id):
         skills = EconomicResourceType.objects.filter(behavior="work")
         arts = agent.resource_types.filter(event_type=et_work)
         agent.skills = []
+        agent.suggested_skills = []
         if agent.user():
             user = agent.user().user
             suggestions = user.skill_suggestion.all()

@@ -8,9 +8,8 @@
 
 import graphene
 from graphene_django.types import DjangoObjectType
-
 from django.db.models import Q
-from valuenetwork.valueaccounting.models import EconomicAgent, EconomicResourceType
+from valuenetwork.valueaccounting.models import EconomicAgent, EconomicResourceType, AgentType
 import valuenetwork.api.types as types
 from valuenetwork.api.types.AgentRelationship import AgentRelationship, AgentRelationshipCategory, AgentRelationshipRole
 from valuenetwork.api.models import Organization as OrganizationModel, Person as PersonModel, formatAgentList
@@ -20,18 +19,23 @@ import datetime
 def _load_identified_agent(self):
     return EconomicAgent.objects.get(pk=self.id)
 
-# Economic agent base type
+
+class OrganizationClassification(DjangoObjectType):
+    note = graphene.String(source='note')
+
+    class Meta:
+        model = AgentType
+        only_fields = ('id', 'name')
+
 
 class Agent(graphene.Interface):
-
-    # fields common to all agent types
-
     id = graphene.String()
     name = graphene.String()
     type = graphene.String(source='type')
     image = graphene.String(source='image')
     note = graphene.String(source='note')
     primary_location = graphene.Field(lambda: types.Place)
+    primary_phone = graphene.String(source='primary_phone')
     email = graphene.String(source='email')
 
     owned_economic_resources = graphene.List(lambda: types.EconomicResource,
