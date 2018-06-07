@@ -388,12 +388,12 @@
                       </tr>
                   {% endif %}
                   {% if user_agent %}
-                        {% if agent.email %}
-                            <tr>
-                                <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
-                                <td>{{ agent.email }}</td>
-                            </tr>
-                        {% endif %}
+
+                    <tr>
+                        <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
+                        <td>{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %}</td>
+                    </tr>
+
                         {% if user_agent in agent.managers or user_is_agent or agent.primary_location %}
                           <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
