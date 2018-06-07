@@ -5,7 +5,7 @@
 import graphene
 import datetime
 from decimal import Decimal
-from valuenetwork.valueaccounting.models import EconomicEvent as EconomicEventProxy, Commitment, EventType, EconomicAgent, Process, EconomicResourceType, EconomicResource as EconomicResourceProxy, Unit, AgentUser
+from valuenetwork.valueaccounting.models import EconomicEvent as EconomicEventProxy, Commitment, EventType, EconomicAgent, Process, EconomicResourceType, EconomicResource as EconomicResourceProxy, Unit, AgentUser, Location
 from valuenetwork.api.types.EconomicEvent import EconomicEvent, Action
 from valuenetwork.api.models import Fulfillment
 from six import with_metaclass
@@ -16,14 +16,18 @@ from django.core.exceptions import PermissionDenied, ValidationError
 
 class Query(graphene.AbstractType):
 
-    # define input query params
-
     economic_event = graphene.Field(EconomicEvent,
                                     id=graphene.Int())
 
     all_economic_events = graphene.List(EconomicEvent)
-
-    # resolvers
+    
+    filtered_economic_events = graphene.List(EconomicEvent,
+                                             provider_id=graphene.Int(),
+                                             receiver_id=graphene.Int(),
+                                             resource_classified_as_id=graphene.Int(),
+                                             action=graphene.String(),
+                                             start_date=graphene.String(),
+                                             end_date=graphene.String())
 
     def resolve_economic_event(self, args, *rargs):
         id = args.get('id')
@@ -35,6 +39,28 @@ class Query(graphene.AbstractType):
 
     def resolve_all_economic_events(self, args, context, info):
         return EconomicEventProxy.objects.all()
+
+    def resolve_filtered_economic_events(self, args, context, info):
+        provider_id = args.get('provider_id')
+        receiver_id = args.get('receiver_id')
+        resource_classified_as_id = args.get('resource_classified_as_id')
+        action = args.get('action')
+        start_date = args.get('start_date')
+        end_date = args.get('end_date')
+        events = EconomicEventProxy.objects.all()
+        if provider_id:
+            events = EconomicEventProxy.objects.filter(from_agent=EconomicAgent.objects.get(pk=provider_id))
+        if receiver_id:
+            events = events.filter(to_agent=EconomicAgent.objects.get(pk=receiver_id))
+        if action:
+            events = events.filter(event_type=EventType.objects.convert_action_to_event_type(action))
+        if resource_classified_as_id:
+            events = events.filter(resource_type=EconomicResourceType.objects.get(pk=resource_classified_as_id))
+        if start_date:
+            events = events.filter(event_date__gte=start_date)
+        if end_date:
+            events = events.filter(event_date__lte=end_date)
+        return events
 
 
 class CreateEconomicEvent(AuthedMutation):
@@ -58,7 +84,7 @@ class CreateEconomicEvent(AuthedMutation):
         resource_tracking_identifier = graphene.String(required=False)
         resource_image = graphene.String(required=False)
         resource_note = graphene.String(required=False)
-        #resource_current_location #TODO
+        resource_current_location_id = graphene.Int(required=False)
 
     economic_event = graphene.Field(lambda: EconomicEvent)
 
@@ -82,6 +108,7 @@ class CreateEconomicEvent(AuthedMutation):
         create_resource = args.get('create_resource')
         resource_tracking_identifier = args.get('resource_tracking_identifier')
         resource_image = args.get('resource_image')
+        resource_current_location_id = args.get('resource_current_location_id')
         resource_note = args.get('resource_note')
 
         if fulfills_commitment_id:
@@ -151,7 +178,8 @@ class CreateEconomicEvent(AuthedMutation):
             url = ""
         if not request_distribution:
             request_distribution = False
-
+        if resource_current_location_id:
+            current_location = Location.objects.get(pk=resource_current_location_id)
         if not affects:
             if create_resource:
                 if not resource_note:
@@ -165,6 +193,7 @@ class CreateEconomicEvent(AuthedMutation):
                     quantity=Decimal(affected_numeric_value),
                     photo_url=resource_image,
                     identifier=resource_tracking_identifier,
+                    current_location=current_location,
                     notes=resource_note,
                     created_by=context.user,
                     #location
@@ -266,7 +295,7 @@ class UpdateEconomicEvent(AuthedMutation):
                 economic_event.quantity = Decimal(affected_numeric_value)
             if affected_unit_id:
                 economic_event.unit_of_quantity = Unit.objects.get(pk=affected_unit_id)
-            if request_distribution:
+            if request_distribution != None:
                 economic_event.is_contribution = request_distribution
             if request_distribution is False:
                 economic_event.is_contribution = False

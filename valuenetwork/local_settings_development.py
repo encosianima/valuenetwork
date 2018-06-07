@@ -12,6 +12,8 @@ DATABASES = {
     }
 }
 
+# to set the logfile nearby
+settings.LOGGING['handlers']['applogfile']['filename'] = 'ocp_debug.log'
 
 # valueaccounting settings can be overridden
 USE_WORK_NOW = False

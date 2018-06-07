@@ -8,9 +8,8 @@
 
 import graphene
 from graphene_django.types import DjangoObjectType
-
 from django.db.models import Q
-from valuenetwork.valueaccounting.models import EconomicAgent
+from valuenetwork.valueaccounting.models import EconomicAgent, EconomicResourceType, AgentType
 import valuenetwork.api.types as types
 from valuenetwork.api.types.AgentRelationship import AgentRelationship, AgentRelationshipCategory, AgentRelationshipRole
 from valuenetwork.api.models import Organization as OrganizationModel, Person as PersonModel, formatAgentList
@@ -20,30 +19,41 @@ import datetime
 def _load_identified_agent(self):
     return EconomicAgent.objects.get(pk=self.id)
 
-# Economic agent base type
+
+class OrganizationClassification(DjangoObjectType):
+    note = graphene.String(source='note')
+
+    class Meta:
+        model = AgentType
+        only_fields = ('id', 'name')
+
 
 class Agent(graphene.Interface):
-
-    # fields common to all agent types
-
     id = graphene.String()
     name = graphene.String()
     type = graphene.String(source='type')
     image = graphene.String(source='image')
     note = graphene.String(source='note')
     primary_location = graphene.Field(lambda: types.Place)
+    primary_phone = graphene.String(source='primary_phone')
+    email = graphene.String(source='email')
 
     owned_economic_resources = graphene.List(lambda: types.EconomicResource,
-                                             category=types.EconomicResourceCategory())
+                                             category=types.EconomicResourceCategory(),
+                                             resourceClassificationId=graphene.Int(),
+                                             page=graphene.Int())
 
     agent_processes = graphene.List(lambda: types.Process,
                                     is_finished=graphene.Boolean())
 
     agent_plans = graphene.List(lambda: types.Plan,
-                                is_finished=graphene.Boolean())
+                                is_finished=graphene.Boolean(),
+                                year=graphene.Int(),
+                                month=graphene.Int())
 
     agent_economic_events = graphene.List(lambda: types.EconomicEvent,
-                                          latest_number_of_days=graphene.Int())
+                                          latest_number_of_days=graphene.Int(),
+                                          request_distribution=graphene.Boolean())
 
     agent_commitments = graphene.List(lambda: types.Commitment,
                                       latest_number_of_days=graphene.Int())
@@ -57,34 +67,56 @@ class Agent(graphene.Interface):
     agent_recipes = graphene.List(lambda: types.ResourceClassification)
 
     #agent_recipe_bundles = graphene.List(ResourceClassification)
-    
+
     faircoin_address = graphene.String()
 
+    agent_notification_settings = graphene.List(lambda: types.NotificationSetting)
+
+    member_relationships = graphene.List(AgentRelationship)
+
+    validated_events_count = graphene.Int(month=graphene.Int(), year=graphene.Int())
+
+    events_count = graphene.Int(year=graphene.Int(), month=graphene.Int())
+
+    event_hours_count = graphene.Int(year=graphene.Int(), month=graphene.Int())
+
+    event_people_count = graphene.Int(year=graphene.Int(), month=graphene.Int())
 
     def resolve_primary_location(self, args, *rargs):
         return self.primary_location
 
     def resolve_owned_economic_resources(self, args, context, info):
         type = args.get('category', types.EconomicResourceCategory.NONE)
+        resource_class_id = args.get('resourceClassificationId', None)
+        page = args.get('page', None)
         org = _load_identified_agent(self)
+        resources = None
         if org:
             if type == types.EconomicResourceCategory.CURRENCY:
-                return org.owned_currency_resources()
+                resources = org.owned_currency_resources()
             elif type == types.EconomicResourceCategory.INVENTORY:
-                return org.owned_inventory_resources()
-            return org.owned_resources()
-        return None
-    
-    def resolve_owned_economic_resources(self, args, context, info):
-        type = args.get('category', types.EconomicResourceCategory.NONE)
-        org = _load_identified_agent(self)
-        if org:
-            if type == types.EconomicResourceCategory.CURRENCY:
-                return org.owned_currency_resources()
-            elif type == types.EconomicResourceCategory.INVENTORY:
-                return org.owned_inventory_resources()
-            return org.owned_resources()
-        return None
+                resources = org.owned_inventory_resources()
+            else:
+                resources = org.owned_resources()
+            if resource_class_id:
+                rc = EconomicResourceType.objects.get(pk=resource_class_id)
+                resources_temp = []
+                for res in resources:
+                    if res.resource_type == rc:
+                        resources_temp.append(res)
+                resources = resources_temp
+            if page:
+                from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+                paginator = Paginator(resources, 25)
+                try:
+                    resources = paginator.page(page)
+                except PageNotAnInteger:
+                    # If page is not an integer, deliver first page.
+                    resources = paginator.page(1)
+                except EmptyPage:
+                    # If page is out of range (e.g. 9999), deliver last page of results.
+                    resources = paginator.page(paginator.num_pages)
+        return resources
 
     # if an organization, this returns processes done in that context
     # if a person, this returns proceses the person has worked on
@@ -107,15 +139,23 @@ class Agent(graphene.Interface):
     def resolve_agent_plans(self, args, context, info):
         agent = _load_identified_agent(self)
         if agent:
-            agent_plans = agent.all_plans()
             finished = args.get('is_finished', None)
+            year = args.get('year', None)
+            month = args.get('month', None)
             if finished != None:
                 if not finished:
-                    return agent_plans.filter(finished=False)
+                    plans = agent.unfinished_plans()
                 else:
-                    return agent_plans.filter(finished=True)
+                    plans = agent.finished_plans()
             else:
-                return agent_plans
+                plans = agent.all_plans()
+            if year and month:
+                dated_plans = []
+                for plan in plans:
+                    if plan.worked_in_month(year=year, month=month):
+                        dated_plans.append(plan)
+                plans = dated_plans
+            return plans
         return None
 
     # returns events where an agent is a provider, receiver, or scope agent, excluding exchange related events
@@ -123,11 +163,14 @@ class Agent(graphene.Interface):
         agent = _load_identified_agent(self)
         if agent:
             days = args.get('latest_number_of_days', 0)
+            request_distribution = args.get('request_distribution')
             if days > 0:
                 events = agent.involved_in_events().filter(event_date__gte=(datetime.date.today() - datetime.timedelta(days=days)))
             else:
                 events = agent.involved_in_events()
             events = events.exclude(event_type__name="Give").exclude(event_type__name="Receive")
+            if request_distribution != None:
+                events = events.filter(is_contribution=request_distribution)
             return events
         return None
 
@@ -174,7 +217,6 @@ class Agent(graphene.Interface):
             return agent.active_association_types()
         return None
 
-    # returns resource classifications that have a recipe, for this and parent agents
     def resolve_agent_recipes(self, args, context, info):
         agent = _load_identified_agent(self)
         if agent:
@@ -184,6 +226,104 @@ class Agent(graphene.Interface):
     def resolve_faircoin_address(self, args, *rargs):
         agent = _load_identified_agent(self)
         return agent.faircoin_address()
+
+    def resolve_agent_notification_settings(self, args, context, info):
+        agent = _load_identified_agent(self)
+        return agent.notification_settings()
+
+    #Returns member type associations ordered by the type (hard-coded manager then member).
+    def resolve_member_relationships(self, args, context, info):
+        agent = _load_identified_agent(self)
+        if agent:
+            assocs = agent.all_active_associations()
+            filtered_assocs = []
+            for assoc in assocs:
+                if assoc.association_type.association_behavior == "manager":
+                    filtered_assocs.append(assoc)
+            for assoc in assocs:
+                if assoc.association_type.association_behavior == "member":
+                    filtered_assocs.append(assoc)
+            return filtered_assocs
+        return None
+
+    def resolve_validated_events_count(self, args, *rargs):
+        agent = _load_identified_agent(self)
+        month = args.get('month')
+        year = args.get('year')
+        val_month = False
+        if month and year:
+            val_month=True
+        if agent:
+            events = agent.involved_in_events().exclude(event_type__name="Give").exclude(event_type__name="Receive")
+            count = 0
+            for event in events:
+                if val_month:
+                    if event.event_date.year == year and event.event_date.month == month:
+                        if event.is_double_validated():
+                            count = count + 1
+                else:
+                    count = count + 1
+            return count
+        return None
+
+    def resolve_events_count(self, args, *rargs):
+        agent = _load_identified_agent(self)
+        if agent:
+            year = args.get('year')
+            month = args.get('month')
+            count_month = False
+            if year and month:
+                count_month = True
+            events = agent.involved_in_events().exclude(event_type__name="Give").exclude(event_type__name="Receive")
+            count = 0
+            for event in events:
+                if count_month:
+                    if event.event_date.year == year and event.event_date.month == month:
+                        count = count + 1
+                else:
+                    count = count + 1
+            return count
+        return None
+
+    def resolve_event_hours_count(self, args, *rargs):
+        agent = _load_identified_agent(self)
+        if agent:
+            year = args.get('year')
+            month = args.get('month')
+            count_month = False
+            if year and month:
+                count_month = True
+            events = agent.involved_in_events().exclude(event_type__name="Give").exclude(event_type__name="Receive")
+            count = 0
+            for event in events:
+                if count_month:
+                    if event.event_date.year == year and event.event_date.month == month:
+                        count = count + event.quantity
+                else:
+                    count = count + event.quantity
+            return count
+        return None
+
+    def resolve_event_people_count(self, args, *rargs):
+        agent = _load_identified_agent(self)
+        if agent:
+            year = args.get('year')
+            month = args.get('month')
+            count_month = False
+            if year and month:
+                count_month = True
+            events = agent.involved_in_events().exclude(event_type__name="Give").exclude(event_type__name="Receive")
+            people = []
+            for event in events:
+                if count_month:
+                    if event.event_date.year == year and event.event_date.month == month:
+                        if event.from_agent not in people:
+                            people.append(event.from_agent)
+                else:
+                    if event.from_agent not in people:
+                        people.append(event.from_agent)
+            return len(people)
+        return None
 
     # returns resource classifications that have a recipe, for this and parent agents
     #def resolve_agent_recipe_bundles(self, args, context, info):
@@ -200,7 +340,7 @@ class Person(DjangoObjectType):
     class Meta:
         interfaces = (Agent, )
         model = PersonModel #EconomicAgent
-        only_fields = ('id', 'name', 'image', 'primary_location')
+        only_fields = ('id', 'name', 'image', 'note', 'primary_location', 'email')
 
 
 # Organization - an Agent which is not a Person, and can be further classified from there
@@ -210,7 +350,4 @@ class Organization(DjangoObjectType):
     class Meta:
         interfaces = (Agent, )
         model = OrganizationModel #EconomicAgent
-        only_fields = ('id', 'name', 'image', 'note', 'primary_location')
-
-
-
+        only_fields = ('id', 'name', 'image', 'note', 'primary_location', 'email')

@@ -2,13 +2,20 @@
 # Commitment: A planned economic event or transfer that has been promised by an agent to another agent.
 #
 
-
+import jwt
 import graphene
+from django.conf import settings
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+
 from graphene_django.types import DjangoObjectType
+
 
 import valuenetwork.api.types as types
 from valuenetwork.api.types.QuantityValue import Unit, QuantityValue
-from valuenetwork.valueaccounting.models import Commitment as CommitmentProxy
+from valuenetwork.api.schemas.Auth import _authUser
+from valuenetwork.valueaccounting.models import Commitment as CommitmentProxy, AgentUser
 from valuenetwork.api.models import formatAgent, Person, Organization, QuantityValue as QuantityValueProxy, Fulfillment as FulfillmentProxy
 
 
@@ -36,11 +43,16 @@ class Commitment(DjangoObjectType):
         model = CommitmentProxy
         only_fields = ('id')
 
-    fulfilled_by = graphene.List(lambda: types.Fulfillment)
+    fulfilled_by = graphene.List(lambda: types.Fulfillment,
+                                 request_distribution=graphene.Boolean())
 
     involved_agents = graphene.List(lambda: types.Agent)
 
     is_deletable = graphene.Boolean()
+
+    user_is_authorized_to_update = graphene.Boolean()
+
+    user_is_authorized_to_delete = graphene.Boolean()
 
     #def resolve_process(self, args, *rargs):
     #    return self.process
@@ -77,6 +89,9 @@ class Commitment(DjangoObjectType):
 
     def resolve_fulfilled_by(self, args, context, info):
         events = self.fulfillment_events.all()
+        request_distribution = args.get('request_distribution')
+        if request_distribution != None:
+            events = events.filter(is_contribution=request_distribution)
         fulfillments = []
         for event in events:
             fulfill = FulfillmentProxy(
@@ -99,3 +114,15 @@ class Commitment(DjangoObjectType):
 
     def resolve_is_deletable(self, args, *rargs):
         return self.is_deletable()
+
+    def resolve_user_is_authorized_to_update(self, args, context, *rargs):
+        token = rargs[0].variable_values['token']
+        context.user = _authUser(token)
+        user_agent = AgentUser.objects.get(user=context.user).agent
+        return user_agent.is_authorized(object_to_mutate=self)
+
+    def resolve_user_is_authorized_to_delete(self, args, context, *rargs):
+        token = rargs[0].variable_values['token']
+        context.user = _authUser(token)
+        user_agent = AgentUser.objects.get(user=context.user).agent
+        return user_agent.is_authorized(object_to_mutate=self)

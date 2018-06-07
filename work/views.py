@@ -364,9 +364,6 @@ def share_payment(request, agent_id):
             )
         transfer_membership.save()
 
-        # network_fee is subtracted from quantity
-        # so quantity is correct for the giving event
-        # but receiving event will get quantity - network_fee
         state =  "new"
         resource = agent_account
         event = EconomicEvent(
@@ -386,10 +383,12 @@ def share_payment(request, agent_id):
             event = event,
             tx_state = state,
             to_address = address_end,
+            amount = quantity,
+            minus_fee = True,
         )
         fairtx.save()
 
-        quantity = quantity - Decimal(float(network_fee) / 1.e6)
+
 
         event = EconomicEvent(
             event_type = et_receive,
@@ -408,6 +407,8 @@ def share_payment(request, agent_id):
             event = event,
             tx_state = state,
             to_address = address_end,
+            amount = quantity,
+            minus_fee = True,
         )
         fairtx.save()
 
@@ -741,6 +742,7 @@ def members_agent(request, agent_id):
         skills = EconomicResourceType.objects.filter(behavior="work")
         arts = agent.resource_types.filter(event_type=et_work)
         agent.skills = []
+        agent.suggested_skills = []
         if agent.user():
             user = agent.user().user
             suggestions = user.skill_suggestion.all()
@@ -6732,7 +6734,8 @@ def plan_work(request, rand=0):
                 start_date=start_date,
                 process_pattern=selected_pattern,
                 created_by=request.user,
-                context_agent=selected_context_agent
+                context_agent=selected_context_agent,
+                plan=demand,
             )
             process.save()
 
