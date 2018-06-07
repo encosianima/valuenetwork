@@ -872,11 +872,14 @@
                   {% endif %}
                   </h4>
                   <ul>
+                      <div>
                     {% for assoc in has_associations %}
-                        {% ifchanged assoc.association_type and assoc.state %}
+                        {% ifchanged assoc.association_type and assoc.state %}</div>
                             <h4>{% if not assoc.state == 'active' %}{% trans "has candidates" %}{% else %}
-                                {{ assoc.association_type.inverse_label }}{% endif %}: </h4>
+                                {{ assoc.association_type.inverse_label }}{% endif %}: <span class="showhide" style="font-size:0.9em" id="sh-assoc_{{ assoc.association_type }}_{{ assoc.state }}" >{% trans "(SHOW)" %}</span> </h4> <div class="list" id="list-assoc_{{ assoc.association_type }}_{{ assoc.state }}">
                         {% endifchanged %}
+
+
                         {% if user_agent in agent.managers and not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
                             {% with assoc.is_associate.membership_request_id as id %}
@@ -907,7 +910,10 @@
                         {% elif not assoc.state == "inactive" and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a> {% if assoc.state == "inactive" %}{% trans "(inactive)" %}{% endif %}</li>
                         {% endif %}
+
+
                     {% endfor %}
+
                   </ul>
               {% endif %}
 
@@ -1029,7 +1035,7 @@
           var id = event.target.id;
           var listId = '#list-' + id.split('-')[1];
           $(listId).slideToggle(200);
-          $(this).text($(this).text() == 'HIDE' ? 'SHOW' : 'HIDE');
+          $(this).text($(this).text() == {% trans '(HIDE)' %} ? {% trans '(SHOW)' %} : {% trans '(HIDE)' %});
         });
 
         /*var ObjChosSingle = {
