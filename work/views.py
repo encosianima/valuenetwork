@@ -1384,8 +1384,9 @@ def joinaproject_request(request, form_slug = False):
               # no slug?
               pass
 
-    kwargs = {'initial': {'fobi_initial_data':form_slug} }
-    fobi_form = FormClass(**kwargs)
+    else:
+        kwargs = {'initial': {'fobi_initial_data':form_slug} }
+        fobi_form = FormClass(**kwargs)
 
     return render(request, "work/joinaproject_request.html", {
         "help": get_help("work_join_request"),
@@ -1766,14 +1767,16 @@ def join_requests(request, agent_id):
 
     if fobi_slug and requests:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
-        req = requests.last()
-        if req.fobi_data and req.fobi_data.pk:
-            req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
-            entry = req.entries[0]
-            form_headers = json.loads(entry.form_data_headers)
-            for val in form_headers:
-                fobi_headers.append(form_headers[val])
-                fobi_keys.append(val)
+        #req = requests.last()
+        for req in requests:
+            if req.fobi_data and req.fobi_data.pk:
+                req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
+                entry = req.entries[0]
+                form_headers = json.loads(entry.form_data_headers)
+                for val in form_headers:
+                    fobi_headers.append(form_headers[val])
+                    fobi_keys.append(val)
+                break
 
         for req in requests:
             if not req.agent and req.requested_username:
@@ -6924,7 +6927,7 @@ def my_history(request): # tasks history
     if agent == user_agent:
         user_is_agent = True
     #event_list = agent.contributions()
-    event_list = agent.given_events.all()
+    event_list = agent.given_events.all().filter(event_type__relationship = "work")
     no_bucket = 0
     with_bucket = 0
     event_value = Decimal("0.0")

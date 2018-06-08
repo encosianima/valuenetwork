@@ -16,9 +16,10 @@ class SkillSuggestionAdmin(admin.ModelAdmin):
 admin.site.register(SkillSuggestion, SkillSuggestionAdmin)
 
 class JoinRequestAdmin(admin.ModelAdmin):
-    list_display = ('name', 'state', 'project', 'agent',)
+    list_display = ('id', 'name', 'state', 'project', 'agent',)
     #fields = ('name', 'state', 'project', 'agent',)
     #list_editable = ['state',]
+    list_filter = ['project']
 
 admin.site.register(JoinRequest, JoinRequestAdmin)
 

@@ -326,12 +326,13 @@ form.action-form {
 {% block extra_body %}
     {{ block.super }}
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
-	$(document).ready(function(){
+  $(document).ready(function(){
 
     $(".tog").change(function(){
-            this.form.submit();
+        $('.table-condensed').attr('style', 'pointer-events:none; opacity:0.5; width:100%;');
+        $('form#stateForm').submit();
     });
 
     $('.fobi').each(function(e) {
