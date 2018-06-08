@@ -1766,14 +1766,16 @@ def join_requests(request, agent_id):
 
     if fobi_slug and requests:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
-        req = requests.last()
-        if req.fobi_data and req.fobi_data.pk:
-            req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
-            entry = req.entries[0]
-            form_headers = json.loads(entry.form_data_headers)
-            for val in form_headers:
-                fobi_headers.append(form_headers[val])
-                fobi_keys.append(val)
+        #req = requests.last()
+        for req in requests:
+            if req.fobi_data and req.fobi_data.pk:
+                req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
+                entry = req.entries[0]
+                form_headers = json.loads(entry.form_data_headers)
+                for val in form_headers:
+                    fobi_headers.append(form_headers[val])
+                    fobi_keys.append(val)
+                break
 
         for req in requests:
             if not req.agent and req.requested_username:
