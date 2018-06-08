@@ -6300,8 +6300,7 @@ def my_history(request): # tasks history
     if agent == user_agent:
         user_is_agent = True
     #event_list = agent.contributions()
-    events = agent.given_events.all()
-    event_list = [e for e in events if e.event_type.relationship == "work"]
+    event_list = agent.given_events.all().filter(event_type__relationship = "work")
     no_bucket = 0
     with_bucket = 0
     event_value = Decimal("0.0")
