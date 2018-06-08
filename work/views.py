@@ -1384,8 +1384,9 @@ def joinaproject_request(request, form_slug = False):
               # no slug?
               pass
 
-    kwargs = {'initial': {'fobi_initial_data':form_slug} }
-    fobi_form = FormClass(**kwargs)
+    else:
+        kwargs = {'initial': {'fobi_initial_data':form_slug} }
+        fobi_form = FormClass(**kwargs)
 
     return render(request, "work/joinaproject_request.html", {
         "help": get_help("work_join_request"),
