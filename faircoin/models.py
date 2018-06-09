@@ -27,8 +27,8 @@ class FaircoinTransaction(models.Model):
     tx_hash = models.CharField(_("Faircoin Transaction Hash"), max_length=96, blank=True, null=True, editable=False)
     tx_state = models.CharField(_('Faircoin Transaction State'), max_length=12, choices=TX_STATE_CHOICES, blank=True, null=True)
     to_address = models.CharField(_('To Address'), max_length=128, blank=True, null=True)
-    amount = models.DecimalField(_('Quantity'), max_digits=16, decimal_places=8)
-    minus_fee = models.BooleanField('Substract fee to total')
+    amount = models.DecimalField(_('Quantity'), max_digits=16, decimal_places=8, default=0)
+    minus_fee = models.BooleanField('Substract fee to total', default=False)
 
     def is_old_blockchain(self):
         fc2_launch_date = date(2017, 7, 18)
