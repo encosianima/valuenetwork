@@ -15,6 +15,7 @@ from django.template.defaultfilters import slugify
 import json as simplejson
 from django.db.models.functions import Lower
 from django.conf import settings
+from django.urls import reverse
 
 from faircoin import utils as faircoin_utils
 from easy_thumbnails.fields import ThumbnailerImageField
@@ -565,7 +566,7 @@ class EconomicAgent(models.Model):
             return False
         if context_agent not in self.is_member_of():
             return False
-        if object_to_mutate: 
+        if object_to_mutate:
             if object_to_mutate.pk: #update or delete
                 if type(object_to_mutate) is EconomicEvent:
                     if object_to_mutate.created_by == user:
@@ -770,18 +771,22 @@ class EconomicAgent(models.Model):
             return False
 
     def is_participant(self):
-        fcaas = None
-        if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
-          reqs = self.joinaproject_requests()
-          if reqs:
-            for req in reqs:
-              fcaas = self.is_associate_of.filter(
+        fcaas = self.is_associate_of.filter(
                 association_type__association_behavior="member",
-                has_associate=req.project.agent,
+                #has_associate=req.project.agent,
                 state="active")
-              if fcaas:
-                break
-                return True
+
+        #if not self.is_active_freedom_coop_member() and self.joinaproject_requests():
+        #  reqs = self.joinaproject_requests()
+        #  if reqs:
+        #    for req in reqs:
+        #      aas = self.is_associate_of.filter(
+        #        association_type__association_behavior="member",
+        #        has_associate=req.project.agent,
+        #        state="active")
+        #      if aas:
+        #        break
+        #        return True
         if fcaas:
             return True
         else:
@@ -834,13 +839,13 @@ class EconomicAgent(models.Model):
         ps = self.processes.all()
         oset = {p.independent_demand() for p in ps if p.independent_demand()}
         return list(oset)
-        
+
     def planned_orders(self):
         return [o for o in self.orders() if o.kanban_state() == "planned"]
-        
+
     def doing_orders(self):
         return [o for o in self.orders() if o.kanban_state() == "doing"]
-        
+
     def finished_orders(self):
         return [o for o in self.orders() if o.kanban_state() == "done"]
 
@@ -861,10 +866,10 @@ class EconomicAgent(models.Model):
 
     def contributions(self):
         return self.given_events.filter(is_contribution=True)
-    
+
     def involved_in_events(self):
         return EconomicEvent.objects.filter(Q(from_agent=self)|Q(to_agent=self)|Q(context_agent=self))
-    
+
     def involved_in_commitments(self):
         return Commitment.objects.filter(Q(from_agent=self)|Q(to_agent=self)|Q(context_agent=self))
 
@@ -941,7 +946,7 @@ class EconomicAgent(models.Model):
         plans = self.all_plans()
         closed_plans = []
         for plan in plans:
-            if not plan.has_open_processes(): 
+            if not plan.has_open_processes():
                 closed_plans.append(plan)
         return closed_plans
 
@@ -949,7 +954,7 @@ class EconomicAgent(models.Model):
         plans = self.all_plans()
         open_plans = []
         for plan in plans:
-            if plan.has_open_processes(): 
+            if plan.has_open_processes():
                 open_plans.append(plan)
         return open_plans
 
@@ -1123,9 +1128,10 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
@@ -1145,15 +1151,18 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
                     if not 'faircoins' in ag.project.services():
                         noneed.append(ag)
+                else:
+                    noneed.append(ag)
             except:
                 pass
         if len(ags)-add == len(noneed):
@@ -1167,15 +1176,18 @@ class EconomicAgent(models.Model):
         resp = True
         ags = self.related_contexts()
         add = 0
-        if not self in ags:
-            add = 1
-            ags.append(self)
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
         noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
                     if not 'exchanges' in ag.project.services():
                         noneed.append(ag)
+                else:
+                    noneed.append(ag)
             except:
                 pass
         if len(ags)-add == len(noneed):
@@ -1187,12 +1199,60 @@ class EconomicAgent(models.Model):
     def need_projects(self):
         resp = True
         ags = self.related_contexts()
+        if self in ags and len(ags) > 1:
+            ags.remove(self)
         if ags and len(ags) < 2: # only one project
             if ags[0].project and ags[0].project.services():
                 if not 'projects' in ags[0].project.services():
                     resp = False
+        #import pdb; pdb.set_trace()
         return resp
 
+    def need_tasks(self):
+        resp = True
+        ags = self.related_contexts()
+        add = 0
+        if self.is_context and self in ags:
+            if len(ags) > 1:
+                add = 1
+            #ags.append(self)
+        noneed = []
+        for ag in ags:
+            try:
+                if ag.project and ag.project.services():
+                    if not 'tasks' in ag.project.services():
+                        noneed.append(ag)
+                #else:
+                #    noneed.append(ag)
+            except:
+                pass
+        if len(ags)-add == len(noneed):
+            resp = False
+        if self in noneed:
+            resp = False
+        if not self.is_participant():
+            resp = False
+        return resp
+
+    def need_multicurrency(self):
+        resp = False
+        ags = self.related_contexts()
+        add = 0
+        if self.is_context and not self in ags:
+            ags.append(self)
+        need = []
+        for ag in ags:
+            try:
+                if ag.project and ag.project.services():
+                    if 'multicurrency' in ag.project.services():
+                        need.append(ag)
+            except:
+                pass
+        if len(need):
+            resp = True
+
+        #import pdb; pdb.set_trace()
+        return resp
 
     def invoicing_candidates(self):
         ctx = self.related_contexts()
@@ -1414,8 +1474,23 @@ class EconomicAgent(models.Model):
         return EconomicAgent.objects.filter(pk__in=agent_ids)
 
     def participants(self): #returns a list or None
-        agent_ids = self.has_associates.filter(association_type__association_behavior="member").filter(state="active").values_list('is_associate')
+        both = ["member","manager"]
+        agent_ids = self.has_associates.filter(association_type__association_behavior__in=both).filter(state="active").values_list('is_associate')
         return EconomicAgent.objects.filter(pk__in=agent_ids)
+
+    def candidates(self):
+        agents = None
+        if self.project and self.project.join_requests:
+            agent_ids = self.project.join_requests.filter(state='new').values_list('agent')
+            agents = EconomicAgent.objects.filter(pk__in=agent_ids)
+        return agents
+
+    def declined_agents(self):
+        agents = None
+        if self.project and self.project.join_requests:
+            agent_ids = self.project.join_requests.filter(state='declined').values_list('agent')
+            agents = EconomicAgent.objects.filter(pk__in=agent_ids)
+        return agents
 
     #def affiliates(self):
     #    agent_ids = self.has_associates.filter(association_type__identifier="affiliate").filter(state="active").values_list('is_associate')
@@ -2413,8 +2488,8 @@ class EconomicResourceType(models.Model):
     def category(self):
         if (self.behavior == "other"
             or self.behavior == "consumed"
-            or self.behavior == "used" 
-            or self.behavior == "produced" 
+            or self.behavior == "used"
+            or self.behavior == "produced"
             or self.behavior == "cited"):
             return "INVENTORY"
         elif self.behavior == "work":
@@ -2425,8 +2500,8 @@ class EconomicResourceType(models.Model):
     @property
     def process_category(self):
         if (self.behavior ==  "consumed"
-            or self.behavior == "used" 
-            or self.behavior == "produced" 
+            or self.behavior == "used"
+            or self.behavior == "produced"
             or self.behavior == "cited"):
             return self.behavior
         else:
@@ -2867,6 +2942,8 @@ class EconomicResourceType(models.Model):
         return order
 
     def generate_staged_work_order_from_resource(self, resource, order_name, start_date, user):
+        if not start_date: # fix tests error
+            start_date = datetime.date.today()
         #pr changed
         pts, inheritance = self.staged_process_type_sequence()
         order = Order(
@@ -3984,7 +4061,7 @@ class Order(models.Model):
             due_label,
             self.due_date.strftime('%Y-%m-%d'),
             ])
-            
+
     def kanban_label(self):
         name = self.name
         if not name:
@@ -3993,17 +4070,17 @@ class Order(models.Model):
                 name = process.name
             else:
                 name = str(self.id)
-                
+
         return "".join(
-            [name, 
+            [name,
             ", due: ",
             self.due_date.strftime('%Y-%m-%d'),
             ])
-            
+
     def number_of_processes(self):
         procs = self.unordered_processes()
         return len(list(procs))
-        
+
 
     @models.permalink
     def get_absolute_url(self):
@@ -4062,7 +4139,7 @@ class Order(models.Model):
 
     #TODO this is a start at something, check if it is still useful
     #assumes the order itself is already saved (adapted from view plan_from_recipe)
-    #def create_order_details_from_recipe_api(self, resource_type_id=None, rt_list_id=None, resource_id=None): 
+    #def create_order_details_from_recipe_api(self, resource_type_id=None, rt_list_id=None, resource_id=None):
     #    resource_types = []
     #    resource_type_lists = []
     #    selected_context_agent = self.provider
@@ -4150,14 +4227,14 @@ class Order(models.Model):
 
     def node_id(self):
         return "-".join(["Order", str(self.id)])
-        
+
     def kanban_state(self):
         if not self.has_open_processes():
             return "done"
         if self.has_started_processes():
             return "doing"
         return "planned"
-        
+
     def timeline_title(self):
         return self.__unicode__()
 
@@ -4178,15 +4255,13 @@ class Order(models.Model):
 
     def work_requirements(self):
         return []
-        
+
     def naming_process(self):
         procs = self.all_processes()
+        if not procs:
+            procs = list(self.unordered_processes())
         if len(procs) == 1:
             return procs.pop()
-        else:
-            procs = self.unordered_processes()
-            if procs.count() == 1:
-                return procs[0]
         return None
 
     def process(self): #todo: should this be on order_item?
@@ -4414,7 +4489,7 @@ class Order(models.Model):
                 answer = True
                 break
         return answer
-        
+
     def has_started_processes(self):
         answer = False
         processes = self.unordered_processes()
@@ -4974,7 +5049,7 @@ class EconomicResourceManager(models.Manager):
 
     def onhand(self):
         return EconomicResource.objects.filter(quantity__gt=0)
-    
+
     def all_economic_resources(self):
         return EconomicResource.objects.all()
 
@@ -5077,10 +5152,10 @@ class EconomicResource(models.Model):
 
     @property #ValueFlows
     def category(self):
-        if (self.resource_type.behavior == "other" 
+        if (self.resource_type.behavior == "other"
         or self.resource_type.behavior == "consumed"
-        or self.resource_type.behavior == "used" 
-        or self.resource_type.behavior == "produced" 
+        or self.resource_type.behavior == "used"
+        or self.resource_type.behavior == "produced"
         or self.resource_type.behavior == "cited"):
             return "INVENTORY"
         if self.resource_type.behavior == "work":
@@ -6779,7 +6854,8 @@ class ProcessTypeResourceType(models.Model):
 
     def create_commitment_for_process(self, process, user, inheritance):
         #pr changed
-        if self.event_type.relationship == "out":
+        #changed for work commitment.due_date
+        if self.event_type.relationship == "out" or self.event_type.is_work():
             due_date = process.end_date
         else:
             due_date = process.start_date
@@ -7001,6 +7077,12 @@ class Process(models.Model):
         return ('process_details', (),
             { 'process_id': str(self.id),})
 
+    def get_notification_url(self):
+        if 'work.apps.WorkAppConfig' in settings.INSTALLED_APPS:
+            return reverse('process_logging', kwargs={ 'process_id': str(self.id)})
+        else:
+            return reverse('process_details', kwargs={ 'process_id': str(self.id)})
+
     def save(self, *args, **kwargs):
         pt_name = ""
         if self.process_type:
@@ -7034,9 +7116,15 @@ class Process(models.Model):
     def save_api(self):
         self.save()
         for ct in self.incoming_commitments():
-            if ct.due_date != self.start_date:
-                ct.due_date = self.start_date
-                ct.save()
+            #changed for work commitment.due_date
+            if ct.is_work():
+                if ct.due_date != self.end_date:
+                    ct.due_date = self.end_date
+                    ct.save()
+            else:
+                if ct.due_date != self.start_date:
+                    ct.due_date = self.start_date
+                    ct.save()
         for ct in self.outgoing_commitments():
             if ct.due_date != self.end_date:
                 ct.due_date = self.end_date
@@ -7049,15 +7137,15 @@ class Process(models.Model):
     @property #ValueFlows
     def planned_duration(self):
         return self.end_date - self.start_date
-    
+
     #@property #ValueFlows
     #def numeric_duration(self):
     #    return self.end_date - self.start_date #TODO get in tune with VF, get VF resolved
-    
+
     #@property #ValueFlows
     #def temporal_unit(self):
     #    return "Days" #TODO get in tune with VF, get VF resolved
-    
+
     @property #ValueFlows
     def is_finished(self):
         return self.finished
@@ -7087,7 +7175,7 @@ class Process(models.Model):
                 rt_selection = "all"
         except:
             rt_selection = "all"
-        #items = 
+        #items =
         #if rt_selection == "project":
         return rt_selection #temp
 
@@ -7468,6 +7556,33 @@ class Process(models.Model):
     def unplanned_work_events(self):
         return self.work_events().filter(commitment__isnull=True)
 
+    def unplanned_work_events_condensed(self):
+        event_list = self.unplanned_work_events()
+        condensed_events = []
+        if event_list:
+            summaries = {}
+            for event in event_list:
+                try:
+                    key = "-".join([
+                        str(event.from_agent.id),
+                        str(event.context_agent.id),
+                        str(event.resource_type.id),
+                        str(event.event_type.id)
+                        ])
+                    if not key in summaries:
+                        summaries[key] = EventSummary(
+                            event.from_agent,
+                            event.context_agent,
+                            event.resource_type,
+                            event.event_type,
+                            Decimal('0.0'))
+                    summaries[key].quantity += event.quantity
+                except AttributeError:
+                    msg = " ".join(["invalid summary key:", key])
+                    assert False, msg
+            condensed_events = summaries.values()
+        return condensed_events
+
     def outputs(self):
         return self.events.filter(
             event_type__relationship='out',
@@ -7549,7 +7664,8 @@ class Process(models.Model):
             to_agent=None,
             order=None,
             ):
-        if event_type.relationship == "out":
+        #changed for work commitment.due_date
+        if event_type.relationship == "out" or event_type.is_work():
             due_date = self.end_date
         else:
             due_date = self.start_date
@@ -8879,7 +8995,7 @@ class Transfer(models.Model):
 
     @property #ValueFlows
     def exchange_agreement(self):
-        #VF does not have an exchange unless it is created ahead of time for reciprocal commitments 
+        #VF does not have an exchange unless it is created ahead of time for reciprocal commitments
         exch = self.exchange
         if exch.has_reciprocal():
             return exch
@@ -9857,10 +9973,17 @@ class Commitment(models.Model):
                         propagators.append(dep)
                         explode = False
                 else:
-                    if dep.due_date == old_ct.process.start_date:
-                        if dep.quantity == old_ct.quantity:
-                            propagators.append(dep)
-                            explode = False
+                    #changed for work commitment.due_date
+                    if dep.is_work():
+                        if dep.due_date == old_ct.process.due_date:
+                            if dep.quantity == old_ct.quantity:
+                                propagators.append(dep)
+                                explode = False
+                    else:
+                        if dep.due_date == old_ct.process.start_date:
+                            if dep.quantity == old_ct.quantity:
+                                propagators.append(dep)
+                                explode = False
         if new_rt != old_rt:
             for ex_ct in old_ct.associated_producing_commitments():
                 if ex_ct.order_item == order_item:
@@ -10187,9 +10310,9 @@ class Commitment(models.Model):
                 unit_string = unit.name
             qty_help = " ".join(["unit:", unit_string, ", up to 2 decimal places"])
         if init:
-            return InputEventAgentForm(qty_help=qty_help, prefix=prefix, initial=init, data=data)
+            return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, prefix=prefix, initial=init, data=data)
         else:
-            return InputEventAgentForm(qty_help=qty_help, prefix=prefix, data=data)
+            return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, prefix=prefix, data=data)
 
     def consumption_event_form(self):
         from valuenetwork.valueaccounting.forms import InputEventForm
@@ -11852,7 +11975,7 @@ class EconomicEvent(models.Model):
         #        old_resource = None
         #    else:
         #        has_new_resource = True
-                
+
         resource = self.resource
         if resource:
             #quantity = delta or self.quantity
@@ -11883,7 +12006,7 @@ class EconomicEvent(models.Model):
                             resource.quantity = resource.quantity + changed_qty
                 else:
                     resource.quantity = resource.quantity + self.quantity
-                resource.save()                
+                resource.save()
                 #resource.quantity += quantity
                 #resource.save()
         else:
@@ -11925,7 +12048,14 @@ class EconomicEvent(models.Model):
                         resource.save()
                     else:
                         resource.revert_to_previous_stage()
-                
+
+    def is_double_validated(self):
+        from validation import models
+        count = self.validations.count()
+        if count > 1:
+            return True
+        else:
+            return False
 
     def due_date(self):
         if self.commitment:
@@ -12591,13 +12721,9 @@ class EconomicEvent(models.Model):
         prefix = self.form_prefix()
         qty_help = "up to 2 decimal places"
         if unit:
-            if unit.unit_type == "time":
-                from valuenetwork.valueaccounting.forms import WorkEventChangeForm
-                return WorkEventChangeForm(instance=self, prefix=prefix, data=data)
-            else:
-                qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
-        from valuenetwork.valueaccounting.forms import InputEventForm
-        return InputEventForm(qty_help=qty_help, instance=self, prefix=prefix, data=data)
+            qty_help = " ".join(["unit:", unit.abbrev, ", up to 2 decimal places"])
+        from valuenetwork.valueaccounting.forms import InputEventAgentForm
+        return InputEventAgentForm(qty_help=qty_help, context_agent=self.context_agent, instance=self, prefix=prefix, data=data)
 
     def change_form_old(self, data=None):
         from valuenetwork.valueaccounting.forms import TimeEventForm, InputEventForm

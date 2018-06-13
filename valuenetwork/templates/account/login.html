@@ -75,19 +75,16 @@ body {
 	<td width="50%" class="register-block">
           <h3>{% trans "Request Membership" %}</h3>
 	  <p>{% trans "The first step to become a member of Freedom Coop and use OCP, is to fill the following membership form:" %}</p>
-	  <h4><a class="btn" href="{% url 'membership_request' %}">{% trans "Join FreedomCoop" %}</a></h4>
+	  <h4><a class="btn" href="{% url 'membership_request' %}" id="join-page-but">{% trans "Join FreedomCoop" %}</a></h4>
           </h3>
         </td>
         <td width="50%" class="login-block">
           <h3>{% trans "Log in to the OCP" %}</h3>
 	  <p>{% trans "If you already did it, and have user and password, login here." %}</p>
           <div class="log">
-            <form method="POST" action="{% url "account_login" %}" autocapitalize="off" class="form-horizontal"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
+            <form method="POST" action="{{ request.get_full_path }}" autocapitalize="off" class="form-horizontal"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
                 {% csrf_token %}
                 {{ form|as_bootstrap }}
-                {% if redirect_field_value %}
-                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-                {% endif %}
                 <div class="form-actions">
                     <a href="{% url "account_password_reset" %}" class="forgot-pass">{% trans "Forgot your password?" %}</a>
                     <button type="submit" class="btn btn-primary">{% trans "Log in" %}</button>

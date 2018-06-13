@@ -334,13 +334,14 @@ class JoinRequest(models.Model):
         help_text=_("this join request is for joining this Project"))
 
     request_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    type_of_user = models.CharField(_('Type of user'),
+    type_of_user = models.CharField(_('Type of user *'),
         max_length=12, choices=USER_TYPE_CHOICES,
-        default="individual")
-    name = models.CharField(_('Name'), max_length=255)
+        default="individual",
+        help_text=_("* Required fields"))
+    name = models.CharField(_('Name *'), max_length=255)
     surname = models.CharField(_('Surname (for individual join requests)'), max_length=255, blank=True)
-    requested_username = models.CharField(_('Requested username'), max_length=32, help_text=_("If you have already an account in OCP, you can put the same username to have this project in the same account, or you can choose another username to have it separate."))
-    email_address = models.EmailField(_('Email address'), max_length=96,)
+    requested_username = models.CharField(_('Username *'), max_length=32, help_text=_("If you have already an account in OCP, you can put the same username to have this project in the same account, or you can choose another username to have it separate."))
+    email_address = models.EmailField(_('Email address *'), max_length=96,)
     #    help_text=_("this field is optional, but we can't contact you via email without it"))
     phone_number = models.CharField(_('Phone number'), max_length=32, blank=True, null=True)
     address = models.CharField(_('Town/Region where you are based'), max_length=255, blank=True, null=True)

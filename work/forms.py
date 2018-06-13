@@ -191,7 +191,8 @@ class AssociationForm(forms.Form):
     new_association_type = forms.ModelChoiceField(
         queryset=AgentAssociationType.objects.member_types(),
         label=_("Choose a new relationship"),
-        empty_label=None,
+        empty_label=_("------ (inactive)"),
+        required=False,
         widget=forms.Select(
             attrs={'class': 'chzn-select'}),
     )
@@ -1408,3 +1409,31 @@ class InvoiceNumberForm(forms.ModelForm):
     def __init__(self, agent, *args, **kwargs):
         super(InvoiceNumberForm, self).__init__(*args, **kwargs)
         self.fields["member"].queryset = agent.invoicing_candidates()
+
+
+#   V A L U E   E Q U A T I O N
+
+class VESandboxForm(forms.Form):
+    #value_equation = forms.ModelChoiceField(
+    #    queryset=ValueEquation.objects.all(),
+    #    label=_("Value Equation"),
+    #    empty_label=None,
+    #    widget=forms.Select(
+    #        attrs={'class': 've-selector'}))
+    amount_to_distribute = forms.DecimalField(required=False,
+        widget=forms.TextInput(attrs={'value': '0.00', 'class': 'money quantity input-small'}))
+
+class VEForm(forms.ModelForm):
+    #context_agent = forms.ModelChoiceField(
+    #    queryset=EconomicAgent.objects.context_agents(),
+    #    required=True,
+    #    empty_label=None,
+    #    widget=forms.Select(attrs={'class': 'chzn-select',}))
+    name = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'input-xlarge required-field',}))
+    description = forms.CharField(required=False,
+        widget=forms.Textarea(attrs={'class': 'item-description',}))
+
+    class Meta:
+        model = ValueEquation
+        fields = ('name', 'description', 'percentage_behavior')
