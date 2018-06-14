@@ -214,7 +214,10 @@ class AssociationForm(forms.Form):
 class JoinRequestForm(forms.ModelForm):
     captcha = CaptchaField(help_text=_("Is a math operation: Please put the result (don't copy the symbols)"))
 
-    project = None
+    project = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput()
+    )
     exchange = None
     '''forms.ModelChoiceField(
         queryset=Project.objects.filter(joining_style='moderated', visibility='public'),
@@ -231,6 +234,7 @@ class JoinRequestForm(forms.ModelForm):
         username = data["requested_username"]
         email = data["email_address"]
         nome = data["name"]
+        projid = data["project"]
         exist_name = EconomicAgent.objects.filter(name=nome)
         exist_user = EconomicAgent.objects.filter(nick=username)
         exist_email = EconomicAgent.objects.filter(email=email)
@@ -238,8 +242,21 @@ class JoinRequestForm(forms.ModelForm):
             self.add_error('name', _("The name is already used by user: ")+str(exist_name[0].nick))
         if len(exist_user) > 0:
             self.add_error('requested_username', _("The username already exists. Please login before filling this form or choose another username."))
+        else:
+            exist_request = JoinRequest.objects.filter(requested_username=username) #, project=projid)
+            if len(exist_request) > 0:
+                self.add_error('requested_username', _("This username is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(len(exist_request))+' pro:'+str(projid))
+
         if len(exist_email) > 0:
-            self.add_error('email_address', _("The email is already in the system for username: ")+str(exist_email[0].nick))
+            self.add_error('email_address', _("The email address is already registered in the system for the username: ")+str(exist_email[0].nick))
+        else:
+            exist_request = JoinRequest.objects.filter(email_address=email, project=projid)
+            if len(exist_request) > 0:
+                self.add_error('email_address', _("This email address is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(len(exist_request))+' pro:'+str(projid))
+
+
+
+        #print "- projid: "+str(projid)
         #type_of_user = data["type_of_user"]
         #number_of_shares = data["number_of_shares"]
         #if type_of_user == "collective":
@@ -252,6 +269,10 @@ class JoinRequestForm(forms.ModelForm):
         for name, value in self.cleaned_data.items():
             self.cleaned_data[name] = bleach.clean(value)
 
+    def __init__(self, project=None, *args, **kwargs):
+        super(JoinRequestForm, self).__init__(*args, **kwargs)
+        if project:
+            self.fields['project'].initial = project.id
 
 
 class JoinRequestInternalForm(forms.ModelForm):

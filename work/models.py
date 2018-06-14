@@ -1249,7 +1249,7 @@ class JoinRequest(models.Model):
                         content_type=con_typ,
                         object_pk=self.pk,
                         user_name=self.project.agent.nick,
-                        user_email=self.project.agent.email_address,
+                        user_email=self.project.agent.email,
                         submit_date=datetime.date.today(),
                         comment=_("%(pass)s is the initial random password for user %(user)s, used to verify the email address %(mail)s") % {'pass': password, 'user': username, 'mail': email},
                         site=Site.objects.get_current()

@@ -88,16 +88,20 @@ form.action-form {
                                         <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
                                   </form>
                                 {% endif %}
-                                {% if project.share_types %}
-                                  {% trans "Shares:" %}
-                                  {% if req.pending_shares %}
-                                      <span class="error">{% trans "Pending" %}</span>
-                                  {% elif req.fobi_data %}
-                                      <span class="complete">{% trans "Acquired" %}</span>
+                                {% if req.check_user_pass %}
+                                    <span class="error">{% trans "Not Valid yet!" %}</span>&nbsp;
+                                {% elif project.share_types and req.fobi_data %}
+                                  {% if req.agent %}
+                                      {% trans "Shares:" %}
+                                      {% if req.pending_shares %}
+                                          <span class="error">{% trans "Pending" %}</span>
+                                      {% elif req.fobi_data %}
+                                          <span class="complete">{% trans "Acquired" %}</span>
+                                      {% endif %}
                                   {% endif %}
                                   {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
                                   {% else %}
-                                    {% if not req.payment_option.key == 'ccard' %}
+                                    {% if not req.payment_option.key == 'ccard' and req.agent %}
                                       <form
                                           class="action-form"
                                           id="status-form{{ req.id }}"
@@ -109,10 +113,10 @@ form.action-form {
                                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
                                       </form>
                                     {% endif %}
-                                    {% if request.user.is_superuser and req.exchange_type %}
-                                        <span class="help-text"><br />ET: {{ req.exchange_type }}
-                                            <!-- <br />AccT: {{ req.payment_account_type }}
-                                            <br />UT: {{ req.payment_unit }} RT: {{ req.payment_unit_rt }} -->
+                                    {% if False and request.user.is_superuser and req.exchange_type %}
+                                        <span class="help-text" style="font-size:0.8em"><!-- <br />ET: {{ req.exchange_type }} -->
+                                            <!-- <br />AccT: {{ req.payment_account_type }} -->
+                                            <br />UT: {{ req.payment_unit }} RT: {{ req.payment_unit_rt }}
                                         </span>
                                     {% endif %}
                                   {% endif %}
@@ -167,7 +171,7 @@ form.action-form {
                                         {% csrf_token %}
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
                                     </form>
-                                {% else %}
+                                {% elif req.fobi_data %}
                                   {% if req.agent %}
                                     {% if not req.pending_shares or not project.share_types %}
                                       <form
@@ -322,12 +326,13 @@ form.action-form {
 {% block extra_body %}
     {{ block.super }}
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
-	$(document).ready(function(){
+  $(document).ready(function(){
 
     $(".tog").change(function(){
-            this.form.submit();
+        $('.table-condensed').attr('style', 'pointer-events:none; opacity:0.5; width:100%;');
+        $('form#stateForm').submit();
     });
 
     $('.fobi').each(function(e) {

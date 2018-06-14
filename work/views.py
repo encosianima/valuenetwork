@@ -1149,7 +1149,6 @@ def joinaproject_request(request, form_slug = False):
     if form_slug and form_slug == 'freedom-coop':
         return redirect('membership_request')
 
-    join_form = JoinRequestForm(data=request.POST or None)
     fobi_form = False
     cleaned_data = False
     form = False
@@ -1164,6 +1163,8 @@ def joinaproject_request(request, form_slug = False):
 
         if not project or project.visibility != "public": # or not user_agent:
             return HttpResponseRedirect('/%s/' % ('home'))
+
+        join_form = JoinRequestForm(data=request.POST or None, project=project)
 
         fobi_slug = project.fobi_slug
         form_entry = None
@@ -1216,7 +1217,7 @@ def joinaproject_request(request, form_slug = False):
 
             jn_req = join_form.save(commit=False)
             jn_req.project = project
-            jn_req.save()
+
 
             #request.POST._mutable = True
             #request.POST['join_request'] = str(jn_req.pk)
@@ -1293,99 +1294,99 @@ def joinaproject_request(request, form_slug = False):
                     saved_data = json.dumps(cleaned_data)
                     )
                 saved_form_data_entry.save()
-                jn_req = JoinRequest.objects.get(pk=jn_req.pk)
+                #jn_req = JoinRequest.objects.get(pk=jn_req.pk)
                 jn_req.fobi_data = saved_form_data_entry
                 #messages.info(
                 #    request,
                 #    _("JoinRequest {0} was submitted successfully. {1}").format(jn.fobi_data, saved_form_data_entry.pk)
                 #)
-                jn_req.save()
+                if jn_req.fobi_data:
+                    jn_req.save()
 
-            # add relation candidate
-            #ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
-            #if ass_type:
-            #    fc_aa = AgentAssociation(
-            #        is_associate=jn_req.agent,
-            #        has_associate=jn_req.project.agent,
-            #        association_type=ass_type,
-            #        state="potential",
-            #        )
-            #    fc_aa.save()
 
-            event_type = EventType.objects.get(relationship="todo")
-            join_url = get_url_starter(request) + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
-            context_agent = jn_req.project.agent #EconomicAgent.objects.get(name__icontains="Membership Request")
+                    event_type = EventType.objects.get(relationship="todo")
+                    join_url = get_url_starter(request) + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
+                    context_agent = jn_req.project.agent
 
-            if jn_req.payment_url(): # its a credit card payment, create the user and the agent
+                    if jn_req.payment_url(): # its a credit card payment, create the user and the agent
 
-                password = jn_req.create_useragent_randompass(request or None)
-                description = "Check the automatically created Agent and User for the Join Request of "
-                description += name+' '
-                description += "with random password: "+password
+                        password = jn_req.create_useragent_randompass(request or None)
+                        description = "Check the automatically created Agent and User for the Join Request of "
+                        description += name+' '
+                        description += "with random password: "+password
+
+                    else:
+                        description = "Create an Agent and User for the Join Request from "
+                        description += name
+
+                    resource_types = EconomicResourceType.objects.filter(behavior="work")
+                    rts = resource_types.filter(
+                        Q(name__icontains="Admin")|
+                        Q(name__icontains="Coop")|
+                        Q(name__icontains="Work"))
+                    if rts:
+                        rt = rts[0]
+                    else:
+                        rt = resource_types[0]
+
+                    task = Commitment(
+                        event_type=event_type,
+                        description=description,
+                        resource_type=rt,
+                        context_agent=context_agent,
+                        url=join_url,
+                        due_date=datetime.date.today(),
+                        quantity=Decimal("1")
+                        )
+                    task.save()
+
+
+                    if notification:
+                        managers = jn_req.project.agent.managers()
+                        users = []
+                        for manager in managers:
+                          if manager.user():
+                            users.append(manager.user().user)
+                        if users:
+                            site_name = get_site_name(request)
+                            notification.send(
+                                users,
+                                "work_join_request",
+                                {"name": name,
+                                "surname": surname,
+                                "type_of_user": type_of_user,
+                                "description": description,
+                                "site_name": site_name,
+                                "join_url": join_url,
+                                "context_agent": context_agent,
+                                "request_host": request.get_host(),
+                                }
+                            )
+
+                    return render(request, "work/joinaproject_thanks.html", {
+                        "project": project,
+                        "jn_req": jn_req,
+                        #"existuser": existuser,
+                        #"existemail": existemail,
+                        #"login_form": login_form
+                        #"fobi_form": fobi_form,
+                        #"field_map": field_name_to_label_map,
+                        #"post": escapejs(json.dumps(request.POST)),
+                    })
+                else:
+                    # no fobi data?
+                    pass
+              else:
+                # fobi errors
+                pass
 
             else:
-                description = "Create an Agent and User for the Join Request from "
-                description += name
+              # no slug?
+              pass
 
-            resource_types = EconomicResourceType.objects.filter(behavior="work")
-            rts = resource_types.filter(
-                Q(name__icontains="Admin")|
-                Q(name__icontains="Coop")|
-                Q(name__icontains="Work"))
-            if rts:
-                rt = rts[0]
-            else:
-                rt = resource_types[0]
-
-            task = Commitment(
-                event_type=event_type,
-                description=description,
-                resource_type=rt,
-                context_agent=context_agent,
-                url=join_url,
-                due_date=datetime.date.today(),
-                quantity=Decimal("1")
-                )
-            task.save()
-
-
-            if notification:
-                managers = jn_req.project.agent.managers()
-                users = []
-                for manager in managers:
-                  if manager.user():
-                    users.append(manager.user().user)
-                if users:
-                    site_name = get_site_name(request)
-                    notification.send(
-                        users,
-                        "work_join_request",
-                        {"name": name,
-                        "surname": surname,
-                        "type_of_user": type_of_user,
-                        "description": description,
-                        "site_name": site_name,
-                        "join_url": join_url,
-                        "context_agent": context_agent,
-                        "request_host": request.get_host(),
-                        }
-                    )
-
-            return render(request, "work/joinaproject_thanks.html", {
-                "project": project,
-                "jn_req": jn_req,
-                #"existuser": existuser,
-                #"existemail": existemail,
-                #"login_form": login_form
-                #"fobi_form": fobi_form,
-                #"field_map": field_name_to_label_map,
-                #"post": escapejs(json.dumps(request.POST)),
-            })
-            #return HttpResponseRedirect(reverse('joinaproject_thanks', form_slug=project.fobi_slug))
-
-
-    kwargs = {'initial': {'fobi_initial_data':form_slug} }
-    fobi_form = FormClass(**kwargs)
+    else:
+        kwargs = {'initial': {'fobi_initial_data':form_slug} }
+        fobi_form = FormClass(**kwargs)
 
     return render(request, "work/joinaproject_request.html", {
         "help": get_help("work_join_request"),
@@ -1766,14 +1767,16 @@ def join_requests(request, agent_id):
 
     if fobi_slug and requests:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
-        req = requests.last()
-        if req.fobi_data and req.fobi_data.pk:
-            req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
-            entry = req.entries[0]
-            form_headers = json.loads(entry.form_data_headers)
-            for val in form_headers:
-                fobi_headers.append(form_headers[val])
-                fobi_keys.append(val)
+        #req = requests.last()
+        for req in requests:
+            if req.fobi_data and req.fobi_data.pk:
+                req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
+                entry = req.entries[0]
+                form_headers = json.loads(entry.form_data_headers)
+                for val in form_headers:
+                    fobi_headers.append(form_headers[val])
+                    fobi_keys.append(val)
+                break
 
         for req in requests:
             if not req.agent and req.requested_username:
@@ -1880,6 +1883,8 @@ def confirm_request(request, join_request_id):
         raise ValidationError("This request already has an agent !!!")
     if not jn_req.project:
         raise ValidationError("This request has no project ??!!!")
+    if not jn_req.project.agent.email:
+        raise ValidationError("The project is missing an Email Address !! (needed to send notifications to users)")
     user_agent = get_agent(request)
     if not user_agent in jn_req.project.agent.managers():
         raise ValidationError("You don't have permission to do this !!!")
