@@ -505,7 +505,13 @@
                             </ul>
                             {% if request.user.is_superuser and agent.project.join_requests %}
                                 {% with agent.project.join_requests.all|first as req %}
-                                    <span class="smaller">(AT: {{ req.payment_account_type }})</span>
+                                    {% if req.payment_account_type == agent.project.shares_account_type and agent.project.shares_account_type %}
+                                        <span class="smaller">(AT: {{ agent.project.shares_account_type }})</span>
+                                    {% else %}
+                                        <span class="smaller error">(req AT: {{ req.payment_account_type }})</span>
+                                        <span class="smaller error">(pro AT: {{ agent.project.shares_account_type }})</span>
+                                        <span class="smaller">(KEYS: {{ agent.project.fobi_items_keys }} )</span>
+                                    {% endif %}
                                 {% endwith %}
                             {% endif %}
                             </td>
@@ -525,7 +531,11 @@
                               {% for typ in agent.project.payment_options %}
                                 <li>{{ typ|safe }}</li>
                               {% endfor %}
-                            </ul></td>
+                            </ul>
+                            {% if request.user.is_superuser %}
+                                <span class="smaller">(KEYS: {{ agent.project.active_payment_options_obj }} )</span>
+                            {% endif %}
+                            </td>
                           </tr>
                         {% endif %}
                         {% if agent.project.services %}
