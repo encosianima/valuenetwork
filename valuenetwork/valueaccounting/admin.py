@@ -312,8 +312,9 @@ class EventInline(admin.TabularInline):
 
 class ProcessAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
-    list_display = ('name', 'start_date', 'end_date', 'finished', 'process_type', 'context_agent')
+    list_display = ('name', 'plan', 'start_date', 'end_date', 'finished', 'process_type', 'context_agent')
     list_filter = ['process_type', 'finished', 'context_agent']
+    list_editable = ['plan',]
     search_fields = ['name', 'process_type__name', 'context_agent__name']
     inlines = [ CommitmentInline, EventInline]
 
