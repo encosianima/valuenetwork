@@ -4994,6 +4994,505 @@ def json_ocp_resource_type_resources_with_locations(request, ocp_artwork_type_id
 
 
 
+#    S H A R E S   E X C H A N G E   T Y P E S
+
+
+def create_shares_exchange_types(request, agent_id):
+
+    agent = EconomicAgent.objects.get(id=agent_id)
+    project = agent.project
+    user_agent = get_agent(request)
+    if not user_agent or not project.share_types() or not request.user.is_superuser:
+        return render(request, 'work/no_permission.html')
+
+    # common Exchange Types
+
+    ocpext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
+    usecas = UseCase.objects.get(identifier='intrnl_xfer')
+
+    et_shareco, created = Ocp_Record_Type.objects.get_or_create(
+        name="Shares Economy",
+        parent=ocpext,
+        clas="shares_economy")
+    if created:
+        print "- created Ocp_Record_Type branch: 'Shares Economy'"
+
+    et_sharebuy, created = Ocp_Record_Type.objects.get_or_create(
+        name="shares Buy",
+        parent=et_shareco,
+        clas="buy")
+    if created:
+        print "- created Ocp_Record_Type branch: 'shares Buy'"
+
+    etsh, created = ExchangeType.objects.get_or_create(
+        name="buy Project Shares",
+        use_case=usecas)
+    if created:
+        print "- created ExchangeType: 'buy Project Shares'"
+
+    et_sharebuy.exchange_type = etsh
+    et_sharebuy.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares", name="Shares")
+    et_sharebuy.save()
+
+    ttpay, created = TransferType.objects.get_or_create(
+        name="Payment of the Project shares",
+        exchange_type=etsh,
+        sequence=1,
+        is_currency=True,
+        is_reciprocal=True,
+        #give_agent_is_context=True,
+    )
+    if created:
+        print "- created TransferType: 'Payment of the Project shares'"
+
+    fvmoney = FacetValue.objects.get(value="Money")
+    ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
+        transfer_type=ttpay,
+        facet_value=fvmoney)
+    if created:
+        print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney)
+
+
+    ttshr, created = TransferType.objects.get_or_create(
+        name="Receive the Project shares",
+        sequence=2,
+        exchange_type=etsh,
+        inherit_types=True,
+        #receive_agent_is_context=True,
+    )
+    if created:
+        print "- created TransferType: 'Receive the Project shares'"
+
+    shrfv = FacetValue.objects.get(value="Project Shares")
+    ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
+        transfer_type=ttshr,
+        facet_value=shrfv)
+    if created:
+        print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+
+
+
+    #fobi_keys = project.fobi_items_keys()
+
+    rt = project.shares_account_type()
+    if rt and rt.ocp_artwork_type:
+
+        #  ExchangeType  ->  project
+        extyp, created = ExchangeType.objects.get_or_create(
+            name="buy "+str(project.agent.name)+" Shares",
+            use_case=usecas)
+        if created:
+            print "- created ExchangeType: 'buy "+str(project.agent.name)+" Shares'"
+
+        tts = extyp.transfer_types.all()
+        if len(tts) > 2:
+            #print "The ExchangeType already has TransferType's: "+str(tts)
+            raise ValidationError("The ExchangeType has more than 2 TransferType's: "+str(tts))
+
+        #  Ocp_Record_Type  ->  project
+        rectyp, created = Ocp_Record_Type.objects.get_or_create(
+            name="buy "+str(project.agent.name)+" Shares",
+            parent=et_sharebuy,
+            exchange_type=extyp,
+            ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type)
+        if created:
+            print "- created Ocp_Record_Type: 'buy "+str(project.agent.name)+" Shares'"
+
+        ##  TransferType's  ->  project  ->  pay
+        ttpay, created = TransferType.objects.get_or_create(
+            name="Payment of the "+str(project.agent.name)+" shares",
+            exchange_type=extyp,
+            sequence=1,
+            is_currency=True,
+            is_reciprocal=True)
+        if created:
+            print "created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
+
+        ###  TransferTypeFacetValue  ->  pay  ->  money
+        ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
+            transfer_type=ttpay,
+            facet_value=fvmoney)
+        if created:
+            print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney)
+
+        ##  TransferType  ->  project  ->  receive
+        ttshr, created = TransferType.objects.get_or_create(
+            name="Receive the "+str(project.agent.name)+" shares",
+            sequence=2,
+            exchange_type=extyp,
+            inherit_types=True)
+        if created:
+            print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares'"
+
+        ###  TransferTypeFacetValue  ->  receive  ->  share
+        ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
+            transfer_type=ttshr,
+            facet_value=shrfv)
+        if created:
+            print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+
+
+        curfacet = Facet.objects.get(name="Currency", clas="Currency_Type")
+        nonfacet = Facet.objects.get(name="Non-material")
+        gate_keys = project.active_payment_options_obj()
+        for obj in gate_keys:
+
+            gatefv = None
+            parent_rectyp = None
+            slug = None
+            nome = None
+            for ob in obj:
+                if ob == 'transfer' or ob == 'ccard':
+                    slug = 'fiat'
+                    nome = 'Fiat'
+                    title = 'Fiat-currency'
+                elif ob == 'faircoin':
+                    slug = 'fair'
+                    nome = 'Fair'
+                    title = 'Faircoin'
+                elif ob == 'btc' or ob == 'eth':
+                    slug = 'crypto'
+                    nome = 'Crypto'
+                    title = 'Cryptocoins'
+
+
+            gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
+            if created:
+                print "- created FacetValue: '"+nome+" currency'"
+
+            etfiats = ExchangeType.objects.filter(name=title+" Economy")
+            if etfiats:
+                etfiat = etfiats[0]
+                for tt in etfiat.transfer_types.all():
+                    tt.delete()
+                etfiat.delete()
+
+            #  Ocp_Record_Type  branch
+            parent_rectyps = Ocp_Record_Type.objects.filter(clas=slug+"_economy")
+            if not parent_rectyps:
+                parent_rectyps = Ocp_Record_Type.objects.filter(name__icontains=title+" Economy")
+            if parent_rectyps:
+                if len(parent_rectyps) > 1:
+                    raise ValidationError("There are more than 1 Ocp_Record_Type named: '"+title+" Economy'")
+                parent_rectyp = parent_rectyps[0]
+                print "- edited Ocp_Record_Type: '"+title+" Economy:'"
+            else:
+                parent_rectyp, created = Ocp_Record_Type.objects.get_or_create(
+                    name=title+" Economy:",
+                    clas=slug+"_economy",
+                    parent=ocpext
+                )
+                if created:
+                    print "- created Ocp_Record_Type: '"+title+" Economy:'"
+            parent_rectyp.name = title+" Economy:"
+            parent_rectyp.parent = ocpext
+            parent_rectyp.clas = slug+"_economy"
+            parent_rectyp.exchange_type = None
+            parent_rectyp.save()
+
+            #  Fiat Buy  sub-branch
+            parent_rectypbuy, created = Ocp_Record_Type.objects.get_or_create(
+                name=slug+" Buy",
+                parent=parent_rectyp
+            )
+            if created:
+                print "- created Ocp_Record_Type: '"+slug+" Buy'"
+            parent_rectypbuy.clas = "buy"
+            parent_rectypbuy.save()
+
+
+            #   G e n e r i c    B u y    N o n - m a t e r i a l
+
+            #  Ocp_Record_Type
+            parent_rectypbuy_nons = Ocp_Record_Type.objects.filter(name__icontains=slug+"-Buy Non-material resources")
+            if not parent_rectypbuy_nons:
+                parent_rectypbuy_nons = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy Non-materials")
+            if parent_rectypbuy_nons:
+                parent_rectypbuy_non = parent_rectypbuy_nons[0]
+            else:
+                parent_rectypbuy_non, created = Ocp_Record_Type.objects.get_or_create(
+                    name=slug+"-buy Non-materials",
+                    ocpRecordType_ocp_artwork_type=Ocp_Artwork_Type.objects.get(clas="Nonmaterial"),
+                    parent=parent_rectypbuy
+                )
+                if created:
+                    print "- created Ocp_Record_Type: '"+slug+"-buy Non-materials'"
+
+            #  ExchangeType
+            etfiat_nons = ExchangeType.objects.filter(name__icontains=slug+"-Buy Non-material resources")
+            if not etfiat_nons:
+                etfiat_nons = ExchangeType.objects.filter(name=slug+"-buy Non-materials")
+            if etfiat_nons:
+                if len(etfiat_nons) > 1:
+                    raise ValidationError("There are more than 1 ExchangeType with the name: '"+slug+"-buy Non-materials'")
+                etfiat_non = etfiat_nons[0]
+            else:
+                etfiat_non, created = ExchangeType.objects.get_or_create(
+                    name=slug+"-buy Non-materials",
+                    use_case=usecas)
+                if created:
+                    print "- created ExchangeType: '"+slug+"-buy Non-materials'"
+
+            etfiat_non.name = slug+"-buy Non-materials"
+            etfiat_non.use_case = usecas
+            etfiat_non.save()
+
+            parent_rectypbuy_non.exchange_type = etfiat_non
+            parent_rectypbuy_non.save()
+
+            ##  TransferType  ->  pay
+            ttpays = TransferType.objects.filter(exchange_type=etfiat_non, is_currency=True)
+            if ttpays:
+                if len(ttpays) > 1:
+                    raise ValidationError("There are more than 1 TransferType with is_currency for the ET : "+str(etfiat_non))
+                ttpay = ttpays[0]
+            else:
+                ttpay, created = TransferType.objects.get_or_create(
+                    name="Payment of the Non-material ("+slug+")",
+                    #give_agent_is_context=True,
+                )
+                if created:
+                    print "- created TransferType: 'Payment of the Non-material ("+slug+")'"
+
+            ttpay.name = "Payment of the Non-material ("+slug+")"
+            ttpay.sequence = 1
+            ttpay.is_currency = True
+            ttpay.is_reciprocal = True
+            ttpay.exchange_type = etfiat_non
+            ttpay.save()
+
+            ###  TransferTypeFacetValue  ->  pay  ->  fiat
+            ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
+                transfer_type=ttpay,
+                facet_value=gatefv)
+            if created:
+                print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+
+            ##  TransferType  ->  receive
+            ttnons = TransferType.objects.filter(exchange_type=etfiat_non, inherit_types=True)
+            if ttnons:
+                if len(ttnons) > 1:
+                    raise ValidationError("There are more than 1 TransferType with inherit_types for the ET : "+str(etfiat_non))
+                ttnon = ttnons[0]
+            else:
+                ttnon, created = TransferType.objects.get_or_create(
+                    name="Receive the Non-material",
+                    #receive_agent_is_context=True,
+                )
+                if created:
+                    print "- created TransferType: 'Receive the Non-material' ("+slug+")"
+
+            ttnon.name = "Receive the Non-material"
+            ttnon.sequence = 2
+            ttnon.inherit_types = True
+            ttnon.is_reciprocal = False
+            ttnon.is_currency = False
+            ttnon.save()
+
+            ###  TransferTypeFacetValue  ->  receive  ->  Nonmaterial
+            nonfvs = FacetValue.objects.filter(facet=nonfacet)
+            for fv in nonfvs:
+                ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
+                    transfer_type=ttnon,
+                    facet_value=fv)
+                if created:
+                    print "- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv)
+
+            tts = etfiat_non.transfer_types.all()
+            if not len(tts) == 2:
+                print "The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts)
+                raise ValidationError("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
+
+
+            #   S H A R E S    B U Y
+
+            fiat_rectyps = Ocp_Record_Type.objects.filter(name=slug+"-buy Shares")
+            if not fiat_rectyps:
+                fiat_rectyps = Ocp_Record_Type.objects.filter(name=slug+"-buy Project Shares")
+            if fiat_rectyps:
+                if len(fiat_rectyps) > 1:
+                    raise ValidationError("There's more than 1 Ocp_Record_Type named: '"+slug+"-buy Project Shares'")
+                fiat_rectyp = fiat_rectyps[0]
+            else:
+                fiat_rectyp, created = Ocp_Record_Type.objects.get_or_create(
+                    name=slug+"-buy Project Shares",
+                    parent=parent_rectypbuy_non
+                )
+                if created:
+                    print "- created Ocp_Record_Type: '"+slug+"-buy Project Shares'"
+            fiat_rectyp.name = slug+"-buy Project Shares"
+            fiat_rectyp.parent = parent_rectypbuy_non
+            fiat_rectyp.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares")
+
+            #  ExchangeType shares
+            etfiat_shrs = ExchangeType.objects.filter(name__icontains=slug+"-buy Project Shares")
+            if not etfiat_shrs:
+                etfiat_shrs = ExchangeType.objects.filter(name__icontains=slug+"-buy Shares")
+            if etfiat_shrs:
+                if len(etfiat_shrs) > 1:
+                    raise ValidationError("There's more than 1 ExchangeType! : "+str(etfiat_shrs))
+                etfiat_shr = etfiat_shrs[0]
+                etfiat_shr.name = slug+"-buy Project Shares"
+                etfiat_shr.save()
+            else:
+                etfiat_shr, created = ExchangeType.objects.get_or_create(
+                    name=slug+"-buy Project Shares",
+                    use_case=usecas)
+                if created:
+                    print "- created ExchangeType: '"+slug+"-buy Project Shares'"
+
+            fiat_rectyp.exchange_type = etfiat_shr
+            fiat_rectyp.save()
+
+            ##  TransferType  ->  pay
+            ttfiats = TransferType.objects.filter(exchange_type=etfiat_shr, is_currency=True)
+            if ttfiats:
+                if len(ttfiats) > 1:
+                    raise ValidationError("There's more than 1 TransferType with is_currency for the ET: "+str(etfiat_shr))
+                ttfiat = ttfiats[0]
+            else:
+                ttfiat, created = TransferType.objects.get_or_create(
+                    name="Payment of the Shares ("+slug+")",
+                    #give_agent_is_context=True,
+                )
+                if created:
+                    print "- created TransferType: 'Payment of the Shares ("+slug+")'"
+            ttfiat.name = "Payment of the Shares ("+slug+")"
+            ttfiat.sequence = 1
+            ttfiat.exchange_type = etfiat_shr
+            ttfiat.is_currency = True
+            ttfiat.is_reciprocal = True
+            ttfiat.save()
+
+            ###  TransferTypeFacetValue  ->  pay  ->  fiat
+            ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
+                transfer_type=ttfiat,
+                facet_value=gatefv)
+            if created:
+                print "- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv)
+
+            ##  TransferType  ->  receive
+            ttshrs = TransferType.objects.filter(exchange_type=etfiat_shr, inherit_types=True)
+            if ttshrs:
+                if len(ttshrs) > 1:
+                    raise ValidationError("There's more than 1 TransferType with inherit_types in the ET: "+str(etfiat_shr))
+                ttshr = ttshrs[0]
+            else:
+                ttshr, created = TransferType.objects.get_or_create(
+                    name="Receive the Shares",
+                    exchange_type=etfiat_shr,
+                    #receive_agent_is_context=True,
+                )
+                if created:
+                    print "- created TransferType: 'Receive the Shares' ("+slug+")"
+            ttshr.name = "Receive the Shares"
+            ttshr.exchange_type = etfiat_shr
+            ttshr.sequence = 2
+            ttshr.inherit_types = True
+            ttshr.save()
+
+            ###  TransferTypeFacetValue  ->  receive  ->  shares
+            ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
+                transfer_type=ttshr,
+                facet_value=shrfv)
+            if created:
+                print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+
+            tts = etfiat_shr.transfer_types.all()
+            if len(tts) > 2:
+                print "The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts)
+                raise ValidationError("The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts))
+
+
+
+            #   P R O J E C T   F I A T   B U Y   S H A R E S
+
+            fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
+            if fiat_ets:
+                if len(fiat_ets) > 1:
+                    raise ValidationError("There's more than 1 ExchangeType named: '"+slug+"-buy "+str(project.agent.name)+" Share")
+                fiat_et = fiat_ets[0]
+            else:
+                fiat_et, created = ExchangeType.objects.get_or_create(
+                    name=slug+"-buy "+str(project.agent.name)+" Shares"
+                )
+                if created:
+                    print "- created ExchangeType: '"+slug+"-buy "+str(project.agent.name)+" Shares'"
+            fiat_et.name = slug+"-buy "+str(project.agent.name)+" Shares"
+            fiat_et.use_case = usecas
+            fiat_et.context_agent = project.agent
+            fiat_et.save()
+
+            # TransferType  ->  pay
+            ttpays = TransferType.objects.filter(exchange_type=fiat_et, is_currency=True)
+            if ttpays:
+                if len(ttpays) > 1:
+                    raise ValidationError("There's more than 1 TransferType with is_currency for the ET : "+str(fiat_et))
+                ttpay = ttpays[0]
+            else:
+                ttpay.pk = None
+                ttpay.id = None
+                print "- created TransferType: 'Payment of the "+str(project.agent.name)+" shares ("+slug+")'"
+            ttpay.name = "Payment of the "+str(project.agent.name)+" shares ("+slug+")"
+            ttpay.exchange_type = fiat_et
+            ttpay.save()
+
+            ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
+                transfer_type=ttpay,
+                facet_value=gatefv)
+            if created:
+                print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+
+            # TransferType  ->  receive  ->  share
+            ttshrs = TransferType.objects.filter(exchange_type=fiat_et, inherit_types=True)
+            if ttshrs:
+                if len(ttshrs) > 1:
+                    raise ValidationError("There are more than 1 TransferType with inherit_types for the ET : "+str(fiat_et))
+                ttshr = ttshrs[0]
+            else:
+                ttshr.pk = None
+                ttshr.id = None
+                print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")"
+            ttshr.name = "Receive the "+str(project.agent.name)+" shares"
+            ttshr.exchange_type = fiat_et
+            ttshr.save()
+
+            ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
+                transfer_type=ttshr,
+                facet_value=shrfv)
+            if created:
+                print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+
+
+            tts = fiat_et.transfer_types.all()
+            if not len(tts) == 2:
+                raise ValidationError("WARNING: The ExchangeType '"+str(fiat_et)+"' don't has 2 TransferType's: "+str(tts))
+
+
+            pro_shr_rectyps = Ocp_Record_Type.objects.filter(exchange_type=fiat_et)
+            if pro_shr_rectyps:
+                if len(pro_shr_rectyps) > 1:
+                    raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(pro_shr_rectyp))
+                pro_shr_rectyp = pro_shr_rectyps[0]
+            else:
+                pro_shr_rectyp, created = Ocp_Record_Type.objects.get_or_create(
+                    name=slug+"-buy "+str(project.agent.name)+" Shares",
+                    parent=fiat_rectyp
+                )
+                if created:
+                    print "- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name)+" Shares'"
+            pro_shr_rectyp.name = slug+"-buy "+str(project.agent.name)+" Shares"
+            pro_shr_rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type
+            pro_shr_rectyp.parent = fiat_rectyp
+            pro_shr_rectyp.exchange_type = fiat_et
+            pro_shr_rectyp.save()
+
+
+    #return exchanges_all(request, project.agent.id)
+    return HttpResponseRedirect('/%s/%s/%s/'
+                % ('work/agent', project.agent.id, 'exchanges'))
+
+
 #    P R O J E C T   R E S O U R C E S
 
 

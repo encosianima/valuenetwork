@@ -321,6 +321,55 @@ class Project(models.Model):
                 pass
         return gates
 
+    def fobi_items_keys(self):
+        fobi_keys = []
+        form = self.fobi_form()
+        if form:
+            fields = form.formelemententry_set.all()
+            for fi in fields:
+                data = json.loads(fi.plugin_data)
+                name = data.get('name')
+                fobi_keys.append(name)
+        return fobi_keys
+
+    def shares_account_type(self):
+        account_type = None
+        if self.joining_style == "moderated" and self.fobi_slug:
+            rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
+            for rt in rts:
+                if rt.ocp_artwork_type:
+                    for key in self.fobi_items_keys():
+                        if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
+                            account_type = rt
+        return account_type
+
+    def active_payment_options_obj(self):
+        pay_opts = []
+        if self.is_moderated() and self.fobi_slug:
+            form = self.fobi_form()
+            if form:
+              fields = form.formelemententry_set.all()
+              for fi in fields:
+                data = json.loads(fi.plugin_data)
+                name = data.get('name')
+                if name == "payment_mode": # name of the fobi field
+                    choi = data.get('choices')
+                    if choi:
+                        opts = choi.split('\r\n')
+                        for op in opts:
+                            opa = op.split(',')
+                            key = opa[0].strip()
+                            val = opa[1].strip()
+                            gates = self.payment_gateways()
+                            if gates:
+                                try:
+                                    gate = gates[key]
+                                except:
+                                    gate = None
+                                if gate is not None:
+                                    pay_opts.append([key, val])
+        return pay_opts
+
 
 
 class SkillSuggestion(models.Model):
@@ -783,7 +832,7 @@ class JoinRequest(models.Model):
         rt = self.payment_account_type()
         if rt and rt.ocp_artwork_type:
             recordts = Ocp_Record_Type.objects.filter(ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type, exchange_type__isnull=False)
-            if len(recordts) > 1:
+            if len(recordts) > 0:
                 payopt = self.payment_option()
                 for rec in recordts:
                     ancs = rec.get_ancestors(True,True)
@@ -809,9 +858,9 @@ class JoinRequest(models.Model):
                     et = recs[0].exchange_type
 
                 if not et or not len(recs):
-                    raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
+                    pass #raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
             elif recordts:
-                et = recordts[0].exchange_type
+                pass #et = recordts[0].exchange_type
 
         return et
 
@@ -2400,6 +2449,35 @@ def create_unit_types(**kwargs):
     artw_sh.resource_type = None
     artw_sh.general_unit_type = gen_share_typ
     artw_sh.save()
+
+
+    # FacetValues
+
+    curfacet, created = Facet.objects.get_or_create(
+        name="Currency")
+    if created:
+        print "- created Facet: 'Currency'"
+    curfacet.clas = "Currency_Type"
+    #curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
+    curfacet.save()
+
+    shrfv, created = FacetValue.objects.get_or_create(
+        facet=curfacet,
+        value="Project Shares")
+    if created:
+        print "- created FacetValue: 'Project Shares'"
+
+    nonfacet, created = Facet.objects.get_or_create(
+        name="Non-material",
+        clas="Nonmaterial_Type")
+    if created:
+        print "- created Facet: 'Non-material'"
+    fvmoney, created = FacetValue.objects.get_or_create(
+        facet=nonfacet,
+        value='Money')
+    if created:
+        print "- created FacetValue: 'Money'"
+
 
 
     ## FreedomCoop

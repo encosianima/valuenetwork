@@ -69,6 +69,7 @@ MULTICURRENCY = {
       'url_client': "",
       'url_history': "",
       'url_balance': "",
+      'url_new_user': "",
 }
 
 DEFAULT_FROM_EMAIL = ""
