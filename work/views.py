@@ -3026,120 +3026,143 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                     if gen_rt:
                       name += ' '+gen_rt.name
 
+
                     agnt = None
                     if gen_rt and hasattr(gen_rt.resource_type, 'context_agent'):
                       agnt = gen_rt.resource_type.context_agent
                     elif gen_sk and hasattr(gen_sk.resource_type, 'context_agent'):
                       agnt = gen_sk.resource_type.context_agent
                     elif ext.context_agent:
-                      agnt = agent #ext.context_agent
+                      agnt = ext.context_agent
                     else:
                       agnt = agent
 
                     uc = ext.use_case
                     if name and uc:
-                      try:
-                        new_ext = ExchangeType.objects.get(name=name)
-                        if new_ext:
-                          if new_ext.context_agent and not new_ext.context_agent == agnt: # if the ext exists and the context_agent is not the
-                            if agnt.parent():                                             # same, set the parent agent or the new agent as
-                              new_ext.context_agent = agnt.parent()                       # a new context. TODO: check if the old context has
-                            else:                                                         # the same parent (so the ext keeps showing for them)
-                              new_ext.context_agent = agnt
+                        new_exts = ExchangeType.objects.filter(name__iexact=name)
+                        if not new_exts:
+                            new_exts = ExchangeType.objects.filter(name__iexact=ext.name)
+                        if not new_exts:
+                            new_exts = ExchangeType.objects.filter(name__icontains=ext.name)
+                        if new_exts:
+                            if len(new_exts) > 1:
+                                raise ValidationError("More than one ExchangeType with same name: "+str(new_exts))
+                            new_ext = new_exts[0]
+                            if new_ext.context_agent and not new_ext.context_agent == agnt:# if the ext exists and the context_agent is not the
+                                if agnt.parent():                                          # same, set the parent agent or the new agent as
+                                    new_ext.context_agent = agnt.parent()                  # a new context. TODO: check if the old context has
+                                else:                                                      # the same parent (so the ext keeps showing for them)
+                                    new_ext.context_agent = agnt
 
-                            new_ext.edited_by = request.user
-                            new_ext.save() # TODO check if the new_ext is reached by the agent related contexts
-                          return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-                            % ('work/agent', agent.id, 'exchange-logging-work', new_ext.id, 0))
-                      except:
-                        #pass
-                        new_ext = ExchangeType(
-                          name=name,
-                          use_case=uc,
-                          created_by=request.user,
-                          created_date=datetime.date.today(),
-                          context_agent=agnt
-                        )
-                        new_ext.save() # here we get an id
+                                new_ext.edited_by = request.user
+                                new_ext.save() # TODO check if the new_ext is reached by the agent related contexts
 
-                      new_rec = Ocp_Record_Type(gen_ext)
-                      new_rec.pk = None
-                      new_rec.id = None
-                      new_rec.name = name
-                      new_rec.exchange_type = new_ext
-                      new_rec.ocpRecordType_ocp_artwork_type = gen_rt
-                      new_rec.ocp_skill_type = gen_sk
-                      # mptt: insert_node(node, target, position='last-child', save=False)
-                      new_rec = Ocp_Record_Type.objects.insert_node(new_rec, gen_ext, 'last-child', True)
+                            return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+                                 % ('work/agent', agent.id, 'exchange-logging-work', new_ext.id, 0))
+                        else:
+                            #import pdb; pdb.set_trace()
+                            if name in ext.name:
+                                name = ext.name
 
-                      inherited = False
-                      for tr in ext.transfer_types.all():
-                        if tr.inherit_types == True:
-                          inherited = True
-                      if inherited: # any of the transfer_types has inherit_types?
+                            new_ext, created = ExchangeType.objects.get_or_create(
+                              name=name,
+                              #use_case=uc,
+                              #created_by=request.user,
+                              #created_date=datetime.date.today(),
+                              #context_agent=agnt
+                            )
+                            if created:
+                                print "- created ExchangeType: "+str(new_ext)
+                            new_ext.use_case = uc
+                            new_ext.context_agent = agnt
+                            new_ext.save() # here we get an id
+
+                        new_recs = Ocp_Record_Type.objects.filter(name=name)
+                        if new_recs:
+                            new_rec = new_recs[0]
+                        else:
+                            new_rec = Ocp_Record_Type(gen_ext)
+                            new_rec.pk = None
+                            new_rec.id = None
+                            new_rec.name = name
+                            print "- created Ocp_Record_Type: "+name
+                            # mptt: insert_node(node, target, position='last-child', save=False)
+                            new_rec = Ocp_Record_Type.objects.insert_node(new_rec, gen_ext, 'last-child', True)
+                        new_rec.name = name
+                        new_rec.exchange_type = new_ext
+                        new_rec.ocpRecordType_ocp_artwork_type = gen_rt
+                        new_rec.ocp_skill_type = gen_sk
+                        new_rec.save()
+
+                        inherited = False
                         for tr in ext.transfer_types.all():
-                          new_tr = TransferType.objects.get(pk=tr.pk)
-                          new_tr.pk = None
-                          new_tr.id = None
-                          new_tr.exchange_type = new_ext
-                          new_tr.created_by = request.user
-                          new_tr.created_date = datetime.date.today()
-                          narr = tr.name.split(' ')
-                          nam = ' '.join(narr[:-1]) # substitute the last word in transfer name for the resource type name
-                          new_tr.name = nam
-                          if gen_sk:
-                            new_tr.name += ' - '+gen_sk.name
-                          if gen_rt:
-                            new_tr.name += ' - '+gen_rt.name
+                            if tr.inherit_types == True:
+                                inherited = True
+                        if inherited: # any of the transfer_types has inherit_types?
+                            for tr in ext.transfer_types.all():
+                                new_tr = TransferType.objects.get(pk=tr.pk)
+                                new_tr.pk = None
+                                new_tr.id = None
+                                new_tr.exchange_type = new_ext
+                                new_tr.created_by = request.user
+                                new_tr.created_date = datetime.date.today()
+                                narr = tr.name.split(' ')
+                                nam = ' '.join(narr[:-1]) # substitute the last word in transfer name for the resource type name
+                                new_tr.name = nam
+                                if gen_sk:
+                                    new_tr.name += ' - '+gen_sk.name
+                                if gen_rt:
+                                    new_tr.name += ' - '+gen_rt.name
 
-                          new_tr.save()
+                                new_tr.save()
 
-                          if tr.inherit_types == True: # provisional inheriting of the facet_value assigned in ocp_artwork_type tree
-                            inherited = True
-                            # its just-in-case as a fail saver (the resource types will be retrieved via exchange_type)
-                            # mptt: get_ancestors(ascending=False, include_self=False)
-                            if gen_rt:
-                              parids = [p.id for p in gen_rt.get_ancestors(True, True)] # careful! these are general.Type and the upper level
-                              pars = gen_rt.get_ancestors(True)                         # 'Artwork' is not in Artwork_Type nor Ocp_Artwork_Type
-                              for par in pars:
-                                if par.clas != 'Artwork':
-                                  pr = Ocp_Artwork_Type.objects.get(id=par.id)
-                                  if pr.facet_value:
-                                    ttfv, created = TransferTypeFacetValue.objects.get_or_create(
-                                      transfer_type=new_tr,
-                                      facet_value=pr.facet_value,
-                                      # defaults={},
-                                    )
-                                    if ttfv:
-                                      new_tr.facet_values.add(ttfv)
-                                      break
-                            if gen_sk:
-                              parids = [p.id for p in gen_sk.get_ancestors(True, True)] # careful! these are general.Job
-                              pars = gen_sk.get_ancestors(True)
-                              for par in pars:
-                                  pr = Ocp_Skill_Type.objects.get(id=par.id)
-                                  if pr.facet_value:
-                                    ttfv, created = TransferTypeFacetValue.objects.get_or_create(
-                                      transfer_type=new_tr,
-                                      facet_value=pr.facet_value,
-                                      # defaults={},
-                                    )
-                                    if ttfv:
-                                      new_tr.facet_values.add(ttfv)
-                                      break
-                          else:
-                            old_fvs = tr.facet_values.all()
-                            new_tr.facet_values = old_fvs
+                                if tr.inherit_types == True: # provisional inheriting of the facet_value assigned in ocp_artwork_type tree
+                                    inherited = True
+                                    # its just-in-case as a fail saver (the resource types will be retrieved via exchange_type)
+                                    # mptt: get_ancestors(ascending=False, include_self=False)
+                                    if gen_rt:
+                                        parids = [p.id for p in gen_rt.get_ancestors(True, True)]
+                                        # careful! these are general.Type and the upper level
+                                        pars = gen_rt.get_ancestors(True)             # 'Artwork' is not in Artwork_Type nor Ocp_Artwork_Type
+                                        for par in pars:
+                                            if par.clas != 'Artwork':
+                                              pr = Ocp_Artwork_Type.objects.get(id=par.id)
+                                              if pr.facet_value:
+                                                  ttfv, created = TransferTypeFacetValue.objects.get_or_create(
+                                                      transfer_type=new_tr,
+                                                      facet_value=pr.facet_value,
+                                                      # defaults={},
+                                                  )
+                                                  if ttfv:
+                                                      new_tr.facet_values.add(ttfv)
+                                                      break
+                                    if gen_sk:
+                                        parids = [p.id for p in gen_sk.get_ancestors(True, True)] # careful! these are general.Job
+                                        pars = gen_sk.get_ancestors(True)
+                                        for par in pars:
+                                            pr = Ocp_Skill_Type.objects.get(id=par.id)
+                                            if pr.facet_value:
+                                                ttfv, created = TransferTypeFacetValue.objects.get_or_create(
+                                                    transfer_type=new_tr,
+                                                    facet_value=pr.facet_value,
+                                                    # defaults={},
+                                                )
+                                                if ttfv:
+                                                    new_tr.facet_values.add(ttfv)
+                                                    break
+                                else:
+                                    old_fvs = tr.facet_values.all()
+                                    new_tr.facet_values = old_fvs
 
-                        # end for tr in ext.transfer_types.all()
-                        return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-                              % ('work/agent', agent.id, 'exchange-logging-work', new_ext.id, 0))
+                            # end for tr in ext.transfer_types.all()
+                            return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
+                                  % ('work/agent', agent.id, 'exchange-logging-work', new_ext.id, 0))
 
-                      else: # not inherited, rise error
-                        raise ValidationError("No transfer inheriting types in this exchange type! "+ext.name)
+                        else: # not inherited, rise error
+                            raise ValidationError("No transfer inheriting types in this exchange type! "+ext.name)
 
                     else: # end if name and uc:
-                      raise ValidationError("Bad new name ("+name+") or no use-case in the parent exchange type! "+ext.name)
+                        raise ValidationError("Bad new name ("+name+") or no use-case in the parent exchange type! "+ext.name)
 
                     return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
                         % ('work/agent', agent.id, 'exchange-logging-work', ext.id, 0))
@@ -3160,454 +3183,13 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
         # there's no new_exchange, is it a new resource type?
         """new_resource_type = request.POST.get("new_resource_type")
-        if new_resource_type:
-            if Rtype_form.is_valid():
-                data = Rtype_form.cleaned_data
-                if hasattr(data["resource_type"], 'id'):
-                  parent_rt = Ocp_Artwork_Type.objects.get(id=data["resource_type"].id)
-                  if parent_rt.id:
-                    out = None
-                    if hasattr(data["unit_type"], 'id'):
-                      gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                      out = gut.ocp_unit
-                    if hasattr(data, "substitutable"):
-                      substi = data["substitutable"]
-                    else:
-                      substi = False
-                    new_rt = EconomicResourceType(
-                      name=data["name"],
-                      description=data["description"],
-                      unit=out,
-                      price_per_unit=data["price_per_unit"],
-                      substitutable=substi,
-                      context_agent=data["context_agent"],
-                      url=data["url"],
-                      photo_url=data["photo_url"],
-                      parent=data["parent"],
-                      created_by=request.user,
-                    )
-                    #try:
-                    new_rt.save()
-                    #except:
-                    #  raise ValidationError('Cannot save new resource type:'+str(new_oat)+' Parent:'+str(parent_rt))
-
-                    # mptt: get_ancestors(ascending=False, include_self=False)
-                    ancs = parent_rt.get_ancestors(True, True)
-                    for an in ancs:
-                      if an.clas != 'Artwork':
-                        an = Ocp_Artwork_Type.objects.get(id=an.id)
-                        if an.resource_type:
-                          new_rtfv = None
-                          for fv in an.resource_type.facets.all():
-                            new_rtfv = ResourceTypeFacetValue(
-                              resource_type=new_rt,
-                              facet_value=fv.facet_value
-                            )
-                            new_rtfv.save()
-                          if new_rtfv:
-                            break
-                        if an.facet_value:
-                          new_rtfv = ResourceTypeFacetValue(
-                              resource_type=new_rt,
-                              facet_value=an.facet_value
-                          )
-                          new_rtfv.save()
-                          break
-
-                    rel_material = None
-                    rel_nonmaterial = None
-                    if hasattr(data["related_type"], 'id'):
-                      rrt = Ocp_Artwork_Type.objects.get(id=data["related_type"].id)
-                      # mptt: get_ancestors(ascending=False, include_self=False)
-                      rrt_ancs = rrt.get_ancestors(False, True)
-                      for an in rrt_ancs: # see if is child of material or non-material
-                        if an.clas == 'Material':
-                          #try:
-                          #  mat = Material_Type.objects.get(id=rrt.id)
-                          #except:
-                          #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
-                          rel_material = rrt #mat
-                          break
-                        if an.clas == 'Nonmaterial':
-                          #try:
-                          #  non = Nonmaterial_Type.objects.get(id=rrt.id)
-                          #except:
-                          #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
-                          rel_nonmaterial = rrt #non
-                          break
-
-                    new_oat = Ocp_Artwork_Type(
-                      name=data["name"],
-                      description=data["description"],
-                      resource_type=new_rt,
-                      rel_material_type=rel_material,
-                      rel_nonmaterial_type=rel_nonmaterial,
-                    )
-                    # mptt: insert_node(node, target, position='last-child', save=False)
-                    try:
-                      new_res = Ocp_Artwork_Type.objects.insert_node(new_oat, parent_rt, 'last-child', True)
-                    except:
-                      raise ValidationError('Cannot insert node:'+str(new_oat)+' Parent:'+str(parent_rt))
-
-
-                    #nav_form = ExchangeNavForm(agent=agent, data=None)
-                    #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
-                    #Stype_form = NewSkillTypeForm(agent=agent, data=None)
-
-                  else: # have no parent_type id
-                    pass
-                else: # have no parent resource field
-                  pass
-            else:
-                pass #raise ValidationError(Rtype_form.errors)
-
         edit_resource_type = request.POST.get("edit_resource_type")
-        if edit_resource_type:
-            if Rtype_form.is_valid():
-                data = Rtype_form.cleaned_data
-                if hasattr(data["resource_type"], 'id'):
-                  parent_rt = Ocp_Artwork_Type.objects.get(id=data["resource_type"].id)
-                  if parent_rt.id:
-                    out = None
-                    if hasattr(data["unit_type"], 'id'):
-                      gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                      out = gut.ocp_unit
-                    edid = request.POST.get("edid")
-                    if edid == '':
-                      raise ValidationError("Missing edid!")
-                    else:
-                      #raise ValidationError("Lets edit "+edid)
-                      idar = edid.split('_')
-                      if idar[0] == "Rid":
-                        grt = Ocp_Artwork_Type.objects.get(id=idar[1])
-                        grt.name = data["name"]
-                        grt.description = data["description"]
-                        moved = False
-                        if not grt.parent == parent_rt:
-                          # mptt: move_to(target, position='first-child')
-                          grt.move_to(parent_rt, 'last-child')
-                          moved = True
-
-                        rel_material = None
-                        rel_nonmaterial = None
-                        if hasattr(data["related_type"], 'id'):
-                          rrt = Ocp_Artwork_Type.objects.get(id=data["related_type"].id)
-                          # mptt: get_ancestors(ascending=False, include_self=False)
-                          rrt_ancs = rrt.get_ancestors(False, True)
-                          for an in rrt_ancs: # see if is child of material or non-material
-                            if an.clas == 'Material':
-                              #try:
-                              #  mat = Material_Type.objects.get(id=rrt.id)
-                              #except:
-                              #  mat = Ocp_Artwork_Type.objects.update_to_general('Material_Type', rrt.id)
-                              rel_material = rrt #mat
-                              break
-                            if an.clas == 'Nonmaterial':
-                              #try:
-                              #  non = Nonmaterial_Type.objects.get(id=rrt.id)
-                              #except:
-                              #  non = Ocp_Artwork_Type.objects.update_to_general('Nonmaterial_Type', rrt.id)
-                              rel_nonmaterial = rrt #non
-                              break
-                        grt.rel_material_type = rel_material
-                        grt.rel_nonmaterial_type = rel_nonmaterial
-
-                        grt.save()
-
-                        if not grt.resource_type:
-                          #pass #raise ValidationError("There's no resource type! create it?")
-                          if hasattr(data, "substitutable"):
-                            substi = data["substitutable"]
-                          else:
-                            substi = False
-                          new_rt = EconomicResourceType(
-                            name=data["name"],
-                            description=data["description"],
-                            unit=out,
-                            price_per_unit=data["price_per_unit"],
-                            substitutable=substi,
-                            context_agent=data["context_agent"],
-                            url=data["url"],
-                            photo_url=data["photo_url"],
-                            parent=data["parent"],
-                            created_by=request.user,
-                          )
-                          new_rt.save()
-                          grt.resource_type = new_rt
-                          grt.save()
-
-                          # mptt: get_ancestors(ascending=False, include_self=False)
-                          ancs = parent_rt.get_ancestors(True, True)
-                          for an in ancs:
-                            if an.clas != 'Artwork':
-                              an = Ocp_Artwork_Type.objects.get(id=an.id)
-                              if an.resource_type:
-                                new_rtfv = None
-                                for fv in an.resource_type.facets.all():
-                                  new_rtfv = ResourceTypeFacetValue(
-                                    resource_type=new_rt,
-                                    facet_value=fv.facet_value
-                                  )
-                                  new_rtfv.save()
-                                if new_rtfv:
-                                  break
-                              if an.facet_value:
-                                new_rtfv = ResourceTypeFacetValue(
-                                    resource_type=new_rt,
-                                    facet_value=an.facet_value
-                                )
-                                new_rtfv.save()
-                                break
-
-                        else:
-                          rt = grt.resource_type;
-                          rt.name = data["name"]
-                          rt.description = data["description"]
-                          rt.unit = out
-                          rt.price_per_unit = data["price_per_unit"]
-                          rt.substitutable = data["substitutable"]
-                          rt.context_agent = data["context_agent"]
-                          rt.url = data["url"]
-                          rt.photo_url = data["photo_url"]
-                          rt.parent = data["parent"]
-                          rt.edited_by = request.user
-                          if moved:
-                            old_rtfvs = ResourceTypeFacetValue.objects.filter(resource_type=rt)
-                            for rtfv in old_rtfvs:
-                              rtfv.delete()
-                            # mptt: get_ancestors(ascending=False, include_self=False)
-                            ancs = parent_rt.get_ancestors(True, True)
-                            for an in ancs:
-                              if an.clas != 'Artwork':
-                                an = Ocp_Artwork_Type.objects.get(id=an.id)
-                                if an.resource_type:
-                                  new_rtfv = None
-                                  for fv in an.resource_type.facets.all():
-                                    new_rtfv = ResourceTypeFacetValue(
-                                      resource_type=rt,
-                                      facet_value=fv.facet_value
-                                    )
-                                    new_rtfv.save()
-                                  if new_rtfv:
-                                    break
-                                if an.facet_value:
-                                  new_rtfv = ResourceTypeFacetValue(
-                                      resource_type=rt,
-                                      facet_value=an.facet_value
-                                  )
-                                  new_rtfv.save()
-                                  break
-                          rt.save()
-
-                        #nav_form = ExchangeNavForm(agent=agent, data=None)
-                        #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
-                        #Stype_form = NewSkillTypeForm(agent=agent, data=None)
-
-                      else: # is not Rid
-                        pass
-
-                  else: # have no parent_type id
-                    pass
-                else: # have no parent resource field
-                  pass"""
+        """
 
         # there's no new_resource_type = request.POST.get("new_resource_type")
         """new_skill_type = request.POST.get("new_skill_type")
-        if new_skill_type:
-            if Stype_form.is_valid():
-                #raise ValidationError("New resource type, valid")
-                data = Stype_form.cleaned_data
-                if hasattr(data["parent_type"], 'id'):
-                  parent_rt = Ocp_Skill_Type.objects.get(id=data["parent_type"].id)
-                  if parent_rt.id:
-                    out = None
-                    if hasattr(data["unit_type"], 'id'):
-                      gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                      out = gut.ocp_unit
-                    new_rt = EconomicResourceType(
-                      name=data["name"],
-                      description=data["description"],
-                      unit=out,
-                      price_per_unit=data["price_per_unit"],
-                      substitutable=False, #data["substitutable"],
-                      context_agent=data["context_agent"],
-                      url=data["url"],
-                      photo_url=data["photo_url"],
-                      #parent=data["parent"],
-                      created_by=request.user,
-                      behavior="work",
-                      inventory_rule="never",
-                    )
-                    new_rt.save()
-
-                    # mptt: get_ancestors(ascending=False, include_self=False)
-                    ancs = parent_rt.get_ancestors(True, True)
-                    for an in ancs:
-                      #if an.clas != 'Artwork':
-                        an = Ocp_Skill_Type.objects.get(id=an.id)
-                        if an.resource_type:
-                          for fv in an.resource_type.facets.all():
-                            new_rtfv = ResourceTypeFacetValue(
-                              resource_type=new_rt,
-                              facet_value=fv.facet_value
-                            )
-                            new_rtfv.save()
-                          break
-                        elif an.facet_value:
-                          new_rtfv = ResourceTypeFacetValue(
-                              resource_type=new_rt,
-                              facet_value=an.facet_value
-                          )
-                          new_rtfv.save()
-                          break
-
-                    new_oat = Ocp_Skill_Type(
-                      name=data["name"],
-                      verb=data["verb"],
-                      gerund=data["gerund"],
-                      description=data["description"],
-                      resource_type=new_rt,
-                      ocp_artwork_type=data["related_type"],
-                    )
-                    # mptt: insert_node(node, target, position='last-child', save=False)
-                    new_ski = Ocp_Skill_Type.objects.insert_node(new_oat, parent_rt, 'last-child', True)
-
-                    nav_form = ExchangeNavForm(agent=agent, data=None)
-                    Rtype_form = NewResourceTypeForm(agent=agent, data=None)
-                    Stype_form = NewSkillTypeForm(agent=agent, data=None)
-
-                  else: # have no parent_type id
-                    pass
-                else: # have no parent resource field
-                  pass
-            else:
-                pass #raise ValidationError(Rtype_form.errors)"""
-
-
-        """edit_skill_type = request.POST.get("edit_skill_type")
-        if edit_skill_type:
-            if Stype_form.is_valid():
-                data = Stype_form.cleaned_data
-                if hasattr(data["parent_type"], 'id'):
-                  parent_st = Ocp_Skill_Type.objects.get(id=data["parent_type"].id)
-                  if parent_st.id:
-                    out = None
-                    if hasattr(data["unit_type"], 'id'):
-                      gut = Ocp_Unit_Type.objects.get(id=data["unit_type"].id)
-                      out = gut.ocp_unit
-                    edid = request.POST.get("edid")
-                    if edid == '':
-                      raise ValidationError("Missing id of the edited skill! (edid)")
-                    else:
-                      #raise ValidationError("Lets edit "+edid)
-                      idar = edid.split('_')
-                      if idar[0] == "Sid":
-                        grt = Ocp_Skill_Type.objects.get(id=idar[1])
-                        grt.name = data["name"]
-                        grt.description = data["description"]
-                        grt.verb = data["verb"]
-                        grt.gerund = data["gerund"]
-
-                        moved = False
-                        if not grt.parent == parent_st:
-                          # mptt: move_to(target, position='first-child')
-                          grt.move_to(parent_st, 'last-child')
-                          moved = True
-
-                        grt.ocp_artwork_type = data["related_type"]
-                        try:
-                          grt.save()
-                        except:
-                          raise ValidationError("The skill name already exists and they are unique")
-
-                        if not grt.resource_type:
-                          #pass #raise ValidationError("There's no resource type! create it?")
-                          new_rt = EconomicResourceType(
-                            name=data["name"],
-                            description=data["description"],
-                            unit=out,
-                            price_per_unit=data["price_per_unit"],
-                            substitutable=False, #data["substitutable"],
-                            context_agent=data["context_agent"],
-                            url=data["url"],
-                            photo_url=data["photo_url"],
-                            created_by=request.user,
-                            behavior="work",
-                            inventory_rule="never",
-                          )
-                          new_rt.save()
-                          grt.resource_type = new_rt
-                          grt.save()
-
-                          # mptt: get_ancestors(ascending=False, include_self=False)
-                          ancs = parent_rt.get_ancestors(True, True)
-                          for an in ancs:
-                            #if an.clas != 'Artwork':
-                              an = Ocp_Skill_Type.objects.get(id=an.id)
-                              if an.resource_type:
-                                for fv in an.resource_type.facets.all():
-                                  new_rtfv = ResourceTypeFacetValue(
-                                    resource_type=new_rt,
-                                    facet_value=fv.facet_value
-                                  )
-                                  new_rtfv.save()
-                                break
-                              elif an.facet_value:
-                                new_rtfv = ResourceTypeFacetValue(
-                                    resource_type=new_rt,
-                                    facet_value=an.facet_value
-                                )
-                                new_rtfv.save()
-                                break
-
-                        else:
-                          rt = grt.resource_type;
-                          rt.name = data["name"]
-                          rt.description = data["description"]
-                          rt.unit = out
-                          rt.price_per_unit = data["price_per_unit"]
-                          rt.substitutable = False #data["substitutable"]
-                          rt.context_agent = data["context_agent"]
-                          rt.url = data["url"]
-                          rt.photo_url = data["photo_url"]
-                          #rt.parent = data["parent"]
-                          rt.edited_by = request.user
-                          if moved:
-                            old_rtfvs = ResourceTypeFacetValue.objects.filter(resource_type=rt)
-                            for rtfv in old_rtfvs:
-                              rtfv.delete()
-                            # mptt: get_ancestors(ascending=False, include_self=False)
-                            ancs = parent_st.get_ancestors(True, True)
-                            for an in ancs:
-                              #if an.clas != 'Artwork':
-                                an = Ocp_Skill_Type.objects.get(id=an.id)
-                                if an.resource_type:
-                                  for fv in an.resource_type.facets.all():
-                                    new_rtfv = ResourceTypeFacetValue(
-                                      resource_type=rt,
-                                      facet_value=fv.facet_value
-                                    )
-                                    new_rtfv.save()
-                                  break
-                                elif an.facet_value:
-                                  new_rtfv = ResourceTypeFacetValue(
-                                      resource_type=rt,
-                                      facet_value=an.facet_value
-                                  )
-                                  new_rtfv.save()
-                                  break
-                          rt.save()
-
-                        nav_form = ExchangeNavForm(agent=agent, data=None)
-                        Rtype_form = NewResourceTypeForm(agent=agent, data=None)
-                        Stype_form = NewSkillTypeForm(agent=agent, data=None)
-
-                      else: # is not Sid
-                        pass
-                  else: # have no parent_type id
-                    pass
-                else: # have no parent resource field
-                  pass"""
+        edit_skill_type = request.POST.get("edit_skill_type")
+        """
 
 
         edit_exchange_type = request.POST.get("edit_exchange_type") # TODO the detail about transfertypes
@@ -3647,7 +3229,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
             end = dt_selection_form.cleaned_data["end_date"]
             exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
         else:
-            exchanges = Exchange.objects.filter(context_agent=agent)
+            exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #filter(context_agent=agent)
 
         if "categories" in request.POST:
             selected_values = request.POST["categories"]
@@ -4994,6 +4576,117 @@ def json_ocp_resource_type_resources_with_locations(request, ocp_artwork_type_id
 
 
 
+#    C R E A T E   S H A R E S
+
+
+def create_project_shares(request, agent_id):
+
+    agent = EconomicAgent.objects.get(id=agent_id)
+    project = agent.project
+
+    nome = project.compact_name()
+    abbr = project.abbrev_name()
+    if len(abbr) < 3:
+        raise ValidationError("The project abbrev name is too short to create shares ?! ")
+
+    user_agent = get_agent(request)
+    if not user_agent or not project.share_types() or not request.user.is_superuser or not project.fobi_slug:
+        return render(request, 'work/no_permission.html')
+
+    # Project Shares
+
+    gen_curr_typ = Ocp_Unit_Type.objects.get(clas="currency")
+    artw_sh = Ocp_Artwork_Type.objects.get(clas="shares")
+    gen_share_typ = Ocp_Unit_Type.objects.get(clas="shares_currency")
+    ocp_each = Unit.objects.get(name="Each")
+
+    ocpboc_shares = Unit.objects.filter(name=nome+' Share')
+    if not ocpboc_shares:
+        ocpboc_share, created = Unit.objects.get_or_create(
+            name=nome+' Share',
+            unit_type='value',
+            abbrev=abbr
+        )
+        if created:
+            print "- created OCP Unit: '"+nome+" Share ("+abbr+")'"
+    else:
+        ocpboc_share = ocpboc_shares[0]
+    ocpboc_share.name = nome+' Share'
+    ocpboc_share.unit_type = 'value'
+    ocpboc_share.abbrev = abbr
+    ocpboc_share.save()
+
+    gen_boc_typs = Ocp_Unit_Type.objects.filter(name=nome+' Shares')
+    if not gen_boc_typs:
+        gen_boc_typ, created = Ocp_Unit_Type.objects.get_or_create(
+            name=nome+' Shares',
+            parent=gen_share_typ)
+        if created:
+            print "- created Ocp_Unit_Type: '"+nome+" Shares'"
+    else:
+        gen_boc_typ = gen_boc_typs[0]
+    gen_boc_typ.clas = project.fobi_slug+'_shares'
+    gen_boc_typ.save()
+
+
+    boc_share, created = Gene_Unit.objects.get_or_create(
+        name=nome+' Share',
+        code=abbr)
+    if created:
+        print "- created General.Unit: '"+nome+" Share'"
+    boc_share.code = abbr
+    boc_share.unit_type = gen_boc_typ
+    boc_share.ocp_unit = ocpboc_share
+    boc_share.save()
+
+    share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share")
+    if not share_rts:
+        share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().id)
+    if share_rts:
+        if len(share_rts) > 1:
+            raise ValidationError("There are more than 1 EconomicResourceType with same name: "+str(share_rts))
+        share_rt = share_rts[0]
+    else:
+        share_rt, created = EconomicResourceType.objects.get_or_create(
+            name=nome+' Share',
+            unit=ocp_each,
+            inventory_rule='yes',
+            behavior='other'
+        )
+        if created:
+            print "- created EconomicResourceType: '"+nome+" Share'"
+    share_rt.name = nome+" Share"
+    share_rt.unit = ocp_each
+    share_rt.inventory_rule = 'yes'
+    share_rt.behavior = 'other'
+    share_rt.context_agent = project.agent
+    share_rt.save()
+
+    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share")
+    if not artw_bocs:
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().ocp_artwork_type.id)
+    if artw_bocs:
+        if len(artw_bocs) > 1:
+            raise ValidationError("There are more than 1 Ocp_Artwork_Type with same name: "+str(artw_bocs))
+        artw_boc = artw_bocs[0]
+    else:
+        artw_boc, created = Ocp_Artwork_Type.objects.get_or_create(
+            name=nome+' Share',
+            parent=Type.objects.get(id=artw_sh.id)
+        )
+        if created:
+            print "- created Ocp_Artwork_Type: '"+nome+" Share'"
+    artw_boc.name = nome+" Share"
+    artw_boc.parent = Type.objects.get(id=artw_sh.id)
+    artw_boc.resource_type = share_rt
+    artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
+    artw_boc.save()
+
+    return HttpResponseRedirect('/%s/%s/'
+            % ('work/agent', project.agent.id))
+
+
+
 #    S H A R E S   E X C H A N G E   T Y P E S
 
 
@@ -5005,17 +4698,60 @@ def create_shares_exchange_types(request, agent_id):
     if not user_agent or not project.share_types() or not request.user.is_superuser:
         return render(request, 'work/no_permission.html')
 
+    ocpag = EconomicAgent.objects.root_ocp_agent()
+    dummy = EconomicAgent.objects.get(nick="Dummy")
+    if not dummy:
+        dummy, created = EconomicAgent.objects.get_or_create(
+            nick="Dummy",
+            name="Dummy ContextAgent",
+            agent_type=AgentType.objects.get(name="Entity"),
+            is_context=True)
+        if created:
+            print "- created EconomicAgent: 'Dummy'"
+    dummy.name = "Dummy ContextAgent"
+    dummy.is_context = True
+    dummy.save()
+
+    botc = EconomicAgent.objects.filter(nick="BoC")
+    if not botc:
+        botc = EconomicAgent.objects.filter(nick="BotC")
+    if not botc:
+        print "- WARNING: the BoC agent don't exist, not created any unit for shares"
+        raise ValidationError("- WARNING: the BoC agent don't exist, not created any unit for shares")
+    else:
+        botc = botc[0]
+
+
     # common Exchange Types
 
     ocpext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
     usecas = UseCase.objects.get(identifier='intrnl_xfer')
 
-    et_shareco, created = Ocp_Record_Type.objects.get_or_create(
-        name="Shares Economy",
-        parent=ocpext,
-        clas="shares_economy")
+    et_sharecos = Ocp_Record_Type.objects.filter(name__icontains="Shares Economy")
+    if et_sharecos:
+        if len(et_sharecos) > 1:
+            raise ValidationError("There are more than 1 Ocp_Record_Type named 'Shares Economy' : "+str(et_sharecos))
+        et_shareco = et_sharecos[0]
+    else:
+        et_shareco, created = Ocp_Record_Type.objects.get_or_create(
+            name="Shares Economy:",
+            parent=ocpext)
+        if created:
+            print "- created Ocp_Record_Type branch: 'Shares Economy'"
+    et_shareco.name = "Shares Economy:"
+    et_shareco.clas = "shares_economy"
+
+    shareco, created = ExchangeType.objects.get_or_create(
+        name="Shares Economy")
     if created:
-        print "- created Ocp_Record_Type branch: 'Shares Economy'"
+        print "- created ExchangeType: 'Shares Economy'"
+
+    shareco.context_agent = botc
+    shareco.use_case = usecas
+    shareco.save()
+
+    et_shareco.exchange_type = shareco
+    et_shareco.save()
 
     et_sharebuy, created = Ocp_Record_Type.objects.get_or_create(
         name="shares Buy",
@@ -5034,16 +4770,31 @@ def create_shares_exchange_types(request, agent_id):
     et_sharebuy.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares", name="Shares")
     et_sharebuy.save()
 
-    ttpay, created = TransferType.objects.get_or_create(
-        name="Payment of the Project shares",
-        exchange_type=etsh,
-        sequence=1,
-        is_currency=True,
-        is_reciprocal=True,
-        #give_agent_is_context=True,
-    )
-    if created:
-        print "- created TransferType: 'Payment of the Project shares'"
+    # TransferType  ->  pay
+    ttpays = TransferType.objects.filter(exchange_type=etsh, is_currency=True)
+    if ttpays:
+        if len(ttpays) > 1:
+            raise ValidationError("There're more than 1 TransferType with is_currency for ET : "+str(etsh))
+        ttpay = ttpays[0]
+    else:
+        ttpay, created = TransferType.objects.get_or_create(
+            name="Payment of the Project shares",
+            exchange_type=etsh
+        )
+        if created:
+            print "- created TransferType: 'Payment of the Project shares'"
+    ttpay.name = "Payment of the Project shares"
+    ttpay.exchange_type = etsh
+    ttpay.sequence = 1
+    ttpay.give_agent_is_context = False
+    ttpay.receive_agent_is_context = True
+    ttpay.is_reciprocal = True
+    ttpay.is_currency = True
+    ttpay.inherit_types =  False
+    ttpay.is_to_distribute = True
+    ttpay.is_contribution = False
+    ttpay.can_create_resource = False
+    ttpay.save()
 
     fvmoney = FacetValue.objects.get(value="Money")
     ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
@@ -5052,16 +4803,31 @@ def create_shares_exchange_types(request, agent_id):
     if created:
         print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney)
 
-
-    ttshr, created = TransferType.objects.get_or_create(
-        name="Receive the Project shares",
-        sequence=2,
-        exchange_type=etsh,
-        inherit_types=True,
-        #receive_agent_is_context=True,
-    )
-    if created:
-        print "- created TransferType: 'Receive the Project shares'"
+    #  TransferType  ->  receive
+    ttshrs = TransferType.objects.filter(exchange_type=etsh, inherit_types=True)
+    if ttshrs:
+        if len(ttshrs) > 1:
+            raise ValidationError("There are more than 1 TransferType with inherit_types for ET : "+str(etsh))
+        ttshr = ttshrs[0]
+    else:
+        ttshr, created = TransferType.objects.get_or_create(
+            name="Receive the Project shares",
+            exchange_type=etsh
+        )
+        if created:
+            print "- created TransferType: 'Receive the Project shares'"
+    ttshr.name = "Receive the Project shares"
+    ttshr.exchange_type = etsh
+    ttshr.sequence = 2
+    ttshr.give_agent_is_context = True
+    ttshr.receive_agent_is_context = False
+    ttshr.is_reciprocal = False
+    ttshr.is_currency = False
+    ttshr.inherit_types =  True
+    ttshr.is_to_distribute = False
+    ttshr.is_contribution = False
+    ttshr.can_create_resource = False
+    ttshr.save()
 
     shrfv = FacetValue.objects.get(value="Project Shares")
     ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
@@ -5072,17 +4838,37 @@ def create_shares_exchange_types(request, agent_id):
 
 
 
-    #fobi_keys = project.fobi_items_keys()
+    #  generic   B u y   P r o j e c t   S h a r e s
 
     rt = project.shares_account_type()
-    if rt and rt.ocp_artwork_type:
+    if not rt:
+        raise ValidationError("The project has not a shares_account_type ! "+str(project))
+    elif not rt.ocp_artwork_type:
+        raise ValidationError("The project rt has not an ocp_artwork_type ! "+str(rt))
+    elif not rt.ocp_artwork_type.rel_nonmaterial_type:
+        raise ValidationError("The project rt.ocp_artwork_type has not a rel_nonmaterial_type ! "+str(rt.ocp_artwork_type))
+    elif not rt.ocp_artwork_type.rel_nonmaterial_type.general_unit_type:
+        raise ValidationError("The project rt.ocp_artwork_type.rel_nonmaterial_type has not a general_unit_type ! "+str(rt.ocp_artwork_type.rel_nonmaterial_type))
+    else:
 
         #  ExchangeType  ->  project
-        extyp, created = ExchangeType.objects.get_or_create(
-            name="buy "+str(project.agent.name)+" Shares",
-            use_case=usecas)
-        if created:
-            print "- created ExchangeType: 'buy "+str(project.agent.name)+" Shares'"
+        extyps = ExchangeType.objects.filter(name__iexact="buy "+str(project.compact_name())+" Shares")
+        if not extyps:
+            extyps = ExchangeType.objects.filter(name__iexact="buy "+str(project.agent.name)+" Shares")
+        if extyps:
+            if len(extyps) > 1:
+                raise ValidationError("There are more than 1 ExchangeType with same name: "+str(extyps))
+            extyp = extyps[0]
+        else:
+            extyp, created = ExchangeType.objects.get_or_create(
+                name="buy "+str(project.compact_name())+" Shares",
+                use_case=usecas)
+            if created:
+                print "- created ExchangeType: 'buy "+str(project.compact_name())+" Shares'"
+        extyp.name = "buy "+str(project.compact_name())+" Shares"
+        extyp.use_case = usecas
+        extyp.context_agent = project.agent
+        extyp.save()
 
         tts = extyp.transfer_types.all()
         if len(tts) > 2:
@@ -5090,23 +4876,51 @@ def create_shares_exchange_types(request, agent_id):
             raise ValidationError("The ExchangeType has more than 2 TransferType's: "+str(tts))
 
         #  Ocp_Record_Type  ->  project
-        rectyp, created = Ocp_Record_Type.objects.get_or_create(
-            name="buy "+str(project.agent.name)+" Shares",
-            parent=et_sharebuy,
-            exchange_type=extyp,
-            ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type)
-        if created:
-            print "- created Ocp_Record_Type: 'buy "+str(project.agent.name)+" Shares'"
+        rectyps = Ocp_Record_Type.objects.filter(name__iexact="buy "+str(project.compact_name())+" Shares")
+        if not rectyps:
+            rectyps = Ocp_Record_Type.objects.filter(name__iexact="buy "+str(project.agent.name)+" Shares")
+        if rectyps:
+            if len(rectyps) > 1:
+                raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(rectyps))
+            rectyp = rectyps[0]
+        else:
+            rectyp, created = Ocp_Record_Type.objects.get_or_create(
+                name="buy "+str(project.compact_name())+" Shares",
+                parent=et_sharebuy)
+            if created:
+                print "- created Ocp_Record_Type: 'buy "+str(project.compact_name())+" Shares'"
+        rectyp.name = "buy "+str(project.compact_name())+" Shares"
+        rectyp.parent = et_sharebuy
+        rectyp.exchange_type = extyp
+        rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
+        rectyp.save()
 
         ##  TransferType's  ->  project  ->  pay
-        ttpay, created = TransferType.objects.get_or_create(
-            name="Payment of the "+str(project.agent.name)+" shares",
-            exchange_type=extyp,
-            sequence=1,
-            is_currency=True,
-            is_reciprocal=True)
-        if created:
-            print "created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
+        ttpays = TransferType.objects.filter(exchange_type=extyp, is_currency=True)
+        if not ttpays:
+            ttpays = TransferType.objects.filter(exchange_type=extyp, name__icontains="Payment")
+        if ttpays:
+            if len(ttpays) > 1:
+                raise ValidationError("There are more than 1 TransferType with is_currency or 'Payment' : "+str(ttpays))
+            ttpay = ttpays[0]
+        else:
+            ttpay, created = TransferType.objects.get_or_create(
+                name="Payment of the "+str(project.agent.name)+" shares",
+                exchange_type=extyp)
+            if created:
+                print "created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
+        ttpay.name = "Payment of the "+str(project.agent.name)+" shares"
+        ttpay.exchange_type = extyp
+        ttpay.sequence = 1
+        ttpay.give_agent_is_context = True
+        ttpay.receive_agent_is_context = False
+        ttpay.is_reciprocal = False
+        ttpay.is_currency = True
+        ttpay.inherit_types =  False
+        ttpay.is_to_distribute = True
+        ttpay.is_contribution = False
+        ttpay.can_create_resource = False
+        ttpay.save()
 
         ###  TransferTypeFacetValue  ->  pay  ->  money
         ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
@@ -5116,13 +4930,31 @@ def create_shares_exchange_types(request, agent_id):
             print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney)
 
         ##  TransferType  ->  project  ->  receive
-        ttshr, created = TransferType.objects.get_or_create(
-            name="Receive the "+str(project.agent.name)+" shares",
-            sequence=2,
-            exchange_type=extyp,
-            inherit_types=True)
-        if created:
-            print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares'"
+        ttshrs = TransferType.objects.filter(exchange_type=extyp, inherit_types=True)
+        if not ttshrs:
+            ttshrs = TransferType.objects.filter(exchange_type=extyp, name__icontains="Receive")
+        if ttshrs:
+            if len(ttshrs) > 1:
+                raise ValidationError("There are more than 1 TransferType with inherit_types or 'Receive' : "+str(ttshrs))
+            ttshr = ttshrs[0]
+        else:
+            ttshr, created = TransferType.objects.get_or_create(
+                name="Receive the "+str(project.agent.name)+" shares",
+                exchange_type=extyp)
+            if created:
+                print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares'"
+        ttshr.name = "Receive the "+str(project.agent.name)+" shares"
+        ttshr.exchange_type = extyp
+        ttshr.sequence = 2
+        ttshr.give_agent_is_context = False
+        ttshr.receive_agent_is_context = True
+        ttshr.is_reciprocal = True
+        ttshr.is_currency = False
+        ttshr.inherit_types =  True
+        ttshr.is_to_distribute = False
+        ttshr.is_contribution = False
+        ttshr.can_create_resource = False
+        ttshr.save()
 
         ###  TransferTypeFacetValue  ->  receive  ->  share
         ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
@@ -5175,7 +5007,7 @@ def create_shares_exchange_types(request, agent_id):
                 if len(parent_rectyps) > 1:
                     raise ValidationError("There are more than 1 Ocp_Record_Type named: '"+title+" Economy'")
                 parent_rectyp = parent_rectyps[0]
-                print "- edited Ocp_Record_Type: '"+title+" Economy:'"
+                #print "- edited Ocp_Record_Type: '"+title+" Economy:'"
             else:
                 parent_rectyp, created = Ocp_Record_Type.objects.get_or_create(
                     name=title+" Economy:",
@@ -5190,7 +5022,7 @@ def create_shares_exchange_types(request, agent_id):
             parent_rectyp.exchange_type = None
             parent_rectyp.save()
 
-            #  Fiat Buy  sub-branch
+            #   Buy  sub-branch
             parent_rectypbuy, created = Ocp_Record_Type.objects.get_or_create(
                 name=slug+" Buy",
                 parent=parent_rectyp
@@ -5212,11 +5044,14 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 parent_rectypbuy_non, created = Ocp_Record_Type.objects.get_or_create(
                     name=slug+"-buy Non-materials",
-                    ocpRecordType_ocp_artwork_type=Ocp_Artwork_Type.objects.get(clas="Nonmaterial"),
                     parent=parent_rectypbuy
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+slug+"-buy Non-materials'"
+            parent_rectypbuy_non.name = slug+"-buy Non-materials"
+            parent_rectypbuy_non.parent = parent_rectypbuy
+            parent_rectypbuy_non.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="Nonmaterial")
+            #parent_rectypbuy_non.save()
 
             #  ExchangeType
             etfiat_nons = ExchangeType.objects.filter(name__icontains=slug+"-Buy Non-material resources")
@@ -5228,11 +5063,9 @@ def create_shares_exchange_types(request, agent_id):
                 etfiat_non = etfiat_nons[0]
             else:
                 etfiat_non, created = ExchangeType.objects.get_or_create(
-                    name=slug+"-buy Non-materials",
-                    use_case=usecas)
+                    name=slug+"-buy Non-materials")
                 if created:
                     print "- created ExchangeType: '"+slug+"-buy Non-materials'"
-
             etfiat_non.name = slug+"-buy Non-materials"
             etfiat_non.use_case = usecas
             etfiat_non.save()
@@ -5255,13 +5088,19 @@ def create_shares_exchange_types(request, agent_id):
                     print "- created TransferType: 'Payment of the Non-material ("+slug+")'"
 
             ttpay.name = "Payment of the Non-material ("+slug+")"
-            ttpay.sequence = 1
-            ttpay.is_currency = True
-            ttpay.is_reciprocal = True
             ttpay.exchange_type = etfiat_non
+            ttpay.sequence = 1
+            ttpay.give_agent_is_context = False
+            ttpay.receive_agent_is_context = True
+            ttpay.is_reciprocal = True
+            ttpay.is_currency = True
+            ttpay.inherit_types =  False
+            ttpay.is_to_distribute = True
+            ttpay.is_contribution = False
+            ttpay.can_create_resource = False
             ttpay.save()
 
-            ###  TransferTypeFacetValue  ->  pay  ->  fiat
+            ###  TransferTypeFacetValue  ->  pay  ->  gatefv
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
@@ -5284,9 +5123,14 @@ def create_shares_exchange_types(request, agent_id):
 
             ttnon.name = "Receive the Non-material"
             ttnon.sequence = 2
-            ttnon.inherit_types = True
+            ttnon.give_agent_is_context = True
+            ttnon.receive_agent_is_context = False
             ttnon.is_reciprocal = False
             ttnon.is_currency = False
+            ttnon.inherit_types = True
+            ttnon.is_to_distribute = False
+            ttnon.is_contribution = False
+            ttnon.can_create_resource = False
             ttnon.save()
 
             ###  TransferTypeFacetValue  ->  receive  ->  Nonmaterial
@@ -5332,14 +5176,15 @@ def create_shares_exchange_types(request, agent_id):
                 if len(etfiat_shrs) > 1:
                     raise ValidationError("There's more than 1 ExchangeType! : "+str(etfiat_shrs))
                 etfiat_shr = etfiat_shrs[0]
-                etfiat_shr.name = slug+"-buy Project Shares"
-                etfiat_shr.save()
             else:
                 etfiat_shr, created = ExchangeType.objects.get_or_create(
-                    name=slug+"-buy Project Shares",
-                    use_case=usecas)
+                    name=slug+"-buy Project Shares")
                 if created:
                     print "- created ExchangeType: '"+slug+"-buy Project Shares'"
+
+            etfiat_shr.name = slug+"-buy Project Shares"
+            etfiat_shr.use_case = usecas
+            etfiat_shr.save()
 
             fiat_rectyp.exchange_type = etfiat_shr
             fiat_rectyp.save()
@@ -5353,18 +5198,24 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 ttfiat, created = TransferType.objects.get_or_create(
                     name="Payment of the Shares ("+slug+")",
-                    #give_agent_is_context=True,
+                    exchange_type=etfiat_shr,
                 )
                 if created:
                     print "- created TransferType: 'Payment of the Shares ("+slug+")'"
             ttfiat.name = "Payment of the Shares ("+slug+")"
             ttfiat.sequence = 1
             ttfiat.exchange_type = etfiat_shr
-            ttfiat.is_currency = True
+            ttfiat.give_agent_is_context = False
+            ttfiat.receive_agent_is_context = True
             ttfiat.is_reciprocal = True
+            ttfiat.is_currency = True
+            ttfiat.inherit_types =  False
+            ttfiat.is_to_distribute = True
+            ttfiat.is_contribution = False
+            ttfiat.can_create_resource = False
             ttfiat.save()
 
-            ###  TransferTypeFacetValue  ->  pay  ->  fiat
+            ###  TransferTypeFacetValue  ->  pay  ->  gatefv
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttfiat,
                 facet_value=gatefv)
@@ -5388,7 +5239,14 @@ def create_shares_exchange_types(request, agent_id):
             ttshr.name = "Receive the Shares"
             ttshr.exchange_type = etfiat_shr
             ttshr.sequence = 2
-            ttshr.inherit_types = True
+            ttshr.give_agent_is_context = True
+            ttshr.receive_agent_is_context = False
+            ttshr.is_reciprocal = False
+            ttshr.is_currency = False
+            ttshr.inherit_types =  True
+            ttshr.is_to_distribute = False
+            ttshr.is_contribution = False
+            ttshr.can_create_resource = False
             ttshr.save()
 
             ###  TransferTypeFacetValue  ->  receive  ->  shares
@@ -5405,20 +5263,20 @@ def create_shares_exchange_types(request, agent_id):
 
 
 
-            #   P R O J E C T   F I A T   B U Y   S H A R E S
+            #   P R O J E C T    B U Y    S H A R E S
 
-            fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
+            fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
             if fiat_ets:
                 if len(fiat_ets) > 1:
-                    raise ValidationError("There's more than 1 ExchangeType named: '"+slug+"-buy "+str(project.agent.name)+" Share")
+                    raise ValidationError("There's more than 1 ExchangeType named: '"+slug+"-buy "+str(project.compact_name())+" Share")
                 fiat_et = fiat_ets[0]
             else:
                 fiat_et, created = ExchangeType.objects.get_or_create(
-                    name=slug+"-buy "+str(project.agent.name)+" Shares"
+                    name=slug+"-buy "+str(project.compact_name())+" Shares"
                 )
                 if created:
-                    print "- created ExchangeType: '"+slug+"-buy "+str(project.agent.name)+" Shares'"
-            fiat_et.name = slug+"-buy "+str(project.agent.name)+" Shares"
+                    print "- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Shares'"
+            fiat_et.name = slug+"-buy "+str(project.compact_name())+" Shares"
             fiat_et.use_case = usecas
             fiat_et.context_agent = project.agent
             fiat_et.save()
@@ -5435,6 +5293,15 @@ def create_shares_exchange_types(request, agent_id):
                 print "- created TransferType: 'Payment of the "+str(project.agent.name)+" shares ("+slug+")'"
             ttpay.name = "Payment of the "+str(project.agent.name)+" shares ("+slug+")"
             ttpay.exchange_type = fiat_et
+            ttpay.sequence = 1
+            ttpay.give_agent_is_context = False
+            ttpay.receive_agent_is_context = True
+            ttpay.is_reciprocal = True
+            ttpay.is_currency = True
+            ttpay.inherit_types =  False
+            ttpay.is_to_distribute = True
+            ttpay.is_contribution = False
+            ttpay.can_create_resource = False
             ttpay.save()
 
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
@@ -5455,6 +5322,15 @@ def create_shares_exchange_types(request, agent_id):
                 print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")"
             ttshr.name = "Receive the "+str(project.agent.name)+" shares"
             ttshr.exchange_type = fiat_et
+            ttshr.sequence = 2
+            ttshr.give_agent_is_context = True
+            ttshr.receive_agent_is_context = False
+            ttshr.is_reciprocal = False
+            ttshr.is_currency = False
+            ttshr.inherit_types =  True
+            ttshr.is_to_distribute = False
+            ttshr.is_contribution = False
+            ttshr.can_create_resource = False
             ttshr.save()
 
             ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
@@ -5476,13 +5352,13 @@ def create_shares_exchange_types(request, agent_id):
                 pro_shr_rectyp = pro_shr_rectyps[0]
             else:
                 pro_shr_rectyp, created = Ocp_Record_Type.objects.get_or_create(
-                    name=slug+"-buy "+str(project.agent.name)+" Shares",
+                    name=slug+"-buy "+str(project.compact_name())+" Shares",
                     parent=fiat_rectyp
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name)+" Shares'"
-            pro_shr_rectyp.name = slug+"-buy "+str(project.agent.name)+" Shares"
-            pro_shr_rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type
+            pro_shr_rectyp.name = slug+"-buy "+str(project.compact_name())+" Shares"
+            pro_shr_rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
             pro_shr_rectyp.parent = fiat_rectyp
             pro_shr_rectyp.exchange_type = fiat_et
             pro_shr_rectyp.save()

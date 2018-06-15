@@ -194,7 +194,8 @@ h3.trtheading {
             <div class="totals infobox">
                 {% if exchange.status %}
                     <p>
-                      {% trans "Status" %}: <span class="{{ exchange.status }}">{{ exchange.status|title }}</span>
+                      {% trans "Status" %}: <span class="{{ exchange.status }}">{{ exchange.status|title }}</span> &nbsp;
+                        {% if request.user.is_superuser %}Context: {{ exchange.context_agent }}{% endif %}
                     </p>
                 {% endif %}
                 {% if exchange.join_request %}

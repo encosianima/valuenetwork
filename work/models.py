@@ -370,6 +370,19 @@ class Project(models.Model):
                                     pay_opts.append([key, val])
         return pay_opts
 
+    def compact_name(self):
+        name = self.agent.name.title()
+        arr = name.split()
+        name = ''.join(arr)
+        return name
+
+    def abbrev_name(self):
+        name = self.agent.name
+        arr = name.split()
+        abbr = ''
+        for a in arr:
+            abbr += a[:1]
+        return abbr
 
 
 class SkillSuggestion(models.Model):
@@ -831,7 +844,13 @@ class JoinRequest(models.Model):
 
         rt = self.payment_account_type()
         if rt and rt.ocp_artwork_type:
-            recordts = Ocp_Record_Type.objects.filter(ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type, exchange_type__isnull=False)
+            recordts = Ocp_Record_Type.objects.filter(
+                ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type,
+                exchange_type__isnull=False)
+            if not recordts:
+                recordts = Ocp_Record_Type.objects.filter(
+                    ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type.rel_nonmaterial_type,
+                    exchange_type__isnull=False)
             if len(recordts) > 0:
                 payopt = self.payment_option()
                 for rec in recordts:
@@ -857,10 +876,15 @@ class JoinRequest(models.Model):
                 elif recs:
                     et = recs[0].exchange_type
 
+                #import pdb; pdb.set_trace()
                 if not et or not len(recs):
                     pass #raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
             elif recordts:
-                pass #et = recordts[0].exchange_type
+                raise ValidationError("found ocp_record_type's ?? : "+str(recordts)) # pass #et = recordts[0].exchange_type
+            else:
+                raise ValidationError("not found any ocp_record_type related: "+str(rt.ocp_artwork_type))
+        else:
+            raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
 
         return et
 
@@ -2458,7 +2482,7 @@ def create_unit_types(**kwargs):
     if created:
         print "- created Facet: 'Currency'"
     curfacet.clas = "Currency_Type"
-    #curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
+    curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
     curfacet.save()
 
     shrfv, created = FacetValue.objects.get_or_create(
@@ -2546,7 +2570,7 @@ def create_unit_types(**kwargs):
 
     ## BankOfTheCommons
 
-    boc_ag = EconomicAgent.objects.filter(nick="BoC")
+    """boc_ag = EconomicAgent.objects.filter(nick="BoC")
     if not boc_ag:
         boc_ag = EconomicAgent.objects.filter(nick="BotC")
     if not boc_ag:
@@ -2594,27 +2618,44 @@ def create_unit_types(**kwargs):
     boc_share.ocp_unit = ocpboc_share
     boc_share.save()
 
-    share_rt, created = EconomicResourceType.objects.get_or_create(
-        name='BankOfTheCommons Share',
-        unit=ocp_each,
-        inventory_rule='yes',
-        behavior='other'
-    )
-    if created:
-        print "- created EconomicResourceType: 'BankOfTheCommons Share'"
-
+    share_rts = EconomicResourceType.objects.filter(name__icontains="BankOfTheCommons Share")
+    if share_rts:
+        if len(share_rts) > 1:
+            raise ValidationError("There are more than 1 EconomicResourceType named: 'BankOfTheCommons Share'")
+        share_rt = share_rts[0]
+    else:
+        share_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Bank of the Commons Share',
+            unit=ocp_each,
+            inventory_rule='yes',
+            behavior='other'
+        )
+        if created:
+            print "- created EconomicResourceType: 'Bank of the Commons Share'"
+    share_rt.name = "Bank of the Commons Share"
+    share_rt.unit = ocp_each
+    share_rt.inventory_rule = 'yes'
+    share_rt.behavior = 'other'
     share_rt.context_agent = boc_ag
     share_rt.save()
 
-    artw_boc, created = Ocp_Artwork_Type.objects.get_or_create(
-        name='BankOfTheCommons Share'
-    )
-    if created:
-        print "- created Ocp_Artwork_Type: 'BankOfTheCommons Share'"
+    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="BankOfTheCommons Share")
+    if artw_bocs:
+        if len(artw_bocs) > 1:
+            raise ValidationError("There are more than 1 Ocp_Artwork_Type named: 'BankOfTheCommons Share' ")
+        artw_boc = artw_bocs[0]
+    else:
+        artw_boc, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Bank of the Commons Share',
+            parent=Type.objects.get(id=artw_sh.id)
+        )
+        if created:
+            print "- created Ocp_Artwork_Type: 'Bank of the Commons Share'"
+    artw_boc.name = "Bank of the Commons Share"
     artw_boc.parent = Type.objects.get(id=artw_sh.id)
     artw_boc.resource_type = share_rt
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
-    artw_boc.save()
+    artw_boc.save()"""
 
 
 post_migrate.connect(create_unit_types)
