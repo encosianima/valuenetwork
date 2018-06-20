@@ -1082,6 +1082,9 @@ query($token: String) {
       note
       type
       __typename
+      agentRecipes {
+        name
+      }
     }
   }
 }
@@ -1670,6 +1673,19 @@ query($token: String) {
       classificationFacetValues {
         name
       }
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allRecipes {
+      id
+      name
+      image
+      category
+      processCategory
+      note
     }
   }
 }
@@ -2974,6 +2990,21 @@ mutation ($token: String!) {
       name
       due
       note
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createPlanFromRecipe(token: $token, name: "More Jam!", due: "2018-06-20", 
+    producesResourceClassificationId: 37, scopeId: 39) {
+    plan {
+      id
+      name
+      due
+      note
+      planProcesses {
+        name
+      }
     }
   }
 }
