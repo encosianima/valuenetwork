@@ -2957,22 +2957,23 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
     et_give = EventType.objects.get(name="Give")
     et_receive = EventType.objects.get(name="Receive")
     context_ids = [c.id for c in agent.related_all_agents()]
-    context_ids.append(agent.id)
+    if not agent.id in context_ids:
+        context_ids.append(agent.id)
     ets = ExchangeType.objects.filter(context_agent__id__in=context_ids) #all()
     event_ids = ""
     select_all = True
     selected_values = "all"
 
-    nav_form = ExchangeNavForm(agent=agent, data=request.POST or None)
+    #nav_form = ExchangeNavForm(agent=agent, data=request.POST or None)
 
     gen_ext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
     usecases = Ocp_Record_Type.objects.filter(parent__id=gen_ext.id).exclude( Q(exchange_type__isnull=False), Q(exchange_type__context_agent__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) ) #UseCase.objects.filter(identifier__icontains='_xfer')
-    outypes = Ocp_Record_Type.objects.filter( Q(exchange_type__isnull=False), Q(exchange_type__context_agent__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) )
-    outchilds_ids = []
-    for tp in outypes:
-      desc = tp.get_descendants(True)
-      outchilds_ids.extend([ds.id for ds in desc])
-    exchange_types = Ocp_Record_Type.objects.filter(lft__gt=gen_ext.lft, rght__lt=gen_ext.rght, tree_id=gen_ext.tree_id).exclude(id__in=outchilds_ids) #.exclude(Q(exchange_type__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids))
+    #outypes = Ocp_Record_Type.objects.filter( Q(exchange_type__isnull=False, exchange_type__context_agent__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) )
+    #outchilds_ids = []
+    #for tp in outypes:
+    #  desc = tp.get_descendants(True)
+    #  outchilds_ids.extend([ds.id for ds in desc])
+    #exchange_types = Ocp_Record_Type.objects.filter(lft__gt=gen_ext.lft, rght__lt=gen_ext.rght, tree_id=gen_ext.tree_id).exclude(id__in=outchilds_ids) #.exclude(Q(exchange_type__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids))
     #usecase_ids = [uc.id for uc in usecases]
 
     ext_form = ContextExchangeTypeForm(agent=agent, data=request.POST or None)
@@ -2981,8 +2982,53 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
     Rtype_form = NewResourceTypeForm(agent=agent, data=request.POST or None)
     Stype_form = NewSkillTypeForm(agent=agent, data=request.POST or None)
 
+    exchanges_by_type = Exchange.objects.exchanges_by_type(agent)
+
     #import pdb; pdb.set_trace()
+    if not request.method == "POST":
+
+        exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent, exchanges_by_type)
+
+        nav_form = ExchangeNavForm(agent=agent, exchanges=exchanges_by_type, data=request.POST or None)
+
     if request.method == "POST":
+
+        dt_selection_form = DateSelectionForm(data=request.POST)
+        if dt_selection_form.is_valid():
+            start = dt_selection_form.cleaned_data["start_date"]
+            end = dt_selection_form.cleaned_data["end_date"]
+
+        exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent, exchanges_by_type) #filter(context_agent=agent)
+
+        nav_form = ExchangeNavForm(agent=agent, exchanges=exchanges_by_type, data=request.POST)
+
+        if "categories" in request.POST:
+            selected_values = request.POST["categories"]
+            if selected_values:
+                sv = selected_values.split(",")
+                vals = []
+                for v in sv:
+                    vals.append(v.strip())
+                if vals[0] == "all":
+                    select_all = True
+                else:
+                    select_all = False
+                    #transfers_included = []
+                    exchanges_included = []
+                    #events_included = []
+                    for ex in exchanges:
+                        if str(ex.exchange_type.id) in vals:
+                            exchanges_included.append(ex)
+                    exchanges = exchanges_included
+
+                #nav_form = ExchangeNavForm(agent=agent, data=None)
+                #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
+                #Stype_form = NewSkillTypeForm(agent=agent, data=None)
+        else:
+          #exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #Exchange.objects.filter(context_agent=agent) #.none()
+          selected_values = "all"
+
+
         new_exchange = request.POST.get("new_exchange")
         if new_exchange:
             if nav_form.is_valid():
@@ -3223,63 +3269,33 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                 #Stype_form = NewSkillTypeForm(agent=agent, data=None)
                 #raise ValidationError("Editing Exchange Type! "+data['parent_type'].name+' ext:'+str(new_parent)+' moved:'+str(moved))
 
-        dt_selection_form = DateSelectionForm(data=request.POST)
-        if dt_selection_form.is_valid():
-            start = dt_selection_form.cleaned_data["start_date"]
-            end = dt_selection_form.cleaned_data["end_date"]
-            exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
-        else:
-            exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #filter(context_agent=agent)
 
-        if "categories" in request.POST:
-            selected_values = request.POST["categories"]
-            if selected_values:
-                sv = selected_values.split(",")
-                vals = []
-                for v in sv:
-                    vals.append(v.strip())
-                if vals[0] == "all":
-                    select_all = True
-                else:
-                    select_all = False
-                    #transfers_included = []
-                    exchanges_included = []
-                    #events_included = []
-                    for ex in exchanges:
-                        if str(ex.exchange_type.id) in vals:
-                            exchanges_included.append(ex)
-                    exchanges = exchanges_included
+    else: # No POST
+        pass #exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
 
-                #nav_form = ExchangeNavForm(agent=agent, data=None)
-                #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
-                #Stype_form = NewSkillTypeForm(agent=agent, data=None)
-        else:
-          exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #Exchange.objects.filter(context_agent=agent) #.none()
-          selected_values = "all"
-    else:
-        exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
+    exchange_types = Ocp_Record_Type.objects.filter(exchange_type__isnull=False, exchange_type__id__in=set([ex.exchange_type.id for ex in exchanges_by_type])).order_by('pk', 'tree_id', 'lft').distinct()
 
-    exchanges_by_type = Exchange.objects.exchanges_by_type(agent)
-
-    total_transfers = [{'unit':u,'name':'','clas':'','income':0,'incommit':0,'outgo':0,'outcommit':0, 'balance':0,'balnote':'','debug':''} for u in agent.used_units_ids()]
+    total_transfers = [{'unit':u,'name':'','clas':'','income':0,'incommit':0,'outgo':0,'outcommit':0, 'balance':0,'balnote':'','debug':''} for u in agent.used_units_ids(exchanges_by_type)]
     total_rec_transfers = 0
     comma = ""
 
     fairunit = None
+
     for x in exchanges:
-        #try:
-        #    xx = list(x.transfer_list)
-        #except AttributeError:
         x.list_name = x.show_name(agent)
         flip = False
         if not str(x) == x.list_name:
             flip = True
 
         x.transfer_list = list(x.transfers.all())
+        for transfer in x.transfer_list:
+            transfer.list_name = transfer.show_name(agent, flip) # "2nd arg is 'forced'
+
+    for x in exchanges_by_type:
+
+        x.transfer_list = list(x.transfers.all())
 
         for transfer in x.transfer_list:
-
-            transfer.list_name = transfer.show_name(agent, flip) # "2nd arg is 'forced'
 
             if transfer.quantity():
               if transfer.transfer_type.is_incoming(x, agent): #reciprocal:
@@ -3431,7 +3447,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         "Stype_tree": Ocp_Skill_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ),
         "Rtype_form": Rtype_form,
         "Stype_form": Stype_form,
-        "Utype_tree": Ocp_Unit_Type.objects.filter(id__in=agent.used_units_ids()), #all(),
+        "Utype_tree": Ocp_Unit_Type.objects.filter(id__in=agent.used_units_ids(exchanges_by_type)), #all(),
         #"unit_types": unit_types,
         "ext_form": ext_form,
     })
@@ -4587,7 +4603,7 @@ def create_project_shares(request, agent_id):
     nome = project.compact_name()
     abbr = project.abbrev_name()
     if len(abbr) < 3:
-        raise ValidationError("The project abbrev name is too short to create shares ?! ")
+        raise ValidationError("The project abbrev name is too short to create shares ?! "+abbr)
 
     user_agent = get_agent(request)
     if not user_agent or not project.share_types() or not request.user.is_superuser or not project.fobi_slug:
@@ -4600,7 +4616,10 @@ def create_project_shares(request, agent_id):
     gen_share_typ = Ocp_Unit_Type.objects.get(clas="shares_currency")
     ocp_each = Unit.objects.get(name="Each")
 
+    #  Unit
     ocpboc_shares = Unit.objects.filter(name=nome+' Share')
+    if not ocpboc_shares:
+        ocpboc_shares = Unit.objects.filter(name=agent.name+' Share')
     if not ocpboc_shares:
         ocpboc_share, created = Unit.objects.get_or_create(
             name=nome+' Share',
@@ -4610,13 +4629,18 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created OCP Unit: '"+nome+" Share ("+abbr+")'"
     else:
+        if len(ocpboc_shares) > 1:
+            raise ValidationError("There is more than one Unit !? "+str(ocpboc_shares))
         ocpboc_share = ocpboc_shares[0]
     ocpboc_share.name = nome+' Share'
     ocpboc_share.unit_type = 'value'
     ocpboc_share.abbrev = abbr
     ocpboc_share.save()
 
-    gen_boc_typs = Ocp_Unit_Type.objects.filter(name=nome+' Shares')
+    #  Ocp_Unit_Type
+    gen_boc_typs = Ocp_Unit_Type.objects.filter(name__iexact=nome+' Shares')
+    if not gen_boc_typs:
+        gen_boc_typs = Ocp_Unit_Type.objects.filter(name__iexact=agent.name+' Shares')
     if not gen_boc_typs:
         gen_boc_typ, created = Ocp_Unit_Type.objects.get_or_create(
             name=nome+' Shares',
@@ -4624,21 +4648,33 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created Ocp_Unit_Type: '"+nome+" Shares'"
     else:
+        if len(gen_boc_typs) > 1:
+            raise ValidationError("There are more than one Ocp_Unit_Type !? "+str(gen_boc_typs))
         gen_boc_typ = gen_boc_typs[0]
     gen_boc_typ.clas = project.fobi_slug+'_shares'
     gen_boc_typ.save()
 
-
-    boc_share, created = Gene_Unit.objects.get_or_create(
-        name=nome+' Share',
-        code=abbr)
-    if created:
-        print "- created General.Unit: '"+nome+" Share'"
+    #  Gene_Unit
+    boc_shares = Gene_Unit.objects.filter(name__iexact=nome+" Share")
+    if not boc_shares:
+        boc_shares = Gene_Unit.objects.filter(name__iexact=agent.name+" Share")
+    if boc_shares:
+        if len(boc_shares) > 1:
+            raise ValidationError("There're more than one Gene_Unit !? "+str(boc_shares))
+        boc_share = boc_shares[0]
+    else:
+        boc_share, created = Gene_Unit.objects.get_or_create(
+            name=nome+' Share',
+            code=abbr)
+        if created:
+            print "- created General.Unit: '"+nome+" Share'"
+    boc_share.name = nome+" Share"
     boc_share.code = abbr
     boc_share.unit_type = gen_boc_typ
     boc_share.ocp_unit = ocpboc_share
     boc_share.save()
 
+    #  EconomicResourceType
     share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share")
     if not share_rts:
         share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().id)
@@ -4662,6 +4698,7 @@ def create_project_shares(request, agent_id):
     share_rt.context_agent = project.agent
     share_rt.save()
 
+    #  Ocp_Artwork_Type
     artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share")
     if not artw_bocs:
         artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().ocp_artwork_type.id)
@@ -4681,6 +4718,94 @@ def create_project_shares(request, agent_id):
     artw_boc.resource_type = share_rt
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
     artw_boc.save()
+
+
+    #  P r o j e c t   S h a r e s   A c c o u n t
+
+    #  EconomicResourceType
+    ert_accs = EconomicResourceType.objects.filter(name__icontains=agent.name+" Shares Account")
+    if not ert_accs:
+        ert_accs = EconomicResourceType.objects.filter(name__icontains=nome+" Shares Account")
+    if ert_accs:
+        if len(ert_accs) > 1:
+            raise ValidationError("There is more than 1 EconomicResourceType ?! "+str(ert_accs))
+        ert_acc = ert_accs[0]
+    else:
+        ert_acc, created = EconomicResourceType.objects.get_or_create(
+            name=agent.name+" Shares Account",
+            unit=ocp_each,
+            inventory_rule='yes',
+            behavior='account')
+        if created:
+            print "- created EconomicResourceType: "+str(ert_acc)
+    ert_acc.name = agent.name+" Shares Account"
+    ert_acc.unit = ocp_each
+    ert_acc.inventory_rule = 'yes'
+    ert_acc.behavior = 'account'
+    ert_acc.unit_of_price = ocpboc_share
+    ert_acc.context_agent = agent
+    ert_acc.save()
+
+    #  Ocp_Artwork_Type
+    parent_accs = Ocp_Artwork_Type.objects.get(clas="accounts")
+    proaccs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Shares Account")
+    if not proaccs:
+        proaccs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Shares Account")
+    if proaccs:
+        if len(proaccs) > 1:
+            raise ValidationError("There is more than one Ocp_Artwork_Type ?! "+str(proaccs))
+        proacc = proaccs[0]
+    else:
+        proacc, created = Ocp_Artwork_Type.objects.get_or_create(
+            name=agent.name+" Shares Account",
+            parent=parent_accs)
+        if created:
+            print "- created Ocp_Artwork_Type: '"+nome+" Shares Account'"
+    proacc.name = agent.name+" Shares Account"
+    proacc.parent = parent_accs
+    proacc.clas = nome.lower()+'shares'
+    proacc.resource_type = ert_acc
+    proacc.rel_nonmaterial_type = artw_boc
+    proacc.save()
+
+    # has resource ?
+    owner = AgentResourceRoleType.objects.get(is_owner=True)
+    arrs = AgentResourceRole.objects.filter(agent=agent, role=owner, resource__resource_type=ert_acc)
+    if arrs:
+        if len(arrs) > 1:
+            raise ValidationError("There are two accounts of the same type for the samr agent! "+str(arrs))
+        aresrol = arrs[0]
+    else:
+        #  EconomicResource
+        ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.name)
+        if not ress:
+            ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.nick)
+        if ress:
+            if len(ress) > 1:
+                raise ValidationError("There's more than one EconomicResource ?! "+str(ress))
+            res = ress[0]
+        else:
+            res, created = EconomicResource.objects.get_or_create(
+                resource_type=ert_acc,
+                identifier=abbr+" shares account for "+agent.nick,
+                quantity=1
+            )
+            if created:
+                print "- created EconomicResource: "+str(res)
+        res.resource_type = ert_acc
+        res.identifier = abbr+" shares account for "+agent.nick
+        res.quantity = 1
+        res.save()
+
+        #  AgentResourceRole
+        aresrol, created = AgentResourceRole.objects.get_or_create(
+            agent=agent,
+            resource=res,
+            role=owner)
+        if created:
+            print "- created AgentResourceRole: "+str(aresrol)
+
+
 
     return HttpResponseRedirect('/%s/%s/'
             % ('work/agent', project.agent.id))
@@ -4753,12 +4878,21 @@ def create_shares_exchange_types(request, agent_id):
     et_shareco.exchange_type = shareco
     et_shareco.save()
 
-    et_sharebuy, created = Ocp_Record_Type.objects.get_or_create(
-        name="shares Buy",
-        parent=et_shareco,
-        clas="buy")
-    if created:
-        print "- created Ocp_Record_Type branch: 'shares Buy'"
+    et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="Buy Shares", parent=et_shareco)
+    if not et_sharebuys:
+        et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="shares Buy", parent=et_shareco)
+    if not et_sharebuys:
+        et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="buy Project Shares", parent=et_shareco)
+    if et_sharebuys:
+        et_sharebuy = et_sharebuys[0]
+    else:
+        et_sharebuy, created = Ocp_Record_Type.objects.get_or_create(
+            name="shares Buy",
+            parent=et_shareco)
+        if created:
+            print "- created Ocp_Record_Type branch: 'shares Buy'"
+    et_sharebuy.name = 'shares Buy'
+    et_sharebuy.clas = 'buy'
 
     etsh, created = ExchangeType.objects.get_or_create(
         name="buy Project Shares",
@@ -4855,6 +4989,8 @@ def create_shares_exchange_types(request, agent_id):
         extyps = ExchangeType.objects.filter(name__iexact="buy "+str(project.compact_name())+" Shares")
         if not extyps:
             extyps = ExchangeType.objects.filter(name__iexact="buy "+str(project.agent.name)+" Shares")
+        if not extyps:
+            extyps = ExchangeType.objects.filter(name__iexact="share-buy "+str(project.agent.name)+" Shares")
         if extyps:
             if len(extyps) > 1:
                 raise ValidationError("There are more than 1 ExchangeType with same name: "+str(extyps))
