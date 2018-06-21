@@ -412,7 +412,7 @@ class ExchangeNavForm(forms.Form):
         )
     )
 
-    def __init__(self, agent=None, *args, **kwargs):
+    def __init__(self, agent=None, exchanges=None, *args, **kwargs):
         super(ExchangeNavForm, self).__init__(*args, **kwargs)
         try:
             gen_et = Ocp_Record_Type.objects.get(clas='ocp_exchange')
@@ -437,10 +437,11 @@ class ExchangeNavForm(forms.Form):
                     self.fields["resource_type"].queryset = Ocp_Artwork_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ).order_by('tree_id','lft') #| Q(resource_type__context_agent__isnull=True) )
                     self.fields["skill_type"].queryset = Ocp_Skill_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ).order_by('tree_id','lft') #| Q(resource_type__context_agent__isnull=True) )
 
-                today = datetime.date.today()
-                end =  today
-                start = today - datetime.timedelta(days=365)
-                exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #filter(Q(context_agent=agent), Q(transfers__events__from_agent=agent), Q(transfers__events__to_agent=agent))
+                if not exchanges:
+                    #today = datetime.date.today()
+                    #end =  today
+                    #start = today - datetime.timedelta(days=365)
+                    exchanges = Exchange.objects.exchanges_by_type(agent) #date_and_context(start, end, agent) #filter(Q(context_agent=agent), Q(transfers__events__from_agent=agent), Q(transfers__events__to_agent=agent))
                 ex_types = [ex.exchange_type.id for ex in exchanges]
                 self.fields["used_exchange_type"].queryset = ExchangeType.objects.filter(id__in=ex_types)
 
