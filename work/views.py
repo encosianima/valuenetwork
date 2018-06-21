@@ -4770,16 +4770,20 @@ def create_project_shares(request, agent_id):
 
     # has resource ?
     owner = AgentResourceRoleType.objects.get(is_owner=True)
+    aresrol = None
     arrs = AgentResourceRole.objects.filter(agent=agent, role=owner, resource__resource_type=ert_acc)
     if arrs:
         if len(arrs) > 1:
             raise ValidationError("There are two accounts of the same type for the samr agent! "+str(arrs))
         aresrol = arrs[0]
+        res = aresrol.resource
     else:
         #  EconomicResource
         ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.name)
         if not ress:
             ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.nick)
+        if not ress:
+            ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=agent.nick+" shares account for "+agent.nick)
         if ress:
             if len(ress) > 1:
                 raise ValidationError("There's more than one EconomicResource ?! "+str(ress))
@@ -4792,12 +4796,13 @@ def create_project_shares(request, agent_id):
             )
             if created:
                 print "- created EconomicResource: "+str(res)
-        res.resource_type = ert_acc
-        res.identifier = abbr+" shares account for "+agent.nick
-        res.quantity = 1
-        res.save()
+    res.resource_type = ert_acc
+    res.identifier = abbr+" shares account for "+agent.nick
+    res.quantity = 1
+    res.save()
 
-        #  AgentResourceRole
+    #  AgentResourceRole
+    if not aresrol:
         aresrol, created = AgentResourceRole.objects.get_or_create(
             agent=agent,
             resource=res,
