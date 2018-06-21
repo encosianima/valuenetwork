@@ -561,7 +561,16 @@ class EconomicAgent(models.Model):
         if context_agent_id:
             context_agent = EconomicAgent.objects.get(pk=context_agent_id)
         elif object_to_mutate:
-            context_agent = object_to_mutate.context_agent
+            if type(object_to_mutate) is Order: #orders do not have a context agent
+                if object_to_mutate.pk: #update or delete
+                    if object_to_mutate.created_by == user:
+                        return True
+                    else:
+                        return False
+                else: #create
+                    return True
+            else:
+                context_agent = object_to_mutate.context_agent
         else:
             return False
         if context_agent not in self.is_member_of():
@@ -2311,6 +2320,27 @@ class ResourceClass(models.Model):
 
 class EconomicResourceTypeManager(models.Manager):
 
+    def resource_types_with_recipes(self, context_agent=None):
+        resource_types = []
+        if context_agent:
+            candidate_resource_types = context_agent.get_resource_types_with_recipe()
+            for rt in candidate_resource_types:
+                if rt.recipe_needs_starting_resource():
+                    rt.onhand_resources = []
+                    onhand = rt.onhand_for_resource_driven_recipe()
+                    if onhand:
+                        resource_types.append(rt)
+                        for oh in onhand:
+                            rt.onhand_resources.append(oh)
+                else:
+                    resource_types.append(rt)
+        else:
+            rts = EconomicResourceType.objects.all()
+            for rt in rts:
+                if rt.process_types.filter(event_type__relationship='out'):
+                    resource_types.append(rt)
+        return resource_types
+
     def membership_share(self):
         try:
             share = EconomicResourceType.objects.get(name="Membership Share")
@@ -2880,6 +2910,43 @@ class EconomicResourceType(models.Model):
             #if self.recipe_is_staged():
             return True
         return False
+
+    def generate_mfg_work_order(self, order_name, due_date, created_by):
+        #made from code in view plan_from_recipe but simplified to minimum requirement
+        today = datetime.date.today()
+        due = datetime.datetime.strptime(due_date, '%Y-%m-%d').date()
+        demand = Order(
+            order_type="rand",
+            order_date=today,
+            due_date=due,
+            name=order_name,
+            created_by=created_by)
+        demand.save()
+
+        ptrt, inheritance = self.main_producing_process_type_relationship()
+        et = ptrt.event_type
+        if et:
+            commitment = demand.add_commitment(
+                resource_type=self,
+                #Todo: apply selected_context_agent here? Only if inheritance?
+                context_agent=ptrt.process_type.context_agent,
+                quantity=ptrt.quantity,
+                event_type=et,
+                unit=self.unit,
+                description=ptrt.description or "",
+                stage=ptrt.stage,
+                state=ptrt.state,
+                due=demand.due_date,
+                )
+            commitment.created_by=created_by
+            commitment.save()
+
+            process = commitment.generate_producing_process(created_by, [], inheritance=inheritance, explode=True)
+
+        #TODO: add notifications here if wanted, see view
+
+        return demand
+
 
     def generate_staged_work_order(self, order_name, start_date, user):
         #pr changed
@@ -10929,6 +10996,7 @@ class Commitment(models.Model):
                     url=pt.url,
                     end_date=self.due_date,
                     start_date=start_date,
+                    plan=self.independent_demand,
                     created_by=user,
                 )
                 process.save()
