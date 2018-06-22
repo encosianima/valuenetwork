@@ -1187,27 +1187,26 @@ class EconomicAgent(models.Model):
         return resp
 
     def need_exchanges(self):
-        resp = True
+        resp = False # True
         ags = self.related_contexts()
-        add = 0
-        if self.is_context and self in ags:
-            if len(ags) > 1:
-                add = 1
-            #ags.append(self)
-        noneed = []
+        #add = 0
+        #if self.is_context and self in ags:
+        #    if len(ags) > 1:
+        #        add = 1
+        need = [] #noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
-                    if not 'exchanges' in ag.project.services():
-                        noneed.append(ag)
+                    if 'exchanges' in ag.project.services(): # if not
+                        resp = True #noneed.append(ag)
                 else:
-                    noneed.append(ag)
+                    pass #noneed.append(ag)
             except:
                 pass
-        if len(ags)-add == len(noneed):
-            resp = False
-        if self in noneed:
-            resp = False
+        #if len(ags)-add == len(noneed):
+        #    resp = False
+        #if self in noneed:
+        #    resp = False
         return resp
 
     def need_projects(self):
@@ -1223,27 +1222,26 @@ class EconomicAgent(models.Model):
         return resp
 
     def need_tasks(self):
-        resp = True
+        resp = False #True
         ags = self.related_contexts()
-        add = 0
-        if self.is_context and self in ags:
-            if len(ags) > 1:
-                add = 1
-            #ags.append(self)
-        noneed = []
+        #add = 0
+        #if self.is_context and self in ags:
+        #    if len(ags) > 1:
+        #        add = 1
+        #noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
-                    if not 'tasks' in ag.project.services():
-                        noneed.append(ag)
+                    if 'tasks' in ag.project.services(): # if not
+                        resp = True #noneed.append(ag)
                 #else:
                 #    noneed.append(ag)
             except:
                 pass
-        if len(ags)-add == len(noneed):
-            resp = False
-        if self in noneed:
-            resp = False
+        #if len(ags)-add == len(noneed):
+        #    resp = False
+        #if self in noneed:
+        #    resp = False
         if not self.is_participant():
             resp = False
         return resp
