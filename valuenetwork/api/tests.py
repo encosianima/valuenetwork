@@ -928,10 +928,11 @@ class APITest(TestCase):
         call_result = result.data['createToken']
         token = call_result['token']
         test_agent = EconomicAgent.objects.get(name="testUser11222")
+        import pdb; pdb.set_trace()
 
         result1 = schema.execute('''
                 mutation {
-                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2) {
+                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2, planId: 1) {
                     process {
                         name
                         scope {
