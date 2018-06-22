@@ -1877,6 +1877,35 @@ def delete_request(request, join_request_id):
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
 
 @login_required
+def delete_request_agent_and_user(request, join_request_id):
+    req = get_object_or_404(JoinRequest, pk=join_request_id)
+    if req.agent:
+        rs = req.agent.resource_relationships()
+        usr = req.agent.user().user
+        if rs:
+            raise ValidationError("The agent has resources, you cannot delete it! "+str(req.agent)+" / req: "+str(req))
+        if usr:
+            if usr.is_staff or usr.is_superuser:
+                raise ValidationError("You can'n delete a staff member!! "+str(usr))
+            if usr.account:
+                pass #usr.account.delete()
+            else:
+                raise ValidationError("The user has not an 'account' to delete: "+str(usr)+" / req: "+str(req))
+            if req.agent.is_deletable():
+                req.agent.delete()
+            else:
+                raise ValidationError("The agent of this request is not deletable! "+str(req.agent)+" / req: "+str(req))
+            usr.delete()
+        else:
+            raise ValidationError("The agent of this request has no User to delete! "+str(req.agent)+" / req: "+str(req))
+    else:
+        raise ValidationError("The request has no agent! "+str(req))
+    req.delete()
+
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', req.project.agent.id, 'join-requests'))
+
+@login_required
 def confirm_request(request, join_request_id):
     jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
     if jn_req.agent:

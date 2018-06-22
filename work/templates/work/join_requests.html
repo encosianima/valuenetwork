@@ -79,14 +79,6 @@ form.action-form {
                             <td>
                                 {% if not req.fobi_data %}
                                   <span class="error">ERROR!</span>
-                                  <form
-                                        class="action-form"
-                                        id="delete-form{{ req.id }}"
-                                        action="{% url "delete_request" join_request_id=req.id %}"
-                                        method="POST" >
-                                        {% csrf_token %}
-                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
-                                  </form>
                                 {% endif %}
                                 {% if req.check_user_pass %}
                                     <span class="error">{% trans "Not Valid yet!" %}</span>&nbsp;
@@ -96,7 +88,7 @@ form.action-form {
                                       {% if req.pending_shares %}
                                           <span class="error">{% trans "Pending" %}</span>
                                       {% elif req.fobi_data %}
-                                          <span class="complete">{% trans "Acquired" %}</span>
+                                          <span class="complete">{{ req.total_shares }}</span>
                                       {% endif %}
                                       <br />
                                   {% endif %}
@@ -178,15 +170,29 @@ form.action-form {
                                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Accept Member" %}' />
                                       </form>
                                     {% endif %}
-                                    <form
+                                    {% if req.check_user_pass %}
+                                      {% if req.agent.is_deletable %}
+                                         &nbsp; <span class="help-text">{% trans "Wait to confirm, or delete agent, user and request" %}:</span>
+                                         <form
+                                            style="display: inline;"
+                                            class="delete-agent-form indent"
+                                            id="delete-agent-form{{ req.id }}"
+                                            action="{% url "delete_request_agent_and_user" join_request_id=req.id %}"
+                                            method="POST" >
+                                            {% csrf_token %}
+                                            <button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >{% trans "Delete all" %}</button>
+                                         </form>
+                                      {% endif %}
+                                    {% else %}
+                                      <form
                                         class="action-form"
                                         id="decline-form{{ req.id }}"
                                         action="{% url "decline_request" join_request_id=req.id %}"
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
-                                    </form>
-
+                                      </form>
+                                    {% endif %}
                                   {% else %}
                                     {% if req.possible_agent %}<br>
                                       "<a href="{% url 'members_agent' agent_id=req.possible_agent.id %}">{{ req.possible_agent }}</a>" {% trans "is taken, choose this agent?" %}
@@ -239,6 +245,15 @@ form.action-form {
                                         <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
                                     </form>
                                   {% endif %}
+                                {% else %}
+                                    <form
+                                        class="action-form"
+                                        id="delete-form{{ req.id }}"
+                                        action="{% url "delete_request" join_request_id=req.id %}"
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
+                                    </form>
                                 {% endif %}
 
                             </td>

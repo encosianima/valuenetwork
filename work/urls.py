@@ -116,6 +116,9 @@ urlpatterns = [
         name="create_account_for_join_request"),
     # url(r"^comments/$", work.views.comments, name="comments"),
 
+    url(r'^delete-request-agent-user/(?P<join_request_id>\d+)/$', work.views.delete_request_agent_and_user,
+        name="delete_request_agent_and_user"),
+
     url(r'^payment-url/(?P<paymode>.+)/(?P<join_request_id>\d+)/$', work.views.payment_url, name="payment_url"),
 
     url(r'^create-shares-exchange-types/(?P<agent_id>\d+)/$', work.views.create_shares_exchange_types, name="create_shares_exchange_types"),

@@ -542,21 +542,11 @@ class JoinRequest(models.Model):
         balance = 0
         amount = self.payment_amount()
 
-        if self.agent and account_type:
-            user_rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
-            for rt in user_rts:
-                if rt == account_type: #.ocp_artwork_type:
-                    rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
-                    for rs in rss:
-                        if rs.resource_type == rt:
-                            balance = rs.price_per_unit # TODO: update the price_per_unit with wallet balance
+        balance = self.total_shares()
 
         if amount:
             answer = amount - balance
             if answer > 0:
-                #if self.payment_url and self.payment_secret and not self.payment_status:
-                    #self.payment_status = 'pending'
-                    #self.save()
                 return int(answer)
             else:
                 #import pdb; pdb.set_trace()
@@ -569,10 +559,11 @@ class JoinRequest(models.Model):
         balance = 0
 
         if self.agent and account_type:
-            user_rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
+            arrs = self.agent.resource_relationships()
+            user_rts = list(set([arr.resource.resource_type for arr in arrs]))
             for rt in user_rts:
                 if rt == account_type: #.ocp_artwork_type:
-                    rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
+                    rss = list(set([arr.resource for arr in arrs]))
                     for rs in rss:
                         if rs.resource_type == rt:
                             balance = rs.price_per_unit # TODO: update the price_per_unit with wallet balance
