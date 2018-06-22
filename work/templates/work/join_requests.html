@@ -98,33 +98,28 @@ form.action-form {
                                       {% elif req.fobi_data %}
                                           <span class="complete">{% trans "Acquired" %}</span>
                                       {% endif %}
+                                      <br />
                                   {% endif %}
                                   {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
                                   {% else %}
                                     {% if request.user.is_superuser and not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
-                                      <form
+                                     <!-- <form
                                           class="action-form"
                                           id="status-form{{ req.id }}"
                                           action="{% url "update_share_payment" join_request_id=req.id %}"
                                           method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" name="status" value="pending">
-                                        <!-- <input type="hidden" name="notes" value="dis iz a tezt note"> -->
                                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                                      </form>
+                                      </form> -->
                                     {% endif %}
                                     {% if request.user.is_superuser %}
-                                        <span class="help-text" style="font-size:0.8em"><br />ET: {{ req.exchange_type }} <!-- -->
-                                            <!-- <br />AT: {{ req.payment_account_type }}  -->
+                                       <!-- <span class="help-text" style="font-size:0.8em">ET: {{ req.exchange_type }}
                                             <br />UT: {{ req.payment_unit }} RT: {{ req.payment_unit_rt }}
-                                        </span>
+                                        </span><br /> -->
                                     {% endif %}
                                   {% endif %}
-                                  {% if False and req.payment_account_type %}
-                                    <br />Account: {{ req.payment_account_type }}
-                                  {% endif %}
 
-                                  <br />
                                 {% endif %}
 
                                 {% if req.duplicated %}

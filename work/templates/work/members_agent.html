@@ -509,13 +509,14 @@
                                         <span class="smaller">(AT: {{ agent.project.shares_account_type }})<br>
                                         (relRT: {{ agent.project.shares_account_type.ocp_artwork_type.rel_nonmaterial_type.name }})<br>
                                         compact: <b>{{ agent.project.compact_name }}</b><br>
-                                        abbrev: <b>{{ agent.project.abbrev_name }}</b></span><br>
-                                        <b><a href="{% url "create_project_shares" agent_id=agent.id %}">Create Project Shares</a></b>
+                                        abbrev: <b>{{ agent.project.abbrev_name }}</b></span>
                                     {% else %}
                                         <span class="smaller error">(req AT: {{ req.payment_account_type }})</span>
                                         <span class="smaller error">(pro AT: {{ agent.project.shares_account_type }})</span>
                                         <span class="smaller">(KEYS: {{ agent.project.fobi_items_keys }} )</span>
                                     {% endif %}
+                                    <!-- <br>
+                                    <b><a href="{% url "create_project_shares" agent_id=agent.id %}">Create Project Shares</a></b> -->
                                 {% endwith %}
                             {% endif %}
                             </td>
@@ -537,8 +538,8 @@
                               {% endfor %}
                             </ul>
                             {% if request.user.is_superuser %}
-                                <span class="smaller">(KEYS: {{ agent.project.active_payment_options_obj }} )</span><br>
-                                <b><a href="{% url "create_shares_exchange_types" agent_id=agent.id %}">Create Exchange Types</a></b>
+                                <span class="smaller">(KEYS: {{ agent.project.active_payment_options_obj }} )</span>
+                                <!-- <br><b><a href="{% url "create_shares_exchange_types" agent_id=agent.id %}">Create Exchange Types</a></b> -->
                             {% endif %}
                             </td>
                           </tr>
