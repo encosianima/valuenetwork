@@ -2135,7 +2135,7 @@ def create_unit_types(**kwargs):
 
     hour = Gene_Unit.objects.filter(name='Hour')
     if not hour:
-        hour = Gene_Unit.objects.get_or_create(
+        hour, created = Gene_Unit.objects.get_or_create(
             name='Hour',
             code='h',
             unit_type=gen_time_typ
