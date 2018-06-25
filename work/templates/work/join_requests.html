@@ -116,17 +116,17 @@ form.action-form {
 
                                 {% if req.duplicated %}
                                     <em class="error">{% trans "Duplicated!" %}</em>
+                                    ({% trans "see the other" %} <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.duplicated.id %}">{% trans "request" %}</a>)
+                                    <br />
+                                    {% trans "This request:" %}
                                     <form
                                           class="action-form"
                                           id="delete-form{{ req.id }}"
                                           action="{% url "delete_request" join_request_id=req.id %}"
                                           method="POST" >
                                         {% csrf_token %}
-                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete?" %}' />
+                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
                                     </form>
-                                    ({% trans "see the other" %} <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.duplicated.id %}">{% trans "request" %}</a>)
-                                    <br />
-                                    {% trans "This request:" %}
                                 {% endif %}
                                 {% get_comment_count for req as ncom  %}
                                 <a class="btn btn-info btn-mini" href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"><b>{% trans "Feedback:" %}</b> {{ ncom }}
