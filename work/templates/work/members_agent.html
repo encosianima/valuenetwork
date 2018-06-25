@@ -9,17 +9,22 @@
 
 {% with user_agent as user %}
 
-{% block head_title %}
+
 {% if agent.is_context %}
   {% if user_agent in agent.managers or user_is_agent %}
-    {% trans "Your Project" %}: {{ agent.name }}
+    {% block head_title %}
+       {% trans "Your Project" %}: {{ agent.name }}
+    {% endblock %}
   {% else $}
-    {% trans "Other Agent" %}: {{ agent.name }}
+    {% block head_title %}
+       {% trans "Other Agent" %}: {{ agent.name }}
+    {% endblock %}
   {% endif %}
 {% else %}
-  {{ agent.name }}
+  {% block head_title %}
+     {{ agent.name }}
+  {% endblock %}
 {% endif %}
-{% endblock %}
 
 {% block extra_head %}
 
