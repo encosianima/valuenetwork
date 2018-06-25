@@ -2041,10 +2041,12 @@ def create_unit_types(**kwargs):
     ocp_each.abbrev = 'u.'
     ocp_each.save()
 
-    gen_artwt = Type.objects.get(clas='Artwork')
+    gen_artwt, created = Type.objects.get_or_create(name="Artwork", clas='Artwork')
+    if created:
+        print "- created root general Type: 'Artwork'"
     gen_unitt, created = Artwork_Type.objects.get_or_create(name="Unit", parent=gen_artwt, clas='Unit')
     if created:
-        print "- created Artwork_Type: 'Unit'"
+        print "- created general Artwork_Type: 'Unit'"
     each_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Each',
         parent=gen_unitt
