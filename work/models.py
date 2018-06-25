@@ -2025,9 +2025,10 @@ class Ocp_Unit_Type(Unit_Type):
 '''
 
 from django.db.models.signals import post_migrate
-from work.apps import WorkAppConfig
+#from work.apps import WorkAppConfig
 
 def create_unit_types(**kwargs):
+    print "Analizing the unit types in the system..."
     # Each
     ocp_eachs = Unit.objects.filter(name='Each')
     if ocp_eachs:
@@ -2662,8 +2663,10 @@ def create_unit_types(**kwargs):
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
     artw_boc.save()"""
 
+    print "...end of the units analisys."
 
-post_migrate.connect(create_unit_types, sender=WorkAppConfig)
+
+#post_migrate.connect(create_unit_types, sender=WorkAppConfig)
 
 
 
@@ -2748,7 +2751,7 @@ def create_exchange_skills(**kwargs):
         print "Created the Relation buy<>sell"
 
 
-post_migrate.connect(create_exchange_skills, sender=WorkAppConfig)
+#post_migrate.connect(create_exchange_skills, sender=WorkAppConfig)
 
 
 
