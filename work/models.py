@@ -2662,7 +2662,7 @@ def create_unit_types(**kwargs):
     artw_boc.save()"""
 
 
-post_migrate.connect(create_unit_types)
+post_migrate.connect(create_unit_types, sender='ocpscript')
 
 
 
@@ -2747,7 +2747,7 @@ def create_exchange_skills(**kwargs):
         print "Created the Relation buy<>sell"
 
 
-post_migrate.connect(create_exchange_skills)
+post_migrate.connect(create_exchange_skills, sender='ocpscript')
 
 
 
