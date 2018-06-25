@@ -4704,7 +4704,7 @@ def create_project_shares(request, agent_id):
     boc_share.save()
 
     #  EconomicResourceType
-    share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share")
+    share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share").exclude(id=project.shares_account_type().id)
     if not share_rts:
         share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().id)
     if share_rts:

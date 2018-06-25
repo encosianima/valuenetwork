@@ -10,10 +10,14 @@
 {% with user_agent as user %}
 
 {% block head_title %}
-{% if user in agent.managers %}
-{% trans "Your Project" %}: {{ agent.name }}
-{% else $}
-{% trans "Other Agent" %}: {{ agent.name }}
+{% if agent.is_context %}
+  {% if user_agent in agent.managers or user_is_agent %}
+    {% trans "Your Project" %}: {{ agent.name }}
+  {% else $}
+    {% trans "Other Agent" %}: {{ agent.name }}
+  {% endif %}
+{% else %}
+  {{ agent.name }}
 {% endif %}
 {% endblock %}
 
@@ -513,7 +517,9 @@
                                     {% else %}
                                         <span class="smaller error">(req AT: {{ req.payment_account_type }})</span>
                                         <span class="smaller error">(pro AT: {{ agent.project.shares_account_type }})</span>
-                                        <span class="smaller">(KEYS: {{ agent.project.fobi_items_keys }} )</span>
+                                        <span class="smaller">(KEYS: {{ agent.project.fobi_items_keys }} )<br>
+                                        compact: <b>{{ agent.project.compact_name }}</b><br>
+                                        abbrev: <b>{{ agent.project.abbrev_name }}</b></span>
                                     {% endif %}
                                     <!-- <br>
                                     <b><a href="{% url "create_project_shares" agent_id=agent.id %}">Create Project Shares</a></b> -->

@@ -382,6 +382,13 @@ class Project(models.Model):
         abbr = ''
         for a in arr:
             abbr += a[:1]
+        if len(abbr) < 3:
+            arr = name.split()
+            if len(arr[0]) > len(arr[1]): # a case like Freedom Coop, to became FdC
+                first = arr[0]
+                pos = (len(first)/2)+1
+                half = first[pos:pos+1]
+                abbr = arr[0][:1]+half+arr[1][:1]
         return abbr
 
 
@@ -2549,7 +2556,8 @@ def create_unit_types(**kwargs):
         share_rt.save()
 
     artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
-        name='FreedomCoop Share'
+        name='FreedomCoop Share',
+        parent = Type.objects.get(id=artw_sh.id)
     )
     if created:
         print "- created Ocp_Artwork_Type: 'FreedomCoop Share'"
