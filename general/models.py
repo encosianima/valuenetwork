@@ -1090,6 +1090,7 @@ class AccountCrypto(Record):
 #   B A S I C   D B   R E C O R D S  ##
 
 from django.db.models.signals import post_migrate
+from general.apps import GeneralAppConfig
 
 def create_general_types(**kwargs):
     sep = ", "
@@ -1183,4 +1184,4 @@ def create_general_types(**kwargs):
     print(out)
     return out
 
-post_migrate.connect(create_general_types, sender='ocpscript')
+post_migrate.connect(create_general_types, sender=GeneralAppConfig)

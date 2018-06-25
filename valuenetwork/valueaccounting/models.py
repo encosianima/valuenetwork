@@ -1950,6 +1950,7 @@ class AgentAssociationType(models.Model):
 
 
 from django.db.models.signals import post_migrate
+from valuenetwork.valueaccounting.apps import ValueAccountingAppConfig
 
 #def create_agent_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -1960,7 +1961,7 @@ def create_agent_types(**kwargs):
     AgentType.create('Network', 'network', True)
     print "created agent types"
 
-#post_migrate.connect(create_agent_types)
+post_migrate.connect(create_agent_types, sender=ValueAccountingAppConfig)
 
 #def create_agent_association_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -1972,7 +1973,7 @@ def create_agent_association_types(**kwargs):
     AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer')
     print "created agent association types"
 
-#post_migrate.connect(create_agent_association_types)
+post_migrate.connect(create_agent_association_types, sender=ValueAccountingAppConfig)
 
 RELATIONSHIP_STATE_CHOICES = (
     ('active', _('active')),
@@ -3869,7 +3870,7 @@ def create_use_cases(**kwargs):
     UseCase.create('demand_xfer', _('Outgoing Exchange'))
     print "created use cases"
 
-#post_migrate.connect(create_use_cases)
+post_migrate.connect(create_use_cases, sender=ValueAccountingAppConfig)
 
 #def create_event_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -3912,7 +3913,7 @@ def create_event_types(**kwargs):
 
     print "created event types"
 
-#post_migrate.connect(create_event_types)
+post_migrate.connect(create_event_types, sender=ValueAccountingAppConfig)
 
 class UseCaseEventType(models.Model):
     use_case = models.ForeignKey(UseCase,
@@ -4007,7 +4008,7 @@ def create_usecase_eventtypes(**kwargs):
 
     print "created use case event type associations"
 
-#post_migrate.connect(create_usecase_eventtypes)
+post_migrate.connect(create_usecase_eventtypes, sender=ValueAccountingAppConfig)
 
 
 class PatternUseCase(models.Model):

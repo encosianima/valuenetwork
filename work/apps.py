@@ -5,4 +5,5 @@ class WorkAppConfig(AppConfig):
     verbose_name = 'Work'
 
     def ready(self):
-        import work.signals
+        super(WorkAppConfig, self).ready()
+        #import work.signals
