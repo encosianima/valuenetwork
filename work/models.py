@@ -2220,10 +2220,11 @@ def create_unit_types(**kwargs):
 
 
     # FairCoin
-    ocp_fair, created = Unit.objects.get_or_create(name='FairCoin')
+    ocp_fair, created = Unit.objects.get_or_create(name='FairCoin', unit_type='value')
     if created:
         print "- created a main ocp Unit: 'FairCoin'!"
     ocp_fair.abbrev = 'fair'
+    ocp_fair.unit_type = 'value'
     ocp_fair.save()
 
     gen_curr_typ, created = Ocp_Unit_Type.objects.get_or_create(

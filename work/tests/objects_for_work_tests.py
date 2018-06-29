@@ -23,42 +23,55 @@ def initial_test_data():
             password='admin_passwd',
             email='admin_user@example.com'
         )
+        print "t- created User: 'admin _user'"
 
     # AgentTypes
     individual_at, c = AgentType.objects.get_or_create(
         name='Individual', party_type='individual', is_context=False)
+    if c: print "t- created AgentType: 'Individual'"
 
     project_at, c = AgentType.objects.get_or_create(
         name='Project', party_type='team', is_context=True)
+    if c: print "t- created AgentType: 'Project'"
 
     cooperative_at, c = AgentType.objects.get_or_create(
         name='Cooperative', party_type='organization', is_context=True)
+    if c: print "t- created AgentType: 'Cooperative'"
 
     # EconomicAgent for admin_user related to him/her.
     admin_ea, c = EconomicAgent.objects.get_or_create(name='admin_agent',
         nick='admin_agent', agent_type=individual_at,  is_context=False)
+    if c: print "t- created EconomicAgent: 'admin_agent'"
 
-    AgentUser.objects.get_or_create(agent=admin_ea, user=admin_user)
+    au, c = AgentUser.objects.get_or_create(agent=admin_ea, user=admin_user)
+    if c: print "t- created AgentUser: "+str(au)
 
     # EconomicAgent for Freedom Coop
-    EconomicAgent.objects.get_or_create(name='Freedom Coop',
+    fdc, c = EconomicAgent.objects.get_or_create(name='Freedom Coop',
         nick='Freedom Coop', agent_type=cooperative_at, is_context=True)
+    if c: print "t- created EconomicAgent: 'Freedom Coop'"
 
     # EconomicAgent for Memebership Request
-    EconomicAgent.objects.get_or_create(name='FreedomCoop Membership',
+    fdcm, c = EconomicAgent.objects.get_or_create(name='FreedomCoop Membership',
         nick=settings.SEND_MEMBERSHIP_PAYMENT_TO, agent_type=project_at, is_context=True)
+    if c: print "t- created EconomicAgent: 'FreedomCoop Membership'"
 
     # EventType for todos
-    EventType.objects.get_or_create(name='Todo', label='todo',
+    et, c = EventType.objects.get_or_create(name='Todo', label='todo',
         relationship='todo', related_to='agent', resource_effect='=')
+    if c: print "t- created EventType: 'Todo'"
 
-    EconomicResourceType.objects.get_or_create(name='something_with_Admin', behavior='work')
+    ert, c = EconomicResourceType.objects.get_or_create(name='something_with_Admin', behavior='work')
+    if c: print "t- created EconomicResourceType: "+str(ert)
 
     # Manage FairCoin
-    FC_unit, c = Unit.objects.get_or_create(unit_type='value', name='FairCoin', abbrev='FairCoin')
+    FC_unit, c = Unit.objects.get_or_create(unit_type='value', name='FairCoin', abbrev='fair')
+    if c: print "t- created Unit: 'FairCoin'"
 
-    EconomicResourceType.objects.get_or_create(name='FairCoin', unit=FC_unit, unit_of_use=FC_unit,
+    ert, c = EconomicResourceType.objects.get_or_create(name='FairCoin', unit=FC_unit, unit_of_use=FC_unit,
         value_per_unit_of_use=decimal.Decimal('1.00'), substitutable=True, behavior='dig_acct')
+    if c: print "t- created EconomicResourceType: 'FairCoin'"
 
-    AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
+    arrt, c = AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
+    if c: print "t- created AgentResourceRoleType: "+str(arrt)
 
