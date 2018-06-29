@@ -20,7 +20,7 @@
 </head>
 <body style="background-image: url({% if project.background_url %}{% static project.background_url %}{% else %}{% static 'img/photo-OCP-1600x900_green.jpg' %}{% endif %}); text-align:center;">
 <div style="font-weight:bold; position:absolute; left:13px; top:9px;">
-  <a href="{% url 'project_login' form_slug=project.fobi_slug %}" style="color:#734279;">{% trans "Login" %} {{ project.agent.name }}</a>
+  <a href="{% url 'project_login' form_slug=project.fobi_slug %}" style="color:#734279;">{% trans "Login to" %} {{ project.agent.name }}</a>
 </div>
 <div class="container">
     {% include "_messages.html" %}
@@ -62,7 +62,7 @@
         {% endif %}
     </h2>
     <div class="row-fluid">
-        {% if not jn_req.payment_url %}<p style="text-align:center">{% trans "A project coordinator will send you an email soon with your OCP login credentials." %}</p>{% endif %}
+        {% if not jn_req.payment_url %}<p style="text-align:center">{% trans "You will receive an initial password in your email, to log in the system and confirm the email address. Please change your password the first time you enter the system to ensure total security." %}</p>{% endif %}
         <p> &nbsp; </p>
         {% if project.payment_options and jn_req.pending_shares %}
             <p style="text-align:center; font-size:120%; ">
