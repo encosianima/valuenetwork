@@ -2293,10 +2293,9 @@ def create_unit_types(**kwargs):
             raise ValidationError("There are more than one Ocp_Artwork_Type with clas 'Nonmaterial' ?!")
         nonmat_typ = nonmat_typs[0]
     else:
-        artw_typ = Type.objects.get(clas='Artwork')
         nonmat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
             name='Non-material',
-            parent=artw_typ,
+            parent=gen_artwt,
             clas='Nonmaterial')
         if created:
             print "- created Ocp_Artwork_Type: 'Non-material'"
@@ -2437,6 +2436,7 @@ def create_unit_types(**kwargs):
 
         #raise ValidationError("There are not ResourceTypes containing 'Euro' in the name!: "+str(ocp_euro_rts))
 
+
     artw_euros = Ocp_Artwork_Type.objects.filter(name__icontains="Euro")
     if len(artw_euros) > 1:
         digi = artw_euros.get(name='Euro digital')
@@ -2455,8 +2455,58 @@ def create_unit_types(**kwargs):
             cash.save()
         else:
             raise ValidationError("Can't find an Ocp_Artwork_Type named 'Euro cash' artw: "+str(artw_euros))
+    elif len(artw_euros) == 1:
+        raise ValidationError("There is only one Ocp_Artwork_Type containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash': "+str(artw_euros))
     else:
-        raise ValidationError("There are not 2 Ocp_Artwork_Types containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash'")
+        #raise ValidationError("There are not 2 Ocp_Artwork_Types containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash': "+str(artw_euros))
+
+        digi, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Euro digital',
+            parent=digcur_typ,
+        )
+        if created:
+            print "- created Ocp_Artwork_Type: 'Euro digital'"
+        digi.clas='euro_digital'
+        digi.resource_type = digi_rt
+        digi.general_unit_type = gen_euro_typ
+        digi.save()
+
+
+        mat_typs = Ocp_Artwork_Type.objects.filter(clas='Material')
+        if mat_typs:
+            if len(mat_typs) > 1:
+                raise ValidationError("There are more than one Ocp_Artwork_Type with clas 'Material' ?!")
+            mat_typ = mat_typs[0]
+        else:
+            mat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+                name='Material',
+                parent=gen_artwt,
+                clas='Material')
+            if created:
+                print "- created Ocp_Artwork_Type: 'Material'"
+
+        phycur_typs = Ocp_Artwork_Type.objects.filter(name='physical Currencies')
+        if not phycur_typs:
+            phycur_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+                name='physical Currencies',
+                parent=mat_typ)
+            if created:
+                print "- created Ocp_Artwork_Types: 'physical Currencies'"
+        else:
+            phycur_typ = phycur_typs[0]
+        phycur_typ.clas = 'currency'
+        phycur_typ.save()
+
+        cash, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Euro cash',
+            parent=phycur_typ)
+        if created:
+            print "- created Ocp_Artwork_Type: 'Euro cash'"
+        cash.clas = 'euro_cash'
+        cash.resource_type = cash_rt
+        cash.general_unit_type = gen_euro_typ
+        cash.save()
+
 
 
 
@@ -2481,7 +2531,9 @@ def create_unit_types(**kwargs):
 
     artw_share = Ocp_Artwork_Type.objects.filter(name='Share')
     if not artw_share:
-        artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(name='Shares')
+        artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Shares',
+            parent=digcur_typ)
         if created:
             print "- created Ocp_Artwork_Type branch: 'Shares'"
     else:
