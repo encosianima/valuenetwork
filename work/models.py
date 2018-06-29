@@ -2620,13 +2620,20 @@ def create_unit_types(**kwargs):
     ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
     if not ocp_share_rts:
         ocp_share_rts = EconomicResourceType.objects.filter(name='FreedomCoop Share')
-    if len(ocp_share_rts) == 1:
+    if ocp_share_rts:
+        if len(ocp_share_rts) > 1:
+            raise ValidationError("There's more than one 'FreedomCoop Share' ?? "+str(ocp_share_rts))
         share_rt = ocp_share_rts[0]
-        share_rt.name = 'FreedomCoop Share'
-        share_rt.unit = ocp_each
-        share_rt.inventory_rule = 'yes'
-        share_rt.behavior = 'other'
-        share_rt.save()
+    else:
+        share_rt, created = EconomicResourceType.objects.get_or_create(
+            name='FreedomCoop Share')
+        if created:
+            print "- created EconomicResourceType: 'FreedomCoop Share'"
+    share_rt.name = 'FreedomCoop Share'
+    share_rt.unit = ocp_each
+    share_rt.inventory_rule = 'yes'
+    share_rt.behavior = 'other'
+    share_rt.save()
 
     artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
         name='FreedomCoop Share',
