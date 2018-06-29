@@ -1102,7 +1102,7 @@ def create_general_types(**kwargs):
     space, created = Type.objects.get_or_create(name='Space', clas='Space')
     if created: out += str(space)+'<br>'
 
-    human, created = Being_Type.objects.get_or_create(name='Human', clas='Human', parent=being)
+    """human, created = Being_Type.objects.get_or_create(name='Human', clas='Human', parent=being)
     if created: out += str(human)+": "
 
     persons = Being_Type.objects.filter(name="Person")
@@ -1151,7 +1151,7 @@ def create_general_types(**kwargs):
     if created: out += str(material)+sep
 
     nonmaterial, created = Artwork_Type.objects.get_or_create(name='Non-material', clas='Nonmaterial', parent=artwork)
-    if created: out += str(nonmaterial)+sep
+    if created: out += str(nonmaterial)+sep"""
 
     record, created = Artwork_Type.objects.get_or_create(name='Record', clas='Record', parent=artwork)
     if created: out += str(record)+sep

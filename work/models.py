@@ -2286,7 +2286,21 @@ def create_unit_types(**kwargs):
     ocp_fair_rt.behavior = 'dig_curr'
     ocp_fair_rt.save()
 
-    nonmat_typ = Ocp_Artwork_Type.objects.get(clas='Nonmaterial')
+
+    nonmat_typs = Ocp_Artwork_Type.objects.filter(clas='Nonmaterial')
+    if nonmat_typs:
+        if len(nonmat_typs) > 1:
+            raise ValidationError("There are more than one Ocp_Artwork_Type with clas 'Nonmaterial' ?!")
+        nonmat_typ = nonmat_typs[0]
+    else:
+        artw_typ = Type.objects.get(clas='Artwork')
+        nonmat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Non-material',
+            parent=artw_typ,
+            clas='Nonmaterial')
+        if created:
+            print "- created Ocp_Artwork_Type: 'Non-material'"
+
     digart_typ, created = Ocp_Artwork_Type.objects.get_or_create(
         name='Digital artwork',
         parent=nonmat_typ)
