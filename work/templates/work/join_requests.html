@@ -9,7 +9,9 @@
 
 {% block extra_head %}
 
-<!--<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" /> -->
+<!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}" /> -->
+
 
 <style>
 
@@ -21,8 +23,30 @@ form.action-form {
     color: #777;
     font-size: 1em;
 }
+#stateForm > h4 {
+    font-size: 1.2em;
+}
+#stateForm li label {
+    font-size: 1em;
+}
+
+div.dataTables_wrapper div.dataTables_filter {
+    float: right;
+}
+
+div.dataTables_wrapper div.dt-buttons {
+    float: right;
+}
+
+div.dataTables_wrapper div.dataTables_length {
+    /*display: inline-block;*/
+}
 
 </style>
+
+
+<!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script> -->
+
 
 {% endblock %}
 
@@ -56,7 +80,7 @@ form.action-form {
                   {% trans "State" %}: {{ state_form.state }}
           </h4>
         </form>
-        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+        <table id="listable" style="width: 100%;" class="table table-bordered table-hover table-condensed" >
             <thead>
                 <th>{% trans "Actions" %}</th>
                 <th>{% trans "Date" %}</th>
@@ -259,6 +283,7 @@ form.action-form {
                             </td>
                       {% endif %}
 
+                      <!--
                       {% comment %}
                         <td>{{ req.agent }}</td>
                         <td>
@@ -266,7 +291,7 @@ form.action-form {
                         </td>
                       {% endcomment %}
 
-                      <!-- <td>
+                      <td>
                           <form
                               style="display: inline;"
                               class="agent-form"
@@ -306,13 +331,15 @@ form.action-form {
                       <td>{% if req.address %} {{ req.address }} {% else %} <em>{{ req.agent.primary_location }}</em> {% endif %}</td>
                       <td>{% if req.website %} {{ req.website }} {% else %} <em>{{ req.agent.url }}</em> {% endif %}</td>
 
-                      {% for val in req.items_data %}
-                        <td class="fobi">{{ val }}</td>
-                      {% endfor %}
-
-                      <!-- <td>{{ req.fobi_data.pk }} - {{ fobi_data }} - {% for entry in req.entries %} {{ entry.form_data_headers }} {% endfor %}</td> -->
-
-
+                      {% if req.items_data %}
+                        {% for val in req.items_data %}
+                          <td class="fobi">{{ val }}</td>
+                        {% endfor %}
+                      {% else %}
+                        {% for val in fobi_headers %}
+                          <td><span class='error'>{% trans "missing" %}</span></td>
+                        {% endfor %}
+                      {% endif %}
                     </tr>
                 {% endfor %}
             </tbody>
@@ -325,10 +352,19 @@ form.action-form {
 {% endblock %}
 
 {% block extra_script %}
-	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" charset="utf8" src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script> <!-- -->
 	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="{% static "js/jquery.expander.min.js" %}"></script>
 
-  <script src="{% static "js/jquery.expander.min.js" %}"></script>
+   <!-- <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>  https://code.jquery.com/jquery-3.3.1.min.js
+
+    <script type="text/javascript" charset="utf8" src="{% static "js/datatables.min.js" %}"></script> -->
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.css"/>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.js"></script>
 
 {% endblock %}
 
@@ -338,7 +374,33 @@ form.action-form {
 
 <script type="text/javascript">
 
+  //var $j = jQuery.noConflict();
+  //window.onload = function() {
+      //alert('hau');
+      //$("#listable").DataTable();
+  //};
+
   $(document).ready(function(){
+
+    $("#listable").DataTable({
+        stateSave: true,
+        autoWidth: true,
+        dom: 'rfliBptflip', //'B<"clear">lfrtip',
+        buttons: [
+            'colvis',
+            {
+                extend: 'pdf',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            'copy',
+            'csv',
+            'excel'
+        ]
+    });
+
+    //$("div.dataTables_wrapper > div.row").first().css('text-align: right;')
 
     $(".tog").change(function(){
         $('.table-condensed').attr('style', 'pointer-events:none; opacity:0.5; width:100%;');
@@ -359,34 +421,34 @@ form.action-form {
     });
 
 
-		$( "#help" ).toggle( function(){
+    $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
-        }, function() {
+    }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
-        })
+    })
 
-        jQuery.validator.setDefaults({
+    jQuery.validator.setDefaults({
             success: function(label) {
                 label
                     .text('').addClass('valid')
                     .closest('.control-group').addClass('success');
             }
-        });
+    });
 
-        $.validator.addClassRules("nick", {
+    $.validator.addClassRules("nick", {
             required: true,
             maxlength: 32,
             remote: { url:"/work/validate-nick/", async:false }
-            });
+    });
 
-        $.validator.addClassRules("password", {
+    $.validator.addClassRules("password", {
             required: true,
-            });
+    });
 
 
-        $('.validateMe').each( function(){
+    $('.validateMe').each( function(){
             var form = $(this);
             form.validate({
                 onkeyup: false,
@@ -394,9 +456,9 @@ form.action-form {
                     $(label).closest('.control-group').addClass('error');
                 }
             });
-        });
+    });
 
-        /*
+    /*
         $(".list").hide();
 
         $(".showhide").click(function(event)
@@ -406,9 +468,9 @@ form.action-form {
             $(listId).slideToggle(200);
             $(this).text($(this).text() == '(Show)' ? '(Hide)' : '(Show)');
         });
-        */
+    */
 
-	}); // end document.ready
+  }); // end document.ready
 
-    </script>
+</script>
 {% endblock %}
