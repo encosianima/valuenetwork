@@ -931,7 +931,7 @@ class APITest(TestCase):
 
         result1 = schema.execute('''
                 mutation {
-                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2) {
+                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2, planId: 1) {
                     process {
                         name
                         scope {
