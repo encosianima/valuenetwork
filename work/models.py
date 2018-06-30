@@ -2648,6 +2648,10 @@ def create_unit_types(**kwargs):
     artw_fdc.save()
 
 
+    arrt, c = AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
+    if c: print "- created AgentResourceRoleType: "+str(arrt)
+
+
     ## BankOfTheCommons
 
     """boc_ag = EconomicAgent.objects.filter(nick="BoC")
