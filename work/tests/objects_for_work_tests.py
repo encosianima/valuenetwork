@@ -67,7 +67,8 @@ def initial_test_data():
         relationship='todo', related_to='agent', resource_effect='=')
     if c: print "t- created EventType: 'Todo'"
 
-    ert, c = EconomicResourceType.objects.get_or_create(name='something_with_Admin', behavior='work')
+    hr = Unit.objects.get(name='Hours')
+    ert, c = EconomicResourceType.objects.get_or_create(name='something_with_Admin', unit=hr, behavior='work')
     if c: print "t- created EconomicResourceType: "+str(ert)
 
     # Manage FairCoin
