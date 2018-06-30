@@ -7,6 +7,8 @@ from valuenetwork.valueaccounting.models import \
     AgentType, EconomicAgent, AgentUser, EventType, EconomicResourceType, \
     Unit, AgentResourceRoleType
 
+from work.models import Project
+
 # It creates the needed initial data to run the work tests:
 # admin_user, admin_agent, Freedom Coop agent, FC Membership request agent, ...
 def initial_test_data():
@@ -51,6 +53,10 @@ def initial_test_data():
         nick='Freedom Coop', agent_type=cooperative_at, is_context=True)
     if c: print "t- created EconomicAgent: 'Freedom Coop'"
 
+    # Project for FreedomCoop
+    pro, c = Project.objects.get_or_create(agent=fdc, joining_style="moderated", fobi_slug='freedom-coop')
+    if c: print "t- created Project: "+str(pro)
+
     # EconomicAgent for Memebership Request
     fdcm, c = EconomicAgent.objects.get_or_create(name='FreedomCoop Membership',
         nick=settings.SEND_MEMBERSHIP_PAYMENT_TO, agent_type=project_at, is_context=True)
@@ -65,12 +71,12 @@ def initial_test_data():
     if c: print "t- created EconomicResourceType: "+str(ert)
 
     # Manage FairCoin
-    FC_unit, c = Unit.objects.get_or_create(unit_type='value', name='FairCoin', abbrev='fair')
-    if c: print "t- created Unit: 'FairCoin'"
+    FC_unit = Unit.objects.get(name='FairCoin') #_or_create(unit_type='value', name='FairCoin', abbrev='fair')
+    #if c: print "t- created Unit: 'FairCoin'"
 
-    ert, c = EconomicResourceType.objects.get_or_create(name='FairCoin', unit=FC_unit, unit_of_use=FC_unit,
-        value_per_unit_of_use=decimal.Decimal('1.00'), substitutable=True, behavior='dig_acct')
-    if c: print "t- created EconomicResourceType: 'FairCoin'"
+    ert = EconomicResourceType.objects.get(name='FairCoin') #, unit=FC_unit, unit_of_use=FC_unit,
+        #value_per_unit_of_use=decimal.Decimal('1.00'), substitutable=True, behavior='dig_acct')
+    #if c: print "t- created EconomicResourceType: 'FairCoin'"
 
     arrt, c = AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
     if c: print "t- created AgentResourceRoleType: "+str(arrt)

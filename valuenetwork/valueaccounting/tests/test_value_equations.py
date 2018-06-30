@@ -387,7 +387,7 @@ class ValueEquationTest(TestCase):
             if c: print "t- created EconomicResourceType: 'FairCoin Address'"
             #faircoin_address_rt.save()
             owner_role, c = AgentResourceRoleType.objects.get_or_create(
-                name="owner",
+                name="Owner",
                 is_owner=True,
                 )
             if c: print "t- created AgentResourceRoleType: "+str(owner_role)
