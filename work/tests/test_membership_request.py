@@ -52,7 +52,14 @@ class MembershipRequestTestCase(LiveServerTestCase):
         # Anonymous user fills the membership request form.
         s.get('%s%s' % (self.live_server_url, "/freedom-coop"))
         self.wait_loading(s, '//title[contains(text(), "Freedom Coop")]')
-        s.find_element_by_xpath('//select[@name="language"]').send_keys("en")
+        sel = s.find_element_by_xpath('//select[@name="language"]')
+        opts = sel.find_elements_by_tag_name("option")
+        for op in opts:
+            #print "t- select option: " + op.get_attribute("value")
+            if op.get_attribute("value") == 'en':
+                op.click()
+                break
+        self.wait_loading(s, '//a[contains(text(), "Join Freedom Coop")]')
         s.find_element_by_id("join-page-but").click()
         self.wait_loading(s, '//title[contains(text(), "Request Membership at FreedomCoop")]')
         s.find_element_by_id("id_name").send_keys("test_name01")
