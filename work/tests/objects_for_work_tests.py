@@ -68,7 +68,7 @@ def initial_test_data():
     if c: print "t- created EventType: 'Todo'"
 
     hr = Unit.objects.get(name='Hours')
-    ert, c = EconomicResourceType.objects.get_or_create(name='something_with_Admin', unit=hr, behavior='work')
+    ert, c = EconomicResourceType.objects.get_or_create(name='some_skill_of_Admin', unit=hr, unit_of_use=hr, behavior='work')
     if c: print "t- created EconomicResourceType: "+str(ert)
 
     # Manage FairCoin
