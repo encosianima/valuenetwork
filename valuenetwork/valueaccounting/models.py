@@ -948,6 +948,9 @@ class EconomicAgent(models.Model):
             if proc.independent_demand():
                 if proc.independent_demand() not in plans:
                     plans.append(proc.independent_demand())
+            elif proc.plan:
+                if proc.plan not in plans:
+                    plans.append(proc.plan)
         plans.sort(lambda x, y: cmp(x.due_date, y.due_date))
         return plans
 
@@ -4212,6 +4215,11 @@ class Order(models.Model):
                 self.delete()
         else:
             raise ValidationError("Cannot delete a plan with economic events recorded.")
+
+    def is_deletable(self):
+        if self.all_events():
+            return False
+        return True
 
     #TODO this is a start at something, check if it is still useful
     #assumes the order itself is already saved (adapted from view plan_from_recipe)
