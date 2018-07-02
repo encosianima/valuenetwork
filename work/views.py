@@ -690,13 +690,97 @@ def members_agent(request, agent_id):
     except:
         project = False
 
-    if project:
-        init = {"joining_style": project.joining_style, "visibility": project.visibility, "resource_type_selection": project.resource_type_selection, "fobi_slug": project.fobi_slug }
-        change_form = ProjectCreateForm(instance=agent, initial=init)
+    if project:# and not request.POST:
+        #init = {"joining_style": project.joining_style, "visibility": project.visibility, "resource_type_selection": project.resource_type_selection, "fobi_slug": project.fobi_slug }
+        pro_form = ProjectCreateForm(instance=project, data=request.POST or None) #, initial=init)
     elif agent.is_individual():
-        change_form = WorkAgentCreateForm(instance=agent)
+        pro_form = None
     else:
-        change_form = ProjectCreateForm(instance=agent) #AgentCreateForm(instance=agent)
+        pro_form = ProjectCreateForm(data=request.POST or None) #AgentCreateForm(instance=agent)
+
+    agn_form = WorkAgentCreateForm(instance=agent, agent=agent, data=request.POST or None)
+
+    if user_is_agent or user_agent in agent.managers():
+      if request.method == "POST":
+        oldnick = agent.nick
+        nick = agent.nick
+        name = agent.name
+        if agent.is_individual():
+            #agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
+            if agn_form.is_valid():
+                agent = agn_form.save(commit=False)
+                data = agn_form.cleaned_data
+                nick = data['nick']
+                name = data['name']
+                agent.is_context = False #True
+                #agent.save()
+            else:
+                pass #nick = agent.nick
+                #name = agent.name
+        else:
+            if not project:
+              pass #pro_form = ProjectCreateForm(request.POST)
+              #if pro_form.is_valid():
+              #  project = pro_form.save(commit=False)
+              #  project.agent = agent
+              #  project.save()
+            else:
+              pass #pro_form = ProjectCreateForm(instance=project, data=request.POST)
+
+            #agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
+            if agn_form.is_valid() and pro_form.is_valid():
+                project = pro_form.save(commit=False)
+                agent = agn_form.save(commit=False)
+                project.agent = agent
+                project.save()
+                data = agn_form.cleaned_data
+                nick = data['nick']
+                name = data['name']
+                agent.is_context = True
+                prodata = pro_form.cleaned_data
+                print "- pro data: "+str(prodata)
+                #print "- form nick "+str(nick)
+                #print "- form name "+str(name)
+                #url = data["url"]
+                #if url and not url[0:3] == "http":
+                #    pass #data["url"] = "http://" + url
+                #agent.url = data["url"]
+            else:
+                pass # errors
+        if not nick == oldnick: # if changed the nick, rename resources
+            rss = EconomicResource.objects.filter(identifier__icontains=oldnick+' ')
+            if rss:
+                for rs in rss:
+                    arr = rs.identifier.split(oldnick+' ')
+                    if len(arr) == 2:
+                        ownrs = arr[1].split(' '+oldnick)
+                        if len(ownrs) > 1:
+                            rs.identifier = nick+' '+ownrs[0]+' '+nick
+                        else:
+                            rs.identifier = nick+' '+arr[1]
+                        rs.save()
+                    else:
+                        print "- ERROR, resource with strange name? "+str(rs)
+
+            rss = EconomicResource.objects.filter(identifier__icontains=' '+oldnick)
+            if rss:
+                for rs in rss:
+                    arr = rs.identifier.split(' '+oldnick)
+                    if len(arr) == 2:
+                        #print "-1 rs.identifier: "+rs.identifier
+                        rs.identifier = arr[0]+' '+nick
+                        #print "-2 rs.identifier: "+rs.identifier
+                        rs.save()
+                    else:
+                        print "- ERROR, resource with strange name? "+str(rs)
+        agent.name = name
+        agent.nick = nick
+        agent.save()
+        #print "- saved agent "+str(agent)
+      else:
+        pass # not POST
+    else:
+        pass # not permission
 
     """ not used yet...
     nav_form = InternalExchangeNavForm(data=request.POST or None)
@@ -841,7 +925,7 @@ def members_agent(request, agent_id):
                         related_rts.append(rt)
 
     auto_resource = ''
-    if user_agent in agent.managers() or user_is_agent or request.user.is_staff:
+    if user_agent in agent.managers() or user_is_agent: # or request.user.is_staff:
       #import pdb; pdb.set_trace()
       for ag in is_associated_with:
         if hasattr(ag.has_associate, 'project'):
@@ -856,11 +940,16 @@ def members_agent(request, agent_id):
                     rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
                     if not rt in rts:
                         res = ag.has_associate.agent_resource_roles.filter(resource__resource_type=rt)[0].resource
-                        res.id = None
-                        res.pk = None
                         resarr = res.identifier.split(ag.has_associate.nick)
                         if len(resarr) > 1 and not ag.has_associate.nick == 'Freedom Coop':
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.name #.identifier.split(ag.has_associate.nick)
+                            res.id = None
+                            res.pk = None
+                            if not resarr[1]:
+                                auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
+                                auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
+                                auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
+                                break
+                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
                             res.quantity = 1
                             res.price_per_unit = 0
                             res.save()
@@ -876,13 +965,47 @@ def members_agent(request, agent_id):
                             auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
                             auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
                             auto_resource += _("It has been created for you automatically!")+"<br />"
+                    else:
+                        pass
+                        """
+                        ress = agent.resource_relationships() #list(set([arr.resource for arr in agent.resource_relationships()]))
+                        res = ress.get(resource__resource_type=rt).resource
+                        resarr = res.identifier.split(ag.has_associate.nick)
+                        if len(resarr) < 2:
+                            resarr = res.identifier.split(ag.has_associate.name)
+                        if len(resarr) < 2:
+                            resarr = res.identifier.split('BoC')
+                            auto_resource += "..trying to repair BoC nick to BotC in resources identifiers...<br>"
+                        if len(resarr) == 2:
+                            if agent.nick in resarr[1]:
+                                res.identifier = ag.has_associate.nick+resarr[1]
+                            else:
+                                res.identifier = ag.has_associate.nick+resarr[1]+agent.nick
+                            res.quantity = 1
+                            res.save()
+                            #auto_resource += _("Updated the name of the account: ")+str(res)
+                        elif len(resarr) == 3:
+                            if agent.nick in resarr[1]:
+                                res.identifier = ag.has_associate.nick+resarr[1]
+                            else:
+                                res.identifier = ag.has_associate.nick+resarr[1]+agent.nick
+                            res.quantity = 1
+                            res.save()
+                            auto_resource += _("Updated the name of the project's account: ")+str(res)
+                        else:
+                            auto_resource += _("There's a problem with the naming of the account: ")+str(res)+"<br>"
+                            break
+                        """
+
+
 
 
     return render(request, "work/members_agent.html", {
         "agent": agent,
         "membership_request": membership_request,
         "photo_size": (128, 128),
-        "change_form": change_form,
+        "agn_form": agn_form,
+        "pro_form": pro_form,
         "user_form": user_form,
         #"nav_form": nav_form,
         "assn_form": assn_form,
@@ -1017,39 +1140,78 @@ def change_your_project(request, agent_id):
     user_agent = get_agent(request)
     if not user_agent:
         return render(request, 'work/no_permission.html')
-    if request.method == "POST":
-      if agent.is_individual():
-        agn_form = WorkAgentCreateForm(instance=agent, data=request.POST or None)
-        if agn_form.is_valid():
-            agent = agn_form.save(commit=False)
-            #agent.is_context = True
-            agent.save()
-      else:
-        try:
-          project = agent.project
-        except:
-          project = False
-        if not project:
-          pro_form = ProjectCreateForm(request.POST)
-          if pro_form.is_valid():
-            project = pro_form.save(commit=False)
-            project.agent = agent
-            project.save()
-        else:
-          pro_form = ProjectCreateForm(instance=project, data=request.POST or None)
+    elif user_agent == agent or user_agent in agent.managers():
+        if request.method == "POST":
+          oldnick = agent.nick
+          if agent.is_individual():
+            agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
+            if agn_form.is_valid():
+                agent = agn_form.save(commit=False)
+                data = agn_form.cleaned_data
+                nick = data['nick']
+                name = data['name']
+                agent.is_context = False #True
+                #agent.save()
+          else:
+            try:
+              project = agent.project
+            except:
+              project = False
+            if not project:
+              pro_form = ProjectCreateForm(request.POST)
+              if pro_form.is_valid():
+                project = pro_form.save(commit=False)
+                project.agent = agent
+                project.save()
+            else:
+              pro_form = ProjectCreateForm(instance=project, data=request.POST)
 
-        agn_form = WorkAgentCreateForm(instance=agent, data=request.POST or None)
-        if pro_form.is_valid() and agn_form.is_valid():
-            project = pro_form.save()
-            data = agn_form.cleaned_data
-            url = data["url"]
-            if url and not url[0:3] == "http":
-                pass #data["url"] = "http://" + url
-            agent.url = data["url"]
-            #agent.project = project
-            agent = agn_form.save(commit=False)
-            agent.is_context = True
-            agent.save()
+            agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
+            if agn_form.is_valid() and pro_form.is_valid():
+                project = pro_form.save(commit=False)
+                agent = agn_form.save(commit=False)
+                project.agent = agent
+                project.save()
+                data = agn_form.cleaned_data
+                nick = data['nick']
+                name = data['name']
+                agent.is_context = True
+                #print "- form nick "+str(nick)
+                #print "- form name "+str(name)
+                #url = data["url"]
+                #if url and not url[0:3] == "http":
+                #    pass #data["url"] = "http://" + url
+                #agent.url = data["url"]
+          if not nick == oldnick: # if changed the nick, rename resources
+            rss = EconomicResource.objects.filter(identifier__icontains=agent.nick+' ')
+            if rss:
+                for rs in rss:
+                    arr = rs.identifier.split(agent.nick+' ')
+                    if len(arr) == 2:
+                        ownrs = arr[1].split(' '+agent.nick)
+                        if len(ownrs) > 1:
+                            rs.identifier = nick+' '+ownrs[0]+' '+nick
+                        else:
+                            rs.identifier = nick+' '+arr[1]
+                        rs.save()
+                    else:
+                        print "- ERROR, resource with strange name? "+str(rs)
+
+            rss = EconomicResource.objects.filter(identifier__icontains=' '+agent.nick)
+            if rss:
+                for rs in rss:
+                    arr = rs.identifier.split(' '+agent.nick)
+                    if len(arr) == 2:
+                        #print "-1 rs.identifier: "+rs.identifier
+                        rs.identifier = arr[0]+' '+nick
+                        #print "-2 rs.identifier: "+rs.identifier
+                        rs.save()
+                    else:
+                        print "- ERROR, resource with strange name? "+str(rs)
+          agent.name = name
+          agent.nick = nick
+          agent.save()
+          #print "- saved agent "+str(agent)
 
     return HttpResponseRedirect('/%s/%s/'
         % ('work/agent', agent.id))

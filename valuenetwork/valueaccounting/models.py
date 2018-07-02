@@ -369,11 +369,11 @@ class AgentType(models.Model):
             if updated:
                 agent_type.save()
                 if verbosity > 1:
-                    print "Updated %s AgentType" % name
+                    print "- Updated %s AgentType" % name
         except cls.DoesNotExist:
             cls(name=name, party_type=party_type, is_context=is_context).save()
             if verbosity > 1:
-                print "Created %s AgentType" % name
+                print "- Created %s AgentType" % name
 
     @property #ValueFlows
     def note(self):
@@ -948,6 +948,9 @@ class EconomicAgent(models.Model):
             if proc.independent_demand():
                 if proc.independent_demand() not in plans:
                     plans.append(proc.independent_demand())
+            elif proc.plan:
+                if proc.plan not in plans:
+                    plans.append(proc.plan)
         plans.sort(lambda x, y: cmp(x.due_date, y.due_date))
         return plans
 
@@ -1957,8 +1960,11 @@ class AgentAssociationType(models.Model):
 #        return
 def create_agent_types(**kwargs):
     AgentType.create('Individual', 'individual', False)
-    AgentType.create('Organization', 'org', False)
+    AgentType.create('Organization', 'org', True)
     AgentType.create('Network', 'network', True)
+    AgentType.create('Project', 'team', True)
+    #AgentType.create('Community', 'community', True)
+    AgentType.create('Company', 'company', True)
     print "created agent types"
 
 #post_migrate.connect(create_agent_types, sender=ValueAccountingAppConfig)
@@ -4209,6 +4215,11 @@ class Order(models.Model):
                 self.delete()
         else:
             raise ValidationError("Cannot delete a plan with economic events recorded.")
+
+    def is_deletable(self):
+        if self.all_events():
+            return False
+        return True
 
     #TODO this is a start at something, check if it is still useful
     #assumes the order itself is already saved (adapted from view plan_from_recipe)

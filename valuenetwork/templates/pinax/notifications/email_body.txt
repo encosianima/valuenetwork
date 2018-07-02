@@ -2,4 +2,4 @@
 
 {{ message }}
 
-To change how you receive notifications, please go to {% endblocktrans %} {{ default_http_protocol }}://{{ current_site }}{% url "notification_notice_settings" %}
+To change how you receive notifications, please go to {% endblocktrans %} {{ default_http_protocol }}://{{ current_site }}{% url "pinax_notifications:notice_settings" %}

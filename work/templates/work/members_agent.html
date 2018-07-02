@@ -270,15 +270,27 @@
             {% endif %}
 
             {% if user_agent in agent.managers or user_agent == agent or user.is_staff %}
+                {% if agn_form.errors %}
+                  <div class="error">{% trans "error found!" %}
+                  {% for fil in agn_form %}
+                    {% if fil.errors and not fil.name == 'name' and not fil.name == 'nick' and not fil.name == 'email' %}
+                        {{ fil.name }}: {{ fil.errors }}
+                    {% endif %}
+                  {% endfor %}
+                  </div>
+                {% endif %}
                 <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                         <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form enctype="multipart/form-data" action="{% url 'change_your_project' agent_id=agent.id %}" method="POST" >
+                        <form id="agentForm" enctype="multipart/form-data" action="{% url 'members_agent' agent_id=agent.id %}" method="POST" >
                             {% csrf_token %}
-                            {{ change_form|as_bootstrap }}
+                            {{ agn_form|as_bootstrap }}
+                            {% if pro_form %}
+                                {{ pro_form|as_bootstrap }}
+                            {% endif %}
                             <div class="modal-footer">
                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                             <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -350,7 +362,7 @@
 
                   <tr>
                         <th style="width: 150px; text-align: right;">{% trans "Nickname" %}</th>
-                        <td>{{ agent.nick }}</td>
+                        <td>{{ agent.nick }} {% if agn_form.nick.errors %}<br> -> <span class="error">"{{ agn_form.nick.value }}": {{ agn_form.nick.errors|first }}</span>{% endif %}</td>
                   </tr>
                   {% if request.user.is_superuser and agent.user.user %}
                         <tr>
@@ -360,7 +372,7 @@
                   {% endif %}
                   <tr>
                         <th style="text-align: right;">{% trans "Full Name" %}</th>
-                        <td>{{ agent.name }}</td>
+                        <td>{{ agent.name }} {% if agn_form.name.errors %}<br> -> <span class="error">"{{ agn_form.name.value }}": {{ agn_form.name.errors|first }}</span>{% endif %}</td>
                   </tr>
                   <tr>
                         <th style="text-align: right;">{% trans "Type" %}</th>
@@ -388,7 +400,7 @@
 
                     <tr>
                         <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
-                        <td>{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %}</td>
+                        <td>{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %} {% if agn_form.email.errors %}<br> -> <span class="error">"{{ agn_form.email.value }}": {{ agn_form.email.errors|first }}</span>{% endif %}</td>
                     </tr>
 
                         {% if user_agent in agent.managers or user_is_agent or agent.primary_location %}
@@ -406,6 +418,12 @@
                             </td>
                           </tr>
                         {% endif %}
+                     {% if agent.phone_primary %}
+                         <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Phone" %}</th>
+                            <td>{{ agent.phone_primary }}</td>
+                        </tr>
+                     {% endif %}
                   {% endif %}
 
                   {% if agent.multicurrencyauth_set.count and agent.need_multicurrency %}
@@ -1118,6 +1136,26 @@
                   password2: {
                       required: true,
                       equalTo: "#id_password1"
+                  },
+              },
+              highlight: function(label) {
+                  $(label).closest('.control-group').addClass('error');
+              },
+          });
+
+          $( "#agentForm" ).validate({
+              rules: {
+                  name: {
+                      required: true
+                  },
+                  nick: {
+                      required: true
+                  },
+                  email: {
+                      required: true
+                  },
+                  agent_type: {
+                      required: true
                   },
               },
               highlight: function(label) {

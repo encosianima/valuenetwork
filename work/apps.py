@@ -9,6 +9,8 @@ class WorkAppConfig(AppConfig):
         super(WorkAppConfig, self).ready()
 
         from work.models import create_unit_types, create_exchange_skills
+        from general.models import create_general_types
 
+        post_migrate.connect(create_general_types, sender=self)
         post_migrate.connect(create_unit_types, sender=self)
         post_migrate.connect(create_exchange_skills, sender=self)
