@@ -369,11 +369,11 @@ class AgentType(models.Model):
             if updated:
                 agent_type.save()
                 if verbosity > 1:
-                    print "Updated %s AgentType" % name
+                    print "- Updated %s AgentType" % name
         except cls.DoesNotExist:
             cls(name=name, party_type=party_type, is_context=is_context).save()
             if verbosity > 1:
-                print "Created %s AgentType" % name
+                print "- Created %s AgentType" % name
 
     @property #ValueFlows
     def note(self):
@@ -1957,8 +1957,11 @@ class AgentAssociationType(models.Model):
 #        return
 def create_agent_types(**kwargs):
     AgentType.create('Individual', 'individual', False)
-    AgentType.create('Organization', 'org', False)
+    AgentType.create('Organization', 'org', True)
     AgentType.create('Network', 'network', True)
+    AgentType.create('Project', 'team', True)
+    #AgentType.create('Community', 'community', True)
+    AgentType.create('Company', 'company', True)
     print "created agent types"
 
 #post_migrate.connect(create_agent_types, sender=ValueAccountingAppConfig)
