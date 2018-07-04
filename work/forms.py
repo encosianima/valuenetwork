@@ -45,7 +45,7 @@ class WorkAgentCreateForm(AgentCreateForm):
     def __init__(self, agent=None, *args, **kwargs):
         super(WorkAgentCreateForm, self).__init__(*args, **kwargs)
         if agent:
-            print "- agent: "+str(agent)+' - context? '+str(agent.agent_type.is_context)
+            #print "- agent: "+str(agent)+' - context? '+str(agent.agent_type.is_context)
             if agent.agent_type.is_context:
                 self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=True)
                 self.fields["agent_type"].initial = agent.agent_type
