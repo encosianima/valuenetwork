@@ -335,9 +335,9 @@ class Project(models.Model):
     def shares_account_type(self):
         account_type = None
         if self.joining_style == "moderated" and self.fobi_slug:
-            rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
+            rts = self.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
             for rt in rts:
-                if rt.ocp_artwork_type:
+                #if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type and rt.ocp_artwork_type.clas
                     for key in self.fobi_items_keys():
                         if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
                             account_type = rt
@@ -664,7 +664,7 @@ class JoinRequest(models.Model):
     def payment_account_type(self):
         account_type = None
         if self.project.joining_style == "moderated" and self.fobi_data:
-            rts = list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
+            rts = self.project.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
             for rt in rts:
                 if rt.ocp_artwork_type:
                     for key in self.fobi_items_keys():

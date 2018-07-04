@@ -4890,7 +4890,7 @@ def create_project_shares(request, agent_id):
     share_rt.save()
 
     #  Ocp_Artwork_Type
-    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share")
+    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share").exclude(id=project.shares_account_type().ocp_artwork_type.id)
     if not artw_bocs:
         artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().ocp_artwork_type.id)
     if artw_bocs:
