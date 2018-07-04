@@ -1409,7 +1409,7 @@ def joinaproject_request(request, form_slug = False):
                                            request=request, form=fobi_form,
                                            stage=CALLBACK_FORM_VALID)
 
-                '''# Run all handlers
+                # Run all handlers
                 handler_responses, handler_errors = run_form_handlers(
                     form_entry = form_entry,
                     request = request,
@@ -1425,7 +1425,7 @@ def joinaproject_request(request, form_slug = False):
                             _("Error occured: {0}."
                               "").format(handler_error)
                         )
-                '''
+
 
                 # Fire post handler callbacks
                 fire_form_callbacks(

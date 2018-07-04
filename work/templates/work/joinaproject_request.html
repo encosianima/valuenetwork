@@ -69,6 +69,16 @@
         $('#div_id_captcha').detach().insertBefore('input[name="submit"]');
         $('div[id^="div_id_content_text"]').detach().insertBefore('#div_id_type_of_user');
 
+        $('label.required-field').each(function(){
+            txt = $(this).text().trim();
+            arr = txt.split(' ');
+            last = arr[arr.length-1]; //alert(last);
+            if (last != '*'){
+                $(this).text(txt+' *');
+            };
+        });
+        $('p[id^="error_id"]').addClass('error').attr('style', 'color:#b94a48 !important; margin:0 0 0.6em 0 !important;').css('font-size','1em');
+
         if( $_POST ) {
           var str = '';
           for(i in $_POST){
