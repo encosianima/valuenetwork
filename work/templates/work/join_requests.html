@@ -42,6 +42,10 @@ div.dataTables_wrapper div.dataTables_length {
     /*display: inline-block;*/
 }
 
+table.table-bordered.dataTable th, table.table-bordered.dataTable td {
+    border-left-width: 1px;
+}
+
 </style>
 
 
@@ -80,7 +84,7 @@ div.dataTables_wrapper div.dataTables_length {
                   {% trans "State" %}: {{ state_form.state }}
           </h4>
         </form>
-        <table id="listable" style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+        <table id="listable" style="width: 100%;" class="table table-bordered table-hover table-condensed cell-border order-column stripe" >
             <thead>
                 <th>{% trans "Actions" %}</th>
                 <th>{% trans "Date" %}</th>
@@ -304,7 +308,7 @@ div.dataTables_wrapper div.dataTables_length {
                           </form>
                       </td> -->
 
-                      <td>{{ req.request_date }}</td>
+                      <td>{{ req.request_date|date:"Y-m-d" }}</td>
                       <td>
 
                           {% if req.agent %}
@@ -397,6 +401,23 @@ div.dataTables_wrapper div.dataTables_length {
             'copy',
             'csv',
             'excel'
+        ],
+        "columnDefs": [
+            {
+                // The `data` parameter refers to the data for the cell (defined by the
+                // `data` option, which defaults to the column being worked with, in
+                // this case `data: 0`.
+                "render": function ( data, type, row ) {
+                    //arr = data.split(', ');
+                    //if (arr.length == 2){
+                    //    return arr[1]+', '+arr[0];
+                    //} else {
+                    //    return data +' ('+ row+')';
+                    //}
+                    return data
+                },
+                "targets": 1
+            }
         ]
     });
 
