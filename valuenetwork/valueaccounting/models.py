@@ -369,11 +369,11 @@ class AgentType(models.Model):
             if updated:
                 agent_type.save()
                 if verbosity > 1:
-                    print "Updated %s AgentType" % name
+                    print "- Updated %s AgentType" % name
         except cls.DoesNotExist:
             cls(name=name, party_type=party_type, is_context=is_context).save()
             if verbosity > 1:
-                print "Created %s AgentType" % name
+                print "- Created %s AgentType" % name
 
     @property #ValueFlows
     def note(self):
@@ -1190,27 +1190,26 @@ class EconomicAgent(models.Model):
         return resp
 
     def need_exchanges(self):
-        resp = True
+        resp = False # True
         ags = self.related_contexts()
-        add = 0
-        if self.is_context and self in ags:
-            if len(ags) > 1:
-                add = 1
-            #ags.append(self)
-        noneed = []
+        #add = 0
+        #if self.is_context and self in ags:
+        #    if len(ags) > 1:
+        #        add = 1
+        need = [] #noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
-                    if not 'exchanges' in ag.project.services():
-                        noneed.append(ag)
+                    if 'exchanges' in ag.project.services(): # if not
+                        resp = True #noneed.append(ag)
                 else:
-                    noneed.append(ag)
+                    pass #noneed.append(ag)
             except:
                 pass
-        if len(ags)-add == len(noneed):
-            resp = False
-        if self in noneed:
-            resp = False
+        #if len(ags)-add == len(noneed):
+        #    resp = False
+        #if self in noneed:
+        #    resp = False
         return resp
 
     def need_projects(self):
@@ -1226,27 +1225,26 @@ class EconomicAgent(models.Model):
         return resp
 
     def need_tasks(self):
-        resp = True
+        resp = False #True
         ags = self.related_contexts()
-        add = 0
-        if self.is_context and self in ags:
-            if len(ags) > 1:
-                add = 1
-            #ags.append(self)
-        noneed = []
+        #add = 0
+        #if self.is_context and self in ags:
+        #    if len(ags) > 1:
+        #        add = 1
+        #noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
-                    if not 'tasks' in ag.project.services():
-                        noneed.append(ag)
+                    if 'tasks' in ag.project.services(): # if not
+                        resp = True #noneed.append(ag)
                 #else:
                 #    noneed.append(ag)
             except:
                 pass
-        if len(ags)-add == len(noneed):
-            resp = False
-        if self in noneed:
-            resp = False
+        #if len(ags)-add == len(noneed):
+        #    resp = False
+        #if self in noneed:
+        #    resp = False
         if not self.is_participant():
             resp = False
         return resp
@@ -1293,8 +1291,9 @@ class EconomicAgent(models.Model):
         else:
           return False
 
-    def used_units_ids(self):
-        exs = Exchange.objects.exchanges_by_type(self)
+    def used_units_ids(self, exs=None):
+        if not exs:
+            exs = Exchange.objects.exchanges_by_type(self)
         uids = []
         for ex in exs:
           txs = ex.transfers.all()#filter(events__unit_of_value__ocp_unit_type__isnull=False) #exchange_type.transfer_types.all()
@@ -1603,6 +1602,12 @@ class EconomicAgent(models.Model):
         vars = self.agent_resource_roles.filter(
             role__is_owner=True,
             resource__resource_type__behavior="account")
+        return [var.resource for var in vars]
+
+    def owned_accounts(self):
+        vars = self.agent_resource_roles.filter(role__is_owner=True).filter(
+            Q(resource__resource_type__behavior="account") | Q(resource__resource_type__behavior="dig_acct")
+        ).distinct()
         return [var.resource for var in vars]
 
     def owned_resources(self):
@@ -1947,18 +1952,22 @@ class AgentAssociationType(models.Model):
             return "none"
 
 
-from django.db.models.signals import post_migrate
+#from django.db.models.signals import post_migrate
+#from valuenetwork.valueaccounting.apps import ValueAccountingAppConfig
 
 #def create_agent_types(app, **kwargs):
 #    if app != "valueaccounting":
 #        return
 def create_agent_types(**kwargs):
     AgentType.create('Individual', 'individual', False)
-    AgentType.create('Organization', 'org', False)
+    AgentType.create('Organization', 'org', True)
     AgentType.create('Network', 'network', True)
+    AgentType.create('Project', 'team', True)
+    #AgentType.create('Community', 'community', True)
+    AgentType.create('Company', 'company', True)
     print "created agent types"
 
-#post_migrate.connect(create_agent_types)
+#post_migrate.connect(create_agent_types, sender=ValueAccountingAppConfig)
 
 #def create_agent_association_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -1970,7 +1979,7 @@ def create_agent_association_types(**kwargs):
     AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer')
     print "created agent association types"
 
-#post_migrate.connect(create_agent_association_types)
+#post_migrate.connect(create_agent_association_types, sender=ValueAccountingAppConfig)
 
 RELATIONSHIP_STATE_CHOICES = (
     ('active', _('active')),
@@ -3867,7 +3876,7 @@ def create_use_cases(**kwargs):
     UseCase.create('demand_xfer', _('Outgoing Exchange'))
     print "created use cases"
 
-#post_migrate.connect(create_use_cases)
+#post_migrate.connect(create_use_cases, sender=ValueAccountingAppConfig)
 
 #def create_event_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -3910,7 +3919,7 @@ def create_event_types(**kwargs):
 
     print "created event types"
 
-#post_migrate.connect(create_event_types)
+#post_migrate.connect(create_event_types, sender=ValueAccountingAppConfig)
 
 class UseCaseEventType(models.Model):
     use_case = models.ForeignKey(UseCase,
@@ -4005,7 +4014,7 @@ def create_usecase_eventtypes(**kwargs):
 
     print "created use case event type associations"
 
-#post_migrate.connect(create_usecase_eventtypes)
+#post_migrate.connect(create_usecase_eventtypes, sender=ValueAccountingAppConfig)
 
 
 class PatternUseCase(models.Model):
@@ -8429,11 +8438,69 @@ class ExchangeManager(models.Manager):
             exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer")
         return exchanges
 
-    def exchanges_by_date_and_context(self, start, end, agent):
-        return Exchange.objects.filter(start_date__range=[start, end]).filter( Q(context_agent__isnull=False, context_agent=agent) | Q(transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct() # | Q(context_agent__isnull=False, context_agent=agent) ) # bumbum add Q's from and to agent, also for commitments
+    def exchanges_by_date_and_context(self, start, end, agent, exchanges_by_type=None):
+        if not exchanges_by_type:
+            exchanges_by_type = self.exchanges_by_type(agent)
+
+        count = len(exchanges_by_type)
+        #print "- ebdan start: "+str(start)+" end: "+str(end)+" agent: "+str(agent.id)+" exs: "+str(count)
+
+        exs_bdc = exchanges_by_type.filter(start_date__range=[start, end])
+        count2 = len(exs_bdc)
+        if not count == count2:
+            print "- filtered exchanges_by_date_and_context start: "+str(start)+" end: "+str(end)+" agent: "+str(agent)+" count: "+str(count)+" count2: "+str(count2)
+
+        return exs_bdc
 
     def exchanges_by_type(self, agent):
-        return Exchange.objects.filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct().order_by(Lower('exchange_type__ocp_record_type__name').asc()) # bumbum add Q's from and to agent, also for commitments
+        agids = [c.id for c in agent.related_contexts()]
+        agids2 = agids[:]
+        if not agent.id in agids:
+            agids.append(agent.id)
+        if agent.id in agids2:
+            agids2.remove(agent.id)
+        otheragids = [c.id for c in EconomicAgent.objects.all().exclude(id__in=agids)]
+        print "- ebt agent: "+str(agent)+" ("+str(agent.id)+") context:"+str(agent.is_context)+" agids2: "+str(agids2)
+
+        exs_bt = Exchange.objects.filter(
+          Q(transfers__events__isnull=True, transfers__commitments__isnull=True, context_agent__isnull=False, context_agent__id=agent.id) |
+          Q(transfers__events__isnull=True, transfers__commitments__isnull=True, exchange_type__context_agent__isnull=False, exchange_type__context_agent__id=agent.id) |
+          Q(transfers__events__isnull=False, transfers__events__from_agent__isnull=False, transfers__events__from_agent=agent) |
+          Q(transfers__events__isnull=False, transfers__events__to_agent__isnull=False, transfers__events__to_agent=agent) |
+          Q(transfers__commitments__isnull=False, transfers__commitments__from_agent__isnull=False, transfers__commitments__from_agent=agent) |
+          Q(transfers__commitments__isnull=False, transfers__commitments__to_agent__isnull=False, transfers__commitments__to_agent=agent)
+        ).distinct()#.order_by('created_date') #.exclude(
+            #~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
+            #~Q(context_agent__isnull=False, context_agent__id__in=agids)
+        #).order_by(Lower('exchange_type__ocp_record_type__name').asc())
+
+        # bum2: This filter seems not enough (why? its still a MISTERY !?) so we create the id list to exclude exts, depending on is_context
+
+        count = len(exs_bt)
+        if agent.is_context:
+            #print "- ebt context: "+str(agent)+" 1 exs:"+str(count)
+            exs_bt = exs_bt.exclude(
+                ~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
+            #    Q(context_agent__isnull=False, context_agent__id__in=agids2) |
+            #    Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent__id__in=agids2)
+            ) #.order_by('-start_date')
+            count2 = len(exs_bt)
+            if not count == count2:
+                print "- filtered exchanges_by_type context: "+str(agent)+" count1:"+str(count)+" count2: "+str(count2)
+        else:
+            #print "- ebt individual: "+str(agent)+" exs:"+str(count)
+            exs_bt = exs_bt.exclude(
+                Q(transfers__isnull=True, context_agent__isnull=False, context_agent__id__in=agids2) |
+                #Q(transfers__events__isnull=True, transfers__commitments__isnull=True,
+                Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent__id__in=otheragids) |
+                #Q(transfers__events__isnull=True, transfers__commitments__isnull=True,
+                Q(context_agent__isnull=False, context_agent__id__in=otheragids)
+            ) #.order_by('-start_date')
+            count2 = len(exs_bt)
+            if not count == count2:
+                print "- filtered exchanges_by_type individual: "+str(agent)+" count:"+str(count)+" coun2: "+str(count2)
+
+        return exs_bt #.order_by(Lower('exchange_type__ocp_record_type__name').asc())
 
 
 class Exchange(models.Model):

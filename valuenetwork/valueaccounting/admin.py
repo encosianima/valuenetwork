@@ -5,7 +5,7 @@ from valuenetwork.valueaccounting.actions import export_as_csv
 admin.site.add_action(export_as_csv, 'export_selected objects')
 
 admin.site.register(Unit)
-admin.site.register(AgentType)
+#admin.site.register(AgentType)
 #admin.site.register(CachedEventSummary)
 admin.site.register(UseCase)
 admin.site.register(AccountingReference)
@@ -15,6 +15,9 @@ admin.site.register(Location)
 admin.site.register(UseCaseEventType)
 admin.site.register(HomePageLayout)
 
+class AgentTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'party_type', 'is_context')
+admin.site.register(AgentType, AgentTypeAdmin)
 
 class HelpAdmin(admin.ModelAdmin):
     list_display = ('page',)

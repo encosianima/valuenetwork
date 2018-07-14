@@ -31,19 +31,26 @@ from work.utils import *
 class WorkAgentCreateForm(AgentCreateForm):
     # override fields for EconomicAgent model
     agent_type = forms.ModelChoiceField(
-        queryset=AgentType.objects.all(), #filter(is_context=True),
+        queryset=AgentType.objects.all(), #filter(is_context=False),
         empty_label=None,
         widget=forms.Select(
         attrs={'class': 'chzn-select'}))
 
     is_context = None # projects are always context_agents, hide the field
-    nick = None
+    #nick = None
     # fields for Project model
     #joining_style = forms.ChoiceField()
     #visibility = forms.ChoiceField()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, agent=None, *args, **kwargs):
         super(WorkAgentCreateForm, self).__init__(*args, **kwargs)
+        if agent:
+            #print "- agent: "+str(agent)+' - context? '+str(agent.agent_type.is_context)
+            if agent.agent_type.is_context:
+                self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=True)
+                self.fields["agent_type"].initial = agent.agent_type
+            else:
+                self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=False)
         #self.fields["joining_style"].choices = [(js[0], js[1]) for js in JOINING_STYLE_CHOICES]
         #self.fields["visibility"].choices = [(vi[0], vi[1]) for vi in VISIBILITY_CHOICES]
 
@@ -51,8 +58,35 @@ class WorkAgentCreateForm(AgentCreateForm):
     class Meta: #(AgentCreateForm.Meta):
         model = EconomicAgent
         #removed address and is_context
-        fields = ('name', 'agent_type', 'description', 'url', 'email', 'address', 'phone_primary',)
+        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email', 'phone_primary',)
         #exclude = ('is_context',)
+
+    def clean(self):
+        data = super(WorkAgentCreateForm, self).clean()
+        nick = data["nick"]
+        name = data["name"]
+        email = data['email']
+        if nick and name and email:
+            ags = EconomicAgent.objects.filter(nick=nick).exclude(email=email)
+            if ags:
+                #print "- ERROR nick present! "
+                self.add_error('nick', _("This nickname is already present in the system."))
+            ags = EconomicAgent.objects.filter(name=name).exclude(email=email)
+            if ags:
+                #print "- ERROR name present! "
+                self.add_error('name', _("This name is already present in the system."))
+            ags = EconomicAgent.objects.filter(email=email).exclude(nick=nick).exclude(name=name)
+            if ags:
+                #print "- ERROR email present! "
+                self.add_error('email', _("This email is already present in the system."))
+        else:
+            print "- ERROR clean WorkAgentCreateForm ! data: "+str(data)
+
+
+    def _clean_fields(self):
+        super(WorkAgentCreateForm, self)._clean_fields()
+        for name, value in self.cleaned_data.items():
+            pass #self.cleaned_data[name] = bleach.clean(value)
 
 
 
@@ -134,15 +168,16 @@ class MembershipRequestForm(forms.ModelForm):
 #     P R O J E C T
 
 
-class ProjectCreateForm(AgentCreateForm):
+class ProjectCreateForm(forms.ModelForm):
     # override fields for EconomicAgent model
-    agent_type = forms.ModelChoiceField(
+    '''agent_type = forms.ModelChoiceField(
         queryset=AgentType.objects.filter(is_context=True),
         empty_label=None,
         widget=forms.Select(
         attrs={'class': 'chzn-select'}))
 
     is_context = None # projects are always context_agents, hide the field
+    '''
 
     # fields for Project model
     joining_style = forms.ChoiceField(widget=forms.Select(
@@ -165,9 +200,9 @@ class ProjectCreateForm(AgentCreateForm):
 
     def clean(self):
         data = super(ProjectCreateForm, self).clean()
-        url = data["url"]
-        if not url[0:3] == "http":
-            pass #data["url"] = "http://" + url
+        #url = data["url"]
+        #if not url[0:3] == "http":
+        #    pass #data["url"] = "http://" + url
         #if type_of_user == "collective":
             #if int(number_of_shares) < 2:
             #    msg = "Number of shares must be at least 2 for a collective."
@@ -181,7 +216,7 @@ class ProjectCreateForm(AgentCreateForm):
     class Meta: #(AgentCreateForm.Meta):
         model = Project #EconomicAgent
         #removed address and is_context
-        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email', 'joining_style', 'visibility', 'resource_type_selection', 'fobi_slug')
+        fields = ('joining_style', 'visibility', 'resource_type_selection', 'fobi_slug')
         #exclude = ('is_context',)
 
 
@@ -412,7 +447,7 @@ class ExchangeNavForm(forms.Form):
         )
     )
 
-    def __init__(self, agent=None, *args, **kwargs):
+    def __init__(self, agent=None, exchanges=None, *args, **kwargs):
         super(ExchangeNavForm, self).__init__(*args, **kwargs)
         try:
             gen_et = Ocp_Record_Type.objects.get(clas='ocp_exchange')
@@ -437,10 +472,11 @@ class ExchangeNavForm(forms.Form):
                     self.fields["resource_type"].queryset = Ocp_Artwork_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ).order_by('tree_id','lft') #| Q(resource_type__context_agent__isnull=True) )
                     self.fields["skill_type"].queryset = Ocp_Skill_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ).order_by('tree_id','lft') #| Q(resource_type__context_agent__isnull=True) )
 
-                today = datetime.date.today()
-                end =  today
-                start = today - datetime.timedelta(days=365)
-                exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #filter(Q(context_agent=agent), Q(transfers__events__from_agent=agent), Q(transfers__events__to_agent=agent))
+                if not exchanges:
+                    #today = datetime.date.today()
+                    #end =  today
+                    #start = today - datetime.timedelta(days=365)
+                    exchanges = Exchange.objects.exchanges_by_type(agent) #date_and_context(start, end, agent) #filter(Q(context_agent=agent), Q(transfers__events__from_agent=agent), Q(transfers__events__to_agent=agent))
                 ex_types = [ex.exchange_type.id for ex in exchanges]
                 self.fields["used_exchange_type"].queryset = ExchangeType.objects.filter(id__in=ex_types)
 

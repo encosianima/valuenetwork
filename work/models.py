@@ -335,9 +335,9 @@ class Project(models.Model):
     def shares_account_type(self):
         account_type = None
         if self.joining_style == "moderated" and self.fobi_slug:
-            rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
+            rts = self.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
             for rt in rts:
-                if rt.ocp_artwork_type:
+                #if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type and rt.ocp_artwork_type.clas
                     for key in self.fobi_items_keys():
                         if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
                             account_type = rt
@@ -382,6 +382,13 @@ class Project(models.Model):
         abbr = ''
         for a in arr:
             abbr += a[:1]
+        if len(abbr) < 3:
+            arr = name.split()
+            if len(arr[0]) > len(arr[1]): # a case like Freedom Coop, to became FdC
+                first = arr[0]
+                pos = (len(first)/2)+1
+                half = first[pos:pos+1]
+                abbr = arr[0][:1]+half+arr[1][:1]
         return abbr
 
 
@@ -437,13 +444,13 @@ class JoinRequest(models.Model):
         help_text=_("this join request is for joining this Project"))
 
     request_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    type_of_user = models.CharField(_('Type of user *'),
+    type_of_user = models.CharField(_('Type of user'),
         max_length=12, choices=USER_TYPE_CHOICES,
         default="individual",
         help_text=_("* Required fields"))
-    name = models.CharField(_('Name *'), max_length=255)
+    name = models.CharField(_('Name'), max_length=255)
     surname = models.CharField(_('Surname (for individual join requests)'), max_length=255, blank=True)
-    requested_username = models.CharField(_('Username *'), max_length=32, help_text=_("If you have already an account in OCP, you can login before filling this form to have this project in the same account, or you can choose another username and email to have it separate."))
+    requested_username = models.CharField(_('Username'), max_length=32, help_text=_("If you have already an account in OCP, you can login before filling this form to have this project in the same account, or you can choose another username and email to have it separate."))
     email_address = models.EmailField(_('Email address *'), max_length=96,)
     #    help_text=_("this field is optional, but we can't contact you via email without it"))
     phone_number = models.CharField(_('Phone number'), max_length=32, blank=True, null=True)
@@ -542,21 +549,11 @@ class JoinRequest(models.Model):
         balance = 0
         amount = self.payment_amount()
 
-        if self.agent and account_type:
-            user_rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
-            for rt in user_rts:
-                if rt == account_type: #.ocp_artwork_type:
-                    rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
-                    for rs in rss:
-                        if rs.resource_type == rt:
-                            balance = rs.price_per_unit # TODO: update the price_per_unit with wallet balance
+        balance = self.total_shares()
 
         if amount:
             answer = amount - balance
             if answer > 0:
-                #if self.payment_url and self.payment_secret and not self.payment_status:
-                    #self.payment_status = 'pending'
-                    #self.save()
                 return int(answer)
             else:
                 #import pdb; pdb.set_trace()
@@ -569,10 +566,11 @@ class JoinRequest(models.Model):
         balance = 0
 
         if self.agent and account_type:
-            user_rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
+            arrs = self.agent.resource_relationships()
+            user_rts = list(set([arr.resource.resource_type for arr in arrs]))
             for rt in user_rts:
                 if rt == account_type: #.ocp_artwork_type:
-                    rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
+                    rss = list(set([arr.resource for arr in arrs]))
                     for rs in rss:
                         if rs.resource_type == rt:
                             balance = rs.price_per_unit # TODO: update the price_per_unit with wallet balance
@@ -666,7 +664,7 @@ class JoinRequest(models.Model):
     def payment_account_type(self):
         account_type = None
         if self.project.joining_style == "moderated" and self.fobi_data:
-            rts = list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
+            rts = self.project.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
             for rt in rts:
                 if rt.ocp_artwork_type:
                     for key in self.fobi_items_keys():
@@ -2027,8 +2025,10 @@ class Ocp_Unit_Type(Unit_Type):
 '''
 
 from django.db.models.signals import post_migrate
+#from work.apps import WorkAppConfig
 
 def create_unit_types(**kwargs):
+    print "Analizing the unit types in the system..."
     # Each
     ocp_eachs = Unit.objects.filter(name='Each')
     if ocp_eachs:
@@ -2043,7 +2043,12 @@ def create_unit_types(**kwargs):
     ocp_each.abbrev = 'u.'
     ocp_each.save()
 
-    gen_unitt = Artwork_Type.objects.get(clas='Unit')
+    gen_artwt, created = Type.objects.get_or_create(name="Artwork", clas='Artwork')
+    if created:
+        print "- created root general Type: 'Artwork'"
+    gen_unitt, created = Artwork_Type.objects.get_or_create(name="Unit", parent=gen_artwt, clas='Unit')
+    if created:
+        print "- created general Artwork_Type: 'Unit'"
     each_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Each',
         parent=gen_unitt
@@ -2132,7 +2137,7 @@ def create_unit_types(**kwargs):
 
     hour = Gene_Unit.objects.filter(name='Hour')
     if not hour:
-        hour = Gene_Unit.objects.get_or_create(
+        hour, created = Gene_Unit.objects.get_or_create(
             name='Hour',
             code='h',
             unit_type=gen_time_typ
@@ -2215,10 +2220,11 @@ def create_unit_types(**kwargs):
 
 
     # FairCoin
-    ocp_fair, created = Unit.objects.get_or_create(name='FairCoin')
+    ocp_fair, created = Unit.objects.get_or_create(name='FairCoin', unit_type='value')
     if created:
         print "- created a main ocp Unit: 'FairCoin'!"
     ocp_fair.abbrev = 'fair'
+    ocp_fair.unit_type = 'value'
     ocp_fair.save()
 
     gen_curr_typ, created = Ocp_Unit_Type.objects.get_or_create(
@@ -2281,7 +2287,20 @@ def create_unit_types(**kwargs):
     ocp_fair_rt.behavior = 'dig_curr'
     ocp_fair_rt.save()
 
-    nonmat_typ = Ocp_Artwork_Type.objects.get(clas='Nonmaterial')
+
+    nonmat_typs = Ocp_Artwork_Type.objects.filter(clas='Nonmaterial')
+    if nonmat_typs:
+        if len(nonmat_typs) > 1:
+            raise ValidationError("There are more than one Ocp_Artwork_Type with clas 'Nonmaterial' ?!")
+        nonmat_typ = nonmat_typs[0]
+    else:
+        nonmat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Non-material',
+            parent=gen_artwt,
+            clas='Nonmaterial')
+        if created:
+            print "- created Ocp_Artwork_Type: 'Non-material'"
+
     digart_typ, created = Ocp_Artwork_Type.objects.get_or_create(
         name='Digital artwork',
         parent=nonmat_typ)
@@ -2418,6 +2437,7 @@ def create_unit_types(**kwargs):
 
         #raise ValidationError("There are not ResourceTypes containing 'Euro' in the name!: "+str(ocp_euro_rts))
 
+
     artw_euros = Ocp_Artwork_Type.objects.filter(name__icontains="Euro")
     if len(artw_euros) > 1:
         digi = artw_euros.get(name='Euro digital')
@@ -2436,8 +2456,58 @@ def create_unit_types(**kwargs):
             cash.save()
         else:
             raise ValidationError("Can't find an Ocp_Artwork_Type named 'Euro cash' artw: "+str(artw_euros))
+    elif len(artw_euros) == 1:
+        raise ValidationError("There is only one Ocp_Artwork_Type containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash': "+str(artw_euros))
     else:
-        raise ValidationError("There are not 2 Ocp_Artwork_Types containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash'")
+        #raise ValidationError("There are not 2 Ocp_Artwork_Types containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash': "+str(artw_euros))
+
+        digi, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Euro digital',
+            parent=digcur_typ,
+        )
+        if created:
+            print "- created Ocp_Artwork_Type: 'Euro digital'"
+        digi.clas='euro_digital'
+        digi.resource_type = digi_rt
+        digi.general_unit_type = gen_euro_typ
+        digi.save()
+
+
+        mat_typs = Ocp_Artwork_Type.objects.filter(clas='Material')
+        if mat_typs:
+            if len(mat_typs) > 1:
+                raise ValidationError("There are more than one Ocp_Artwork_Type with clas 'Material' ?!")
+            mat_typ = mat_typs[0]
+        else:
+            mat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+                name='Material',
+                parent=gen_artwt,
+                clas='Material')
+            if created:
+                print "- created Ocp_Artwork_Type: 'Material'"
+
+        phycur_typs = Ocp_Artwork_Type.objects.filter(name='physical Currencies')
+        if not phycur_typs:
+            phycur_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+                name='physical Currencies',
+                parent=mat_typ)
+            if created:
+                print "- created Ocp_Artwork_Types: 'physical Currencies'"
+        else:
+            phycur_typ = phycur_typs[0]
+        phycur_typ.clas = 'currency'
+        phycur_typ.save()
+
+        cash, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Euro cash',
+            parent=phycur_typ)
+        if created:
+            print "- created Ocp_Artwork_Type: 'Euro cash'"
+        cash.clas = 'euro_cash'
+        cash.resource_type = cash_rt
+        cash.general_unit_type = gen_euro_typ
+        cash.save()
+
 
 
 
@@ -2462,7 +2532,9 @@ def create_unit_types(**kwargs):
 
     artw_share = Ocp_Artwork_Type.objects.filter(name='Share')
     if not artw_share:
-        artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(name='Shares')
+        artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Shares',
+            parent=digcur_typ)
         if created:
             print "- created Ocp_Artwork_Type branch: 'Shares'"
     else:
@@ -2549,16 +2621,24 @@ def create_unit_types(**kwargs):
     ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
     if not ocp_share_rts:
         ocp_share_rts = EconomicResourceType.objects.filter(name='FreedomCoop Share')
-    if len(ocp_share_rts) == 1:
+    if ocp_share_rts:
+        if len(ocp_share_rts) > 1:
+            raise ValidationError("There's more than one 'FreedomCoop Share' ?? "+str(ocp_share_rts))
         share_rt = ocp_share_rts[0]
-        share_rt.name = 'FreedomCoop Share'
-        share_rt.unit = ocp_each
-        share_rt.inventory_rule = 'yes'
-        share_rt.behavior = 'other'
-        share_rt.save()
+    else:
+        share_rt, created = EconomicResourceType.objects.get_or_create(
+            name='FreedomCoop Share')
+        if created:
+            print "- created EconomicResourceType: 'FreedomCoop Share'"
+    share_rt.name = 'FreedomCoop Share'
+    share_rt.unit = ocp_each
+    share_rt.inventory_rule = 'yes'
+    share_rt.behavior = 'other'
+    share_rt.save()
 
     artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
-        name='FreedomCoop Share'
+        name='FreedomCoop Share',
+        parent = Type.objects.get(id=artw_sh.id)
     )
     if created:
         print "- created Ocp_Artwork_Type: 'FreedomCoop Share'"
@@ -2566,6 +2646,10 @@ def create_unit_types(**kwargs):
     artw_fdc.resource_type = share_rt
     artw_fdc.general_unit_type = Unit_Type.objects.get(id=gen_fdc_typ.id)
     artw_fdc.save()
+
+
+    arrt, c = AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
+    if c: print "- created AgentResourceRoleType: "+str(arrt)
 
 
     ## BankOfTheCommons
@@ -2657,8 +2741,10 @@ def create_unit_types(**kwargs):
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
     artw_boc.save()"""
 
+    print "...end of the units analisys."
 
-post_migrate.connect(create_unit_types)
+
+#post_migrate.connect(create_unit_types, sender=WorkAppConfig)
 
 
 
@@ -2743,7 +2829,7 @@ def create_exchange_skills(**kwargs):
         print "Created the Relation buy<>sell"
 
 
-post_migrate.connect(create_exchange_skills)
+#post_migrate.connect(create_exchange_skills, sender=WorkAppConfig)
 
 
 
