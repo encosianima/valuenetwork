@@ -550,7 +550,7 @@ class JoinRequest(models.Model):
         amount = self.payment_amount()
 
         balance = self.total_shares()
-
+        #import pdb; pdb.set_trace()
         if amount:
             answer = amount - balance
             if answer > 0:
@@ -573,7 +573,7 @@ class JoinRequest(models.Model):
                     rss = list(set([arr.resource for arr in arrs]))
                     for rs in rss:
                         if rs.resource_type == rt:
-                            balance = rs.price_per_unit # TODO: update the price_per_unit with wallet balance
+                            balance = int(rs.price_per_unit) # TODO: update the price_per_unit with wallet balance
         return balance
 
     def payment_option(self):
@@ -587,8 +587,8 @@ class JoinRequest(models.Model):
                     val = self.data.get(key)
                     answer['val'] = val
                     for elem in self.fobi_data.form_entry.formelemententry_set.all():
-                        data = json.loads(elem.plugin_data)
-                        choi = data.get('choices') # works with radio or select
+                        data2 = json.loads(elem.plugin_data)
+                        choi = data2.get('choices') # works with radio or select
                         if choi:
                             opts = choi.split('\r\n')
                             for op in opts:
@@ -596,6 +596,8 @@ class JoinRequest(models.Model):
                                 #import pdb; pdb.set_trace()
                                 if val.strip() == opa[1].strip():
                                     answer['key'] = opa[0]
+            if not answer.has_key('key'):
+                raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
         return answer
 
     def payment_url(self):
@@ -636,29 +638,30 @@ class JoinRequest(models.Model):
     def payment_amount(self):
         amount = 0
         if self.project.joining_style == "moderated" and self.fobi_data:
-            rts = list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
-            for rt in rts:
-                if rt.ocp_artwork_type:
-                    for key in self.fobi_items_keys():
-                        if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
-                            self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
-                            entry = self.entries[0]
-                            self.data = json.loads(entry.saved_data)
-                            val = self.data.get(key)
-                            for elem in self.fobi_data.form_entry.formelemententry_set.all():
-                                data = json.loads(elem.plugin_data)
-                                choi = data.get('choices')
-                                if choi:
-                                    opts = choi.split('\r\n')
-                                    for op in opts:
-                                      opa = op.split(',')
-                                      #import pdb; pdb.set_trace()
-                                      if type(val) is str and opa[1].encode('utf-8').strip() == val.encode('utf-8').strip():
-                                        amount = int(opa[0])
-                                        break
-                                elif type(val) is int and val:
-                                    amount = val
+            for key in self.fobi_items_keys():
+                if key == self.project.shares_account_type().ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
+                    self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
+                    entry = self.entries[0]
+                    self.data = json.loads(entry.saved_data)
+                    val = self.data.get(key)
+                    for elem in self.fobi_data.form_entry.formelemententry_set.all():
+                        data = json.loads(elem.plugin_data)
+                        choi = data.get('choices')
+                        if choi:
+                            opts = choi.split('\r\n')
+                            for op in opts:
+                                opa = op.split(',')
+                                #import pdb; pdb.set_trace()
+                                if type(val) is str and opa[1].encode('utf-8').strip() == val.encode('utf-8').strip():
+                                    amount = int(opa[0])
                                     break
+                        elif type(val) is int and val:
+                            amount = val
+                            break
+                        elif type(val) is unicode and val:
+                            amount = int(val)
+                            break
+                    #import pdb; pdb.set_trace()
         return amount
 
     def payment_account_type(self):
@@ -840,8 +843,10 @@ class JoinRequest(models.Model):
         if self.exchange:
             return self.exchange.exchange_type
 
+        payopt = self.payment_option()
         rt = self.payment_account_type()
-        if rt and rt.ocp_artwork_type:
+        if payopt.has_key('key'):
+          if rt and rt.ocp_artwork_type:
             recordts = Ocp_Record_Type.objects.filter(
                 ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type,
                 exchange_type__isnull=False)
@@ -850,7 +855,6 @@ class JoinRequest(models.Model):
                     ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type.rel_nonmaterial_type,
                     exchange_type__isnull=False)
             if len(recordts) > 0:
-                payopt = self.payment_option()
                 for rec in recordts:
                     ancs = rec.get_ancestors(True,True)
                     if payopt['key'] == 'faircoin':
@@ -881,9 +885,10 @@ class JoinRequest(models.Model):
                 raise ValidationError("found ocp_record_type's ?? : "+str(recordts)) # pass #et = recordts[0].exchange_type
             else:
                 raise ValidationError("not found any ocp_record_type related: "+str(rt.ocp_artwork_type))
-        else:
+          else:
             raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
-
+        else: # no payopt
+            raise ValidationError("no payment option key? "+str(payopt))
         return et
 
 

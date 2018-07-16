@@ -94,6 +94,8 @@ urlpatterns = [
     url(r"^edit-relations/(?P<agent_id>\d+)/$", work.views.edit_relations, name="edit_relations"),
     url(r'^join-project/(?P<project_id>\d+)/$', work.views.join_project,
         name="join_project"),
+    url(r'^edit-form-field/(?P<joinrequest_id>\d+)/$', work.views.edit_form_field_data,
+        name="edit_form_field_data"),
 
     url(r'^connect-agent-to-join-request/(?P<agent_id>\d+)/(?P<join_request_id>\d+)/$', work.views.connect_agent_to_join_request,
         name="connect_agent_to_join_request"),
