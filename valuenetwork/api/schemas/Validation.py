@@ -50,17 +50,20 @@ class CreateValidation(AuthedMutation):
 
         economic_event = EconomicEvent.objects.get(pk=economic_event_id)
         agent = EconomicAgent.objects.get(pk=validated_by_id)
-        validation = ValidationProxy(
-            event=economic_event,
-            validated_by=agent,
-        )
+        validation = None
+        val = ValidationProxy.objects.filter(event=economic_event).filter(validated_by=agent) #check for duplicate
+        if not val:
+            validation = ValidationProxy(
+                event=economic_event,
+                validated_by=agent,
+            )
 
-        user_agent = AgentUser.objects.get(user=context.user).agent
-        is_authorized = user_agent.is_authorized(object_to_mutate=validation, context_agent_id=economic_event.context_agent.id)
-        if is_authorized:
-            validation.save()  
-        else:
-            raise PermissionDenied('User not authorized to perform this action.')
+            user_agent = AgentUser.objects.get(user=context.user).agent
+            is_authorized = user_agent.is_authorized(object_to_mutate=validation, context_agent_id=economic_event.context_agent.id)
+            if is_authorized:
+                validation.save()  
+            else:
+                raise PermissionDenied('User not authorized to perform this action.')
 
         return CreateValidation(validation=validation)
 
