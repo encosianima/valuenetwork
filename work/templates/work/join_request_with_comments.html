@@ -5,7 +5,7 @@
 {% load bootstrap_tags %}
 {% load comments %}
 
-{% block head_title %}{% trans "Project Join Request for " %} {{ jn_req.name }}{% endblock %}
+{% block head_title %}{{ agent.nick }} {% trans "join request of" %} {% if jn_req.agent %}{{ jn_req.agent.name }}{% else %}{{ jn_req.name }}{% endif %}{% endblock %}
 
 {% block extra_head %}
 
@@ -44,10 +44,17 @@
 .modal {
     width: 600px;
 }
-th
+/*th
 {
     background-color:#C8D6E8;
+}*/
+
+
+tr.fobi td em {
+    opacity: 0.5;
+    float: right;
 }
+
 #id_honeypot{display:none;}
 </style>
 
@@ -159,7 +166,7 @@ th
               {% for obj in req.items_data %}
                 <tr class="fobi">
                   <th>{{ obj.key }}:</th>
-                  <td>{{ obj.val }}</td>
+                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}'{% endif %}>{% if obj.val %}{{ obj.val }}{% endif %}</td>
                 </tr>
               {% endfor %}
             {% else %}
@@ -271,7 +278,8 @@ th
 
 {% block extra_body %}
     {{ block.super }}
-    <script src="{% static "js/jquery.expander.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.expander.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.jeditable.mini.js" %}"></script>
     <script type="text/javascript">
 
     $(document).ready(function(){
@@ -287,7 +295,75 @@ th
             expandText:       '[...]', // default is 'read more'
             userCollapseText: '[^]'  // default is 'read less'
         });
-    });
+      });
+
+      {% if user_agent in agent.managers or user_agent == agent or request.user.is_superuser %}
+        $('.fobi td[typ="text"]').editable(
+            function(value, settings) {
+               var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                   {id:$(this).attr('id'), value:value}
+               );
+               posting.done(function(data){
+                   if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                   } else {
+                       location = location;
+                   };
+               }).fail(function(data) {
+                   console.log(data['statusText']);
+                   out = '';
+                   for(var d in data){
+                     out += d+': '+data[d]+' \n';
+                   };
+                   alert( "ERROR out: "+out );
+               });
+               return(value);
+            }
+            , {
+              //submit : 'OK',
+              type : 'text',
+              tooltip : 'Click to edit...',
+              placeholder : '<em>...click to write</em>',
+            }
+        );
+        $('.fobi td[typ="select"]').editable(
+            function(value, settings) {
+               var dr = JSON.parse($(this).attr('data').split("u'").join('"').split("'").join('"'));
+               var labl = dr[value];
+               //alert('type:'+typeof(labl)+' labl: '+labl);
+
+               var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                   {id:$(this).attr('id'), value:labl}
+               );
+               posting.done(function(data){
+                   if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                   } else {
+                       location = location;
+                   };
+               }).fail(function(data) {
+                   console.log(data['statusText']);
+                   out = '';
+                   for(var d in data){
+                     out += d+': '+data[d]+' \n';
+                   };
+                   alert( "ERROR out: "+out );
+               });
+               return(labl);
+            }
+            , {
+              submit : 'save',
+              type : 'select',
+              data : function(value, settings) {
+                  var d = $(this).attr('data');
+                  d = d.split("u'").join('"').split("'").join('"');
+                  //alert(d);
+                  return d; //JSON.parse(d); //decodeURIComponent(JSON.parse(d));
+                },
+              tooltip : 'Click to edit...',
+              //placeholder : '<em>...click to write</em>',
+            }
+        );
+        $('.fobi th').css('background-color','#f9f9e2');
+       {% endif %}
 
     }); // end document.ready
 

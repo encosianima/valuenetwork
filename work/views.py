@@ -738,7 +738,7 @@ def members_agent(request, agent_id):
                 name = data['name']
                 agent.is_context = True
                 prodata = pro_form.cleaned_data
-                print "- pro data: "+str(prodata)
+                #print "- pro data: "+str(prodata)
                 #print "- form nick "+str(nick)
                 #print "- form name "+str(name)
                 #url = data["url"]
@@ -1643,7 +1643,7 @@ def joinaproject_request_internal(request, agent_id = False):
                                            request=request, form=fobi_form,
                                            stage=CALLBACK_FORM_VALID)
 
-                '''# Run all handlers
+                # Run all handlers
                 handler_responses, handler_errors = run_form_handlers(
                     form_entry = form_entry,
                     request = request,
@@ -1659,7 +1659,7 @@ def joinaproject_request_internal(request, agent_id = False):
                             _("Error occured: {0}."
                               "").format(handler_error)
                         )
-                '''
+
 
                 # Fire post handler callbacks
                 fire_form_callbacks(
@@ -1771,6 +1771,26 @@ def joinaproject_request_internal(request, agent_id = False):
         "post": escapejs(json.dumps(request.POST)),
         "reqs": reqs,
     })
+
+@login_required
+def edit_form_field_data(request, joinrequest_id):
+    user_agent = request.user.agent.agent
+    req = JoinRequest.objects.get(id=joinrequest_id)
+    if req:
+      if user_agent in req.project.agent.managers() or user_agent == req.project.agent:
+        if request.method == 'POST':
+            key = request.POST['id']
+            val = request.POST['value']
+            if req.fobi_data and req.fobi_data.pk:
+                req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
+                entry = req.entries[0]
+                req.data = json.loads(entry.saved_data)
+                old = req.data[key]
+                req.data[key] = val
+                entry.saved_data = json.dumps(req.data)
+                entry.save()
+                return HttpResponse("Ok", content_type="text/plain")
+    return HttpResponse("Fail", content_type="text/plain")
 
 
 from django.http import HttpResponse
@@ -2262,11 +2282,29 @@ def project_feedback(request, agent_id, join_request_id):
                 fobi_keys.append(val)
 
             jn_req.data = json.loads(jn_req.entry.saved_data)
+            jn_req.elem_typs = {}
+            jn_req.elem_choi = {}
+            for elem in jn_req.fobi_data.form_entry.formelemententry_set.all():
+                data = json.loads(elem.plugin_data)#, 'utf-8')
+                nam = data.get('name')
+                choi = data.get('choices')
+                if choi:
+                    jn_req.elem_typs[nam] = 'select'
+                    opts = choi.split('\r\n')
+                    obj = {}
+                    for op in opts:
+                        arr = op.split(', ')
+                        obj[str(arr[0])] = arr[1] #.replace("'", '"') #unicode(arr[1]).decode('utf-8') #.encode('utf-8')
+                    jn_req.elem_choi[nam] = obj
+                else:
+                    jn_req.elem_typs[nam] = 'text' #[nam] = 'text'
+                    jn_req.elem_choi[nam] = ''
+                #import pdb; pdb.set_trace()
             #jn_req.tworows = two_dicts_to_string(jn_req.form_headers, jn_req.data, 'th', 'td')
             jn_req.items = jn_req.data.items()
             jn_req.items_data = []
             for key in fobi_keys:
-              jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key)})
+              jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key), "ky": key, "typ": jn_req.elem_typs[key], "opts": jn_req.elem_choi[key]})
 
     return render(request, "work/join_request_with_comments.html", {
         "help": get_help("project_feedback"),
