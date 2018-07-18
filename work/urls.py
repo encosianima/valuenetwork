@@ -94,6 +94,8 @@ urlpatterns = [
     url(r"^edit-relations/(?P<agent_id>\d+)/$", work.views.edit_relations, name="edit_relations"),
     url(r'^join-project/(?P<project_id>\d+)/$', work.views.join_project,
         name="join_project"),
+    url(r'^edit-form-field/(?P<joinrequest_id>\d+)/$', work.views.edit_form_field_data,
+        name="edit_form_field_data"),
 
     url(r'^connect-agent-to-join-request/(?P<agent_id>\d+)/(?P<join_request_id>\d+)/$', work.views.connect_agent_to_join_request,
         name="connect_agent_to_join_request"),
@@ -115,6 +117,9 @@ urlpatterns = [
     url(r'^create-ocp-acount/(?P<join_request_id>\d+)/$', work.views.create_account_for_join_request,
         name="create_account_for_join_request"),
     # url(r"^comments/$", work.views.comments, name="comments"),
+
+    url(r'^delete-request-agent-user/(?P<join_request_id>\d+)/$', work.views.delete_request_agent_and_user,
+        name="delete_request_agent_and_user"),
 
     url(r'^payment-url/(?P<paymode>.+)/(?P<join_request_id>\d+)/$', work.views.payment_url, name="payment_url"),
 

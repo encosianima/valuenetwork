@@ -690,13 +690,97 @@ def members_agent(request, agent_id):
     except:
         project = False
 
-    if project:
-        init = {"joining_style": project.joining_style, "visibility": project.visibility, "resource_type_selection": project.resource_type_selection, "fobi_slug": project.fobi_slug }
-        change_form = ProjectCreateForm(instance=agent, initial=init)
+    if project:# and not request.POST:
+        #init = {"joining_style": project.joining_style, "visibility": project.visibility, "resource_type_selection": project.resource_type_selection, "fobi_slug": project.fobi_slug }
+        pro_form = ProjectCreateForm(instance=project, data=request.POST or None) #, initial=init)
     elif agent.is_individual():
-        change_form = WorkAgentCreateForm(instance=agent)
+        pro_form = None
     else:
-        change_form = ProjectCreateForm(instance=agent) #AgentCreateForm(instance=agent)
+        pro_form = ProjectCreateForm(data=request.POST or None) #AgentCreateForm(instance=agent)
+
+    agn_form = WorkAgentCreateForm(instance=agent, agent=agent, data=request.POST or None)
+
+    if user_is_agent or user_agent in agent.managers():
+      if request.method == "POST":
+        oldnick = agent.nick
+        nick = agent.nick
+        name = agent.name
+        if agent.is_individual():
+            #agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
+            if agn_form.is_valid():
+                agent = agn_form.save(commit=False)
+                data = agn_form.cleaned_data
+                nick = data['nick']
+                name = data['name']
+                agent.is_context = False #True
+                #agent.save()
+            else:
+                pass #nick = agent.nick
+                #name = agent.name
+        else:
+            if not project:
+              pass #pro_form = ProjectCreateForm(request.POST)
+              #if pro_form.is_valid():
+              #  project = pro_form.save(commit=False)
+              #  project.agent = agent
+              #  project.save()
+            else:
+              pass #pro_form = ProjectCreateForm(instance=project, data=request.POST)
+
+            #agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
+            if agn_form.is_valid() and pro_form.is_valid():
+                project = pro_form.save(commit=False)
+                agent = agn_form.save(commit=False)
+                project.agent = agent
+                project.save()
+                data = agn_form.cleaned_data
+                nick = data['nick']
+                name = data['name']
+                agent.is_context = True
+                prodata = pro_form.cleaned_data
+                #print "- pro data: "+str(prodata)
+                #print "- form nick "+str(nick)
+                #print "- form name "+str(name)
+                #url = data["url"]
+                #if url and not url[0:3] == "http":
+                #    pass #data["url"] = "http://" + url
+                #agent.url = data["url"]
+            else:
+                pass # errors
+        if not nick == oldnick: # if changed the nick, rename resources
+            rss = EconomicResource.objects.filter(identifier__icontains=oldnick+' ')
+            if rss:
+                for rs in rss:
+                    arr = rs.identifier.split(oldnick+' ')
+                    if len(arr) == 2:
+                        ownrs = arr[1].split(' '+oldnick)
+                        if len(ownrs) > 1:
+                            rs.identifier = nick+' '+ownrs[0]+' '+nick
+                        else:
+                            rs.identifier = nick+' '+arr[1]
+                        rs.save()
+                    else:
+                        print "- ERROR, resource with strange name? "+str(rs)
+
+            rss = EconomicResource.objects.filter(identifier__icontains=' '+oldnick)
+            if rss:
+                for rs in rss:
+                    arr = rs.identifier.split(' '+oldnick)
+                    if len(arr) == 2:
+                        #print "-1 rs.identifier: "+rs.identifier
+                        rs.identifier = arr[0]+' '+nick
+                        #print "-2 rs.identifier: "+rs.identifier
+                        rs.save()
+                    else:
+                        print "- ERROR, resource with strange name? "+str(rs)
+        agent.name = name
+        agent.nick = nick
+        agent.save()
+        #print "- saved agent "+str(agent)
+      else:
+        pass # not POST
+    else:
+        pass # not permission
 
     """ not used yet...
     nav_form = InternalExchangeNavForm(data=request.POST or None)
@@ -841,7 +925,7 @@ def members_agent(request, agent_id):
                         related_rts.append(rt)
 
     auto_resource = ''
-    if user_agent in agent.managers() or user_is_agent or request.user.is_staff:
+    if user_agent in agent.managers() or user_is_agent: # or request.user.is_staff:
       #import pdb; pdb.set_trace()
       for ag in is_associated_with:
         if hasattr(ag.has_associate, 'project'):
@@ -856,11 +940,16 @@ def members_agent(request, agent_id):
                     rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
                     if not rt in rts:
                         res = ag.has_associate.agent_resource_roles.filter(resource__resource_type=rt)[0].resource
-                        res.id = None
-                        res.pk = None
                         resarr = res.identifier.split(ag.has_associate.nick)
                         if len(resarr) > 1 and not ag.has_associate.nick == 'Freedom Coop':
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.name #.identifier.split(ag.has_associate.nick)
+                            res.id = None
+                            res.pk = None
+                            if not resarr[1]:
+                                auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
+                                auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
+                                auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
+                                break
+                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
                             res.quantity = 1
                             res.price_per_unit = 0
                             res.save()
@@ -876,13 +965,47 @@ def members_agent(request, agent_id):
                             auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
                             auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
                             auto_resource += _("It has been created for you automatically!")+"<br />"
+                    else:
+                        pass
+                        """
+                        ress = agent.resource_relationships() #list(set([arr.resource for arr in agent.resource_relationships()]))
+                        res = ress.get(resource__resource_type=rt).resource
+                        resarr = res.identifier.split(ag.has_associate.nick)
+                        if len(resarr) < 2:
+                            resarr = res.identifier.split(ag.has_associate.name)
+                        if len(resarr) < 2:
+                            resarr = res.identifier.split('BoC')
+                            auto_resource += "..trying to repair BoC nick to BotC in resources identifiers...<br>"
+                        if len(resarr) == 2:
+                            if agent.nick in resarr[1]:
+                                res.identifier = ag.has_associate.nick+resarr[1]
+                            else:
+                                res.identifier = ag.has_associate.nick+resarr[1]+agent.nick
+                            res.quantity = 1
+                            res.save()
+                            #auto_resource += _("Updated the name of the account: ")+str(res)
+                        elif len(resarr) == 3:
+                            if agent.nick in resarr[1]:
+                                res.identifier = ag.has_associate.nick+resarr[1]
+                            else:
+                                res.identifier = ag.has_associate.nick+resarr[1]+agent.nick
+                            res.quantity = 1
+                            res.save()
+                            auto_resource += _("Updated the name of the project's account: ")+str(res)
+                        else:
+                            auto_resource += _("There's a problem with the naming of the account: ")+str(res)+"<br>"
+                            break
+                        """
+
+
 
 
     return render(request, "work/members_agent.html", {
         "agent": agent,
         "membership_request": membership_request,
         "photo_size": (128, 128),
-        "change_form": change_form,
+        "agn_form": agn_form,
+        "pro_form": pro_form,
         "user_form": user_form,
         #"nav_form": nav_form,
         "assn_form": assn_form,
@@ -1017,39 +1140,78 @@ def change_your_project(request, agent_id):
     user_agent = get_agent(request)
     if not user_agent:
         return render(request, 'work/no_permission.html')
-    if request.method == "POST":
-      if agent.is_individual():
-        agn_form = WorkAgentCreateForm(instance=agent, data=request.POST or None)
-        if agn_form.is_valid():
-            agent = agn_form.save(commit=False)
-            #agent.is_context = True
-            agent.save()
-      else:
-        try:
-          project = agent.project
-        except:
-          project = False
-        if not project:
-          pro_form = ProjectCreateForm(request.POST)
-          if pro_form.is_valid():
-            project = pro_form.save(commit=False)
-            project.agent = agent
-            project.save()
-        else:
-          pro_form = ProjectCreateForm(instance=project, data=request.POST or None)
+    elif user_agent == agent or user_agent in agent.managers():
+        if request.method == "POST":
+          oldnick = agent.nick
+          if agent.is_individual():
+            agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
+            if agn_form.is_valid():
+                agent = agn_form.save(commit=False)
+                data = agn_form.cleaned_data
+                nick = data['nick']
+                name = data['name']
+                agent.is_context = False #True
+                #agent.save()
+          else:
+            try:
+              project = agent.project
+            except:
+              project = False
+            if not project:
+              pro_form = ProjectCreateForm(request.POST)
+              if pro_form.is_valid():
+                project = pro_form.save(commit=False)
+                project.agent = agent
+                project.save()
+            else:
+              pro_form = ProjectCreateForm(instance=project, data=request.POST)
 
-        agn_form = WorkAgentCreateForm(instance=agent, data=request.POST or None)
-        if pro_form.is_valid() and agn_form.is_valid():
-            project = pro_form.save()
-            data = agn_form.cleaned_data
-            url = data["url"]
-            if url and not url[0:3] == "http":
-                pass #data["url"] = "http://" + url
-            agent.url = data["url"]
-            #agent.project = project
-            agent = agn_form.save(commit=False)
-            agent.is_context = True
-            agent.save()
+            agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
+            if agn_form.is_valid() and pro_form.is_valid():
+                project = pro_form.save(commit=False)
+                agent = agn_form.save(commit=False)
+                project.agent = agent
+                project.save()
+                data = agn_form.cleaned_data
+                nick = data['nick']
+                name = data['name']
+                agent.is_context = True
+                #print "- form nick "+str(nick)
+                #print "- form name "+str(name)
+                #url = data["url"]
+                #if url and not url[0:3] == "http":
+                #    pass #data["url"] = "http://" + url
+                #agent.url = data["url"]
+          if not nick == oldnick: # if changed the nick, rename resources
+            rss = EconomicResource.objects.filter(identifier__icontains=agent.nick+' ')
+            if rss:
+                for rs in rss:
+                    arr = rs.identifier.split(agent.nick+' ')
+                    if len(arr) == 2:
+                        ownrs = arr[1].split(' '+agent.nick)
+                        if len(ownrs) > 1:
+                            rs.identifier = nick+' '+ownrs[0]+' '+nick
+                        else:
+                            rs.identifier = nick+' '+arr[1]
+                        rs.save()
+                    else:
+                        print "- ERROR, resource with strange name? "+str(rs)
+
+            rss = EconomicResource.objects.filter(identifier__icontains=' '+agent.nick)
+            if rss:
+                for rs in rss:
+                    arr = rs.identifier.split(' '+agent.nick)
+                    if len(arr) == 2:
+                        #print "-1 rs.identifier: "+rs.identifier
+                        rs.identifier = arr[0]+' '+nick
+                        #print "-2 rs.identifier: "+rs.identifier
+                        rs.save()
+                    else:
+                        print "- ERROR, resource with strange name? "+str(rs)
+          agent.name = name
+          agent.nick = nick
+          agent.save()
+          #print "- saved agent "+str(agent)
 
     return HttpResponseRedirect('/%s/%s/'
         % ('work/agent', agent.id))
@@ -1247,7 +1409,7 @@ def joinaproject_request(request, form_slug = False):
                                            request=request, form=fobi_form,
                                            stage=CALLBACK_FORM_VALID)
 
-                '''# Run all handlers
+                # Run all handlers
                 handler_responses, handler_errors = run_form_handlers(
                     form_entry = form_entry,
                     request = request,
@@ -1263,7 +1425,7 @@ def joinaproject_request(request, form_slug = False):
                             _("Error occured: {0}."
                               "").format(handler_error)
                         )
-                '''
+
 
                 # Fire post handler callbacks
                 fire_form_callbacks(
@@ -1481,7 +1643,7 @@ def joinaproject_request_internal(request, agent_id = False):
                                            request=request, form=fobi_form,
                                            stage=CALLBACK_FORM_VALID)
 
-                '''# Run all handlers
+                # Run all handlers
                 handler_responses, handler_errors = run_form_handlers(
                     form_entry = form_entry,
                     request = request,
@@ -1497,7 +1659,7 @@ def joinaproject_request_internal(request, agent_id = False):
                             _("Error occured: {0}."
                               "").format(handler_error)
                         )
-                '''
+
 
                 # Fire post handler callbacks
                 fire_form_callbacks(
@@ -1609,6 +1771,26 @@ def joinaproject_request_internal(request, agent_id = False):
         "post": escapejs(json.dumps(request.POST)),
         "reqs": reqs,
     })
+
+@login_required
+def edit_form_field_data(request, joinrequest_id):
+    user_agent = request.user.agent.agent
+    req = JoinRequest.objects.get(id=joinrequest_id)
+    if req:
+      if user_agent in req.project.agent.managers() or user_agent == req.project.agent:
+        if request.method == 'POST':
+            key = request.POST['id']
+            val = request.POST['value']
+            if req.fobi_data and req.fobi_data.pk:
+                req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
+                entry = req.entries[0]
+                req.data = json.loads(entry.saved_data)
+                old = req.data[key]
+                req.data[key] = val
+                entry.saved_data = json.dumps(req.data)
+                entry.save()
+                return HttpResponse("Ok", content_type="text/plain")
+    return HttpResponse("Fail", content_type="text/plain")
 
 
 from django.http import HttpResponse
@@ -1877,6 +2059,35 @@ def delete_request(request, join_request_id):
         % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
 
 @login_required
+def delete_request_agent_and_user(request, join_request_id):
+    req = get_object_or_404(JoinRequest, pk=join_request_id)
+    if req.agent:
+        rs = req.agent.resource_relationships()
+        usr = req.agent.user().user
+        if rs:
+            raise ValidationError("The agent has resources, you cannot delete it! "+str(req.agent)+" / req: "+str(req))
+        if usr:
+            if usr.is_staff or usr.is_superuser:
+                raise ValidationError("You can'n delete a staff member!! "+str(usr))
+            if usr.account:
+                pass #usr.account.delete()
+            else:
+                raise ValidationError("The user has not an 'account' to delete: "+str(usr)+" / req: "+str(req))
+            if req.agent.is_deletable():
+                req.agent.delete()
+            else:
+                raise ValidationError("The agent of this request is not deletable! "+str(req.agent)+" / req: "+str(req))
+            usr.delete()
+        else:
+            raise ValidationError("The agent of this request has no User to delete! "+str(req.agent)+" / req: "+str(req))
+    else:
+        raise ValidationError("The request has no agent! "+str(req))
+    req.delete()
+
+    return HttpResponseRedirect('/%s/%s/%s/'
+        % ('work/agent', req.project.agent.id, 'join-requests'))
+
+@login_required
 def confirm_request(request, join_request_id):
     jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
     if jn_req.agent:
@@ -2071,11 +2282,29 @@ def project_feedback(request, agent_id, join_request_id):
                 fobi_keys.append(val)
 
             jn_req.data = json.loads(jn_req.entry.saved_data)
+            jn_req.elem_typs = {}
+            jn_req.elem_choi = {}
+            for elem in jn_req.fobi_data.form_entry.formelemententry_set.all():
+                data = json.loads(elem.plugin_data)#, 'utf-8')
+                nam = data.get('name')
+                choi = data.get('choices')
+                if choi:
+                    jn_req.elem_typs[nam] = 'select'
+                    opts = choi.split('\r\n')
+                    obj = {}
+                    for op in opts:
+                        arr = op.split(', ')
+                        obj[str(arr[0])] = arr[1] #.replace("'", '"') #unicode(arr[1]).decode('utf-8') #.encode('utf-8')
+                    jn_req.elem_choi[nam] = obj
+                else:
+                    jn_req.elem_typs[nam] = 'text' #[nam] = 'text'
+                    jn_req.elem_choi[nam] = ''
+                #import pdb; pdb.set_trace()
             #jn_req.tworows = two_dicts_to_string(jn_req.form_headers, jn_req.data, 'th', 'td')
             jn_req.items = jn_req.data.items()
             jn_req.items_data = []
             for key in fobi_keys:
-              jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key)})
+              jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key), "ky": key, "typ": jn_req.elem_typs[key], "opts": jn_req.elem_choi[key]})
 
     return render(request, "work/join_request_with_comments.html", {
         "help": get_help("project_feedback"),
@@ -2957,22 +3186,23 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
     et_give = EventType.objects.get(name="Give")
     et_receive = EventType.objects.get(name="Receive")
     context_ids = [c.id for c in agent.related_all_agents()]
-    context_ids.append(agent.id)
+    if not agent.id in context_ids:
+        context_ids.append(agent.id)
     ets = ExchangeType.objects.filter(context_agent__id__in=context_ids) #all()
     event_ids = ""
     select_all = True
     selected_values = "all"
 
-    nav_form = ExchangeNavForm(agent=agent, data=request.POST or None)
+    #nav_form = ExchangeNavForm(agent=agent, data=request.POST or None)
 
     gen_ext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
     usecases = Ocp_Record_Type.objects.filter(parent__id=gen_ext.id).exclude( Q(exchange_type__isnull=False), Q(exchange_type__context_agent__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) ) #UseCase.objects.filter(identifier__icontains='_xfer')
-    outypes = Ocp_Record_Type.objects.filter( Q(exchange_type__isnull=False), Q(exchange_type__context_agent__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) )
-    outchilds_ids = []
-    for tp in outypes:
-      desc = tp.get_descendants(True)
-      outchilds_ids.extend([ds.id for ds in desc])
-    exchange_types = Ocp_Record_Type.objects.filter(lft__gt=gen_ext.lft, rght__lt=gen_ext.rght, tree_id=gen_ext.tree_id).exclude(id__in=outchilds_ids) #.exclude(Q(exchange_type__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids))
+    #outypes = Ocp_Record_Type.objects.filter( Q(exchange_type__isnull=False, exchange_type__context_agent__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) )
+    #outchilds_ids = []
+    #for tp in outypes:
+    #  desc = tp.get_descendants(True)
+    #  outchilds_ids.extend([ds.id for ds in desc])
+    #exchange_types = Ocp_Record_Type.objects.filter(lft__gt=gen_ext.lft, rght__lt=gen_ext.rght, tree_id=gen_ext.tree_id).exclude(id__in=outchilds_ids) #.exclude(Q(exchange_type__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids))
     #usecase_ids = [uc.id for uc in usecases]
 
     ext_form = ContextExchangeTypeForm(agent=agent, data=request.POST or None)
@@ -2981,8 +3211,53 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
     Rtype_form = NewResourceTypeForm(agent=agent, data=request.POST or None)
     Stype_form = NewSkillTypeForm(agent=agent, data=request.POST or None)
 
+    exchanges_by_type = Exchange.objects.exchanges_by_type(agent)
+
     #import pdb; pdb.set_trace()
+    if not request.method == "POST":
+
+        exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent, exchanges_by_type)
+
+        nav_form = ExchangeNavForm(agent=agent, exchanges=exchanges_by_type, data=request.POST or None)
+
     if request.method == "POST":
+
+        dt_selection_form = DateSelectionForm(data=request.POST)
+        if dt_selection_form.is_valid():
+            start = dt_selection_form.cleaned_data["start_date"]
+            end = dt_selection_form.cleaned_data["end_date"]
+
+        exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent, exchanges_by_type) #filter(context_agent=agent)
+
+        nav_form = ExchangeNavForm(agent=agent, exchanges=exchanges_by_type, data=request.POST)
+
+        if "categories" in request.POST:
+            selected_values = request.POST["categories"]
+            if selected_values:
+                sv = selected_values.split(",")
+                vals = []
+                for v in sv:
+                    vals.append(v.strip())
+                if vals[0] == "all":
+                    select_all = True
+                else:
+                    select_all = False
+                    #transfers_included = []
+                    exchanges_included = []
+                    #events_included = []
+                    for ex in exchanges:
+                        if str(ex.exchange_type.id) in vals:
+                            exchanges_included.append(ex)
+                    exchanges = exchanges_included
+
+                #nav_form = ExchangeNavForm(agent=agent, data=None)
+                #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
+                #Stype_form = NewSkillTypeForm(agent=agent, data=None)
+        else:
+          #exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #Exchange.objects.filter(context_agent=agent) #.none()
+          selected_values = "all"
+
+
         new_exchange = request.POST.get("new_exchange")
         if new_exchange:
             if nav_form.is_valid():
@@ -3223,63 +3498,33 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                 #Stype_form = NewSkillTypeForm(agent=agent, data=None)
                 #raise ValidationError("Editing Exchange Type! "+data['parent_type'].name+' ext:'+str(new_parent)+' moved:'+str(moved))
 
-        dt_selection_form = DateSelectionForm(data=request.POST)
-        if dt_selection_form.is_valid():
-            start = dt_selection_form.cleaned_data["start_date"]
-            end = dt_selection_form.cleaned_data["end_date"]
-            exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
-        else:
-            exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #filter(context_agent=agent)
 
-        if "categories" in request.POST:
-            selected_values = request.POST["categories"]
-            if selected_values:
-                sv = selected_values.split(",")
-                vals = []
-                for v in sv:
-                    vals.append(v.strip())
-                if vals[0] == "all":
-                    select_all = True
-                else:
-                    select_all = False
-                    #transfers_included = []
-                    exchanges_included = []
-                    #events_included = []
-                    for ex in exchanges:
-                        if str(ex.exchange_type.id) in vals:
-                            exchanges_included.append(ex)
-                    exchanges = exchanges_included
+    else: # No POST
+        pass #exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
 
-                #nav_form = ExchangeNavForm(agent=agent, data=None)
-                #Rtype_form = NewResourceTypeForm(agent=agent, data=None)
-                #Stype_form = NewSkillTypeForm(agent=agent, data=None)
-        else:
-          exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent) #Exchange.objects.filter(context_agent=agent) #.none()
-          selected_values = "all"
-    else:
-        exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent)
+    exchange_types = Ocp_Record_Type.objects.filter(exchange_type__isnull=False, exchange_type__id__in=set([ex.exchange_type.id for ex in exchanges_by_type])).order_by('pk', 'tree_id', 'lft').distinct()
 
-    exchanges_by_type = Exchange.objects.exchanges_by_type(agent)
-
-    total_transfers = [{'unit':u,'name':'','clas':'','income':0,'incommit':0,'outgo':0,'outcommit':0, 'balance':0,'balnote':'','debug':''} for u in agent.used_units_ids()]
+    total_transfers = [{'unit':u,'name':'','clas':'','income':0,'incommit':0,'outgo':0,'outcommit':0, 'balance':0,'balnote':'','debug':''} for u in agent.used_units_ids(exchanges_by_type)]
     total_rec_transfers = 0
     comma = ""
 
     fairunit = None
+
     for x in exchanges:
-        #try:
-        #    xx = list(x.transfer_list)
-        #except AttributeError:
         x.list_name = x.show_name(agent)
         flip = False
         if not str(x) == x.list_name:
             flip = True
 
         x.transfer_list = list(x.transfers.all())
+        for transfer in x.transfer_list:
+            transfer.list_name = transfer.show_name(agent, flip) # "2nd arg is 'forced'
+
+    for x in exchanges_by_type:
+
+        x.transfer_list = list(x.transfers.all())
 
         for transfer in x.transfer_list:
-
-            transfer.list_name = transfer.show_name(agent, flip) # "2nd arg is 'forced'
 
             if transfer.quantity():
               if transfer.transfer_type.is_incoming(x, agent): #reciprocal:
@@ -3431,7 +3676,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         "Stype_tree": Ocp_Skill_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ),
         "Rtype_form": Rtype_form,
         "Stype_form": Stype_form,
-        "Utype_tree": Ocp_Unit_Type.objects.filter(id__in=agent.used_units_ids()), #all(),
+        "Utype_tree": Ocp_Unit_Type.objects.filter(id__in=agent.used_units_ids(exchanges_by_type)), #all(),
         #"unit_types": unit_types,
         "ext_form": ext_form,
     })
@@ -4587,7 +4832,7 @@ def create_project_shares(request, agent_id):
     nome = project.compact_name()
     abbr = project.abbrev_name()
     if len(abbr) < 3:
-        raise ValidationError("The project abbrev name is too short to create shares ?! ")
+        raise ValidationError("The project abbrev name is too short to create shares ?! "+abbr)
 
     user_agent = get_agent(request)
     if not user_agent or not project.share_types() or not request.user.is_superuser or not project.fobi_slug:
@@ -4600,7 +4845,10 @@ def create_project_shares(request, agent_id):
     gen_share_typ = Ocp_Unit_Type.objects.get(clas="shares_currency")
     ocp_each = Unit.objects.get(name="Each")
 
+    #  Unit
     ocpboc_shares = Unit.objects.filter(name=nome+' Share')
+    if not ocpboc_shares:
+        ocpboc_shares = Unit.objects.filter(name=agent.name+' Share')
     if not ocpboc_shares:
         ocpboc_share, created = Unit.objects.get_or_create(
             name=nome+' Share',
@@ -4610,13 +4858,18 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created OCP Unit: '"+nome+" Share ("+abbr+")'"
     else:
+        if len(ocpboc_shares) > 1:
+            raise ValidationError("There is more than one Unit !? "+str(ocpboc_shares))
         ocpboc_share = ocpboc_shares[0]
     ocpboc_share.name = nome+' Share'
     ocpboc_share.unit_type = 'value'
     ocpboc_share.abbrev = abbr
     ocpboc_share.save()
 
-    gen_boc_typs = Ocp_Unit_Type.objects.filter(name=nome+' Shares')
+    #  Ocp_Unit_Type
+    gen_boc_typs = Ocp_Unit_Type.objects.filter(name__iexact=nome+' Shares')
+    if not gen_boc_typs:
+        gen_boc_typs = Ocp_Unit_Type.objects.filter(name__iexact=agent.name+' Shares')
     if not gen_boc_typs:
         gen_boc_typ, created = Ocp_Unit_Type.objects.get_or_create(
             name=nome+' Shares',
@@ -4624,22 +4877,34 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created Ocp_Unit_Type: '"+nome+" Shares'"
     else:
+        if len(gen_boc_typs) > 1:
+            raise ValidationError("There are more than one Ocp_Unit_Type !? "+str(gen_boc_typs))
         gen_boc_typ = gen_boc_typs[0]
     gen_boc_typ.clas = project.fobi_slug+'_shares'
     gen_boc_typ.save()
 
-
-    boc_share, created = Gene_Unit.objects.get_or_create(
-        name=nome+' Share',
-        code=abbr)
-    if created:
-        print "- created General.Unit: '"+nome+" Share'"
+    #  Gene_Unit
+    boc_shares = Gene_Unit.objects.filter(name__iexact=nome+" Share")
+    if not boc_shares:
+        boc_shares = Gene_Unit.objects.filter(name__iexact=agent.name+" Share")
+    if boc_shares:
+        if len(boc_shares) > 1:
+            raise ValidationError("There're more than one Gene_Unit !? "+str(boc_shares))
+        boc_share = boc_shares[0]
+    else:
+        boc_share, created = Gene_Unit.objects.get_or_create(
+            name=nome+' Share',
+            code=abbr)
+        if created:
+            print "- created General.Unit: '"+nome+" Share'"
+    boc_share.name = nome+" Share"
     boc_share.code = abbr
     boc_share.unit_type = gen_boc_typ
     boc_share.ocp_unit = ocpboc_share
     boc_share.save()
 
-    share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share")
+    #  EconomicResourceType
+    share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share").exclude(id=project.shares_account_type().id)
     if not share_rts:
         share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().id)
     if share_rts:
@@ -4662,7 +4927,8 @@ def create_project_shares(request, agent_id):
     share_rt.context_agent = project.agent
     share_rt.save()
 
-    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share")
+    #  Ocp_Artwork_Type
+    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share").exclude(id=project.shares_account_type().ocp_artwork_type.id)
     if not artw_bocs:
         artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().ocp_artwork_type.id)
     if artw_bocs:
@@ -4681,6 +4947,99 @@ def create_project_shares(request, agent_id):
     artw_boc.resource_type = share_rt
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
     artw_boc.save()
+
+
+    #  P r o j e c t   S h a r e s   A c c o u n t
+
+    #  EconomicResourceType
+    ert_accs = EconomicResourceType.objects.filter(name__icontains=agent.name+" Shares Account")
+    if not ert_accs:
+        ert_accs = EconomicResourceType.objects.filter(name__icontains=nome+" Shares Account")
+    if ert_accs:
+        if len(ert_accs) > 1:
+            raise ValidationError("There is more than 1 EconomicResourceType ?! "+str(ert_accs))
+        ert_acc = ert_accs[0]
+    else:
+        ert_acc, created = EconomicResourceType.objects.get_or_create(
+            name=agent.name+" Shares Account",
+            unit=ocp_each,
+            inventory_rule='yes',
+            behavior='account')
+        if created:
+            print "- created EconomicResourceType: "+str(ert_acc)
+    ert_acc.name = agent.name+" Shares Account"
+    ert_acc.unit = ocp_each
+    ert_acc.inventory_rule = 'yes'
+    ert_acc.behavior = 'account'
+    ert_acc.unit_of_price = ocpboc_share
+    ert_acc.context_agent = agent
+    ert_acc.save()
+
+    #  Ocp_Artwork_Type
+    parent_accs = Ocp_Artwork_Type.objects.get(clas="accounts")
+    proaccs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Shares Account")
+    if not proaccs:
+        proaccs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Shares Account")
+    if proaccs:
+        if len(proaccs) > 1:
+            raise ValidationError("There is more than one Ocp_Artwork_Type ?! "+str(proaccs))
+        proacc = proaccs[0]
+    else:
+        proacc, created = Ocp_Artwork_Type.objects.get_or_create(
+            name=agent.name+" Shares Account",
+            parent=parent_accs)
+        if created:
+            print "- created Ocp_Artwork_Type: '"+nome+" Shares Account'"
+    proacc.name = agent.name+" Shares Account"
+    proacc.parent = parent_accs
+    proacc.clas = nome.lower()+'shares'
+    proacc.resource_type = ert_acc
+    proacc.rel_nonmaterial_type = artw_boc
+    proacc.save()
+
+    # has resource ?
+    owner = AgentResourceRoleType.objects.get(is_owner=True)
+    aresrol = None
+    arrs = AgentResourceRole.objects.filter(agent=agent, role=owner, resource__resource_type=ert_acc)
+    if arrs:
+        if len(arrs) > 1:
+            raise ValidationError("There are two accounts of the same type for the samr agent! "+str(arrs))
+        aresrol = arrs[0]
+        res = aresrol.resource
+    else:
+        #  EconomicResource
+        ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.name)
+        if not ress:
+            ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.nick)
+        if not ress:
+            ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=agent.nick+" shares account for "+agent.nick)
+        if ress:
+            if len(ress) > 1:
+                raise ValidationError("There's more than one EconomicResource ?! "+str(ress))
+            res = ress[0]
+        else:
+            res, created = EconomicResource.objects.get_or_create(
+                resource_type=ert_acc,
+                identifier=abbr+" shares account for "+agent.nick,
+                quantity=1
+            )
+            if created:
+                print "- created EconomicResource: "+str(res)
+    res.resource_type = ert_acc
+    res.identifier = abbr+" shares account for "+agent.nick
+    res.quantity = 1
+    res.save()
+
+    #  AgentResourceRole
+    if not aresrol:
+        aresrol, created = AgentResourceRole.objects.get_or_create(
+            agent=agent,
+            resource=res,
+            role=owner)
+        if created:
+            print "- created AgentResourceRole: "+str(aresrol)
+
+
 
     return HttpResponseRedirect('/%s/%s/'
             % ('work/agent', project.agent.id))
@@ -4753,12 +5112,21 @@ def create_shares_exchange_types(request, agent_id):
     et_shareco.exchange_type = shareco
     et_shareco.save()
 
-    et_sharebuy, created = Ocp_Record_Type.objects.get_or_create(
-        name="shares Buy",
-        parent=et_shareco,
-        clas="buy")
-    if created:
-        print "- created Ocp_Record_Type branch: 'shares Buy'"
+    et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="Buy Shares", parent=et_shareco)
+    if not et_sharebuys:
+        et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="shares Buy", parent=et_shareco)
+    if not et_sharebuys:
+        et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="buy Project Shares", parent=et_shareco)
+    if et_sharebuys:
+        et_sharebuy = et_sharebuys[0]
+    else:
+        et_sharebuy, created = Ocp_Record_Type.objects.get_or_create(
+            name="shares Buy",
+            parent=et_shareco)
+        if created:
+            print "- created Ocp_Record_Type branch: 'shares Buy'"
+    et_sharebuy.name = 'shares Buy'
+    et_sharebuy.clas = 'buy'
 
     etsh, created = ExchangeType.objects.get_or_create(
         name="buy Project Shares",
@@ -4855,6 +5223,8 @@ def create_shares_exchange_types(request, agent_id):
         extyps = ExchangeType.objects.filter(name__iexact="buy "+str(project.compact_name())+" Shares")
         if not extyps:
             extyps = ExchangeType.objects.filter(name__iexact="buy "+str(project.agent.name)+" Shares")
+        if not extyps:
+            extyps = ExchangeType.objects.filter(name__iexact="share-buy "+str(project.agent.name)+" Shares")
         if extyps:
             if len(extyps) > 1:
                 raise ValidationError("There are more than 1 ExchangeType with same name: "+str(extyps))

@@ -15,7 +15,7 @@ def create_notice_types(sender, **kwargs):
         notification.NoticeType.create("work_join_request", _("Project Join Request"), _("we have received a new join request"), default=0)
         notification.NoticeType.create("work_new_account", _("Project New OCP Account"), _("a new OCP account details"), default=0)
         notification.NoticeType.create("comment_membership_request", _("Comment in Freedom Coop Membership Request"), _("we have received a new comment in a membership request"), default=0)
-        notification.NoticeType.create("comment_join_request", _("Comment in Project Join Request"), _("we have received a new comment in a join request"), default=0)
+        notification.NoticeType.create("comment_join_request", _("Comment in Project Join Request"), _("we have received a new comment in a join request"), default=1)
         notification.NoticeType.create("work_skill_suggestion", _("Skill suggestion"), _("we have received a new skill suggestion"), default=0)
         print "created valueaccounting notice types"
     else:

@@ -10,5 +10,13 @@ class ValueAccountingAppConfig(AppConfig):
     def ready(self):
         super(ValueAccountingAppConfig, self).ready()
 
-        post_migrate.connect(signals.create_notice_types, sender=self)
-        
+        from valuenetwork.valueaccounting.models import create_agent_types, create_agent_association_types, create_use_cases, create_event_types, create_usecase_eventtypes
+        from valuenetwork.valueaccounting.signals import create_notice_types
+
+        post_migrate.connect(create_notice_types, sender=self)
+        post_migrate.connect(create_agent_types, sender=self)
+        post_migrate.connect(create_agent_association_types, sender=self)
+        post_migrate.connect(create_use_cases, sender=self)
+        post_migrate.connect(create_event_types, sender=self)
+        post_migrate.connect(create_usecase_eventtypes, sender=self)
+

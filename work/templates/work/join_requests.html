@@ -5,11 +5,13 @@
 {% load bootstrap_tags %}
 {% load comments %}
 
-{% block head_title %}{% trans "Your Project Join Requests" %}{% endblock %}
+{% block head_title %}{{ project.agent.name }} - {% trans "Join Requests" %}{% endblock %}
 
 {% block extra_head %}
 
-<!--<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" /> -->
+<!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}" /> -->
+
 
 <style>
 
@@ -21,8 +23,34 @@ form.action-form {
     color: #777;
     font-size: 1em;
 }
+#stateForm > h4 {
+    font-size: 1.2em;
+}
+#stateForm li label {
+    font-size: 1em;
+}
+
+div.dataTables_wrapper div.dataTables_filter {
+    float: right;
+}
+
+div.dataTables_wrapper div.dt-buttons {
+    float: right;
+}
+
+div.dataTables_wrapper div.dataTables_length {
+    /*display: inline-block;*/
+}
+
+table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTable td {
+    border-left-width: 1px;
+}
 
 </style>
+
+
+<!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script> -->
+
 
 {% endblock %}
 
@@ -56,7 +84,7 @@ form.action-form {
                   {% trans "State" %}: {{ state_form.state }}
           </h4>
         </form>
-        <table style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+        <table id="listable" style="width: 100%;" class="table table-bordered table-hover table-condensed cell-border order-column stripe" >
             <thead>
                 <th>{% trans "Actions" %}</th>
                 <th>{% trans "Date" %}</th>
@@ -79,14 +107,6 @@ form.action-form {
                             <td>
                                 {% if not req.fobi_data %}
                                   <span class="error">ERROR!</span>
-                                  <form
-                                        class="action-form"
-                                        id="delete-form{{ req.id }}"
-                                        action="{% url "delete_request" join_request_id=req.id %}"
-                                        method="POST" >
-                                        {% csrf_token %}
-                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
-                                  </form>
                                 {% endif %}
                                 {% if req.check_user_pass %}
                                     <span class="error">{% trans "Not Valid yet!" %}</span>&nbsp;
@@ -96,50 +116,45 @@ form.action-form {
                                       {% if req.pending_shares %}
                                           <span class="error">{% trans "Pending" %}</span>
                                       {% elif req.fobi_data %}
-                                          <span class="complete">{% trans "Acquired" %}</span>
+                                          <span class="complete">{{ req.total_shares }}</span>
                                       {% endif %}
+                                      <br />
                                   {% endif %}
                                   {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
                                   {% else %}
                                     {% if request.user.is_superuser and not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
-                                      <form
+                                     <!-- <form
                                           class="action-form"
                                           id="status-form{{ req.id }}"
                                           action="{% url "update_share_payment" join_request_id=req.id %}"
                                           method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" name="status" value="pending">
-                                        <!-- <input type="hidden" name="notes" value="dis iz a tezt note"> -->
                                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                                      </form>
+                                      </form> -->
                                     {% endif %}
                                     {% if request.user.is_superuser %}
-                                        <span class="help-text" style="font-size:0.8em"><br />ET: {{ req.exchange_type }} <!-- -->
-                                            <br />AT: {{ req.payment_account_type }} <!--  -->
+                                       <!-- <span class="help-text" style="font-size:0.8em">ET: {{ req.exchange_type }}
                                             <br />UT: {{ req.payment_unit }} RT: {{ req.payment_unit_rt }}
-                                        </span>
+                                        </span><br /> -->
                                     {% endif %}
                                   {% endif %}
-                                  {% if False and req.payment_account_type %}
-                                    <br />Account: {{ req.payment_account_type }}
-                                  {% endif %}
 
-                                  <br />
                                 {% endif %}
 
                                 {% if req.duplicated %}
                                     <em class="error">{% trans "Duplicated!" %}</em>
+                                    ({% trans "see the other" %} <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.duplicated.id %}">{% trans "request" %}</a>)
+                                    <br />
+                                    {% trans "This request:" %}
                                     <form
                                           class="action-form"
                                           id="delete-form{{ req.id }}"
                                           action="{% url "delete_request" join_request_id=req.id %}"
                                           method="POST" >
                                         {% csrf_token %}
-                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete?" %}' />
+                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
                                     </form>
-                                    ({% trans "see the other" %} <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.duplicated.id %}">{% trans "request" %}</a>)
-                                    <br />
-                                    {% trans "This request:" %}
                                 {% endif %}
                                 {% get_comment_count for req as ncom  %}
                                 <a class="btn btn-info btn-mini" href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"><b>{% trans "Feedback:" %}</b> {{ ncom }}
@@ -183,15 +198,29 @@ form.action-form {
                                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Accept Member" %}' />
                                       </form>
                                     {% endif %}
-                                    <form
+                                    {% if req.check_user_pass %}
+                                      {% if req.agent.is_deletable %}
+                                         &nbsp; <span class="help-text">{% trans "Wait to confirm, or delete agent, user and request" %}:</span>
+                                         <form
+                                            style="display: inline;"
+                                            class="delete-agent-form indent"
+                                            id="delete-agent-form{{ req.id }}"
+                                            action="{% url "delete_request_agent_and_user" join_request_id=req.id %}"
+                                            method="POST" >
+                                            {% csrf_token %}
+                                            <button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >{% trans "Delete all" %}</button>
+                                         </form>
+                                      {% endif %}
+                                    {% else %}
+                                      <form
                                         class="action-form"
                                         id="decline-form{{ req.id }}"
                                         action="{% url "decline_request" join_request_id=req.id %}"
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="submit" class="btn btn-mini btn-warning" name="submit" value='{% trans "Decline" %}' />
-                                    </form>
-
+                                      </form>
+                                    {% endif %}
                                   {% else %}
                                     {% if req.possible_agent %}<br>
                                       "<a href="{% url 'members_agent' agent_id=req.possible_agent.id %}">{{ req.possible_agent }}</a>" {% trans "is taken, choose this agent?" %}
@@ -244,11 +273,21 @@ form.action-form {
                                         <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
                                     </form>
                                   {% endif %}
+                                {% else %}
+                                    <form
+                                        class="action-form"
+                                        id="delete-form{{ req.id }}"
+                                        action="{% url "delete_request" join_request_id=req.id %}"
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete" %}' />
+                                    </form>
                                 {% endif %}
 
                             </td>
                       {% endif %}
 
+                      <!--
                       {% comment %}
                         <td>{{ req.agent }}</td>
                         <td>
@@ -256,7 +295,7 @@ form.action-form {
                         </td>
                       {% endcomment %}
 
-                      <!-- <td>
+                      <td>
                           <form
                               style="display: inline;"
                               class="agent-form"
@@ -269,7 +308,7 @@ form.action-form {
                           </form>
                       </td> -->
 
-                      <td>{{ req.request_date }}</td>
+                      <td>{{ req.request_date|date:"Y-m-d" }}</td>
                       <td>
 
                           {% if req.agent %}
@@ -296,16 +335,32 @@ form.action-form {
                       <td>{% if req.address %} {{ req.address }} {% else %} <em>{{ req.agent.primary_location }}</em> {% endif %}</td>
                       <td>{% if req.website %} {{ req.website }} {% else %} <em>{{ req.agent.url }}</em> {% endif %}</td>
 
-                      {% for val in req.items_data %}
-                        <td class="fobi">{{ val }}</td>
-                      {% endfor %}
-
-                      <!-- <td>{{ req.fobi_data.pk }} - {{ fobi_data }} - {% for entry in req.entries %} {{ entry.form_data_headers }} {% endfor %}</td> -->
-
-
+                      {% if req.items_data %}
+                        {% for val in req.items_data %}
+                          <td class="fobi">{{ val }}</td>
+                        {% endfor %}
+                      {% else %}
+                        {% for val in fobi_headers %}
+                          <td><span class='error'>{% trans "missing" %}</span></td>
+                        {% endfor %}
+                      {% endif %}
                     </tr>
                 {% endfor %}
             </tbody>
+            <!-- <tfoot>
+                <th>{% trans "Actions" %}</th>
+                <th>{% trans "Date" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Username" %}</th>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Email" %}</th>
+                <th>{% trans "Phone" %}</th>
+                <th>{% trans "Address" %}</th>
+                <th>{% trans "Website" %}</th>
+                {% for val in fobi_headers %}
+                  <th class="fobi">{{ val }}</th>
+                {% endfor %}
+            </tfoot> -->
         </table>
 
 
@@ -315,10 +370,19 @@ form.action-form {
 {% endblock %}
 
 {% block extra_script %}
-	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" charset="utf8" src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script> <!-- -->
 	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="{% static "js/jquery.expander.min.js" %}"></script>
 
-  <script src="{% static "js/jquery.expander.min.js" %}"></script>
+   <!-- <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>  https://code.jquery.com/jquery-3.3.1.min.js
+
+    <script type="text/javascript" charset="utf8" src="{% static "js/datatables.min.js" %}"></script> -->
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.css"/>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.js"></script>
 
 {% endblock %}
 
@@ -328,7 +392,54 @@ form.action-form {
 
 <script type="text/javascript">
 
+  //var $j = jQuery.noConflict();
+  //window.onload = function() {
+      //alert('hau');
+      //$("#listable").DataTable();
+  //};
+
   $(document).ready(function(){
+
+    $("#listable").DataTable({
+        stateSave: true,
+        autoWidth: true,
+        order: [[1, 'desc']],
+        dom: 'rfltBip', //'B<"clear">lfrtip',
+        buttons: [
+            'colvis',
+            {
+                extend: 'pdf',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                extend: 'csv',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+        ],
+        "columnDefs": [
+            {
+                // The `data` parameter refers to the data for the cell (defined by the
+                // `data` option, which defaults to the column being worked with, in
+                // this case `data: 0`.
+                "render": function ( data, type, row ) {
+                    //arr = data.split(', ');
+                    //if (arr.length == 2){
+                    //    return arr[1]+', '+arr[0];
+                    //} else {
+                    //    return data +' ('+ row+')';
+                    //}
+                    return data
+                },
+                "targets": 1
+            }
+        ]
+    });
+
+    //$("div.dataTables_wrapper > div.row").first().css('text-align: right;')
 
     $(".tog").change(function(){
         $('.table-condensed').attr('style', 'pointer-events:none; opacity:0.5; width:100%;');
@@ -349,34 +460,34 @@ form.action-form {
     });
 
 
-		$( "#help" ).toggle( function(){
+    $( "#help" ).toggle( function(){
             $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
-        }, function() {
+    }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");
             $( "#help" ).text("Show Help");
-        })
+    })
 
-        jQuery.validator.setDefaults({
+    jQuery.validator.setDefaults({
             success: function(label) {
                 label
                     .text('').addClass('valid')
                     .closest('.control-group').addClass('success');
             }
-        });
+    });
 
-        $.validator.addClassRules("nick", {
+    $.validator.addClassRules("nick", {
             required: true,
             maxlength: 32,
             remote: { url:"/work/validate-nick/", async:false }
-            });
+    });
 
-        $.validator.addClassRules("password", {
+    $.validator.addClassRules("password", {
             required: true,
-            });
+    });
 
 
-        $('.validateMe').each( function(){
+    $('.validateMe').each( function(){
             var form = $(this);
             form.validate({
                 onkeyup: false,
@@ -384,9 +495,9 @@ form.action-form {
                     $(label).closest('.control-group').addClass('error');
                 }
             });
-        });
+    });
 
-        /*
+    /*
         $(".list").hide();
 
         $(".showhide").click(function(event)
@@ -396,9 +507,9 @@ form.action-form {
             $(listId).slideToggle(200);
             $(this).text($(this).text() == '(Show)' ? '(Hide)' : '(Show)');
         });
-        */
+    */
 
-	}); // end document.ready
+  }); // end document.ready
 
-    </script>
+</script>
 {% endblock %}
