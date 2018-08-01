@@ -578,6 +578,7 @@ class JoinRequest(models.Model):
 
     def payment_option(self):
         answer = {}
+        data2 = None
         if self.project.joining_style == "moderated" and self.fobi_data:
             for key in self.fobi_items_keys():
                 if key == "payment_mode": # fieldname specially defined in the fobi form
@@ -596,7 +597,7 @@ class JoinRequest(models.Model):
                                 #import pdb; pdb.set_trace()
                                 if val.strip() == opa[1].strip():
                                     answer['key'] = opa[0]
-            if not answer.has_key('key'):
+            if not answer.has_key('key') and data2:
                 raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
         return answer
 
@@ -637,9 +638,10 @@ class JoinRequest(models.Model):
 
     def payment_amount(self):
         amount = 0
-        if self.project.joining_style == "moderated" and self.fobi_data:
+        shat = self.project.shares_account_type()
+        if self.project.joining_style == "moderated" and self.fobi_data and shat:
             for key in self.fobi_items_keys():
-                if key == self.project.shares_account_type().ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
+                if key == shat.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
                     self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
                     entry = self.entries[0]
                     self.data = json.loads(entry.saved_data)
