@@ -561,13 +561,13 @@ class EconomicAgent(models.Model):
         if context_agent_id:
             context_agent = EconomicAgent.objects.get(pk=context_agent_id)
         elif object_to_mutate:
-            if type(object_to_mutate) is Order: #orders do not have a context agent
+            if type(object_to_mutate) is Order: #orders do not have a context agent if not created from recipe
                 if object_to_mutate.pk: #update or delete
                     if object_to_mutate.created_by == user:
                         return True
                     else:
                         return False
-                else: #create
+                else: #create not from recipe
                     return True
             else:
                 context_agent = object_to_mutate.context_agent
@@ -872,6 +872,14 @@ class EconomicAgent(models.Model):
 
     def score(self):
         return sum(art.score for art in self.resource_types.all())
+
+    def skills(self):
+        arts = self.resource_types.all()
+        rts = []
+        for art in arts:
+            if art.resource_type not in rts:
+                rts.append(art.resource_type)
+        return rts
 
     def contributions(self):
         return self.given_events.filter(is_contribution=True)
