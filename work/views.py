@@ -1955,9 +1955,12 @@ def join_requests(request, agent_id):
                 req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
                 form_headers = json.loads(entry.form_data_headers)
-                for val in form_headers:
-                    fobi_headers.append(form_headers[val])
-                    fobi_keys.append(val)
+                for elem in req.fobi_data.form_entry.formelemententry_set.all().order_by('position'):
+                    data = json.loads(elem.plugin_data)
+                    nam = data.get('name')
+                    if nam:
+                        fobi_headers.append(form_headers[nam])
+                        fobi_keys.append(nam)
                 break
 
         for req in requests:
@@ -2274,32 +2277,40 @@ def project_feedback(request, agent_id, join_request_id):
         form_entry = FormEntry.objects.get(slug=fobi_slug)
         #req = jn_req
         if jn_req.fobi_data and jn_req.fobi_data.pk:
-            jn_req.entries = SavedFormDataEntry.objects.filter(pk=jn_req.fobi_data.pk) #.select_related('form_entry')
+            jn_req.entries = SavedFormDataEntry.objects.filter(pk=jn_req.fobi_data.pk)
             jn_req.entry = jn_req.entries[0]
             jn_req.form_headers = json.loads(jn_req.entry.form_data_headers)
-            for val in jn_req.form_headers:
-                fobi_headers.append(jn_req.form_headers[val])
-                fobi_keys.append(val)
 
             jn_req.data = json.loads(jn_req.entry.saved_data)
             jn_req.elem_typs = {}
             jn_req.elem_choi = {}
-            for elem in jn_req.fobi_data.form_entry.formelemententry_set.all():
+            for elem in jn_req.fobi_data.form_entry.formelemententry_set.all().order_by('position'):
                 data = json.loads(elem.plugin_data)#, 'utf-8')
                 nam = data.get('name')
                 choi = data.get('choices')
-                if choi:
-                    jn_req.elem_typs[nam] = 'select'
-                    opts = choi.split('\r\n')
-                    obj = {}
-                    for op in opts:
-                        arr = op.split(', ')
-                        obj[str(arr[0])] = arr[1] #.replace("'", '"') #unicode(arr[1]).decode('utf-8') #.encode('utf-8')
-                    jn_req.elem_choi[nam] = obj
-                else:
-                    jn_req.elem_typs[nam] = 'text' #[nam] = 'text'
-                    jn_req.elem_choi[nam] = ''
+                #pos = elem.position
+                if nam:
+                    if choi:
+                        jn_req.elem_typs[nam] = 'select'
+                        opts = choi.split('\r\n')
+                        obj = {}
+                        for op in opts:
+                            arr = op.split(', ')
+                            if jn_req.data[nam] == arr[1]:
+                                #obj['selected'] = arr[1]
+                                obj[str(arr[0])] = arr[1]
+                            else:
+                                obj[str(arr[0])] = arr[1]
+
+                            #import pdb; pdb.set_trace()
+                        jn_req.elem_choi[nam] = obj
+                    else:
+                        jn_req.elem_typs[nam] = elem.plugin_uid # 'text' 'textarea'
+                        jn_req.elem_choi[nam] = ''
+                    fobi_headers.append(jn_req.form_headers[nam])
+                    fobi_keys.append(nam)
                 #import pdb; pdb.set_trace()
+
             #jn_req.tworows = two_dicts_to_string(jn_req.form_headers, jn_req.data, 'th', 'td')
             jn_req.items = jn_req.data.items()
             jn_req.items_data = []
