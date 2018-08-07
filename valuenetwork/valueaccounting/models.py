@@ -11949,7 +11949,6 @@ class EconomicEvent(models.Model):
         ])
 
     def save(self, *args, **kwargs):
-
         from_agt = 'Unassigned'
         agent = self.from_agent
         context_agent = self.context_agent
@@ -12022,6 +12021,7 @@ class EconomicEvent(models.Model):
     def save_api(self, user, old_quantity=None, old_resource=None, create_resource=False): #additional logic from views
         if create_resource:
             self.resource.save_api(process=self.process, event_type=self.event_type, commitment=self.commitment)
+            self.resource = self.resource
         self.save()
         process = self.process
         if process:
