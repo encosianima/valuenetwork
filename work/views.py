@@ -794,7 +794,8 @@ def members_agent(request, agent_id):
     """
 
     context_ids = [c.id for c in agent.related_all_agents()]
-    context_ids.append(agent.id)
+    if not agent.id in context_ids:
+        context_ids.append(agent.id)
     user_form = None
 
     if not agent.username():
@@ -5755,16 +5756,18 @@ def create_shares_exchange_types(request, agent_id):
 
 def project_all_resources(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
-    contexts = agent.related_all_contexts()
-    contexts.append(agent)
+    #contexts = agent.related_all_contexts()
+    #contexts.append(agent)
     #context_ids = [c.id for c in contexts]
     #other_contexts = EconomicAgent.objects.all().exclude(id__in=context_ids)
     rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
     rt_ids = [arr.resource.id for arr in agent.resource_relationships()]
     fcr = agent.faircoin_resource()
     if fcr:
-      rt_ids.append(fcr.id)
-      rts.append(fcr.resource_type)
+      if not fcr.id in rt_ids:
+        rt_ids.append(fcr.id)
+      if not fcr.resource_type in rts:
+        rts.append(fcr.resource_type)
     #rts = list(set([arr.resource.resource_type for arr in AgentResourceRole.objects.filter(agent=agent)])) #__in=contexts)]))
     #resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
     #rts = EconomicResourceType.objects.all().exclude(context_agent__in=other_contexts)
@@ -6703,7 +6706,7 @@ def non_process_logging(request):
         rts = pattern.work_resource_types()
     else:
         rts = EconomicResourceType.objects.filter(behavior="work")
-    ctx_qs = member.related_context_queryset()
+    ctx_qs = member.related_contexts_queryset()
     if ctx_qs:
         context_agent = ctx_qs[0]
         if context_agent.project and context_agent.project.resource_type_selection == "project":

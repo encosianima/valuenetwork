@@ -1129,7 +1129,7 @@ class EconomicAgent(models.Model):
             agents.extend([ocp])
         return list(set(agents))
 
-    def related_context_queryset(self):
+    def related_contexts_queryset(self):
         ctx_ids = [ctx.id for ctx in self.related_contexts()]
         return EconomicAgent.objects.filter(id__in=ctx_ids)
 
@@ -1139,13 +1139,13 @@ class EconomicAgent(models.Model):
 
     def related_all_contexts_queryset(self, agent=None, childs=True):
         ctx_ids = [ctx.id for ctx in self.related_all_contexts(childs)]
-        if agent:
+        if agent and not agent.id in ctx_ids:
           ctx_ids.append(agent.id)
         return EconomicAgent.objects.filter(id__in=ctx_ids)
 
     def related_all_agents_queryset(self, agent=None, childs=True):
         ctx_ids = [ctx.id for ctx in self.related_all_agents(childs)]
-        if agent:
+        if agent and not agent.id in ctx_ids:
           ctx_ids.append(agent.id)
         return EconomicAgent.objects.filter(id__in=ctx_ids)
 
