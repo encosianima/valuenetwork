@@ -1767,9 +1767,9 @@ query($token: String) {
 
 query($token: String) {
   viewer(token: $token) {
-    economicResource(id: 26) {
+    economicResource(id: 157) {
       id
-      resourceClassiedAs {
+      resourceClassifiedAs {
         name
         category
       }
@@ -1782,6 +1782,7 @@ query($token: String) {
       }
       image
       category
+      url
       note
     }
   }
@@ -1848,6 +1849,21 @@ query ($token: String) {
         createdDate
         resourceClassifiedAs {
           name
+        }
+      }
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    agent(id:106) {
+      searchOwnedInventoryResources(searchString: "jam Jars lids") {
+        id
+        note
+        resourceClassifiedAs {
+          name
+          note
         }
       }
     }
@@ -3080,10 +3096,11 @@ mutation ($token: String!) {
 
 #creates a resource also
 mutation ($token: String!) {
-  createEconomicEvent(token: $token, action: "produce", start: "2017-10-01", scopeId: 39, 
+  createEconomicEvent(token: $token, action: "produce", start: "2017-10-07", scopeId: 39, 
     note: "testing new resource", affectedResourceClassifiedAsId: 37, affectedNumericValue: "30", 
     affectedUnitId: 4, outputOfId: 67, providerId: 39, receiverId: 39, createResource: true,
-    resourceNote: "new one", resourceImage: "rrr.com/image", resourceTrackingIdentifier: "432234") {
+    resourceNote: "new one", resourceImage: "rrr.com/image", resourceTrackingIdentifier: "test-url",
+    resourceUrl: "resource.com") {
     economicEvent {
       id
       action
@@ -3104,9 +3121,13 @@ mutation ($token: String!) {
         name
       }
       affects {
+        id
         trackingIdentifier
         resourceClassifiedAs {
           name
+        }
+        currentQuantity {
+          numericValue
         }
         note
       }
@@ -3262,7 +3283,7 @@ mutation ($token: String!) {
 
 mutation ($token: String!) {
   updateEconomicResource(token: $token, id: 128, trackingIdentifier: "xxxccc333", 
-    note: "testing more", resourceClassifiedAsId: 37, image: "xxx.com") {
+    note: "testing url", resourceClassifiedAsId: 37, image: "xxx.com", url: "rrr.com") {
     economicResource {
       id
       trackingIdentifier
@@ -3277,6 +3298,7 @@ mutation ($token: String!) {
       }
       note
       image
+      url
       currentLocation {
         id
       }

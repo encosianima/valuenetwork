@@ -569,6 +569,9 @@ class EconomicAgent(models.Model):
                         return False
                 else: #create not from recipe
                     return True
+            elif type(object_to_mutate) is EconomicResource:
+                #arr = object_to_mutate. #TODO: add auth for resource (what?)
+                return True
             else:
                 context_agent = object_to_mutate.context_agent
         else:
@@ -1436,14 +1439,12 @@ class EconomicAgent(models.Model):
         parents = EconomicAgent.objects.filter(pk__in=parent_ids)
         return parents
 
-    def children(self): #returns a list or None
-        associations = self.has_associates.filter(association_type__association_behavior="child").filter(state="active")
-        children = None
-        if associations.count() > 0:
-            children = []
-            for association in associations:
-                children.append(association.from_agent)
-        return children
+    #def children(self): #TODO: not tested
+    #    associations = self.has_associates.filter(association_type__association_behavior="child").filter(state="active")
+    #    children = []
+    #    for association in associations:
+    #        children.append(association.has_associate)
+    #    return children
 
     def is_root(self):
         if self.parent():
@@ -1602,6 +1603,29 @@ class EconomicAgent(models.Model):
     def owned_resources(self):
         arrs = self.agent_resource_roles.filter(role__is_owner=True).exclude(resource__quantity=0)
         return [arr.resource for arr in arrs]
+
+    #TODO: this is too simple, would be good to eliminate non-searchable words, manage ""'d words, search whole words only, etc.
+    #used for inventory type resources only
+    def search_owned_resources(self, search_string, also_search_children=True):
+        resources = self.owned_resources()
+        if also_search_children:
+            children = self.with_all_sub_agents()
+            for child in children:
+                resources.extend(child.owned_resources())
+        answer = []
+        strings = search_string.lower().split(" ")
+        for res in resources:
+            if res.resource_type.inventory_rule == "yes":
+                for string in strings:
+                    if string in res.resource_type.name.lower():
+                        answer.append(res)
+                    elif string in res.resource_type.description.lower():
+                        answer.append(res)
+                    elif string in res.notes.lower():
+                        answer.append(res)
+                    elif string in res.identifier.lower():
+                        answer.append(res)
+        return list(set(answer))
 
     def owned_currency_resources(self):
         arrs = self.agent_resource_roles.filter(role__is_owner=True).exclude(
@@ -5114,6 +5138,18 @@ class EconomicResourceManager(models.Manager):
 
     def all_economic_resources(self):
         return EconomicResource.objects.all()
+
+    #def search(self, agent_id=None, search_string):
+    #    agent = None
+    #    if agent_id:
+    #        agent = EconomicAgent.objects.get(pk=agent_id)
+    #    if search_string = "" or search_string is None:
+    #        raise ValidationError("Search string is required.")
+    #    if agent:
+    #        rts = agent.
+    #    else:
+    #        rts = EconomicResourceType.objects.all()
+
 
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType,
@@ -11916,7 +11952,6 @@ class EconomicEvent(models.Model):
         ])
 
     def save(self, *args, **kwargs):
-
         from_agt = 'Unassigned'
         agent = self.from_agent
         context_agent = self.context_agent
@@ -11989,6 +12024,7 @@ class EconomicEvent(models.Model):
     def save_api(self, user, old_quantity=None, old_resource=None, create_resource=False): #additional logic from views
         if create_resource:
             self.resource.save_api(process=self.process, event_type=self.event_type, commitment=self.commitment)
+            self.resource = self.resource
         self.save()
         process = self.process
         if process:
