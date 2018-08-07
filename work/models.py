@@ -1335,8 +1335,8 @@ class JoinRequest(models.Model):
                     comm.save()
 
                     if notification:
-                        managers = project.agent.managers()
-                        users = [agent.user().user,]
+                        #managers = project.agent.managers()
+                        users = [agent.user().user]
                         #for manager in managers:
                         #    if manager.user():
                         #        users.append(manager.user().user)
@@ -1354,6 +1354,10 @@ class JoinRequest(models.Model):
                                 "request_host": request.get_host(),
                                 }
                             )
+                        else:
+                            raise ValidationError("There are no users to send the work_new_account details? "+str(username))
+                    else:
+                        raise ValidationError("The notification service is not available?! ")
                 else:
                     raise ValidationError("There's a problem with the username: "+str(username))
             else:
