@@ -189,14 +189,16 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                 {% elif req.fobi_data %}
                                   {% if req.agent %}
                                     {% if not req.pending_shares or not project.share_types %}
-                                      <form
-                                        class="action-form"
-                                        id="accept-form{{ req.id }}"
-                                        action="{% url "accept_request" join_request_id=req.id %}"
-                                        method="POST" >
-                                        {% csrf_token %}
-                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Accept Member" %}' />
-                                      </form>
+                                      {% if not req.check_user_pass %}
+                                          <form
+                                            class="action-form"
+                                            id="accept-form{{ req.id }}"
+                                            action="{% url "accept_request" join_request_id=req.id %}"
+                                            method="POST" >
+                                            {% csrf_token %}
+                                            <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Accept Member" %}' />
+                                          </form>
+                                      {% endif %}
                                     {% endif %}
                                     {% if req.check_user_pass %}
                                       {% if req.agent.is_deletable %}
