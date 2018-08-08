@@ -96,6 +96,8 @@ urlpatterns = [
         name="join_project"),
     url(r'^edit-form-field/(?P<joinrequest_id>\d+)/$', work.views.edit_form_field_data,
         name="edit_form_field_data"),
+    url(r'^resend-candidate-credentials/(?P<joinrequest_id>\d+)/$', work.views.resend_candidate_credentials,
+        name="resend_candidate_credentials"),
 
     url(r'^connect-agent-to-join-request/(?P<agent_id>\d+)/(?P<join_request_id>\d+)/$', work.views.connect_agent_to_join_request,
         name="connect_agent_to_join_request"),

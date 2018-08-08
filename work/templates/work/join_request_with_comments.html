@@ -147,7 +147,7 @@ a.more-link {
             </tr>
             <tr>
                 <th style="display:block; width:180px;">{% trans "Username" %}:</th>
-                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %} {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span> {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>{% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>{% endif %}{% endif %}</td>
+                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %}</td>
             </tr>
             <tr>
                 <th>{% trans "Type" %}:</th>
@@ -155,7 +155,15 @@ a.more-link {
             </tr>
             <tr>
                 <th>{% trans "Email" %}:</th>
-                <td>{% if req.email_address %} {{ req.email_address }} {% else %} {{ req.agent.email }} {% endif %}</td>
+                <td>{% if req.email_address %} {{ req.email_address }} {% else %} {{ req.agent.email }} {% endif %}
+                    {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span>
+                      {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>
+                      {% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>
+                        {% if user_agent is req.project.agent or user_agent in req.project.agent.managers %} <a class="btn btn-primary btn-mini" href="{% url "resend_candidate_credentials" joinrequest_id=req.id %}" style="display:inline; position:relative; top:-1px;" >Resend Password</a>
+                        {% endif %}
+                      {% endif %}
+                    {% endif %}
+                </td>
             </tr>
             {% if req.phone_number or req.agent.phone_primary %}
               <tr>
@@ -261,7 +269,17 @@ a.more-link {
         {% if num_comm > 0 %}
           <div class="row-fluid">
             {% trans "You have " %} {{ num_comm }} {% trans " comments:" %}
-            {% render_comment_list for jn_req %}
+            {% get_comment_list for jn_req as comment_list %}
+              <dl id="comments">
+                {% for comment in comment_list %}
+                  <dt id="c{{ comment.id }}">
+                      {{ comment.submit_date }} - {{ comment.name }}
+                  </dt>
+                  <dd>
+                      {{ comment.comment|linebreaks }}
+                  </dd>
+                  {% endfor %}
+              </dl>
           </div>
         {% endif %}
         <div class="row-fluid">

@@ -2254,6 +2254,45 @@ def join_project(request, project_id):
 
     return HttpResponseRedirect("/work/your-projects/")
 
+@login_required
+def resend_candidate_credentials(request, joinrequest_id):
+    user_agent = get_agent(request)
+    jn_req = get_object_or_404(JoinRequest, pk=joinrequest_id)
+    project = jn_req.project
+    allowed = False
+    if user_agent and jn_req and project == jn_req.project:
+      if user_agent.is_staff() or user_agent in project.agent.managers() or user_agent is project.agent:
+        allowed = True
+    if not allowed:
+        return render(request, 'work/no_permission.html')
+
+    password = jn_req.check_user_pass(True)
+    if notification:
+        users = [jn_req.agent.user().user]
+        if users:
+            site_name = get_site_name(request)
+            notification.send(
+                users,
+                "work_new_account",
+                {"name": jn_req.agent.name,
+                 "username": jn_req.agent.nick,
+                 "password": password,
+                 "site_name": site_name,
+                 "context_agent": project.agent,
+                 "request_host": request.get_host(),
+                }
+            )
+        else:
+            raise ValidationError("There are no users to send the work_new_account details? "+str(username))
+    else:
+        raise ValidationError("The notification service is not available?! ")
+
+    next = request.POST.get("next")
+    if not next:
+        next = "project_feedback"
+
+    return redirect(next, agent_id=jn_req.project.agent.id, join_request_id=jn_req.id)
+
 
 @login_required
 def project_feedback(request, agent_id, join_request_id):
