@@ -68,7 +68,7 @@ def comment_notification(sender, comment, **kwargs):
                     "site_name": site_name,
                     "joinrequest_url": joinrequest_url,
                     "jn_req": comment.content_object,
-                    "current_site": kwargs['request'].get_host(),
+                    "current_site": domain,
                     }
                 )
 

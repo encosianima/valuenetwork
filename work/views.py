@@ -286,6 +286,8 @@ def update_skills(request, agent_id):
                         {"skill": suggestion.skill,
                         "suggested_by": suggester.name,
                         "suggestions_url": suggestions_url,
+                        "site_name": site_name,
+                        "current_site": request.get_host(),
                         }
                     )
 
@@ -531,6 +533,7 @@ def membership_request(request):
                         "type_of_membership": type_of_membership,
                         "description": description,
                         "site_name": site_name,
+                        "current_site": request.get_host(),
                         "membership_url": membership_url,
                         }
                     )
@@ -1520,6 +1523,7 @@ def joinaproject_request(request, form_slug = False):
                                 "type_of_user": type_of_user,
                                 "description": description,
                                 "site_name": site_name,
+                                "current_site": request.get_host(),
                                 "join_url": join_url,
                                 "context_agent": context_agent,
                                 "request_host": request.get_host(),
@@ -1752,6 +1756,7 @@ def joinaproject_request_internal(request, agent_id = False):
                         "type_of_user": type_of_user,
                         "description": description,
                         "site_name": site_name,
+                        "current_site": request.get_host(),
                         "join_url": join_url,
                         "context_agent": proj_agent,
                         "request_host": request.get_host(),
@@ -2217,6 +2222,7 @@ def create_account_for_join_request(request, join_request_id):
                                 "username": username,
                                 "password": password,
                                 "site_name": site_name,
+                                "current_site": request.get_host(),
                                 "context_agent": project.agent,
                                 "request_host": request.get_host(),
                                 }
@@ -2278,6 +2284,7 @@ def resend_candidate_credentials(request, joinrequest_id):
                  "username": jn_req.agent.nick,
                  "password": password,
                  "site_name": site_name,
+                 "current_site": request.get_host(),
                  "context_agent": project.agent,
                  "request_host": request.get_host(),
                 }
@@ -2695,14 +2702,16 @@ def new_skill_type(request, agent_id):
               if notification:
                   users = User.objects.filter(is_staff=True)
                   suggestions_url = get_url_starter(request) + "/accounting/skill-suggestions/"
-                  if users and get_site_name(request):
-                      site_name = get_site_name(request)
+                  site_name = get_site_name(request)
+                  if users and site_name:
                       notification.send(
                         users,
                         "work_skill_suggestion",
                         {"skill": suggestion.skill,
                          "suggested_by": suggester.name,
                          "suggestions_url": suggestions_url,
+                         "site_name": site_name,
+                         "current_site": request.get_host(),
                         }
                       )
               #nav_form = ExchangeNavForm(agent=agent, data=None)
@@ -6213,6 +6222,7 @@ def add_todo(request):
                                     {"description": todo.description,
                                     "creator": agent,
                                     "site_name": site_name,
+                                    "current_site": request.get_host(),
                                     }
                                 )
 
@@ -6654,6 +6664,7 @@ def work_invite_collaborator(request, commitment_id):
                     "process": commitment.process,
                     "creator": agent,
                     "site_name": site_name,
+                    "current_site": request.get_host(),
                     }
                 )
 
@@ -6866,6 +6877,7 @@ def work_add_todo(request):
                                     {"description": todo.description,
                                     "creator": agent,
                                     "site_name": site_name,
+                                    "current_site": request.get_host(),
                                     }
                                 )
 
@@ -6892,6 +6904,7 @@ def work_todo_delete(request, todo_id):
                                 {"description": todo.description,
                                 "creator": agent,
                                 "site_name": site_name,
+                                "current_site": request.get_host(),
                                 }
                             )
             todo.delete()
@@ -7082,6 +7095,7 @@ def work_add_process_worker(request, process_id):
                         "process": ct.process,
                         "creator": agent,
                         "site_name": site_name,
+                        "current_site": request.get_host(),
                         }
                     )
     return HttpResponseRedirect('/%s/%s/'
@@ -7707,6 +7721,7 @@ def work_join_task(request, commitment_id):
                     "process": process,
                     "creator": agent,
                     "site_name": site_name,
+                    "current_site": request.get_host(),
                     }
                 )
 
@@ -8255,6 +8270,7 @@ def plan_work(request, rand=0):
                                     "process": work_commitment.process,
                                     "creator": agent,
                                     "site_name": site_name,
+                                    "current_site": request.get_host(),
                                     }
                                 )
 
