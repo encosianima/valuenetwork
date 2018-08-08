@@ -1329,7 +1329,7 @@ class JoinRequest(models.Model):
                         user_name=self.project.agent.nick,
                         user_email=self.project.agent.email,
                         submit_date=datetime.date.today(),
-                        comment=_("%(pass)s is the initial random password for user %(user)s, used to verify the email address %(mail)s") % {'pass': password, 'user': username, 'mail': email},
+                        comment=_("%(pass)s is the initial random password for agent %(user)s, used to verify the email address %(mail)s") % {'pass': password, 'user': username, 'mail': email},
                         site=Site.objects.get_current()
                     )
                     comm.save()
@@ -1366,14 +1366,17 @@ class JoinRequest(models.Model):
             raise ValidationError("The form to autocreate user+agent from the join request is not valid. "+str(form.errors))
         return password
 
-    def check_user_pass(self):
+    def check_user_pass(self, showpass=False):
         con_typ = ContentType.objects.get(model='joinrequest')
         coms = Comment.objects.filter(content_type=con_typ, object_pk=self.pk)
         for c in coms:
             first = c.comment.split(' ')[0]
             if len(first) == settings.RANDOM_PASSWORD_LENGHT:
                 if self.agent.user().user.check_password(first):
-                    return _("WARNING!")
+                    if showpass:
+                        return first
+                    else:
+                        return _("WARNING!")
         return False
 
     def duplicated(self):
