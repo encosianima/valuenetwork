@@ -452,11 +452,12 @@ class ExchangeNavForm(forms.Form):
         try:
             gen_et = Ocp_Record_Type.objects.get(clas='ocp_exchange')
             if agent:
-                context_ids = [c.id for c in agent.related_all_agents()]
+                contexts = agent.related_all_agents()
+                context_ids = [c.id for c in contexts]
                 if not agent.id in context_ids:
                     context_ids.append(agent.id)
                 if gen_et:
-                    self.fields["exchange_type"].label = 'Contexts: '+str(agent.related_all_agents())
+                    self.fields["exchange_type"].label = 'Contexts: '+str(contexts)
 
                     hidden_ets = Ocp_Record_Type.objects.filter( Q(exchange_type__isnull=False), Q(exchange_type__context_agent__isnull=False),  ~Q(exchange_type__context_agent__id__in=context_ids) )
                     hidden_etids = []
@@ -1448,7 +1449,7 @@ class ProjectSelectionFilteredForm(forms.Form):
 
     def __init__(self, agent, *args, **kwargs):
         super(ProjectSelectionFilteredForm, self).__init__(*args, **kwargs)
-        projects = agent.related_context_queryset()
+        projects = agent.related_contexts_queryset()
         if projects:
             self.fields["context_agent"].choices = [(proj.id, proj.name) for proj in projects]
 

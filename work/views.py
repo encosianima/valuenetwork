@@ -794,7 +794,8 @@ def members_agent(request, agent_id):
     """
 
     context_ids = [c.id for c in agent.related_all_agents()]
-    context_ids.append(agent.id)
+    if not agent.id in context_ids:
+        context_ids.append(agent.id)
     user_form = None
 
     if not agent.username():
@@ -1955,9 +1956,12 @@ def join_requests(request, agent_id):
                 req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
                 form_headers = json.loads(entry.form_data_headers)
-                for val in form_headers:
-                    fobi_headers.append(form_headers[val])
-                    fobi_keys.append(val)
+                for elem in req.fobi_data.form_entry.formelemententry_set.all().order_by('position'):
+                    data = json.loads(elem.plugin_data)
+                    nam = data.get('name')
+                    if nam:
+                        fobi_headers.append(form_headers[nam])
+                        fobi_keys.append(nam)
                 break
 
         for req in requests:
@@ -2274,32 +2278,40 @@ def project_feedback(request, agent_id, join_request_id):
         form_entry = FormEntry.objects.get(slug=fobi_slug)
         #req = jn_req
         if jn_req.fobi_data and jn_req.fobi_data.pk:
-            jn_req.entries = SavedFormDataEntry.objects.filter(pk=jn_req.fobi_data.pk) #.select_related('form_entry')
+            jn_req.entries = SavedFormDataEntry.objects.filter(pk=jn_req.fobi_data.pk)
             jn_req.entry = jn_req.entries[0]
             jn_req.form_headers = json.loads(jn_req.entry.form_data_headers)
-            for val in jn_req.form_headers:
-                fobi_headers.append(jn_req.form_headers[val])
-                fobi_keys.append(val)
 
             jn_req.data = json.loads(jn_req.entry.saved_data)
             jn_req.elem_typs = {}
             jn_req.elem_choi = {}
-            for elem in jn_req.fobi_data.form_entry.formelemententry_set.all():
+            for elem in jn_req.fobi_data.form_entry.formelemententry_set.all().order_by('position'):
                 data = json.loads(elem.plugin_data)#, 'utf-8')
                 nam = data.get('name')
                 choi = data.get('choices')
-                if choi:
-                    jn_req.elem_typs[nam] = 'select'
-                    opts = choi.split('\r\n')
-                    obj = {}
-                    for op in opts:
-                        arr = op.split(', ')
-                        obj[str(arr[0])] = arr[1] #.replace("'", '"') #unicode(arr[1]).decode('utf-8') #.encode('utf-8')
-                    jn_req.elem_choi[nam] = obj
-                else:
-                    jn_req.elem_typs[nam] = 'text' #[nam] = 'text'
-                    jn_req.elem_choi[nam] = ''
+                #pos = elem.position
+                if nam:
+                    if choi:
+                        jn_req.elem_typs[nam] = 'select'
+                        opts = choi.split('\r\n')
+                        obj = {}
+                        for op in opts:
+                            arr = op.split(', ')
+                            if jn_req.data[nam] == arr[1]:
+                                #obj['selected'] = arr[1]
+                                obj[str(arr[0])] = arr[1]
+                            else:
+                                obj[str(arr[0])] = arr[1]
+
+                            #import pdb; pdb.set_trace()
+                        jn_req.elem_choi[nam] = obj
+                    else:
+                        jn_req.elem_typs[nam] = elem.plugin_uid # 'text' 'textarea'
+                        jn_req.elem_choi[nam] = ''
+                    fobi_headers.append(jn_req.form_headers[nam])
+                    fobi_keys.append(nam)
                 #import pdb; pdb.set_trace()
+
             #jn_req.tworows = two_dicts_to_string(jn_req.form_headers, jn_req.data, 'th', 'td')
             jn_req.items = jn_req.data.items()
             jn_req.items_data = []
@@ -5744,16 +5756,18 @@ def create_shares_exchange_types(request, agent_id):
 
 def project_all_resources(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
-    contexts = agent.related_all_contexts()
-    contexts.append(agent)
+    #contexts = agent.related_all_contexts()
+    #contexts.append(agent)
     #context_ids = [c.id for c in contexts]
     #other_contexts = EconomicAgent.objects.all().exclude(id__in=context_ids)
     rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
     rt_ids = [arr.resource.id for arr in agent.resource_relationships()]
     fcr = agent.faircoin_resource()
     if fcr:
-      rt_ids.append(fcr.id)
-      rts.append(fcr.resource_type)
+      if not fcr.id in rt_ids:
+        rt_ids.append(fcr.id)
+      if not fcr.resource_type in rts:
+        rts.append(fcr.resource_type)
     #rts = list(set([arr.resource.resource_type for arr in AgentResourceRole.objects.filter(agent=agent)])) #__in=contexts)]))
     #resources = EconomicResource.objects.select_related().filter(quantity__gt=0).order_by('resource_type')
     #rts = EconomicResourceType.objects.all().exclude(context_agent__in=other_contexts)
@@ -6692,7 +6706,7 @@ def non_process_logging(request):
         rts = pattern.work_resource_types()
     else:
         rts = EconomicResourceType.objects.filter(behavior="work")
-    ctx_qs = member.related_context_queryset()
+    ctx_qs = member.related_contexts_queryset()
     if ctx_qs:
         context_agent = ctx_qs[0]
         if context_agent.project and context_agent.project.resource_type_selection == "project":

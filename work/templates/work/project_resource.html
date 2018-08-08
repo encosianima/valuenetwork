@@ -103,7 +103,23 @@
 
                                 {% if resource.resource_type.is_virtual_account and fil.name == "price_per_unit" %}
                                   <label>{% trans "Account Value" %}:</label>
-                                  {% if request.user.agent.agent in resource.resource_type.context_agent.managers and resource.resource_type.unit_of_price.ocp_unit_type.clas == 'share' %} {{ fil }} {% else %} {{ fil.value }} {% endif %} {% if resource.resource_type.unit_of_price %}{{ resource.resource_type.unit_of_price }}{% if fil.value == 1 %}{% else %}s{% endif %}{% endif %}
+                                  {% if request.user.agent.agent in resource.resource_type.context_agent.managers %}
+                                    {% if resource.resource_type.unit_of_price.gen_unit %}
+                                      {% if resource.resource_type.unit_of_price.gen_unit.unit_type.ocp_artwork_types %}
+                                        {% if resource.resource_type.unit_of_price.gen_unit.unit_type.ocp_artwork_types.first.is_share %}
+                                          {{ fil }}
+                                        {% else %} <span class="error">Error: not found 'share' string in resource.resource_type.unit_of_price.gen_unit.unit_type.clas: {{ resource.resource_type.unit_of_price.gen_unit.unit_type.clas }} ??</span>
+                                        {% endif %}
+                                      {% else %}
+                                        <span class="error">Error: resource.resource_type.unit_of_price.gen_unit.unit_type is not related any Ocp_Artwork_Type ? {{ resource.resource_type.unit_of_price.gen_unit.unit_type }}</span>
+                                      {% endif %}
+                                    {% else %}
+                                      <span class="error">Error: resource_type.unit_of_price is not related a general Unit ? {{ resource.resource_type.unit_of_price }}</span>
+                                    {% endif %}
+                                  {% else %}
+                                    {{ fil.value }}
+                                  {% endif %}
+                                  {% if resource.resource_type.unit_of_price %}{{ resource.resource_type.unit_of_price }}{% if fil.value == 1 %}{% else %}s{% endif %}{% endif %}
                                 {% else %}
                                   <label>{{ fil.label }}:</label>
                                   {{ fil }}

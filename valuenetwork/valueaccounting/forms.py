@@ -57,7 +57,7 @@ class RequestStateForm(forms.Form):
     state = forms.ChoiceField(choices=REQUEST_STATE_CHOICES, widget=forms.RadioSelect(attrs={'class': 'tog'}))
 
 
-class SendFairCoinsForm(forms.Form):
+"""class SendFairCoinsForm(forms.Form):
     quantity = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'faircoins input-small',}),min_value=Decimal('1.0'))
     to_address = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'input-xlarge',}),
@@ -97,7 +97,7 @@ class SendFairCoinsForm(forms.Form):
            touser = data["to_user"]
            if touser and touser.faircoin_address():
                data["to_address"] = touser.faircoin_address()
-
+"""
 
 class AgentForm(forms.Form):
     nick = forms.CharField(label="ID", widget=forms.TextInput(attrs={'class': 'required-field',}))
@@ -679,7 +679,7 @@ class UnplannedWorkEventForm(forms.ModelForm):
         required=False,
         initial=True,
         label="Request payment",
-        widget=forms.CheckboxInput()) 
+        widget=forms.CheckboxInput())
 
     class Meta:
         model = EconomicEvent
@@ -1562,7 +1562,7 @@ class InputEventAgentForm(forms.ModelForm):
         required=False,
         initial=True,
         label="Request payment",
-        widget=forms.CheckboxInput()) 
+        widget=forms.CheckboxInput())
 
     class Meta:
         model = EconomicEvent

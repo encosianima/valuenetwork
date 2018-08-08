@@ -54,12 +54,18 @@ tr.fobi td em {
     opacity: 0.5;
     float: right;
 }
-
+tr.fobi td form textarea {
+    max-width: 99%;
+}
 tr.fobi td form button {
     margin: 0px 10px;
 }
 tr.fobi td form select {
     margin: 5px 0px;
+}
+
+a.more-link {
+    z-index: 9999;
 }
 
 #id_honeypot{display:none;}
@@ -173,7 +179,7 @@ tr.fobi td form select {
               {% for obj in req.items_data %}
                 <tr class="fobi">
                   <th>{{ obj.key }}:</th>
-                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}'{% endif %}>{% if obj.val %}{{ obj.val }}{% endif %}</td>
+                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}' {% elif obj.val %}data="{{ obj.val }}" {% endif %}>{% if obj.val %}{{ obj.val|linebreaks }}{% else %}<span class="error"></span>{% endif %}</td>
                 </tr>
               {% endfor %}
             {% else %}
@@ -291,7 +297,7 @@ tr.fobi td form select {
 
     $(document).ready(function(){
 
-      $('th, td').each(function(e) {
+      /*$('th, td').each(function(e) {
         $(this).expander({
             slicePoint: 350,  // default is 100
             expandSpeed: 0,
@@ -302,36 +308,39 @@ tr.fobi td form select {
             expandText:       '[...]', // default is 'read more'
             userCollapseText: '[^]'  // default is 'read less'
         });
-      });
+      });*/
 
       {% if user_agent in agent.managers or user_agent == agent or request.user.is_superuser %}
-        $('.fobi td[typ="text"]').editable(
-            function(value, settings) {
-               var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
-                   {id:$(this).attr('id'), value:value}
-               );
-               posting.done(function(data){
-                   if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
-                   } else {
-                       location = location;
-                   };
-               }).fail(function(data) {
-                   console.log(data['statusText']);
-                   out = '';
-                   for(var d in data){
-                     out += d+': '+data[d]+' \n';
-                   };
-                   alert( "ERROR out: "+out );
-               });
-               return(value);
-            }
-            , {
-              //submit : 'OK',
-              type : 'text',
-              tooltip : 'Click to edit...',
-              placeholder : '<em>...click to write</em>',
-            }
-        );
+        $('.fobi td[typ="text"]').add('.fobi td[typ="integer"]').each(function(){
+            $(this).editable(
+                function(value, settings) {
+                   var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                       {id:$(this).attr('id'), value:value}
+                   );
+                   posting.done(function(data){
+                       if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                       } else {
+                           location = location;
+                       };
+                   }).fail(function(data) {
+                       console.log(data['statusText']);
+                       out = '';
+                       for(var d in data){
+                         out += d+': '+data[d]+' \n';
+                       };
+                       alert( "ERROR out: "+out );
+                   });
+                   return(value);
+                }
+                , {
+                  //submit : 'OK',
+                  type : 'text',
+                  tooltip : 'Click to edit...',
+                  placeholder : '<em>...click to write</em>',
+                  data: $(this).attr('data'),
+                }
+            );
+        });
         $('.fobi td[typ="select"]').editable(
             function(value, settings) {
                var dr = JSON.parse($(this).attr('data').split("u'").join('"').split("'").join('"'));
@@ -362,13 +371,56 @@ tr.fobi td form select {
               data : function(value, settings) {
                   var d = $(this).attr('data');
                   d = d.split("u'").join('"').split("'").join('"');
-                  //alert(d);
+                  /*var darr = d.split('", "');
+                  for(var da in darr){
+                      var dr = darr[da].split('": "');
+                      for(var r in dr){
+                          if(dr[r].split('"}').join('') == value.split('<p>').join('').split('</p>').join('')){
+                              //dr[0] = 'selected';
+                              d = d.split(dr[0]).join('selected');
+                              break;
+                              //alert(dr);
+                          }
+                      }
+                      //alert(value);
+                  };*/
+                  //alert('d:'+d+' value:'+value);
                   return d; //JSON.parse(d); //decodeURIComponent(JSON.parse(d));
                 },
               tooltip : 'Click to edit...',
               //placeholder : '<em>...click to write</em>',
             }
         );
+        $('.fobi td[typ="textarea"]').attr('class','edit_area').each(function(){
+            $(this).editable(
+                function(value, settings) {
+                   var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                       {id:$(this).attr('id'), value:value}
+                   );
+                   posting.done(function(data){
+                       if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                       } else {
+                           location = location;
+                       };
+                   }).fail(function(data) {
+                       console.log(data['statusText']);
+                       out = '';
+                       for(var d in data){
+                         out += d+': '+data[d]+' \n';
+                       };
+                       alert( "ERROR out: "+out );
+                   });
+                   return(value.split('\n').join('<br>'));
+                }
+                , {
+                  submit : 'save',
+                  type : 'textarea',
+                  tooltip : 'Click to edit...',
+                  placeholder : '<em>...click to write</em>',
+                  data: $(this).attr('data'),
+                }
+            );
+        });
         $('.fobi th').css('background-color','#f9f9e2');
        {% endif %}
 
