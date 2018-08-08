@@ -1133,9 +1133,9 @@ class EconomicAgent(models.Model):
         ctx_ids = [ctx.id for ctx in self.related_contexts()]
         return EconomicAgent.objects.filter(id__in=ctx_ids)
 
-    def related_agents_queryset(self):
-        ctx_ids = [ctx.id for ctx in self.related_contexts()]
-        return EconomicAgent.objects.filter(id__in=ctx_ids, is_context=True)
+    #def related_agents_queryset(self):
+    #    ctx_ids = [ctx.id for ctx in self.related_contexts()]
+    #    return EconomicAgent.objects.filter(id__in=ctx_ids, is_context=True)
 
     def related_all_contexts_queryset(self, agent=None, childs=True):
         ctx_ids = [ctx.id for ctx in self.related_all_contexts(childs)]
