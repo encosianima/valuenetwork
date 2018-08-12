@@ -570,7 +570,8 @@ def membership_discussion(request, membership_request_id):
 @login_required
 def your_projects(request):
     agent = get_agent(request)
-    agent_form = ProjectCreateForm() #initial={'agent_type': 'Project'})
+    agent_form = WorkAgentCreateForm()
+    proj_form = ProjectCreateForm() #initial={'agent_type': 'Project'})
     projects = agent.related_contexts()
     managed_projects = agent.managed_projects()
     join_projects = Project.objects.all() #filter(joining_style="moderated", visibility!="private")
@@ -621,6 +622,7 @@ def your_projects(request):
         "help": get_help("your_projects"),
         "agent": agent,
         "agent_form": agent_form,
+        "proj_form": proj_form,
         "managed_projects": managed_projects,
         "join_projects": join_projects,
     })
@@ -633,7 +635,7 @@ def create_your_project(request):
         return render(request, 'work/no_permission.html')
     if request.method == "POST":
         pro_form = ProjectCreateForm(request.POST)
-        agn_form = AgentCreateForm(request.POST)
+        agn_form = WorkAgentCreateForm(request.POST)
         if pro_form.is_valid() and agn_form.is_valid():
             agent = agn_form.save(commit=False)
             agent.created_by=request.user
@@ -695,11 +697,11 @@ def members_agent(request, agent_id):
 
     if project:# and not request.POST:
         #init = {"joining_style": project.joining_style, "visibility": project.visibility, "resource_type_selection": project.resource_type_selection, "fobi_slug": project.fobi_slug }
-        pro_form = ProjectCreateForm(instance=project, data=request.POST or None) #, initial=init)
+        pro_form = ProjectCreateForm(instance=project, agent=agent, data=request.POST or None) #, initial=init)
     elif agent.is_individual():
         pro_form = None
     else:
-        pro_form = ProjectCreateForm(data=request.POST or None) #AgentCreateForm(instance=agent)
+        pro_form = ProjectCreateForm(agent=agent, data=request.POST or None) #AgentCreateForm(instance=agent)
 
     agn_form = WorkAgentCreateForm(instance=agent, agent=agent, data=request.POST or None)
 

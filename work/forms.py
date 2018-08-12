@@ -51,6 +51,9 @@ class WorkAgentCreateForm(AgentCreateForm):
                 self.fields["agent_type"].initial = agent.agent_type
             else:
                 self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=False)
+                self.fields["agent_type"].initial = agent.agent_type
+        else:
+            self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=True)
         #self.fields["joining_style"].choices = [(js[0], js[1]) for js in JOINING_STYLE_CHOICES]
         #self.fields["visibility"].choices = [(vi[0], vi[1]) for vi in VISIBILITY_CHOICES]
 
@@ -192,8 +195,10 @@ class ProjectCreateForm(forms.ModelForm):
         help_text = _("Used to reach your custom join form, but after the custom fields has been defined by you and configured by OCP Admins. Only works if the project has a 'moderated' joining style."),
         )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, agent=None, *args, **kwargs):
         super(ProjectCreateForm, self).__init__(*args, **kwargs)
+        if agent:
+            self.fields["fobi_slug"].initial = str(agent.slug)
         self.fields["joining_style"].choices = [(js[0], js[1]) for js in JOINING_STYLE_CHOICES]
         self.fields["visibility"].choices = [(vi[0], vi[1]) for vi in VISIBILITY_CHOICES]
         self.fields["resource_type_selection"].choices = [(rts[0], rts[1]) for rts in SELECTION_CHOICES]
