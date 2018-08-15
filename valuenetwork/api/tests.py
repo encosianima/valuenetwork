@@ -3463,4 +3463,42 @@ mutation ($token: String!) {
   }
 }
 
+mutation ($token: String!) {
+  createAgentRelationship(token: $token, subjectId: 122, objectId: 119, 
+    relationshipId: 9, note: "test") {
+    agentRelationship {
+      id
+      subject {
+        name
+      }
+      relationship {
+        label
+      }
+      object {
+        name
+      }
+      note
+    }
+  }
+}
+
+mutation ($token: String!) {
+  updateAgentRelationship(token: $token, id: 275, subjectId: 122, objectId: 131, 
+    note: "test update") {
+    agentRelationship {
+      id
+      subject {
+        name
+      }
+      relationship {
+        label
+      }
+      object {
+        name
+      }
+      note
+    }
+  }
+}
+
 '''
