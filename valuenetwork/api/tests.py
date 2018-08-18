@@ -1254,6 +1254,30 @@ query ($token: String) {
   }
 }
 
+#also ...asSubject works
+query ($token: String) {
+  viewer(token: $token) {
+    agent(id: 39) {
+      name
+      agentRelationshipsAsObject {
+        id
+        subject {
+          name
+          type
+        }
+        relationship {
+          label
+          category
+        }
+        object {
+          name
+          type
+        }
+      }
+    }
+  }
+}
+
 query ($token: String) {
   viewer(token: $token) {
     agent(id: 6) {
@@ -1847,6 +1871,22 @@ query ($token: String) {
       name
       ownedEconomicResources(page:1) {
         createdDate
+        resourceClassifiedAs {
+          name
+        }
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    agent (id:39) {
+      name
+      ownedEconomicResources(category: INVENTORY) {
+        owners {
+          name
+        }
         resourceClassifiedAs {
           name
         }

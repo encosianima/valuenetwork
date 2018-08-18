@@ -1666,6 +1666,14 @@ class EconomicAgent(models.Model):
             resource__quantity=0)
         return [arr.resource for arr in arrs]
 
+    def owned_inventory_resources_with_subs(self):
+        agents = self.with_all_sub_agents()
+        resources = []
+        for agent in agents:
+            ress = agent.owned_inventory_resources()
+            resources.extend(ress)
+        return resources
+
     def create_virtual_account(self, resource_type):
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
         owner_role_type = None
@@ -1772,7 +1780,13 @@ class EconomicAgent(models.Model):
 
     def all_active_associations(self):
         return AgentAssociation.objects.filter(
-            Q(has_associate=self ) | Q(is_associate=self)).filter(state="active")
+            Q(has_associate=self ) | Q(is_associate=self)).filter(state="active").order_by('association_type__name', 'has_associate__name')
+
+    def active_associates_as_subject(self):
+        return AgentAssociation.objects.filter(is_associate=self).filter(state="active").order_by('association_type__name', 'has_associate__name')
+
+    def active_associates_as_object(self): #has_associates
+        return AgentAssociation.objects.filter(has_associate=self).filter(state="active").order_by('association_type__name', 'has_associate__name')
 
     def active_association_types(self):
         assocs = self.all_active_associations()
