@@ -70,6 +70,7 @@
                         <form class="validateMe" id="projectForm" enctype="multipart/form-data" action="{% url "create_your_project" %}" method="POST" >
                             {% csrf_token %}
                             {{ agent_form|as_bootstrap }}
+                            {{ proj_form|as_bootstrap }}
                             <div class="modal-footer">
                                 <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                 <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Save" %}' />
