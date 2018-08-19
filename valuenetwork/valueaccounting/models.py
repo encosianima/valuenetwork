@@ -2140,6 +2140,8 @@ class EventTypeManager(models.Manager):
             return EventType.objects.get(name="Give")
         elif action == "take":
             return EventType.objects.get(name="Receive")
+        elif action == "adjust":
+            return EventType.objects.get(name="Adjust Quantity")
         else:
             return "NONE"
 
@@ -2234,6 +2236,8 @@ class EventType(models.Model):
             return "give"
         elif self.name == "Receive":
             return "take"
+        elif self.name == "Adjust Quantity":
+            return "adjust"
         else:
             return self.label
 
