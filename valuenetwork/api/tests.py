@@ -3435,7 +3435,7 @@ mutation ($token: String!) {
 }
 
 mutation ($token: String!) {
-  createValidation(token: $token, validatedById: 6, economicEventId: 392) {
+  createValidation(token: $token, validatedById: 6, economicEventId: 393, note: "test") {
     validation {
       id
       validatedBy {
@@ -3451,6 +3451,7 @@ mutation ($token: String!) {
         }
       }
       validationDate
+      note
     }
   }
 }
