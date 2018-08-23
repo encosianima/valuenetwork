@@ -206,6 +206,7 @@ INSTALLED_APPS = [
     'valuenetwork.board',
     'validation',
     'account',
+    'distribution',
     'work.apps.WorkAppConfig',
     'multicurrency',
     'valuenetwork.api',
