@@ -10,6 +10,7 @@ class Validation(models.Model):
     validated_by = models.ForeignKey(EconomicAgent,
         related_name="validations")
     validation_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
+    note = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ('validation_date',)
