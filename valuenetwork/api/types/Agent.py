@@ -1,10 +1,6 @@
 #
 # EconomicAgent:A person or group or organization with economic agency.
 #
-# @package: OCP
-# @author:  pospi <pospi@spadgos.com>
-# @since:   2017-06-10
-#
 
 import graphene
 from graphene_django.types import DjangoObjectType
@@ -13,6 +9,7 @@ from valuenetwork.valueaccounting.models import EconomicAgent, EconomicResourceT
 import valuenetwork.api.types as types
 from valuenetwork.api.types.AgentRelationship import AgentRelationship, AgentRelationshipCategory, AgentRelationshipRole
 from valuenetwork.api.models import Organization as OrganizationModel, Person as PersonModel, formatAgentList
+from django.core.exceptions import ValidationError
 import datetime
 
 
@@ -43,6 +40,9 @@ class Agent(graphene.Interface):
                                              resourceClassificationId=graphene.Int(),
                                              page=graphene.Int())
 
+    search_owned_inventory_resources = graphene.List(lambda: types.EconomicResource,
+                                              search_string=graphene.String())
+
     agent_processes = graphene.List(lambda: types.Process,
                                     is_finished=graphene.Boolean())
 
@@ -62,6 +62,14 @@ class Agent(graphene.Interface):
                                         role_id=graphene.Int(),
                                         category=AgentRelationshipCategory())
 
+    agent_relationships_as_subject = graphene.List(AgentRelationship,
+                                        role_id=graphene.Int(),
+                                        category=AgentRelationshipCategory())
+
+    agent_relationships_as_object = graphene.List(AgentRelationship,
+                                        role_id=graphene.Int(),
+                                        category=AgentRelationshipCategory())
+
     agent_roles = graphene.List(AgentRelationshipRole)
 
     agent_recipes = graphene.List(lambda: types.ResourceClassification)
@@ -73,6 +81,8 @@ class Agent(graphene.Interface):
     agent_notification_settings = graphene.List(lambda: types.NotificationSetting)
 
     member_relationships = graphene.List(AgentRelationship)
+
+    agent_skills = graphene.List(lambda: types.ResourceClassification)
 
     validated_events_count = graphene.Int(month=graphene.Int(), year=graphene.Int())
 
@@ -95,7 +105,7 @@ class Agent(graphene.Interface):
             if type == types.EconomicResourceCategory.CURRENCY:
                 resources = org.owned_currency_resources()
             elif type == types.EconomicResourceCategory.INVENTORY:
-                resources = org.owned_inventory_resources()
+                resources = org.owned_inventory_resources_with_subs() #TODO: include sub-agents, is this OK for LearnDeep?
             else:
                 resources = org.owned_resources()
             if resource_class_id:
@@ -117,6 +127,13 @@ class Agent(graphene.Interface):
                     # If page is out of range (e.g. 9999), deliver last page of results.
                     resources = paginator.page(paginator.num_pages)
         return resources
+
+    def resolve_search_owned_inventory_resources(self, args, context, info):
+        agent = _load_identified_agent(self)
+        search_string = args.get('search_string', "")
+        if search_string == "":
+            raise ValidationError("A search string is required.")
+        return agent.search_owned_resources(search_string=search_string)
 
     # if an organization, this returns processes done in that context
     # if a person, this returns proceses the person has worked on
@@ -188,15 +205,16 @@ class Agent(graphene.Interface):
             return commits
         return None
 
-    # returns relationships where an agent is a subject or object, optionally filtered by role category
     def resolve_agent_relationships(self, args, context, info):
         agent = _load_identified_agent(self)
         cat = args.get('category')
         role_id = args.get('role_id')
+        if cat and role_id:
+            raise ValidationError('Please do not submit both category and role.')
         if agent:
             assocs = agent.all_active_associations()
             filtered_assocs = []
-            if role_id: #try the most specific first
+            if role_id:
                 for assoc in assocs:
                     if assoc.association_type.id == role_id:
                         filtered_assocs.append(assoc)
@@ -207,10 +225,55 @@ class Agent(graphene.Interface):
                         filtered_assocs.append(assoc)
                 return filtered_assocs
             else:
-                return agent.all_active_associations()
+                return assocs
         return None
 
-    # returns relationships where an agent is a subject or object, optionally filtered by role category
+    def resolve_agent_relationships_as_subject(self, args, context, info):
+        agent = _load_identified_agent(self)
+        cat = args.get('category')
+        role_id = args.get('role_id')
+        if cat and role_id:
+            raise ValidationError('Please do not submit both category and role.')
+        if agent:
+            assocs = agent.active_associates_as_subject()
+            filtered_assocs = []
+            if role_id: 
+                for assoc in assocs:
+                    if assoc.association_type.id == role_id:
+                        filtered_assocs.append(assoc)
+                return filtered_assocs
+            if cat:
+                for assoc in assocs:
+                    if assoc.association_type.category == cat:
+                        filtered_assocs.append(assoc)
+                return filtered_assocs
+            else:
+                return assocs
+        return None
+
+    def resolve_agent_relationships_as_object(self, args, context, info):
+        agent = _load_identified_agent(self)
+        cat = args.get('category')
+        role_id = args.get('role_id')
+        if cat and role_id:
+            raise ValidationError('Please do not submit both category and role.')
+        if agent:
+            assocs = agent.active_associates_as_object()
+            filtered_assocs = []
+            if role_id: 
+                for assoc in assocs:
+                    if assoc.association_type.id == role_id:
+                        filtered_assocs.append(assoc)
+                return filtered_assocs
+            if cat:
+                for assoc in assocs:
+                    if assoc.association_type.category == cat:
+                        filtered_assocs.append(assoc)
+                return filtered_assocs
+            else:
+                return assocs
+        return None
+
     def resolve_agent_roles(self, args, context, info):
         agent = _load_identified_agent(self)
         if agent:
@@ -245,6 +308,10 @@ class Agent(graphene.Interface):
                     filtered_assocs.append(assoc)
             return filtered_assocs
         return None
+
+    def resolve_agent_skills(self, args, context, info):
+        agent = _load_identified_agent(self)
+        return agent.skills()
 
     def resolve_validated_events_count(self, args, *rargs):
         agent = _load_identified_agent(self)

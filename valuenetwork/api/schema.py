@@ -93,6 +93,7 @@ class Mutation(graphene.ObjectType):
     update_economic_event = valuenetwork.api.schemas.EconomicEvent.UpdateEconomicEvent.Field()
     delete_economic_event = valuenetwork.api.schemas.EconomicEvent.DeleteEconomicEvent.Field()
     create_plan = valuenetwork.api.schemas.Plan.CreatePlan.Field()
+    create_plan_from_recipe = valuenetwork.api.schemas.Plan.CreatePlanFromRecipe.Field()
     update_plan = valuenetwork.api.schemas.Plan.UpdatePlan.Field()
     delete_plan = valuenetwork.api.schemas.Plan.DeletePlan.Field()
     update_economic_resource = valuenetwork.api.schemas.EconomicResource.UpdateEconomicResource.Field()
@@ -101,6 +102,9 @@ class Mutation(graphene.ObjectType):
     delete_validation = valuenetwork.api.schemas.Validation.DeleteValidation.Field()
     create_notification_setting = valuenetwork.api.schemas.NotificationSetting.CreateNotificationSetting.Field()
     update_notification_setting = valuenetwork.api.schemas.NotificationSetting.UpdateNotificationSetting.Field()
+    create_agent_relationship = valuenetwork.api.schemas.AgentRelationship.CreateAgentRelationship.Field()
+    update_agent_relationship = valuenetwork.api.schemas.AgentRelationship.UpdateAgentRelationship.Field()
+    #delete_agent_relationship = valuenetwork.api.schemas.AgentRelationship.DeleteAgentRelationship.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

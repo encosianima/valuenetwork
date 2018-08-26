@@ -156,9 +156,11 @@ form.change-form, form.delete-form {
 				<th>{% trans "Value" %}</th>
 				<th>{% trans "Paid" %}</th>
 				<th>{% trans "Unpaid" %}</th>
+				{% comment %}
 				{% if user_is_agent %}
-                    <th>&nbsp;</th>
-                {% endif %}
+                                    <th>&nbsp;</th>
+                                {% endif %}
+                                {% endcomment %}
 			</thead>
 			<tbody>
 				{% for event in events %}
@@ -198,7 +200,8 @@ form.change-form, form.delete-form {
                                 &nbsp;
                             {% endif %}
                         </td>
-					    {% if user_is_agent %}
+                            {% comment %}
+                            {% if user_is_agent %}
                             <td>
                                 <form
                                     class="change-form"
@@ -220,7 +223,8 @@ form.change-form, form.delete-form {
                                   <button class="btn btn-warning btn-mini" title="Delete" ><i class="icon-remove icon-white"></i></button>
                                 </form>
                             </td>
-					    {% endif %}
+                            {% endif %}
+                            {% endcomment %}
 					</tr>
 				{% endfor %}
 			<tbody>

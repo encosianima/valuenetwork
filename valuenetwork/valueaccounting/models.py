@@ -561,7 +561,29 @@ class EconomicAgent(models.Model):
         if context_agent_id:
             context_agent = EconomicAgent.objects.get(pk=context_agent_id)
         elif object_to_mutate:
-            context_agent = object_to_mutate.context_agent
+            if type(object_to_mutate) is Order: #orders do not have a context agent if not created from recipe
+                if object_to_mutate.pk: #update or delete
+                    if object_to_mutate.created_by == user:
+                        return True
+                    else:
+                        return False
+                else: #create not from recipe
+                    return True
+            elif type(object_to_mutate) is EconomicResource:
+                #arr = object_to_mutate. #TODO: add auth for resource (what?)
+                return True
+            elif type(object_to_mutate) is AgentAssociation:
+                #TODO: probably needs more definition, possibly including joining options; maybe a separate method....
+                if object_to_mutate.is_associate == self:
+                    return True
+                if object_to_mutate.has_associate == self:
+                    return True
+                if object_to_mutate.is_associate.is_context:
+                    context_agent = object_to_mutate.is_associate
+                elif object_to_mutate.has_associate.is_context:
+                    context_agent = object_to_mutate.has_associate
+            else:
+                context_agent = object_to_mutate.context_agent
         else:
             return False
         if context_agent not in self.is_member_of():
@@ -864,6 +886,14 @@ class EconomicAgent(models.Model):
     def score(self):
         return sum(art.score for art in self.resource_types.all())
 
+    def skills(self):
+        arts = self.resource_types.all()
+        rts = []
+        for art in arts:
+            if art.resource_type not in rts:
+                rts.append(art.resource_type)
+        return rts
+
     def contributions(self):
         return self.given_events.filter(is_contribution=True)
 
@@ -939,6 +969,9 @@ class EconomicAgent(models.Model):
             if proc.independent_demand():
                 if proc.independent_demand() not in plans:
                     plans.append(proc.independent_demand())
+            elif proc.plan:
+                if proc.plan not in plans:
+                    plans.append(proc.plan)
         plans.sort(lambda x, y: cmp(x.due_date, y.due_date))
         return plans
 
@@ -1416,14 +1449,12 @@ class EconomicAgent(models.Model):
         parents = EconomicAgent.objects.filter(pk__in=parent_ids)
         return parents
 
-    def children(self): #returns a list or None
-        associations = self.has_associates.filter(association_type__association_behavior="child").filter(state="active")
-        children = None
-        if associations.count() > 0:
-            children = []
-            for association in associations:
-                children.append(association.from_agent)
-        return children
+    #def children(self): #TODO: not tested
+    #    associations = self.has_associates.filter(association_type__association_behavior="child").filter(state="active")
+    #    children = []
+    #    for association in associations:
+    #        children.append(association.has_associate)
+    #    return children
 
     def is_root(self):
         if self.parent():
@@ -1583,6 +1614,29 @@ class EconomicAgent(models.Model):
         arrs = self.agent_resource_roles.filter(role__is_owner=True).exclude(resource__quantity=0)
         return [arr.resource for arr in arrs]
 
+    #TODO: this is too simple, would be good to eliminate non-searchable words, manage ""'d words, search whole words only, etc.
+    #used for inventory type resources only
+    def search_owned_resources(self, search_string, also_search_children=True):
+        resources = self.owned_resources()
+        if also_search_children:
+            children = self.with_all_sub_agents()
+            for child in children:
+                resources.extend(child.owned_resources())
+        answer = []
+        strings = search_string.lower().split(" ")
+        for res in resources:
+            if res.resource_type.inventory_rule == "yes":
+                for string in strings:
+                    if string in res.resource_type.name.lower():
+                        answer.append(res)
+                    elif string in res.resource_type.description.lower():
+                        answer.append(res)
+                    elif string in res.notes.lower():
+                        answer.append(res)
+                    elif string in res.identifier.lower():
+                        answer.append(res)
+        return list(set(answer))
+
     def owned_currency_resources(self):
         arrs = self.agent_resource_roles.filter(role__is_owner=True).exclude(
             resource__resource_type__behavior="other").exclude(
@@ -1602,6 +1656,14 @@ class EconomicAgent(models.Model):
             Q(resource__resource_type__behavior="produced")).exclude(
             resource__quantity=0)
         return [arr.resource for arr in arrs]
+
+    def owned_inventory_resources_with_subs(self):
+        agents = self.with_all_sub_agents()
+        resources = []
+        for agent in agents:
+            ress = agent.owned_inventory_resources()
+            resources.extend(ress)
+        return resources
 
     def create_virtual_account(self, resource_type):
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
@@ -1709,7 +1771,13 @@ class EconomicAgent(models.Model):
 
     def all_active_associations(self):
         return AgentAssociation.objects.filter(
-            Q(has_associate=self ) | Q(is_associate=self)).filter(state="active")
+            Q(has_associate=self ) | Q(is_associate=self)).filter(state="active").order_by('association_type__name', 'has_associate__name')
+
+    def active_associates_as_subject(self):
+        return AgentAssociation.objects.filter(is_associate=self).filter(state="active").order_by('association_type__name', 'has_associate__name')
+
+    def active_associates_as_object(self): #has_associates
+        return AgentAssociation.objects.filter(has_associate=self).filter(state="active").order_by('association_type__name', 'has_associate__name')
 
     def active_association_types(self):
         assocs = self.all_active_associations()
@@ -2072,6 +2140,8 @@ class EventTypeManager(models.Manager):
             return EventType.objects.get(name="Give")
         elif action == "take":
             return EventType.objects.get(name="Receive")
+        elif action == "adjust":
+            return EventType.objects.get(name="Adjust Quantity")
         else:
             return "NONE"
 
@@ -2166,6 +2236,8 @@ class EventType(models.Model):
             return "give"
         elif self.name == "Receive":
             return "take"
+        elif self.name == "Adjust Quantity":
+            return "adjust"
         else:
             return self.label
 
@@ -2289,6 +2361,27 @@ class ResourceClass(models.Model):
 
 
 class EconomicResourceTypeManager(models.Manager):
+
+    def resource_types_with_recipes(self, context_agent=None):
+        resource_types = []
+        if context_agent:
+            candidate_resource_types = context_agent.get_resource_types_with_recipe()
+            for rt in candidate_resource_types:
+                if rt.recipe_needs_starting_resource():
+                    rt.onhand_resources = []
+                    onhand = rt.onhand_for_resource_driven_recipe()
+                    if onhand:
+                        resource_types.append(rt)
+                        for oh in onhand:
+                            rt.onhand_resources.append(oh)
+                else:
+                    resource_types.append(rt)
+        else:
+            rts = EconomicResourceType.objects.all()
+            for rt in rts:
+                if rt.process_types.filter(event_type__relationship='out'):
+                    resource_types.append(rt)
+        return resource_types
 
     def membership_share(self):
         try:
@@ -2852,6 +2945,43 @@ class EconomicResourceType(models.Model):
             #if self.recipe_is_staged():
             return True
         return False
+
+    def generate_mfg_work_order(self, order_name, due_date, created_by):
+        #made from code in view plan_from_recipe but simplified to minimum requirement
+        today = datetime.date.today()
+        due = datetime.datetime.strptime(due_date, '%Y-%m-%d').date()
+        demand = Order(
+            order_type="rand",
+            order_date=today,
+            due_date=due,
+            name=order_name,
+            created_by=created_by)
+        demand.save()
+
+        ptrt, inheritance = self.main_producing_process_type_relationship()
+        et = ptrt.event_type
+        if et:
+            commitment = demand.add_commitment(
+                resource_type=self,
+                #Todo: apply selected_context_agent here? Only if inheritance?
+                context_agent=ptrt.process_type.context_agent,
+                quantity=ptrt.quantity,
+                event_type=et,
+                unit=self.unit,
+                description=ptrt.description or "",
+                stage=ptrt.stage,
+                state=ptrt.state,
+                due=demand.due_date,
+                )
+            commitment.created_by=created_by
+            commitment.save()
+
+            process = commitment.generate_producing_process(created_by, [], inheritance=inheritance, explode=True)
+
+        #TODO: add notifications here if wanted, see view
+
+        return demand
+
 
     def generate_staged_work_order(self, order_name, start_date, user):
         #pr changed
@@ -4116,6 +4246,11 @@ class Order(models.Model):
         else:
             raise ValidationError("Cannot delete a plan with economic events recorded.")
 
+    def is_deletable(self):
+        if self.all_events():
+            return False
+        return True
+
     #TODO this is a start at something, check if it is still useful
     #assumes the order itself is already saved (adapted from view plan_from_recipe)
     #def create_order_details_from_recipe_api(self, resource_type_id=None, rt_list_id=None, resource_id=None):
@@ -5031,6 +5166,18 @@ class EconomicResourceManager(models.Manager):
 
     def all_economic_resources(self):
         return EconomicResource.objects.all()
+
+    #def search(self, agent_id=None, search_string):
+    #    agent = None
+    #    if agent_id:
+    #        agent = EconomicAgent.objects.get(pk=agent_id)
+    #    if search_string = "" or search_string is None:
+    #        raise ValidationError("Search string is required.")
+    #    if agent:
+    #        rts = agent.
+    #    else:
+    #        rts = EconomicResourceType.objects.all()
+
 
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType,
@@ -7112,6 +7259,10 @@ class Process(models.Model):
     @property #ValueFlows
     def planned_start(self):
         return self.start_date
+
+    @property #for api, will propose for ValueFlows
+    def planned_finish(self):
+        return self.end_date
 
     @property #ValueFlows
     def planned_duration(self):
@@ -10656,6 +10807,7 @@ class Commitment(models.Model):
                     url=pt.url,
                     end_date=self.due_date,
                     start_date=start_date,
+                    plan=self.independent_demand,
                     created_by=user,
                 )
                 process.save()
@@ -11828,7 +11980,6 @@ class EconomicEvent(models.Model):
         ])
 
     def save(self, *args, **kwargs):
-
         from_agt = 'Unassigned'
         agent = self.from_agent
         context_agent = self.context_agent
@@ -11901,6 +12052,7 @@ class EconomicEvent(models.Model):
     def save_api(self, user, old_quantity=None, old_resource=None, create_resource=False): #additional logic from views
         if create_resource:
             self.resource.save_api(process=self.process, event_type=self.event_type, commitment=self.commitment)
+            self.resource = self.resource
         self.save()
         process = self.process
         if process:
