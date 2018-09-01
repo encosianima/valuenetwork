@@ -1913,7 +1913,7 @@ def validate_nick(request):
         nick = values[0]
         try:
             user = EconomicAgent.objects.get(nick=nick)
-            error = "ID already taken"
+            error = "Nickname already taken"
         except EconomicAgent.DoesNotExist:
             pass
         if not error:
