@@ -2381,12 +2381,19 @@ def validate_nick(request):
     answer = True
     error = ""
     data = request.GET
+    nick = data.get('nick')
+    agent_id = data.get('agent_id')
+    agent = None
     values = data.values()
-    if values:
+    if not nick:
         nick = values[0]
+    if nick:
         try:
-            user = EconomicAgent.objects.get(nick=nick)
-            error = "ID already taken"
+            agent = EconomicAgent.objects.get(nick=nick)
+            if agent_id and int(agent_id) and agent.id == int(agent_id):
+                pass
+            else:
+                error = "Nickname already taken"
         except EconomicAgent.DoesNotExist:
             pass
         if not error:
@@ -2402,7 +2409,13 @@ def validate_nick(request):
                                                 'This value may contain only letters, numbers '
                                                'and @/./+/-/_ characters.'), 'invalid')
                 try:
-                    error = val(username)
+                    if agent_id and int(agent_id) and agent:
+                        if agent.id == int(agent_id):
+                            pass
+                        else:
+                            error = val(username)
+                    else:
+                        error = val(username)
                 except ValidationError:
                     error = "Error: May only contain letters, numbers, and @/./+/-/_ characters."
 
