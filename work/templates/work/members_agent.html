@@ -276,7 +276,7 @@
                         <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form id="agentForm" enctype="multipart/form-data" action="{% url 'change_your_project' agent_id=agent.id %}" method="POST" >
+                        <form id="agentForm" enctype="multipart/form-data" action="{% url 'change_your_project' agent_id=agent.id %}" method="POST" name="{{ agent.id }}" >
                             {% csrf_token %}
                             {{ change_form|as_bootstrap }}
                             <div class="modal-footer">
@@ -1051,8 +1051,8 @@
           jQuery.validator.setDefaults({
             success: function(label) {
               label
-              .text('').addClass('valid')
-              .closest('.control-group').addClass('success');
+              //.text('').addClass('valid')
+              .closest('.control-group').removeClass('error').addClass('success');
             }
           });
 
@@ -1079,7 +1079,19 @@
                   nick: {
                       required: true,
                       maxlength: 32,
-                      remote: { url:"/work/validate-nick/", async:false }
+                      remote: {
+                          url:"/work/validate-nick/",
+                          //type: "post",
+                          data: {
+                              agent_id: function() {
+                                return $( "#agentForm" ).attr('name');
+                              }
+                          },
+                          async:false
+                      }
+                  },
+                  url: {
+                      url: true
                   },
                   email: {
                       email: true
@@ -1089,7 +1101,7 @@
                   },
               },
               highlight: function(label) {
-                  $(label).closest('.control-group').addClass('error');
+                  $(label).closest('.control-group').removeClass('success').addClass('error');
               },
           });
 
@@ -1100,7 +1112,7 @@
                   },
               },
               highlight: function(label) {
-                  $(label).closest('.control-group').addClass('error');
+                  $(label).closest('.control-group').removeClass('success').addClass('error');
               },
           });
         };
