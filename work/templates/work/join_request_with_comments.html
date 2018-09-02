@@ -187,7 +187,7 @@ a.more-link {
               {% for obj in req.items_data %}
                 <tr class="fobi">
                   <th>{{ obj.key }}:</th>
-                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}' {% elif obj.val %}data="{{ obj.val }}" {% endif %}>{% if obj.val %}{{ obj.val|linebreaks }}{% else %}<span class="error"></span>{% endif %}</td>
+                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}' {% elif obj.val %}data="{{ obj.val }}" {% endif %}>{% if obj.val %}{{ obj.val|linebreaks }}{% else %}{% endif %}</td>
                 </tr>
               {% endfor %}
             {% else %}

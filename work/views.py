@@ -1793,7 +1793,8 @@ def edit_form_field_data(request, joinrequest_id):
                 req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
                 req.data = json.loads(entry.saved_data)
-                old = req.data[key]
+                if key in req.data:
+                    old = req.data[key]
                 req.data[key] = val
                 entry.saved_data = json.dumps(req.data)
                 entry.save()
@@ -1948,7 +1949,7 @@ def join_requests(request, agent_id):
 
     agent = EconomicAgent.objects.get(pk=agent_id)
     project = agent.project
-    requests =  JoinRequest.objects.filter(state=state, project=project).order_by('request_date')
+    requests =  JoinRequest.objects.filter(state=state, project=project).order_by('pk').reverse() #'request_date')
     agent_form = JoinAgentSelectionForm(project=project)
 
     fobi_slug = project.fobi_slug
@@ -1967,9 +1968,17 @@ def join_requests(request, agent_id):
                     data = json.loads(elem.plugin_data)
                     nam = data.get('name')
                     if nam:
-                        fobi_headers.append(form_headers[nam])
-                        fobi_keys.append(nam)
-                break
+                        if not nam in form_headers:
+                            form_headers[nam] = data.get('label')
+                        if not form_headers[nam] in fobi_headers:
+                            fobi_headers.append(form_headers[nam])
+                        if not nam in fobi_keys:
+                            fobi_keys.append(nam)
+                    else:
+                        pass
+                        #raise ValidationError("Not found '%(nam)s' in req %(req)s. elem.plugin_data: %(data)s", params={'nam':nam, 'data':str(data), 'req':req.id})
+                if len(fobi_headers) and len(fobi_keys) == len(fobi_headers):
+                    break
 
         for req in requests:
             if not req.agent and req.requested_username:
@@ -2356,6 +2365,9 @@ def project_feedback(request, agent_id, join_request_id):
                     else:
                         jn_req.elem_typs[nam] = elem.plugin_uid # 'text' 'textarea'
                         jn_req.elem_choi[nam] = ''
+
+                    if not nam in jn_req.form_headers:
+                        jn_req.form_headers[nam] = data.get('label')
                     fobi_headers.append(jn_req.form_headers[nam])
                     fobi_keys.append(nam)
                 #import pdb; pdb.set_trace()

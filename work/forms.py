@@ -83,7 +83,10 @@ class WorkAgentCreateForm(AgentCreateForm):
                 #print "- ERROR email present! "
                 self.add_error('email', _("This email is already present in the system."))
         else:
-            print "- ERROR clean WorkAgentCreateForm ! data: "+str(data)
+            if not email:
+                pass
+            else:
+                print "- ERROR clean WorkAgentCreateForm ! data: "+str(data)
 
 
     def _clean_fields(self):
