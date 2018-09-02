@@ -474,7 +474,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
             success: function(label) {
                 label
                     .text('').addClass('valid')
-                    .closest('.control-group').addClass('success');
+                    .closest('.control-group').removeClass('error').addClass('success');
             }
     });
 
@@ -492,9 +492,9 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
     $('.validateMe').each( function(){
             var form = $(this);
             form.validate({
-                onkeyup: false,
+                //onkeyup: false,
                 highlight: function(label) {
-                    $(label).closest('.control-group').addClass('error');
+                    $(label).closest('.control-group').removeClass('success').addClass('error');
                 }
             });
     });

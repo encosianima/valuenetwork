@@ -285,7 +285,7 @@
                         <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form id="agentForm" enctype="multipart/form-data" action="{% url 'members_agent' agent_id=agent.id %}" method="POST" >
+                        <form id="agentForm" enctype="multipart/form-data" action="{% url 'members_agent' agent_id=agent.id %}" method="POST" name="{{ agent.id }}" >
                             {% csrf_token %}
                             {{ agn_form|as_bootstrap }}
                             {% if pro_form %}
@@ -338,7 +338,7 @@
                             <h3 id="upload-label">{% trans "Upload Picture for " %} {{ agent.name }}</h3>
                         </div>
                         <div class="modal-body">
-                            <form enctype="multipart/form-data" action="{% url "upload_picture" agent_id=agent.id %}" method="POST" >
+                            <form id="uploadForm" enctype="multipart/form-data" action="{% url "upload_picture" agent_id=agent.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ upload_form|as_bootstrap }}
 
@@ -1120,8 +1120,8 @@
           jQuery.validator.setDefaults({
             success: function(label) {
               label
-              .text('').addClass('valid')
-              .closest('.control-group').addClass('success');
+              //.text('').addClass('valid')
+              .closest('.control-group').removeClass('error').addClass('success');
             }
           });
 
@@ -1145,21 +1145,43 @@
 
           $( "#agentForm" ).validate({
               rules: {
-                  name: {
-                      required: true
-                  },
                   nick: {
-                      required: true
+                      required: true,
+                      maxlength: 32,
+                      remote: {
+                          url:"/work/validate-nick/",
+                          //type: "post",
+                          data: {
+                              agent_id: function() {
+                                return $( "#agentForm" ).attr('name');
+                              }
+                          },
+                          async:false
+                      }
+                  },
+                  url: {
+                      url: true
                   },
                   email: {
-                      required: true
+                      email: true
                   },
-                  agent_type: {
-                      required: true
+                  name: {
+                      required: true,
                   },
               },
               highlight: function(label) {
-                  $(label).closest('.control-group').addClass('error');
+                  $(label).closest('.control-group').removeClass('success').addClass('error');
+              },
+          });
+
+          $( "#uploadForm" ).validate({
+              rules: {
+                  photo_url: {
+                      url: true
+                  },
+              },
+              highlight: function(label) {
+                  $(label).closest('.control-group').removeClass('success').addClass('error');
               },
           });
         };
