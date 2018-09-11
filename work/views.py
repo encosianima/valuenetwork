@@ -29,6 +29,7 @@ from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
 from valuenetwork.valueaccounting.service import ExchangeService
 from work.forms import *
+from work.utils import *
 from valuenetwork.valueaccounting.views import *
 from faircoin import utils as faircoin_utils
 from faircoin.models import FaircoinTransaction
@@ -2285,9 +2286,31 @@ def resend_candidate_credentials(request, joinrequest_id):
 
     password = jn_req.check_user_pass(True)
     if notification:
-        users = [jn_req.agent.user().user]
+        sett = set_user_notification_by_type(jn_req.agent.user().user, "work_new_account", True)
+        #print "sett: "+str(sett)
+        """
+        from email.MIMEMultipart import MIMEMultipart
+        from email.MIMEText import MIMEText
+        fromaddr = project.agent.email
+        toaddr = jn_req.agent.email
+        msg = MIMEMultipart()
+        msg['From'] = fromaddr
+        msg['To'] = toaddr
+        msg['Subject'] = _("OCP credentials for %(nick)s to join %(pro)s") % {'nick':jn_req.agent.nick, 'pro':project.agent.name}
+        body = _("New OCP Account created for %(usr)s to join %(pro)s \n\nUsername: %(usrnam)s\nPassword: %(pas)s\n\nYou can log in at %(url)s\n\nWelcome to the Open Collaborative Platform!") % {'usr':jn_req.agent.name, 'pro': project.agent.name, 'usrnam':jn_req.agent.nick, 'pas':password, 'url':'https://'+request.get_host()}
+        msg.attach(MIMEText(body, 'plain'))
+        import smtplib
+        server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+        server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+        text = msg.as_string()
+        server.sendmail(fromaddr, toaddr, text)"""
+
+        users = [jn_req.agent.user().user,]
         if users:
-            site_name = get_site_name(request)
+            site_name = project.agent.name #get_site_name(request)
             notification.send(
                 users,
                 "work_new_account",
@@ -2310,6 +2333,10 @@ def resend_candidate_credentials(request, joinrequest_id):
         next = "project_feedback"
 
     return redirect(next, agent_id=jn_req.project.agent.id, join_request_id=jn_req.id)
+
+
+def send_credentials_email(jn_req, from_agent=None, users=[]):
+    pass
 
 
 @login_required
