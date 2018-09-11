@@ -8,8 +8,15 @@
 {% block head_title %}{% trans "Notification Settings" %}{% endblock %}
 
 {% block body %}
-    <h2>{% trans "Notification Settings" %}</h2>
-    
+    <legend>
+        <a href="{% url 'profile' %}">{{ request.user.agent.agent.name }}</a> >
+        <a href="{% url "work_account_settings" %}">{% trans "Settings" %}</a> >
+        {% trans "Notification Settings" %}
+        <div class="subnav">
+            <a class="indent" href="{% url "work_account_password" %}" >{% trans "Change password" %}</a>
+        </div>
+    </legend>
+
     {% url "account_settings" as email_url %}
     {% if not request.user.email %}
         {% blocktrans %}
@@ -47,7 +54,7 @@
                 </tr>
             {% endfor %}
         </table>
-        
+
         <div class="form-actions">
             <button type="submit" class="btn btn-primary pull-right">{% trans "Change" %}</button>
         </div>
