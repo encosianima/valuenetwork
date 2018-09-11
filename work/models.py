@@ -1335,6 +1335,8 @@ class JoinRequest(models.Model):
                     comm.save()
 
                     if notification:
+                        from work.utils import set_user_notification_by_type
+                        sett = set_user_notification_by_type(agent.user().user, "work_new_account", True)
                         #managers = project.agent.managers()
                         users = [agent.user().user]
                         #for manager in managers:
@@ -1342,7 +1344,7 @@ class JoinRequest(models.Model):
                         #        users.append(manager.user().user)
                         #users = User.objects.filter(is_staff=True)
                         if users:
-                            site_name = get_site_name(request)
+                            site_name = project.agent.name #get_site_name(request)
                             notification.send(
                                 users,
                                 "work_new_account",
@@ -1352,6 +1354,7 @@ class JoinRequest(models.Model):
                                 "site_name": site_name,
                                 "context_agent": project.agent,
                                 "request_host": request.get_host(),
+                                "current_site": request.get_host(),
                                 }
                             )
                         else:
