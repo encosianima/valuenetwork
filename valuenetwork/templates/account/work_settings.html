@@ -12,7 +12,7 @@
 
         <div class="subnav">
             <a class="indent" href="{% url "work_account_password" %}" >{% trans "Change password" %}</a>
-            <a class="indent" href="{% url "pinax_notifications:notice_settings" %}" >{% trans "Notification Settings" %}</a>
+            {% if request.user.agent.agent.managed_projects %}<a class="indent" href="{% url "pinax_notifications:notice_settings" %}" >{% trans "Notification Settings" %}</a>{% endif %}
             {% with request.user.agent.agent.membership_request.id as id %}
                    {% if id %}
                       <a class="indent" href="{% url 'membership_discussion' membership_request_id=id %}"

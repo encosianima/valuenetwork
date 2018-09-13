@@ -26,6 +26,11 @@
         </p>
         {% endblocktrans %}
     {% endif %}
+    <style>
+    .notice-group h4 {
+        margin-top: 1.5em;
+    }
+    </style>
 
     <form method="POST" class="form" action="">
         {% csrf_token %}
@@ -39,6 +44,10 @@
                 {% endfor %}
             </tr>
             {% for row in notice_settings.rows %}
+              {% if "valnet_" in row.notice_type.label and request.user.agent.agent.need_skills %}
+                {% ifchanged True %}
+                    <tr class="notice-group"><td><h4><em>{% trans "Related Tasks & Skills:" %}</em></h4></td><td></td></tr>
+                {% endifchanged %}
                 <tr class="notice-row">
                     <td>
                         <strong>{{ row.notice_type.display }}</strong><br/>
@@ -52,6 +61,41 @@
                         </td>
                     {% endfor %}
                 </tr>
+              {% elif "_join_request" in row.notice_type.label and request.user.agent.agent.managed_projects or request.user.is_superuser %}
+                {% ifchanged True %}
+                    <tr class="notice-group"><td><h4><em>{% trans "Related Managed Projects:" %}</em></h4></td><td></td></tr>
+                {% endifchanged %}
+                <tr class="notice-row">
+                    <td>
+                        <strong>{{ row.notice_type.display }}</strong><br/>
+                        <span class="notice_type_description">
+                            {{ row.notice_type.description }}
+                        </span>
+                    </td>
+                    {% for cell in row.cells %}
+                        <td>
+                            <input type="checkbox" name="{{ cell.0 }}" {% if cell.1 %}checked="yes"{% endif %} />
+                        </td>
+                    {% endfor %}
+                </tr>
+              {% elif request.user.is_superuser %}
+                {% ifchanged True %}
+                    <tr class="notice-group"><td><h4><em>{% trans "Others:" %}</em></h4></td><td></td></tr>
+                {% endifchanged %}
+                <tr class="notice-row">
+                    <td>
+                        <strong>{{ row.notice_type.display }}</strong><br/>
+                        <span class="notice_type_description">
+                            {{ row.notice_type.description }}
+                        </span>
+                    </td>
+                    {% for cell in row.cells %}
+                        <td>
+                            <input type="checkbox" name="{{ cell.0 }}" {% if cell.1 %}checked="yes"{% endif %} />
+                        </td>
+                    {% endfor %}
+                </tr>
+              {% endif %}
             {% endfor %}
         </table>
 
