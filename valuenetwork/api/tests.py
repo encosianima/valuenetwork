@@ -2054,6 +2054,9 @@ query ($token: String) {
         inputOf {
           id
           name
+          processPlan {
+            id
+          }
         }
         validations {
           id
