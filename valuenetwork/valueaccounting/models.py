@@ -4260,6 +4260,11 @@ class Order(models.Model):
                 name = str(self.id)
         return name
 
+    @property #ValueFlows
+    def created_by_agent(self):
+        agent_user = AgentUser.objects.get(user=self.created_by)
+        return agent_user.agent
+
     def delete_api(self):
         evs = self.all_events()
         if len(evs) == 0:
