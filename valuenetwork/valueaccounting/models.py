@@ -582,6 +582,16 @@ class EconomicAgent(models.Model):
                     context_agent = object_to_mutate.is_associate
                 elif object_to_mutate.has_associate.is_context:
                     context_agent = object_to_mutate.has_associate
+            elif type(object_to_mutate) is EconomicAgent:
+                if object_to_mutate == self:
+                    return True
+                elif object_to_mutate.is_context == True:
+                    if self.is_manager_of(object_to_mutate): #TODO: need actual generic requirement
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
             else:
                 context_agent = object_to_mutate.context_agent
         else:
