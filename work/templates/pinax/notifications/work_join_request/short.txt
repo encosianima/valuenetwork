@@ -1,1 +1,1 @@
-{% autoescape off %}{% load i18n %}{% trans  "New join request at" %} {{ context_agent }}{% endautoescape %}
+{% autoescape off %}{% load i18n %}{% trans  "New join request at" %} {{ context_agent.name }}{% endautoescape %}

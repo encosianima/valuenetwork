@@ -1354,7 +1354,7 @@ class JoinRequest(models.Model):
                         #        users.append(manager.user().user)
                         #users = User.objects.filter(is_staff=True)
                         if users:
-                            site_name = project.agent.name #get_site_name(request)
+                            site_name = project.agent.nick #get_site_name(request)
                             notification.send_now(
                                 users,
                                 "work_new_account",
