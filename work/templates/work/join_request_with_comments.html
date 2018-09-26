@@ -159,7 +159,7 @@ a.more-link {
                     {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span>
                       {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>
                       {% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>
-                        {% if user_agent is req.project.agent or user_agent in req.project.agent.managers %} <a class="btn btn-primary btn-mini" href="{% url "resend_candidate_credentials" joinrequest_id=req.id %}" style="display:inline; position:relative; top:-1px;" >Resend Password</a>
+                        {% if user_agent is req.project.agent or user_agent in req.project.agent.managers %} {% if not messages %}<a id="resend" class="btn btn-primary btn-mini" href="{% url "resend_candidate_credentials" joinrequest_id=req.id %}" style="display:inline; position:relative; top:-1px;" >Resend Password</a> {% endif %}
                         {% endif %}
                       {% endif %}
                     {% endif %}
@@ -314,6 +314,11 @@ a.more-link {
     <script type="text/javascript">
 
     $(document).ready(function(){
+
+      $('#resend').click(function(){
+          $(this).text(' S e n d i n g . . . ');
+          $('body').attr('style', 'pointer-events:none; opacity:0.5; width:100%;');
+      });
 
       /*$('th, td').each(function(e) {
         $(this).expander({
