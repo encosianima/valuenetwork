@@ -1517,7 +1517,7 @@ def joinaproject_request(request, form_slug = False):
                           if manager.user():
                             users.append(manager.user().user)
                         if users:
-                            site_name = get_site_name(request)
+                            site_name = jn_req.project.agent.nick #get_site_name(request)
                             notification.send(
                                 users,
                                 "work_join_request",
@@ -1750,7 +1750,7 @@ def joinaproject_request_internal(request, agent_id = False):
                   if manager.user():
                     users.append(manager.user().user)
                 if users:
-                    site_name = get_site_name(request)
+                    site_name = jn_req.project.agent.nick #get_site_name(request)
                     notification.send(
                         users,
                         "work_join_request",
@@ -2226,7 +2226,7 @@ def create_account_for_join_request(request, join_request_id):
                             #allusers = chain(users, agent)
                             #users = list(users)
                             #users.append(agent.user)
-                            site_name = get_site_name(request)
+                            site_name = project.agent.nick #get_site_name(request)
                             notification.send(
                                 users,
                                 "work_new_account",
@@ -2310,7 +2310,7 @@ def resend_candidate_credentials(request, joinrequest_id):
 
         users = [jn_req.agent.user().user,]
         if users:
-            site_name = project.agent.name #get_site_name(request)
+            site_name = project.agent.nick #get_site_name(request)
             notification.send_now(
                 users,
                 "work_new_account",
