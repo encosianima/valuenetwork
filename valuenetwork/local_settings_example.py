@@ -133,9 +133,12 @@ PROJECTS_LOGIN = {
             'custom.domains.of.the.project',
             '127.0.0.1:8000'
         ],
-        'server_email': {
-            'address': 'email@address.test',
-            'password': ''
+        'smtp': {
+            'host': '', # put the smtp server host name
+            'username': '', # put the smtp host username
+            'password': '', # put the smtp host password
+            'port': 587, # change to your port
+            'use_tls': True # set TLS to True or False
         }
     },
     'another-project-slug': {

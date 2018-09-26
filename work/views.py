@@ -2311,7 +2311,7 @@ def resend_candidate_credentials(request, joinrequest_id):
         users = [jn_req.agent.user().user,]
         if users:
             site_name = project.agent.name #get_site_name(request)
-            notification.send(
+            notification.send_now(
                 users,
                 "work_new_account",
                 {"name": jn_req.agent.name,
@@ -2332,6 +2332,7 @@ def resend_candidate_credentials(request, joinrequest_id):
     if not next:
         next = "project_feedback"
 
+    messages.warning(request, _('The email with the user credentials was sended again.'))
     return redirect(next, agent_id=jn_req.project.agent.id, join_request_id=jn_req.id)
 
 

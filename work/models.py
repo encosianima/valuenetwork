@@ -312,6 +312,16 @@ class Project(models.Model):
                 pass
         return resp
 
+    def custom_smtp(self):
+        resp = False
+        if settings.PROJECTS_LOGIN and self.fobi_slug:
+            try:
+                resp = settings.PROJECTS_LOGIN[self.fobi_slug]['smtp']
+            except:
+                pass
+        return resp
+
+
     def payment_gateways(self):
         gates = False
         if settings.PAYMENT_GATEWAYS and self.fobi_slug:
@@ -1345,7 +1355,7 @@ class JoinRequest(models.Model):
                         #users = User.objects.filter(is_staff=True)
                         if users:
                             site_name = project.agent.name #get_site_name(request)
-                            notification.send(
+                            notification.send_now(
                                 users,
                                 "work_new_account",
                                 {"name": name,

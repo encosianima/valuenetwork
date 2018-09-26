@@ -66,8 +66,7 @@ def set_user_notification_by_type(user, notification_type="work_new_account", se
             for medium_id, medium_display in notification.NOTICE_MEDIA:
                 if medium_display == 'email':
                     medium = medium_id, medium_display
-            #medium_id = (0, 'email')
-            sett = hookset.notice_setting_for_user(user, nott, medium)
+                    sett = hookset.notice_setting_for_user(user, nott, medium_id)
         else:
             if not len(sett) == 1:
                 raise ValidationError("(set_user_notification_by_type) The user has not exactly 1 notice setting for the notice type: "+str(notification_type)+" / User: "+str(user))
@@ -75,6 +74,9 @@ def set_user_notification_by_type(user, notification_type="work_new_account", se
         sett.send = send
         sett.save()
     return sett
+
+
+
 
 """
 def init_resource_types():
