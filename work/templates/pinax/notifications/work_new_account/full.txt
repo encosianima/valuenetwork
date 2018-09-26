@@ -8,7 +8,7 @@ Nickname: {{ username }}
 Password: {{ password }}
 
 
-The project related this new account is: {{ context_agent }}
+The project related this new account is: {{ context_agent.name }}
 
 You can log in at https://{{ request_host }}
 
