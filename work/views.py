@@ -1474,7 +1474,7 @@ def joinaproject_request(request, form_slug = False):
 
 
                     event_type = EventType.objects.get(relationship="todo")
-                    join_url = get_url_starter(request) + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
+                    join_url = get_url_starter(request) + "/work/project-feedback/" + str(jn_req.project.agent.id) +"/"+str(jn_req.id)
                     context_agent = jn_req.project.agent
 
                     if jn_req.payment_url(): # its a credit card payment, create the user and the agent

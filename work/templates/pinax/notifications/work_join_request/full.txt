@@ -1,4 +1,4 @@
-{% autoescape off %}{% load i18n %}{% blocktrans %}New join request at {{ context_agent.name }}:
+{% autoescape off %}{% load i18n %}{% blocktrans with project=context_agent.name %}New join request at {{ project }}:
 
 Name: {{ name }} {{ surname }}
 Type: {{ type_of_user }}
