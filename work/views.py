@@ -5113,7 +5113,7 @@ def create_project_shares(request, agent_id):
     proacc.save()
 
     # has resource ?
-    owner = AgentResourceRoleType.objects.get(is_owner=True)
+    owner = AgentResourceRoleType.objects.get(is_owner=True, name="Owner")
     aresrol = None
     arrs = AgentResourceRole.objects.filter(agent=agent, role=owner, resource__resource_type=ert_acc)
     if arrs:
