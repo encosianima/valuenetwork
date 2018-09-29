@@ -2299,7 +2299,7 @@ def create_unit_types(**kwargs):
         ocp_fair_rt, created = EconomicResourceType.objects.get_or_create(
             name='FairCoin')
         if created:
-            print "- created ResourceType: 'FairCoin'"
+            print "- created EconomicResourceType: 'FairCoin'"
     else:
         ocp_fair_rt = ocp_fair_rts[0]
     ocp_fair_rt.unit = ocp_fair
@@ -2358,6 +2358,57 @@ def create_unit_types(**kwargs):
     fair_rt.resource_type = ocp_fair_rt
     fair_rt.general_unit_type = gen_fair_typ
     fair_rt.save()
+
+    # Faircoin Ocp Account
+    fairacc_rts = EconomicResourceType.objects.filter(name='Faircoin Ocp Account')
+    if not fairacc_rts:
+        fairacc_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Faircoin Ocp Account')
+        if created:
+            print "- created EconomicResourceType: 'Faircoin Ocp Account'"
+    else:
+        fairacc_rt = fairacc_rts[0]
+    fairacc_rt.unit = ocp_fair
+    fairacc_rt.unit_of_use = ocp_fair
+    #fairacc_rt.unit_of_value = ocp_fair
+    #fairacc_rt.value_per_unit = 1
+    fairacc_rt.value_per_unit_of_use = 1 #decimal.Decimal('1.00')
+    #fairacc_rt.price_per_unit = 1
+    #fairacc_rt.unit_of_price = ocp_fair
+    fairacc_rt.substitutable = True
+    #fairacc_rt.inventory_rule = 'yes'
+    fairacc_rt.behavior = 'dig_acct'
+    fairacc_rt.save()
+
+    digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Account')
+    if not digacc_typs:
+        digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Accounts')
+    if not digacc_typs:
+        digacc_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='digital Accounts',
+            parent=digart_typ)
+        if created:
+            print "- created Ocp_Artwork_Types: 'digital Accounts'"
+    else:
+        digacc_typ = digacc_typs[0]
+    digacc_typ.name = 'digital Accounts'
+    digacc_typ.clas = 'accounts'
+    digacc_typ.parent = digart_typ
+    digacc_typ.save()
+
+    facc_rts = Ocp_Artwork_Type.objects.filter(name='Faircoin Ocp Account')
+    if not facc_rts:
+        facc_rt, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Faircoin Ocp Account',
+            parent=digacc_typ)
+        if created:
+            print "- created Ocp_Artwork_Types: 'Faircoin Ocp Account'"
+    else:
+        facc_rt = facc_rts[0]
+    facc_rt.clas = 'fair_ocp_account'
+    facc_rt.resource_type = fairacc_rt
+    #facc_rt.general_unit_type = gen_fair_typ
+    facc_rt.save()
 
 
     # Euros
@@ -2681,11 +2732,11 @@ def create_unit_types(**kwargs):
 
     ## BankOfTheCommons
 
-    """boc_ag = EconomicAgent.objects.filter(nick="BoC")
+    boc_ag = EconomicAgent.objects.filter(nick="BoC")
     if not boc_ag:
         boc_ag = EconomicAgent.objects.filter(nick="BotC")
     if not boc_ag:
-        print "- WARNING: the BoC agent don't exist, not created any unit for shares"
+        print "- WARNING: the BotC agent don't exist, not created any unit for shares"
         return
     else:
         boc_ag = boc_ag[0]
@@ -2766,7 +2817,7 @@ def create_unit_types(**kwargs):
     artw_boc.parent = Type.objects.get(id=artw_sh.id)
     artw_boc.resource_type = share_rt
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
-    artw_boc.save()"""
+    artw_boc.save()
 
     print "...end of the units analisys."
 
