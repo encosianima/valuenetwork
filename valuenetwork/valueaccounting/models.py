@@ -2408,9 +2408,9 @@ class EconomicResourceTypeManager(models.Manager):
 
     def membership_share(self):
         try:
-            share = EconomicResourceType.objects.get(name="Membership Share")
+            share = EconomicResourceType.objects.get(name="FreedomCoop Share")
         except EconomicResourceType.DoesNotExist:
-            raise ValidationError("Membership Share does not exist by that name")
+            raise ValidationError("FreedomCoop Share does not exist by that name")
         return share
 
     #moved this logic from views for use in api
@@ -4219,7 +4219,7 @@ class Order(models.Model):
     def number_of_processes(self):
         procs = self.unordered_processes()
         return len(list(procs))
-    
+
     def is_deletable(self):
         answer = True
         for proc in self.unordered_processes():
