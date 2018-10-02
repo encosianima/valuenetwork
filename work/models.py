@@ -231,7 +231,7 @@ class Project(models.Model):
             shr_rt = None
             for rt in rts:
                 if rt.ocp_artwork_type.general_unit_type:
-                    if rt.ocp_artwork_type.general_unit_type.clas == 'share':
+                    if rt.ocp_artwork_type.general_unit_type.clas == self.fobi_slug+'_shares':
                         shr_rt = rt
             if shr_rt:
                 shares_res = EconomicResource.objects.filter(resource_type=shr_rt)
@@ -332,6 +332,16 @@ class Project(models.Model):
                 pass
         return resp
 
+    def custom_smtp(self):
+        resp = False
+        if settings.PROJECTS_LOGIN and self.fobi_slug:
+            try:
+                resp = settings.PROJECTS_LOGIN[self.fobi_slug]['smtp']
+            except:
+                pass
+        return resp
+
+
     def payment_gateways(self):
         gates = False
         if settings.PAYMENT_GATEWAYS and self.fobi_slug:
@@ -341,6 +351,75 @@ class Project(models.Model):
                 pass
         return gates
 
+    def fobi_items_keys(self):
+        fobi_keys = []
+        form = self.fobi_form()
+        if form:
+            fields = form.formelemententry_set.all()
+            for fi in fields:
+                data = json.loads(fi.plugin_data)
+                name = data.get('name')
+                fobi_keys.append(name)
+        return fobi_keys
+
+    def shares_account_type(self):
+        account_type = None
+        if self.joining_style == "moderated" and self.fobi_slug:
+            rts = self.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
+            for rt in rts:
+                #if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type and rt.ocp_artwork_type.clas
+                    for key in self.fobi_items_keys():
+                        if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
+                            account_type = rt
+        return account_type
+
+    def active_payment_options_obj(self):
+        pay_opts = []
+        if self.is_moderated() and self.fobi_slug:
+            form = self.fobi_form()
+            if form:
+              fields = form.formelemententry_set.all()
+              for fi in fields:
+                data = json.loads(fi.plugin_data)
+                name = data.get('name')
+                if name == "payment_mode": # name of the fobi field
+                    choi = data.get('choices')
+                    if choi:
+                        opts = choi.split('\r\n')
+                        for op in opts:
+                            opa = op.split(',')
+                            key = opa[0].strip()
+                            val = opa[1].strip()
+                            gates = self.payment_gateways()
+                            if gates:
+                                try:
+                                    gate = gates[key]
+                                except:
+                                    gate = None
+                                if gate is not None:
+                                    pay_opts.append([key, val])
+        return pay_opts
+
+    def compact_name(self):
+        name = self.agent.name.title()
+        arr = name.split()
+        name = ''.join(arr)
+        return name
+
+    def abbrev_name(self):
+        name = self.agent.name
+        arr = name.split()
+        abbr = ''
+        for a in arr:
+            abbr += a[:1]
+        if len(abbr) < 3:
+            arr = name.split()
+            if len(arr[0]) > len(arr[1]): # a case like Freedom Coop, to became FdC
+                first = arr[0]
+                pos = (len(first)/2)+1
+                half = first[pos:pos+1]
+                abbr = arr[0][:1]+half+arr[1][:1]
+        return abbr
 
 
 class SkillSuggestion(models.Model):
@@ -395,13 +474,13 @@ class JoinRequest(models.Model):
         help_text=_("this join request is for joining this Project"))
 
     request_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
-    type_of_user = models.CharField(_('Type of user *'),
+    type_of_user = models.CharField(_('Type of user'),
         max_length=12, choices=USER_TYPE_CHOICES,
         default="individual",
         help_text=_("* Required fields"))
-    name = models.CharField(_('Name *'), max_length=255)
+    name = models.CharField(_('Name'), max_length=255)
     surname = models.CharField(_('Surname (for individual join requests)'), max_length=255, blank=True)
-    requested_username = models.CharField(_('Username *'), max_length=32, help_text=_("If you have already an account in OCP, you can login before filling this form to have this project in the same account, or you can choose another username and email to have it separate."))
+    requested_username = models.CharField(_('Username'), max_length=32, help_text=_("If you have already an account in OCP, you can login before filling this form to have this project in the same account, or you can choose another username and email to have it separate."))
     email_address = models.EmailField(_('Email address *'), max_length=96,)
     #    help_text=_("this field is optional, but we can't contact you via email without it"))
     phone_number = models.CharField(_('Phone number'), max_length=32, blank=True, null=True)
@@ -500,21 +579,11 @@ class JoinRequest(models.Model):
         balance = 0
         amount = self.payment_amount()
 
-        if self.agent and account_type:
-            user_rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
-            for rt in user_rts:
-                if rt == account_type: #.ocp_artwork_type:
-                    rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
-                    for rs in rss:
-                        if rs.resource_type == rt:
-                            balance = rs.price_per_unit # TODO: update the price_per_unit with wallet balance
-
+        balance = self.total_shares()
+        #import pdb; pdb.set_trace()
         if amount:
             answer = amount - balance
             if answer > 0:
-                #if self.payment_url and self.payment_secret and not self.payment_status:
-                    #self.payment_status = 'pending'
-                    #self.save()
                 return int(answer)
             else:
                 #import pdb; pdb.set_trace()
@@ -527,17 +596,19 @@ class JoinRequest(models.Model):
         balance = 0
 
         if self.agent and account_type:
-            user_rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
+            arrs = self.agent.resource_relationships()
+            user_rts = list(set([arr.resource.resource_type for arr in arrs]))
             for rt in user_rts:
                 if rt == account_type: #.ocp_artwork_type:
-                    rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
+                    rss = list(set([arr.resource for arr in arrs]))
                     for rs in rss:
                         if rs.resource_type == rt:
-                            balance = rs.price_per_unit # TODO: update the price_per_unit with wallet balance
+                            balance = int(rs.price_per_unit) # TODO: update the price_per_unit with wallet balance
         return balance
 
     def payment_option(self):
         answer = {}
+        data2 = None
         if self.project.is_moderated() and self.fobi_data:
             for key in self.fobi_items_keys():
                 if key == "payment_mode": # fieldname specially defined in the fobi form
@@ -547,8 +618,8 @@ class JoinRequest(models.Model):
                     val = self.data.get(key)
                     answer['val'] = val
                     for elem in self.fobi_data.form_entry.formelemententry_set.all():
-                        data = json.loads(elem.plugin_data)
-                        choi = data.get('choices') # works with radio or select
+                        data2 = json.loads(elem.plugin_data)
+                        choi = data2.get('choices') # works with radio or select
                         if choi:
                             opts = choi.split('\r\n')
                             for op in opts:
@@ -556,6 +627,8 @@ class JoinRequest(models.Model):
                                 #import pdb; pdb.set_trace()
                                 if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
                                     answer['key'] = opa[0]
+            if not answer.has_key('key') and data2:
+                raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
         return answer
 
     def payment_url(self):
@@ -594,35 +667,45 @@ class JoinRequest(models.Model):
         return False
 
     def payment_amount(self):
-        amount = 'error'
-        if self.project.is_moderated() and self.fobi_data and self.project.shares_account_type():
+        amount = 0
+        shat = self.project.shares_account_type()
+        if self.project.is_moderated() and self.fobi_data and shat:
             for key in self.fobi_items_keys():
-                if key == self.project.shares_account_type().ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
+                if key == shat.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
                     self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
                     entry = self.entries[0]
                     self.data = json.loads(entry.saved_data)
                     val = self.data.get(key)
-                    if type(val) is int:
-                        return val
-
-                    '''for elem in self.fobi_data.form_entry.formelemententry_set.all():
+                    for elem in self.fobi_data.form_entry.formelemententry_set.all():
                         data = json.loads(elem.plugin_data)
                         choi = data.get('choices')
                         if choi:
                             opts = choi.split('\r\n')
                             for op in opts:
-                              opa = op.split(',')
-                              #import pdb; pdb.set_trace()
-                              if type(val) is str and opa[1].encode('utf-8').strip() == val.encode('utf-8').strip():
-                                amount = int(opa[0])
-                                break
+                                opa = op.split(',')
+                                #import pdb; pdb.set_trace()
+                                if type(val) is str and opa[1].encode('utf-8').strip() == val.encode('utf-8').strip():
+                                    amount = int(opa[0])
+                                    break
                         elif type(val) is int and val:
                             amount = val
-                            break'''
+                            break
+                        elif type(val) is unicode and val:
+                            amount = int(val)
+                            break
+                    #import pdb; pdb.set_trace()
         return amount
 
     def payment_account_type(self):
-        return self.project.shares_account_type()
+        account_type = None
+        if self.project.joining_style == "moderated" and self.fobi_data:
+            rts = self.project.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
+            for rt in rts:
+                if rt.ocp_artwork_type:
+                    for key in self.fobi_items_keys():
+                        if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
+                            account_type = rt
+        return account_type
 
 
     def payment_secret(self):
@@ -752,6 +835,7 @@ class JoinRequest(models.Model):
     def payment_unit(self):
         payopt = self.payment_option()
         unit = None
+        obj = None
         if settings.PAYMENT_GATEWAYS and payopt:
             gates = settings.PAYMENT_GATEWAYS
             if self.project.fobi_slug and gates[self.project.fobi_slug]:
@@ -794,11 +878,18 @@ class JoinRequest(models.Model):
         if self.exchange:
             return self.exchange.exchange_type
 
+        payopt = self.payment_option()
         rt = self.payment_account_type()
-        if rt and rt.ocp_artwork_type:
-            recordts = Ocp_Record_Type.objects.filter(ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type, exchange_type__isnull=False)
-            if len(recordts) > 1:
-                payopt = self.payment_option()
+        if payopt.has_key('key'):
+          if rt and rt.ocp_artwork_type:
+            recordts = Ocp_Record_Type.objects.filter(
+                ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type,
+                exchange_type__isnull=False)
+            if not recordts:
+                recordts = Ocp_Record_Type.objects.filter(
+                    ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type.rel_nonmaterial_type,
+                    exchange_type__isnull=False)
+            if len(recordts) > 0:
                 for rec in recordts:
                     ancs = rec.get_ancestors(True,True)
                     if payopt['key'] == 'faircoin':
@@ -822,11 +913,17 @@ class JoinRequest(models.Model):
                 elif recs:
                     et = recs[0].exchange_type
 
+                #import pdb; pdb.set_trace()
                 if not et or not len(recs):
-                    raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
+                    pass #raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
             elif recordts:
-                et = recordts[0].exchange_type
-
+                raise ValidationError("found ocp_record_type's ?? : "+str(recordts)) # pass #et = recordts[0].exchange_type
+            else:
+                raise ValidationError("not found any ocp_record_type related: "+str(rt.ocp_artwork_type))
+          else:
+            raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
+        else: # no payopt
+            raise ValidationError("no payment option key? "+str(payopt))
         return et
 
 
@@ -1263,23 +1360,25 @@ class JoinRequest(models.Model):
                         content_type=con_typ,
                         object_pk=self.pk,
                         user_name=self.project.agent.nick,
-                        user_email=self.project.agent.email_address,
+                        user_email=self.project.agent.email,
                         submit_date=datetime.date.today(),
-                        comment=_("%(pass)s is the initial random password for user %(user)s, used to verify the email address %(mail)s") % {'pass': password, 'user': username, 'mail': email},
+                        comment=_("%(pass)s is the initial random password for agent %(user)s, used to verify the email address %(mail)s") % {'pass': password, 'user': username, 'mail': email},
                         site=Site.objects.get_current()
                     )
                     comm.save()
 
                     if notification:
-                        managers = project.agent.managers()
-                        users = [agent.user().user,]
+                        from work.utils import set_user_notification_by_type
+                        sett = set_user_notification_by_type(agent.user().user, "work_new_account", True)
+                        #managers = project.agent.managers()
+                        users = [agent.user().user]
                         #for manager in managers:
                         #    if manager.user():
                         #        users.append(manager.user().user)
                         #users = User.objects.filter(is_staff=True)
                         if users:
-                            site_name = get_site_name(request)
-                            notification.send(
+                            site_name = project.agent.nick #get_site_name(request)
+                            notification.send_now(
                                 users,
                                 "work_new_account",
                                 {"name": name,
@@ -1288,8 +1387,13 @@ class JoinRequest(models.Model):
                                 "site_name": site_name,
                                 "context_agent": project.agent,
                                 "request_host": request.get_host(),
+                                "current_site": request.get_host(),
                                 }
                             )
+                        else:
+                            raise ValidationError("There are no users to send the work_new_account details? "+str(username))
+                    else:
+                        raise ValidationError("The notification service is not available?! ")
                 else:
                     raise ValidationError("There's a problem with the username: "+str(username))
             else:
@@ -1298,14 +1402,17 @@ class JoinRequest(models.Model):
             raise ValidationError("The form to autocreate user+agent from the join request is not valid. "+str(form.errors))
         return password
 
-    def check_user_pass(self):
+    def check_user_pass(self, showpass=False):
         con_typ = ContentType.objects.get(model='joinrequest')
         coms = Comment.objects.filter(content_type=con_typ, object_pk=self.pk)
         for c in coms:
             first = c.comment.split(' ')[0]
             if len(first) == settings.RANDOM_PASSWORD_LENGHT:
                 if self.agent.user().user.check_password(first):
-                    return _("WARNING!")
+                    if showpass:
+                        return first
+                    else:
+                        return _("WARNING!")
         return False
 
     def duplicated(self):
@@ -1968,8 +2075,10 @@ class Ocp_Unit_Type(Unit_Type):
 '''
 
 from django.db.models.signals import post_migrate
+#from work.apps import WorkAppConfig
 
 def create_unit_types(**kwargs):
+    print "Analizing the unit types in the system..."
     # Each
     ocp_eachs = Unit.objects.filter(name='Each')
     if ocp_eachs:
@@ -1984,7 +2093,12 @@ def create_unit_types(**kwargs):
     ocp_each.abbrev = 'u.'
     ocp_each.save()
 
-    gen_unitt = Artwork_Type.objects.get(clas='Unit')
+    gen_artwt, created = Type.objects.get_or_create(name="Artwork", clas='Artwork')
+    if created:
+        print "- created root general Type: 'Artwork'"
+    gen_unitt, created = Artwork_Type.objects.get_or_create(name="Unit", parent=gen_artwt, clas='Unit')
+    if created:
+        print "- created general Artwork_Type: 'Unit'"
     each_typ, created = Ocp_Unit_Type.objects.get_or_create(
         name='Each',
         parent=gen_unitt
@@ -2073,7 +2187,7 @@ def create_unit_types(**kwargs):
 
     hour = Gene_Unit.objects.filter(name='Hour')
     if not hour:
-        hour = Gene_Unit.objects.get_or_create(
+        hour, created = Gene_Unit.objects.get_or_create(
             name='Hour',
             code='h',
             unit_type=gen_time_typ
@@ -2156,10 +2270,11 @@ def create_unit_types(**kwargs):
 
 
     # FairCoin
-    ocp_fair, created = Unit.objects.get_or_create(name='FairCoin')
+    ocp_fair, created = Unit.objects.get_or_create(name='FairCoin', unit_type='value')
     if created:
         print "- created a main ocp Unit: 'FairCoin'!"
     ocp_fair.abbrev = 'fair'
+    ocp_fair.unit_type = 'value'
     ocp_fair.save()
 
     gen_curr_typ, created = Ocp_Unit_Type.objects.get_or_create(
@@ -2207,7 +2322,7 @@ def create_unit_types(**kwargs):
         ocp_fair_rt, created = EconomicResourceType.objects.get_or_create(
             name='FairCoin')
         if created:
-            print "- created ResourceType: 'FairCoin'"
+            print "- created EconomicResourceType: 'FairCoin'"
     else:
         ocp_fair_rt = ocp_fair_rts[0]
     ocp_fair_rt.unit = ocp_fair
@@ -2222,7 +2337,20 @@ def create_unit_types(**kwargs):
     ocp_fair_rt.behavior = 'dig_curr'
     ocp_fair_rt.save()
 
-    nonmat_typ = Ocp_Artwork_Type.objects.get(clas='Nonmaterial')
+
+    nonmat_typs = Ocp_Artwork_Type.objects.filter(clas='Nonmaterial')
+    if nonmat_typs:
+        if len(nonmat_typs) > 1:
+            raise ValidationError("There are more than one Ocp_Artwork_Type with clas 'Nonmaterial' ?!")
+        nonmat_typ = nonmat_typs[0]
+    else:
+        nonmat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Non-material',
+            parent=gen_artwt,
+            clas='Nonmaterial')
+        if created:
+            print "- created Ocp_Artwork_Type: 'Non-material'"
+
     digart_typ, created = Ocp_Artwork_Type.objects.get_or_create(
         name='Digital artwork',
         parent=nonmat_typ)
@@ -2253,6 +2381,57 @@ def create_unit_types(**kwargs):
     fair_rt.resource_type = ocp_fair_rt
     fair_rt.general_unit_type = gen_fair_typ
     fair_rt.save()
+
+    # Faircoin Ocp Account
+    fairacc_rts = EconomicResourceType.objects.filter(name='Faircoin Ocp Account')
+    if not fairacc_rts:
+        fairacc_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Faircoin Ocp Account')
+        if created:
+            print "- created EconomicResourceType: 'Faircoin Ocp Account'"
+    else:
+        fairacc_rt = fairacc_rts[0]
+    fairacc_rt.unit = ocp_fair
+    fairacc_rt.unit_of_use = ocp_fair
+    #fairacc_rt.unit_of_value = ocp_fair
+    #fairacc_rt.value_per_unit = 1
+    fairacc_rt.value_per_unit_of_use = 1 #decimal.Decimal('1.00')
+    #fairacc_rt.price_per_unit = 1
+    #fairacc_rt.unit_of_price = ocp_fair
+    fairacc_rt.substitutable = True
+    #fairacc_rt.inventory_rule = 'yes'
+    fairacc_rt.behavior = 'dig_acct'
+    fairacc_rt.save()
+
+    digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Account')
+    if not digacc_typs:
+        digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Accounts')
+    if not digacc_typs:
+        digacc_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='digital Accounts',
+            parent=digart_typ)
+        if created:
+            print "- created Ocp_Artwork_Types: 'digital Accounts'"
+    else:
+        digacc_typ = digacc_typs[0]
+    digacc_typ.name = 'digital Accounts'
+    digacc_typ.clas = 'accounts'
+    digacc_typ.parent = digart_typ
+    digacc_typ.save()
+
+    facc_rts = Ocp_Artwork_Type.objects.filter(name='Faircoin Ocp Account')
+    if not facc_rts:
+        facc_rt, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Faircoin Ocp Account',
+            parent=digacc_typ)
+        if created:
+            print "- created Ocp_Artwork_Types: 'Faircoin Ocp Account'"
+    else:
+        facc_rt = facc_rts[0]
+    facc_rt.clas = 'fair_ocp_account'
+    facc_rt.resource_type = fairacc_rt
+    #facc_rt.general_unit_type = gen_fair_typ
+    facc_rt.save()
 
 
     # Euros
@@ -2359,6 +2538,7 @@ def create_unit_types(**kwargs):
 
         #raise ValidationError("There are not ResourceTypes containing 'Euro' in the name!: "+str(ocp_euro_rts))
 
+
     artw_euros = Ocp_Artwork_Type.objects.filter(name__icontains="Euro")
     if len(artw_euros) > 1:
         digi = artw_euros.get(name='Euro digital')
@@ -2377,8 +2557,58 @@ def create_unit_types(**kwargs):
             cash.save()
         else:
             raise ValidationError("Can't find an Ocp_Artwork_Type named 'Euro cash' artw: "+str(artw_euros))
+    elif len(artw_euros) == 1:
+        raise ValidationError("There is only one Ocp_Artwork_Type containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash': "+str(artw_euros))
     else:
-        raise ValidationError("There are not 2 Ocp_Artwork_Types containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash'")
+        #raise ValidationError("There are not 2 Ocp_Artwork_Types containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash': "+str(artw_euros))
+
+        digi, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Euro digital',
+            parent=digcur_typ,
+        )
+        if created:
+            print "- created Ocp_Artwork_Type: 'Euro digital'"
+        digi.clas='euro_digital'
+        digi.resource_type = digi_rt
+        digi.general_unit_type = gen_euro_typ
+        digi.save()
+
+
+        mat_typs = Ocp_Artwork_Type.objects.filter(clas='Material')
+        if mat_typs:
+            if len(mat_typs) > 1:
+                raise ValidationError("There are more than one Ocp_Artwork_Type with clas 'Material' ?!")
+            mat_typ = mat_typs[0]
+        else:
+            mat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+                name='Material',
+                parent=gen_artwt,
+                clas='Material')
+            if created:
+                print "- created Ocp_Artwork_Type: 'Material'"
+
+        phycur_typs = Ocp_Artwork_Type.objects.filter(name='physical Currencies')
+        if not phycur_typs:
+            phycur_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+                name='physical Currencies',
+                parent=mat_typ)
+            if created:
+                print "- created Ocp_Artwork_Types: 'physical Currencies'"
+        else:
+            phycur_typ = phycur_typs[0]
+        phycur_typ.clas = 'currency'
+        phycur_typ.save()
+
+        cash, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Euro cash',
+            parent=phycur_typ)
+        if created:
+            print "- created Ocp_Artwork_Type: 'Euro cash'"
+        cash.clas = 'euro_cash'
+        cash.resource_type = cash_rt
+        cash.general_unit_type = gen_euro_typ
+        cash.save()
+
 
 
 
@@ -2403,7 +2633,9 @@ def create_unit_types(**kwargs):
 
     artw_share = Ocp_Artwork_Type.objects.filter(name='Share')
     if not artw_share:
-        artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(name='Shares')
+        artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Shares',
+            parent=digcur_typ)
         if created:
             print "- created Ocp_Artwork_Type branch: 'Shares'"
     else:
@@ -2440,6 +2672,35 @@ def create_unit_types(**kwargs):
     fv_sh.value = 'CoopShares'
     fv_sh.facet = fa_curr
     fv_sh.save()
+
+
+
+    # FacetValues
+
+    curfacet, created = Facet.objects.get_or_create(
+        name="Currency")
+    if created:
+        print "- created Facet: 'Currency'"
+    curfacet.clas = "Currency_Type"
+    curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
+    curfacet.save()
+
+    shrfv, created = FacetValue.objects.get_or_create(
+        facet=curfacet,
+        value="Project Shares")
+    if created:
+        print "- created FacetValue: 'Project Shares'"
+
+    nonfacet, created = Facet.objects.get_or_create(
+        name="Non-material",
+        clas="Nonmaterial_Type")
+    if created:
+        print "- created Facet: 'Non-material'"
+    fvmoney, created = FacetValue.objects.get_or_create(
+        facet=nonfacet,
+        value='Money')
+    if created:
+        print "- created FacetValue: 'Money'"
 
 
 
@@ -2497,15 +2758,22 @@ def create_unit_types(**kwargs):
     ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
     if not ocp_share_rts:
         ocp_share_rts = EconomicResourceType.objects.filter(name='FreedomCoop Share')
-    if len(ocp_share_rts) == 1:
+    if ocp_share_rts:
+        if len(ocp_share_rts) > 1:
+            raise ValidationError("There's more than one 'FreedomCoop Share' ?? "+str(ocp_share_rts))
         share_rt = ocp_share_rts[0]
-        share_rt.name = 'FreedomCoop Share'
-        share_rt.unit = ocp_each
-        share_rt.inventory_rule = 'yes'
-        share_rt.behavior = 'other'
-        share_rt.price_per_unit = 30
-        share_rt.unit_of_price = ocp_euro
-        share_rt.save()
+    else:
+        share_rt, created = EconomicResourceType.objects.get_or_create(
+            name='FreedomCoop Share')
+        if created:
+            print "- created EconomicResourceType: 'FreedomCoop Share'"
+    share_rt.name = 'FreedomCoop Share'
+    share_rt.unit = ocp_each
+    share_rt.inventory_rule = 'yes'
+    share_rt.behavior = 'other'
+    share_rt.price_per_unit = 30
+    share_rt.unit_of_price = ocp_euro
+    share_rt.save()
 
         rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
             resource_type=share_rt,
@@ -2517,7 +2785,8 @@ def create_unit_types(**kwargs):
         print "WARNING can't find the FreedomCoop Share rt, or there is more than one!"
 
     artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
-        name='FreedomCoop Share'
+        name='FreedomCoop Share',
+        parent = Type.objects.get(id=artw_sh.id)
     )
     if created:
         print "- created Ocp_Artwork_Type: 'FreedomCoop Share'"
@@ -2527,13 +2796,17 @@ def create_unit_types(**kwargs):
     artw_fdc.save()
 
 
+    arrt, c = AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
+    if c: print "- created AgentResourceRoleType: "+str(arrt)
+
+
     ## BankOfTheCommons
 
     boc_ag = EconomicAgent.objects.filter(nick="BoC")
     if not boc_ag:
         boc_ag = EconomicAgent.objects.filter(nick="BotC")
     if not boc_ag:
-        print "- WARNING: the BoC agent don't exist, not created any unit for shares"
+        print "- WARNING: the BotC agent don't exist, not created any unit for shares"
         return
     else:
         boc_ag = boc_ag[0]
@@ -2577,15 +2850,26 @@ def create_unit_types(**kwargs):
     boc_share.ocp_unit = ocpboc_share
     boc_share.save()
 
-    share_rt, created = EconomicResourceType.objects.get_or_create(
-        name='BankOfTheCommons Share',
-        unit=ocp_each,
-        inventory_rule='yes',
-        behavior='other'
-    )
-    if created:
-        print "- created EconomicResourceType: 'BankOfTheCommons Share'"
-
+    share_rts = EconomicResourceType.objects.filter(name__icontains="BankOfTheCommons Share")
+    if not share_rts:
+        share_rts = EconomicResourceType.objects.filter(name__icontains="Bank of the Commons Share")
+    if share_rts:
+        if len(share_rts) > 1:
+            raise ValidationError("There are more than 1 EconomicResourceType named: 'BankOfTheCommons Share'")
+        share_rt = share_rts[0]
+    else:
+        share_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Bank of the Commons Share',
+            unit=ocp_each,
+            inventory_rule='yes',
+            behavior='other'
+        )
+        if created:
+            print "- created EconomicResourceType: 'Bank of the Commons Share'"
+    share_rt.name = "Bank of the Commons Share"
+    share_rt.unit = ocp_each
+    share_rt.inventory_rule = 'yes'
+    share_rt.behavior = 'other'
     share_rt.context_agent = boc_ag
     share_rt.price_per_unit = 1
     share_rt.unit_of_price = ocp_euro
@@ -2598,18 +2882,30 @@ def create_unit_types(**kwargs):
     if created:
         print "- created ResourceTypeFacetValue: "+str(share_rt)+" / "+str(fv_sh)
 
-    artw_boc, created = Ocp_Artwork_Type.objects.get_or_create(
-        name='BankOfTheCommons Share'
-    )
-    if created:
-        print "- created Ocp_Artwork_Type: 'BankOfTheCommons Share'"
+    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="BankOfTheCommons Share")
+    if not artw_bocs:
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="Bank of the Commons Share")
+    if artw_bocs:
+        if len(artw_bocs) > 1:
+            raise ValidationError("There are more than 1 Ocp_Artwork_Type named: 'BankOfTheCommons Share' ")
+        artw_boc = artw_bocs[0]
+    else:
+        artw_boc, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Bank of the Commons Share',
+            parent=Type.objects.get(id=artw_sh.id)
+        )
+        if created:
+            print "- created Ocp_Artwork_Type: 'Bank of the Commons Share'"
+    artw_boc.name = "Bank of the Commons Share"
     artw_boc.parent = Type.objects.get(id=artw_sh.id)
     artw_boc.resource_type = share_rt
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
     artw_boc.save()
 
+    print "...end of the units analisys."
 
-post_migrate.connect(create_unit_types)
+
+#post_migrate.connect(create_unit_types, sender=WorkAppConfig)
 
 
 
@@ -2694,7 +2990,7 @@ def create_exchange_skills(**kwargs):
         print "Created the Relation buy<>sell"
 
 
-post_migrate.connect(create_exchange_skills)
+#post_migrate.connect(create_exchange_skills, sender=WorkAppConfig)
 
 
 """

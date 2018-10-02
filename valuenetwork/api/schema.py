@@ -14,6 +14,7 @@ import valuenetwork.api.schemas.Agent
 import valuenetwork.api.schemas.AgentRelationship
 import valuenetwork.api.schemas.AgentRelationshipRole
 import valuenetwork.api.schemas.Organization
+import valuenetwork.api.schemas.OrganizationClassification
 import valuenetwork.api.schemas.Person
 import valuenetwork.api.schemas.EconomicResource
 import valuenetwork.api.schemas.Process
@@ -37,6 +38,7 @@ class ViewerQuery(
     valuenetwork.api.schemas.AgentRelationship.Query,
     valuenetwork.api.schemas.AgentRelationshipRole.Query,
     valuenetwork.api.schemas.Organization.Query,
+    valuenetwork.api.schemas.OrganizationClassification.Query,
     valuenetwork.api.schemas.Person.Query,
     valuenetwork.api.schemas.EconomicResource.Query,
     valuenetwork.api.schemas.Process.Query,
@@ -77,6 +79,8 @@ class Query(graphene.ObjectType):
 
 class Mutation(graphene.ObjectType):
     create_token = valuenetwork.api.schemas.Auth.CreateToken.Field()
+    create_person = valuenetwork.api.schemas.Agent.CreatePerson.Field()
+    create_organization = valuenetwork.api.schemas.Agent.CreateOrganization.Field()
     update_person = valuenetwork.api.schemas.Agent.UpdatePerson.Field()
     update_organization = valuenetwork.api.schemas.Agent.UpdateOrganization.Field()
     create_process = valuenetwork.api.schemas.Process.CreateProcess.Field()
@@ -89,6 +93,7 @@ class Mutation(graphene.ObjectType):
     update_economic_event = valuenetwork.api.schemas.EconomicEvent.UpdateEconomicEvent.Field()
     delete_economic_event = valuenetwork.api.schemas.EconomicEvent.DeleteEconomicEvent.Field()
     create_plan = valuenetwork.api.schemas.Plan.CreatePlan.Field()
+    create_plan_from_recipe = valuenetwork.api.schemas.Plan.CreatePlanFromRecipe.Field()
     update_plan = valuenetwork.api.schemas.Plan.UpdatePlan.Field()
     delete_plan = valuenetwork.api.schemas.Plan.DeletePlan.Field()
     update_economic_resource = valuenetwork.api.schemas.EconomicResource.UpdateEconomicResource.Field()
@@ -97,6 +102,9 @@ class Mutation(graphene.ObjectType):
     delete_validation = valuenetwork.api.schemas.Validation.DeleteValidation.Field()
     create_notification_setting = valuenetwork.api.schemas.NotificationSetting.CreateNotificationSetting.Field()
     update_notification_setting = valuenetwork.api.schemas.NotificationSetting.UpdateNotificationSetting.Field()
+    create_agent_relationship = valuenetwork.api.schemas.AgentRelationship.CreateAgentRelationship.Field()
+    update_agent_relationship = valuenetwork.api.schemas.AgentRelationship.UpdateAgentRelationship.Field()
+    #delete_agent_relationship = valuenetwork.api.schemas.AgentRelationship.DeleteAgentRelationship.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

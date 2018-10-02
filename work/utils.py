@@ -50,6 +50,33 @@ def get_ocp_st_from_rt(rt):
             gen_st = False
     return gen_st
 
+from django.conf import settings
+if "pinax.notifications" in settings.INSTALLED_APPS:
+    from pinax.notifications import models as notification
+    from pinax.notifications.hooks import hookset
+else:
+    notification = None
+
+def set_user_notification_by_type(user, notification_type="work_new_account", send=True):
+    sett = None
+    if notification:
+        nott = notification.NoticeType.objects.get(label=notification_type)
+        sett = user.noticesetting_set.filter(notice_type=nott)
+        if not sett:
+            for medium_id, medium_display in notification.NOTICE_MEDIA:
+                if medium_display == 'email':
+                    medium = medium_id, medium_display
+                    sett = hookset.notice_setting_for_user(user, nott, medium_id)
+        else:
+            if not len(sett) == 1:
+                raise ValidationError("(set_user_notification_by_type) The user has not exactly 1 notice setting for the notice type: "+str(notification_type)+" / User: "+str(user))
+            sett = sett[0]
+        sett.send = send
+        sett.save()
+    return sett
+
+
+
 
 """
 def init_resource_types():

@@ -5,7 +5,7 @@
 import graphene
 import datetime
 from decimal import Decimal
-from valuenetwork.valueaccounting.models import EconomicEvent as EconomicEventProxy, Commitment, EventType, EconomicAgent, Process, EconomicResourceType, EconomicResource as EconomicResourceProxy, Unit, AgentUser, Location
+from valuenetwork.valueaccounting.models import EconomicEvent as EconomicEventProxy, Commitment, EventType, EconomicAgent, Process, EconomicResourceType, EconomicResource as EconomicResourceProxy, Unit, AgentUser, Location, AgentResourceRoleType, AgentResourceRole
 from valuenetwork.api.types.EconomicEvent import EconomicEvent, Action
 from valuenetwork.api.models import Fulfillment
 from six import with_metaclass
@@ -16,14 +16,18 @@ from django.core.exceptions import PermissionDenied, ValidationError
 
 class Query(graphene.AbstractType):
 
-    # define input query params
-
     economic_event = graphene.Field(EconomicEvent,
                                     id=graphene.Int())
 
     all_economic_events = graphene.List(EconomicEvent)
-
-    # resolvers
+    
+    filtered_economic_events = graphene.List(EconomicEvent,
+                                             provider_id=graphene.Int(),
+                                             receiver_id=graphene.Int(),
+                                             resource_classified_as_id=graphene.Int(),
+                                             action=graphene.String(),
+                                             start_date=graphene.String(),
+                                             end_date=graphene.String())
 
     def resolve_economic_event(self, args, *rargs):
         id = args.get('id')
@@ -35,6 +39,28 @@ class Query(graphene.AbstractType):
 
     def resolve_all_economic_events(self, args, context, info):
         return EconomicEventProxy.objects.all()
+
+    def resolve_filtered_economic_events(self, args, context, info):
+        provider_id = args.get('provider_id')
+        receiver_id = args.get('receiver_id')
+        resource_classified_as_id = args.get('resource_classified_as_id')
+        action = args.get('action')
+        start_date = args.get('start_date')
+        end_date = args.get('end_date')
+        events = EconomicEventProxy.objects.all()
+        if provider_id:
+            events = EconomicEventProxy.objects.filter(from_agent=EconomicAgent.objects.get(pk=provider_id))
+        if receiver_id:
+            events = events.filter(to_agent=EconomicAgent.objects.get(pk=receiver_id))
+        if action:
+            events = events.filter(event_type=EventType.objects.convert_action_to_event_type(action))
+        if resource_classified_as_id:
+            events = events.filter(resource_type=EconomicResourceType.objects.get(pk=resource_classified_as_id))
+        if start_date:
+            events = events.filter(event_date__gte=start_date)
+        if end_date:
+            events = events.filter(event_date__lte=end_date)
+        return events
 
 
 class CreateEconomicEvent(AuthedMutation):
@@ -59,6 +85,7 @@ class CreateEconomicEvent(AuthedMutation):
         resource_image = graphene.String(required=False)
         resource_note = graphene.String(required=False)
         resource_current_location_id = graphene.Int(required=False)
+        resource_url = graphene.String(required=False)
 
     economic_event = graphene.Field(lambda: EconomicEvent)
 
@@ -84,6 +111,7 @@ class CreateEconomicEvent(AuthedMutation):
         resource_image = args.get('resource_image')
         resource_current_location_id = args.get('resource_current_location_id')
         resource_note = args.get('resource_note')
+        resource_url = args.get('resource_url')
 
         if fulfills_commitment_id:
             commitment = Commitment.objects.get(pk=fulfills_commitment_id)
@@ -152,8 +180,10 @@ class CreateEconomicEvent(AuthedMutation):
             url = ""
         if not request_distribution:
             request_distribution = False
+        current_location = None
         if resource_current_location_id:
             current_location = Location.objects.get(pk=resource_current_location_id)
+        arr = None
         if not affects:
             if create_resource:
                 if not resource_note:
@@ -162,6 +192,8 @@ class CreateEconomicEvent(AuthedMutation):
                     resource_image = ""
                 if not resource_tracking_identifier:
                     resource_tracking_identifier = ""
+                if not resource_url:
+                    resource_url = ""
                 affects = EconomicResourceProxy(
                     resource_type=affected_resource_classification,
                     quantity=Decimal(affected_numeric_value),
@@ -169,6 +201,7 @@ class CreateEconomicEvent(AuthedMutation):
                     identifier=resource_tracking_identifier,
                     current_location=current_location,
                     notes=resource_note,
+                    url=resource_url,
                     created_by=context.user,
                     #location
                 )
@@ -194,7 +227,18 @@ class CreateEconomicEvent(AuthedMutation):
         user_agent = AgentUser.objects.get(user=context.user).agent
         is_authorized = user_agent.is_authorized(object_to_mutate=economic_event)
         if is_authorized:
-            economic_event.save_api(user=context.user, create_resource=create_resource)
+            economic_event.save_api(user=context.user, create_resource=create_resource)                
+            #find the first "owner" type resource-agent role, use it for a relationship so inventory will show up #TODO: make more coherent when VF does so
+            if create_resource:
+                roles = AgentResourceRoleType.objects.filter(is_owner=True)
+                if roles and receiver:
+                    owner_role = roles[0]
+                    arr = AgentResourceRole(
+                        agent=receiver,
+                        resource=affects,
+                        role=owner_role,
+                    )
+                    arr.save()
         else:
             raise PermissionDenied('User not authorized to perform this action.')
 
@@ -273,6 +317,8 @@ class UpdateEconomicEvent(AuthedMutation):
                 economic_event.is_contribution = request_distribution
             if request_distribution is False:
                 economic_event.is_contribution = False
+            if url:
+                economic_event.url = url
             if fulfills_commitment_id:
                 economic_event.commitment = Commitment.objects.get(pk=fulfills_commitment_id)
             economic_event.changed_by = context.user
@@ -283,7 +329,6 @@ class UpdateEconomicEvent(AuthedMutation):
                 economic_event.save_api(user=context.user, old_quantity=old_quantity, old_resource=old_resource)
             else:
                 raise PermissionDenied('User not authorized to perform this action.')
-            
 
         return UpdateEconomicEvent(economic_event=economic_event)
 

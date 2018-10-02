@@ -115,6 +115,9 @@ span.empty {
   line-height: 34px;
   margin: 0px 1em;
 }
+.small {
+    font-size: 70%;
+}
 
 /*   M E M B E R S H I P   P R O C E S S   P A G E   */
 

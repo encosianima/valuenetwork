@@ -7,7 +7,7 @@
 
 import graphene
 import datetime
-from valuenetwork.valueaccounting.models import Process as ProcessProxy, EconomicAgent, AgentUser
+from valuenetwork.valueaccounting.models import Process as ProcessProxy, EconomicAgent, AgentUser, Order
 from valuenetwork.api.types.Process import Process
 from six import with_metaclass
 from django.contrib.auth.models import User
@@ -44,9 +44,10 @@ class CreateProcess(AuthedMutation):
     class Input(with_metaclass(AuthedInputMeta)):
         name = graphene.String(required=True)
         planned_start = graphene.String(required=True)
-        planned_duration = graphene.Int(required=True)
+        planned_finish = graphene.String(required=True)
         scope_id = graphene.Int(required=True)
         note = graphene.String(required=False)
+        plan_id = graphene.Int(required=True)
 
     process = graphene.Field(lambda: Process)
 
@@ -54,21 +55,24 @@ class CreateProcess(AuthedMutation):
     def mutate(cls, root, args, context, info):
         name = args.get('name')
         planned_start = args.get('planned_start')
-        planned_duration = args.get('planned_duration')
+        planned_finish = args.get('planned_finish')
         note = args.get('note')
         scope_id = args.get('scope_id')
+        plan_id = args.get('plan_id')
 
         if not note:
             note = ""
         start_date = datetime.datetime.strptime(planned_start, '%Y-%m-%d').date()
-        end_date = start_date + datetime.timedelta(days=planned_duration)
+        end_date = datetime.datetime.strptime(planned_finish, '%Y-%m-%d').date()
         scope = EconomicAgent.objects.get(pk=scope_id)
+        plan = Order.objects.get(pk=plan_id)
         process = ProcessProxy(
             name=name,
             start_date=start_date,
             end_date=end_date,
             notes=note,
             context_agent=scope,
+            plan=plan,
             created_by=context.user,
         )
 
@@ -78,8 +82,6 @@ class CreateProcess(AuthedMutation):
             process.save()  
         else:
             raise PermissionDenied('User not authorized to perform this action.')
-        
-        #TODO: add logic for inserting process into workflow plan
 
         return CreateProcess(process=process)
 
@@ -89,10 +91,11 @@ class UpdateProcess(AuthedMutation):
         id = graphene.Int(required=True)
         name = graphene.String(required=False)
         planned_start = graphene.String(required=False)
-        planned_duration = graphene.Int(required=False)
+        planned_finish = graphene.String(required=False)
         scope_id = graphene.Int(required=False)
         note = graphene.String(required=False)
         is_finished = graphene.Boolean(required=False)
+        plan_id = graphene.Int(required=False)
 
     process = graphene.Field(lambda: Process)
 
@@ -101,10 +104,11 @@ class UpdateProcess(AuthedMutation):
         id = args.get('id')
         name = args.get('name')
         planned_start = args.get('planned_start')
-        planned_duration = args.get('planned_duration')
+        planned_finish = args.get('planned_finish')
         note = args.get('note')
         scope_id = args.get('scope_id')
         is_finished = args.get('is_finished')
+        plan_id = args.get('plan_id')
 
         process = ProcessProxy.objects.get(pk=id)
         if process:
@@ -115,12 +119,15 @@ class UpdateProcess(AuthedMutation):
             if planned_start:
                 start_date = datetime.datetime.strptime(planned_start, '%Y-%m-%d').date()
                 process.start_date=start_date
-            if planned_duration:
-                end_date = process.start_date + datetime.timedelta(days=planned_duration)
+            if planned_finish:
+                end_date = datetime.datetime.strptime(planned_finish, '%Y-%m-%d').date()
                 process.end_date=end_date
             if scope_id:
                 scope = EconomicAgent.objects.get(pk=scope_id)
                 process.context_agent=scope
+            if plan_id:
+                plan = Order.objects.get(pk=plan_id)
+                process.plan=plan
             if is_finished != None:
                 process.finished=is_finished
             process.changed_by=context.user

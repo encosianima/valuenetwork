@@ -223,6 +223,12 @@ class APITest(TestCase):
             order_type="rand",
             )
         order1.save()
+        proc1.plan = order1
+        proc1.save()
+        proc2.plan = order1
+        proc2.save()
+        proc3.plan = order1
+        proc3.save()
         et_cite = EventType.objects.get(name="Citation")
         et_produce = EventType.objects.get(name="Resource Production")
         et_todo = EventType.objects.get(name="Todo")
@@ -712,6 +718,9 @@ class APITest(TestCase):
                   viewer(token: "''' + token + '''") {
                     process(id: 1) {
                         name
+                        processPlan {
+                          name
+                        }
                         processClassifiedAs {
                             name
                             scope {
@@ -922,7 +931,7 @@ class APITest(TestCase):
 
         result1 = schema.execute('''
                 mutation {
-                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedDuration: 7, scopeId: 2) {
+                  createProcess(token: "''' + token + '''", name: "Make something cool", plannedStart: "2017-07-07", plannedFinish: "2017-07-14", scopeId: 2, planId: 1) {
                     process {
                         name
                         scope {
@@ -930,6 +939,7 @@ class APITest(TestCase):
                         }
                         isFinished
                         plannedStart
+                        plannedFinish
                         plannedDuration
                     }
                   }
@@ -939,11 +949,12 @@ class APITest(TestCase):
         self.assertEqual(result1.data['createProcess']['process']['scope']['name'], "org1")
         self.assertEqual(result1.data['createProcess']['process']['isFinished'], False)
         self.assertEqual(result1.data['createProcess']['process']['plannedStart'], "2017-07-07")
+        self.assertEqual(result1.data['createProcess']['process']['plannedFinish'], "2017-07-14")
         self.assertEqual(result1.data['createProcess']['process']['plannedDuration'], "7 days, 0:00:00")
 
         result2 = schema.execute('''
                     mutation {
-                        updateProcess(token: "''' + token + '''", id: 4, plannedDuration: 10, isFinished: true) {
+                        updateProcess(token: "''' + token + '''", id: 4, plannedFinish: "2017-07-15", isFinished: true) {
                             process {
                                 name
                                 scope {
@@ -951,6 +962,7 @@ class APITest(TestCase):
                                 }
                                 isFinished
                                 plannedStart
+                                plannedFinish
                                 plannedDuration
                             }
                         }
@@ -961,7 +973,7 @@ class APITest(TestCase):
         self.assertEqual(result2.data['updateProcess']['process']['scope']['name'], "org1")
         self.assertEqual(result2.data['updateProcess']['process']['isFinished'], True)
         self.assertEqual(result2.data['updateProcess']['process']['plannedStart'], "2017-07-07")
-        self.assertEqual(result2.data['updateProcess']['process']['plannedDuration'], "10 days, 0:00:00")
+        self.assertEqual(result2.data['updateProcess']['process']['plannedDuration'], "8 days, 0:00:00")
 
         result3 = schema.execute('''
                     mutation {
@@ -1073,6 +1085,9 @@ query($token: String) {
       note
       type
       __typename
+      agentRecipes {
+        name
+      }
     }
   }
 }
@@ -1084,6 +1099,26 @@ query($token: String) {
       name
       image
       type
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    organizationClassification(id:8) {
+      id
+      name
+      note
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allOrganizationClassifications {
+      id
+      name
+      note
     }
   }
 }
@@ -1201,6 +1236,30 @@ query ($token: String) {
     agent(id: 39) {
       name
       agentRelationships(category: MEMBER) {
+        id
+        subject {
+          name
+          type
+        }
+        relationship {
+          label
+          category
+        }
+        object {
+          name
+          type
+        }
+      }
+    }
+  }
+}
+
+#also ...asSubject works
+query ($token: String) {
+  viewer(token: $token) {
+    agent(id: 39) {
+      name
+      agentRelationshipsAsObject {
         id
         subject {
           name
@@ -1629,18 +1688,33 @@ query($token: String) {
   }
 }
 
-query($token: String) {
+query ($token: String) {
   viewer(token: $token) {
     allResourceClassifications {
+      id
+      name
+      unit {
+        id
+        name
+        symbol
+      }
+      image
+      category
+      processCategory
+      note
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    allRecipes {
       id
       name
       image
       category
       processCategory
       note
-      classificationFacetValues {
-        name
-      }
     }
   }
 }
@@ -1717,9 +1791,9 @@ query($token: String) {
 
 query($token: String) {
   viewer(token: $token) {
-    economicResource(id: 26) {
+    economicResource(id: 157) {
       id
-      resourceClassiedAs {
+      resourceClassifiedAs {
         name
         category
       }
@@ -1732,6 +1806,7 @@ query($token: String) {
       }
       image
       category
+      url
       note
     }
   }
@@ -1798,6 +1873,37 @@ query ($token: String) {
         createdDate
         resourceClassifiedAs {
           name
+        }
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    agent (id:39) {
+      name
+      ownedEconomicResources(category: INVENTORY) {
+        owners {
+          name
+        }
+        resourceClassifiedAs {
+          name
+        }
+      }
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
+    agent(id:106) {
+      searchOwnedInventoryResources(searchString: "jam Jars lids") {
+        id
+        note
+        resourceClassifiedAs {
+          name
+          note
         }
       }
     }
@@ -1888,6 +1994,75 @@ query ($token: String) {
         transferQuantity {
           numericValue
           unit {
+            name
+          }
+        }
+      }
+    }
+  }
+}
+
+# kispagi
+# old
+query($token: String) {
+  viewer(token: $token) { agent(id:""" + str(project_id) + """) { name
+      agentProcesses {
+        name id  plannedStart plannedDuration
+        unplannedEconomicEvents { id note }
+        committedInputs { note id fulfilledBy { fulfilledBy { id }}}
+        inputs {
+          id start
+          provider {id name faircoinAddress} action note requestDistribution
+          affectedQuantity{ numericValue unit {name}} note
+          validations { id validationDate validatedBy { id name } }
+        }
+        processClassifiedAs {name} plannedDuration isFinished note
+      }
+    }
+  }
+}
+
+#new suggested
+query ($token: String) {
+  viewer(token: $token) {
+    agent(id: 39) {
+      id
+      name
+      agentEconomicEvents(action: "work", year: 2017, month: 9) {
+        id
+        start
+        requestDistribution
+        affectedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+        affects {
+          resourceClassifiedAs {
+            name
+            category
+          }
+          trackingIdentifier
+        }
+        provider {
+          id
+          name
+          faircoinAddress
+        }
+        note
+        inputOf {
+          id
+          name
+          processPlan {
+            id
+          }
+        }
+        validations {
+          id
+          validationDate
+          validatedBy {
+            id
             name
           }
         }
@@ -2006,6 +2181,7 @@ query($token: String) {
         id
         name
         plannedStart
+        plannedFinish
         plannedDuration
         isFinished
         note
@@ -2136,6 +2312,10 @@ query ($token: String) {
       planProcesses {
         name
       }
+      isDeletable
+      createdBy {
+        name
+      }
     }
   }
 }
@@ -2253,6 +2433,35 @@ query ($token: String) {
             name
           }
         }
+      }
+    }
+  }
+}
+
+query ($token: String) {
+  viewer(token: $token) {
+    filteredEconomicEvents (action: "give", resourceClassifiedAsId: 28, startDate: "2017-01-01", endDate: "2017-04-27", receiverId: 56, providerId: 26) {
+      id
+      action
+      start
+      affects {
+        resourceClassifiedAs {
+          id
+          name
+          category
+        }
+      }
+      provider {
+        id
+        name
+      }
+      receiver {
+        id
+        name
+      }
+      scope {
+        id
+        name
       }
     }
   }
@@ -2779,23 +2988,32 @@ query ($token: String) {
 ######################### SAMPLE MUTATIONS ###########################
 
 mutation ($token: String!) {
-  createProcess(token: $token, name: "Make some fudge", plannedStart: "2017-10-01", 
-    plannedDuration: 9, scopeId: 39, note: "testing") {
+  createProcess(token: $token, name: "Test planned finish", plannedStart: "2017-10-01", 
+    plannedFinish: "2017-10-10", scopeId: 39, note: "testing", planId: 62) {
     process {
       id
       name
       plannedStart
+      plannedFinish
+      processPlan {
+        name
+      }
     }
   }
 }
 
 mutation ($token: String!) {
-  updateProcess(token: $token, id: 50, 
-    plannedDuration: 10, isFinished: true) {
+  updateProcess(token: $token, id: 85, 
+    plannedFinish: "2017-10-12", isFinished: true, planId: 62) {
     process {
       name
       isFinished
+      plannedFinish
       plannedDuration
+      processPlan {
+        id
+        name
+      }
     }
   }
 }
@@ -2808,16 +3026,17 @@ mutation ($token: String!) {
   }
 }
 
-mutation ($token: String!) {
-  createCommitment(token: $token, action: "use", plannedStart: "2017-10-01", due: "2017-10-10",
+mutation ($token: String!) {  
+  createCommitment(token: $token, action: "use", plannedStart: "2018-10-01", due: "2018-10-10",
     scopeId: 39, note: "testing", committedResourceClassifiedAsId: 17, involvesId: 11, 
     committedNumericValue: "3.5", committedUnitId: 2, inputOfId: 6, planId: 52,
-    providerId: 79, receiverId: 39) {
+    providerId: 79, receiverId: 39, url: "http://www.test.coop") {
     commitment {
       id
       action
       plannedStart
       due
+      url
       inputOf {
         name
       }
@@ -2854,12 +3073,13 @@ mutation ($token: String!) {
 
 mutation ($token: String!) {
   updateCommitment(token: $token, plannedStart: "2017-10-03", due: "2017-10-12",
-    note: "testing more", committedNumericValue: "5.5", isFinished: true, id: 363) {
+    note: "testing more", committedNumericValue: "5.5", isFinished: true, id: 440, url: "http://www.testagain.coop") {
     commitment {
       id
       action
       plannedStart
       due
+      url
       inputOf {
         name
       }
@@ -2909,6 +3129,21 @@ mutation ($token: String!) {
       name
       due
       note
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createPlanFromRecipe(token: $token, name: "More Jam!", due: "2018-06-20", 
+    producesResourceClassificationId: 37, note: "test") {
+    plan {
+      id
+      name
+      due
+      note
+      planProcesses {
+        name
+      }
     }
   }
 }
@@ -2975,10 +3210,11 @@ mutation ($token: String!) {
 
 #creates a resource also
 mutation ($token: String!) {
-  createEconomicEvent(token: $token, action: "produce", start: "2017-10-01", scopeId: 39, 
+  createEconomicEvent(token: $token, action: "produce", start: "2017-10-07", scopeId: 39, 
     note: "testing new resource", affectedResourceClassifiedAsId: 37, affectedNumericValue: "30", 
     affectedUnitId: 4, outputOfId: 67, providerId: 39, receiverId: 39, createResource: true,
-    resourceNote: "new one", resourceImage: "rrr.com/image", resourceTrackingIdentifier: "432234") {
+    resourceNote: "new one", resourceImage: "rrr.com/image", resourceTrackingIdentifier: "test-url",
+    resourceUrl: "resource.com") {
     economicEvent {
       id
       action
@@ -2999,9 +3235,13 @@ mutation ($token: String!) {
         name
       }
       affects {
+        id
         trackingIdentifier
         resourceClassifiedAs {
           name
+        }
+        currentQuantity {
+          numericValue
         }
         note
       }
@@ -3157,7 +3397,7 @@ mutation ($token: String!) {
 
 mutation ($token: String!) {
   updateEconomicResource(token: $token, id: 128, trackingIdentifier: "xxxccc333", 
-    note: "testing more", resourceClassifiedAsId: 37, image: "xxx.com") {
+    note: "testing url", resourceClassifiedAsId: 37, image: "xxx.com", url: "rrr.com") {
     economicResource {
       id
       trackingIdentifier
@@ -3172,6 +3412,7 @@ mutation ($token: String!) {
       }
       note
       image
+      url
       currentLocation {
         id
       }
@@ -3198,6 +3439,39 @@ mutation ($token: String!) {
       primaryLocation {
         name
       }
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createOrganization(token: $token, type: "Organization", name: "test org 2") {
+    organization {
+      id
+      name
+      note
+      image
+      type
+      primaryLocation {
+        name
+      }
+      primaryPhone
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createPerson(token: $token, name: "anne person", note:"test", type: "Individual", primaryLocationId: 24, 
+    image: "https://testocp.freedomcoop.eu/site_media/media/photos/what_is_it.JPG", primaryPhone: "333-444-5555" ) {
+    person {
+      id
+      name
+      note
+      image
+      type
+      primaryLocation {
+        name
+      }
+      primaryPhone
     }
   }
 }
@@ -3233,7 +3507,7 @@ mutation ($token: String!) {
 }
 
 mutation ($token: String!) {
-  createValidation(token: $token, validatedById: 6, economicEventId: 392) {
+  createValidation(token: $token, validatedById: 6, economicEventId: 393, note: "test") {
     validation {
       id
       validatedBy {
@@ -3249,6 +3523,7 @@ mutation ($token: String!) {
         }
       }
       validationDate
+      note
     }
   }
 }
@@ -3257,6 +3532,44 @@ mutation ($token: String!) {
   deleteValidation(token: $token, id: 4) {
     validation {
       validationDate
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createAgentRelationship(token: $token, subjectId: 122, objectId: 119, 
+    relationshipId: 9, note: "test") {
+    agentRelationship {
+      id
+      subject {
+        name
+      }
+      relationship {
+        label
+      }
+      object {
+        name
+      }
+      note
+    }
+  }
+}
+
+mutation ($token: String!) {
+  updateAgentRelationship(token: $token, id: 275, subjectId: 122, objectId: 131, 
+    note: "test update") {
+    agentRelationship {
+      id
+      subject {
+        name
+      }
+      relationship {
+        label
+      }
+      object {
+        name
+      }
+      note
     }
   }
 }

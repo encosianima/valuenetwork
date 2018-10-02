@@ -6,7 +6,7 @@ from valuenetwork.valueaccounting.actions import export_as_csv
 admin.site.add_action(export_as_csv, 'export_selected objects')
 
 class MembershipRequestAdmin(admin.ModelAdmin):
-    list_display = ('name', 'state', 'agent', )
+    list_display = ('name', 'surname', 'requested_username', 'state', 'agent', )
 
 admin.site.register(MembershipRequest, MembershipRequestAdmin)
 
@@ -16,9 +16,10 @@ class SkillSuggestionAdmin(admin.ModelAdmin):
 admin.site.register(SkillSuggestion, SkillSuggestionAdmin)
 
 class JoinRequestAdmin(admin.ModelAdmin):
-    list_display = ('name', 'state', 'project', 'agent',)
+    list_display = ('id', 'name', 'state', 'project', 'agent', 'request_date', )
     #fields = ('name', 'state', 'project', 'agent',)
     #list_editable = ['state',]
+    list_filter = ['project']
 
 admin.site.register(JoinRequest, JoinRequestAdmin)
 

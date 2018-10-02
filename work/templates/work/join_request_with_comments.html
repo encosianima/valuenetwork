@@ -5,7 +5,7 @@
 {% load bootstrap_tags %}
 {% load comments %}
 
-{% block head_title %}{% trans "Project Join Request for " %} {{ jn_req.name }}{% endblock %}
+{% block head_title %}{{ agent.nick }} {% trans "join request of" %} {% if jn_req.agent %}{{ jn_req.agent.name }}{% else %}{{ jn_req.name }}{% endif %}{% endblock %}
 
 {% block extra_head %}
 
@@ -44,10 +44,30 @@
 .modal {
     width: 600px;
 }
-th
+/*th
 {
     background-color:#C8D6E8;
+}*/
+
+
+tr.fobi td em {
+    opacity: 0.5;
+    float: right;
 }
+tr.fobi td form textarea {
+    max-width: 99%;
+}
+tr.fobi td form button {
+    margin: 0px 10px;
+}
+tr.fobi td form select {
+    margin: 5px 0px;
+}
+
+a.more-link {
+    z-index: 9999;
+}
+
 #id_honeypot{display:none;}
 </style>
 
@@ -127,7 +147,7 @@ th
             </tr>
             <tr>
                 <th style="display:block; width:180px;">{% trans "Username" %}:</th>
-                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %} {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span> {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>{% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>{% endif %}{% endif %}</td>
+                <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %}</td>
             </tr>
             <tr>
                 <th>{% trans "Type" %}:</th>
@@ -135,7 +155,15 @@ th
             </tr>
             <tr>
                 <th>{% trans "Email" %}:</th>
-                <td>{% if req.email_address %} {{ req.email_address }} {% else %} {{ req.agent.email }} {% endif %}</td>
+                <td>{% if req.email_address %} {{ req.email_address }} {% else %} {{ req.agent.email }} {% endif %}
+                    {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span>
+                      {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>
+                      {% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>
+                        {% if user_agent is req.project.agent or user_agent in req.project.agent.managers %} {% if not messages %}<a id="resend" class="btn btn-primary btn-mini" href="{% url "resend_candidate_credentials" joinrequest_id=req.id %}" style="display:inline; position:relative; top:-1px;" >Resend Password</a> {% endif %}
+                        {% endif %}
+                      {% endif %}
+                    {% endif %}
+                </td>
             </tr>
             {% if req.phone_number or req.agent.phone_primary %}
               <tr>
@@ -159,7 +187,7 @@ th
               {% for obj in req.items_data %}
                 <tr class="fobi">
                   <th>{{ obj.key }}:</th>
-                  <td>{{ obj.val }}</td>
+                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}' {% elif obj.val %}data="{{ obj.val }}" {% endif %}>{% if obj.val %}{{ obj.val|linebreaks }}{% else %}{% endif %}</td>
                 </tr>
               {% endfor %}
             {% else %}
@@ -241,7 +269,17 @@ th
         {% if num_comm > 0 %}
           <div class="row-fluid">
             {% trans "You have " %} {{ num_comm }} {% trans " comments:" %}
-            {% render_comment_list for jn_req %}
+            {% get_comment_list for jn_req as comment_list %}
+              <dl id="comments">
+                {% for comment in comment_list %}
+                  <dt id="c{{ comment.id }}">
+                      {{ comment.submit_date }} - {{ comment.name }}
+                  </dt>
+                  <dd>
+                      {{ comment.comment|linebreaks }}
+                  </dd>
+                  {% endfor %}
+              </dl>
           </div>
         {% endif %}
         <div class="row-fluid">
@@ -271,12 +309,18 @@ th
 
 {% block extra_body %}
     {{ block.super }}
-    <script src="{% static "js/jquery.expander.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.expander.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.jeditable.mini.js" %}"></script>
     <script type="text/javascript">
 
     $(document).ready(function(){
 
-      $('th, td').each(function(e) {
+      $('#resend').click(function(){
+          $(this).text(' S e n d i n g . . . ');
+          $('body').attr('style', 'pointer-events:none; opacity:0.5; width:100%;');
+      });
+
+      /*$('th, td').each(function(e) {
         $(this).expander({
             slicePoint: 350,  // default is 100
             expandSpeed: 0,
@@ -287,7 +331,121 @@ th
             expandText:       '[...]', // default is 'read more'
             userCollapseText: '[^]'  // default is 'read less'
         });
-    });
+      });*/
+
+      {% if user_agent in agent.managers or user_agent == agent or request.user.is_superuser %}
+        $('.fobi td[typ="text"]').add('.fobi td[typ="integer"]').each(function(){
+            $(this).editable(
+                function(value, settings) {
+                   var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                       {id:$(this).attr('id'), value:value}
+                   );
+                   posting.done(function(data){
+                       if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                       } else {
+                           location = location;
+                       };
+                   }).fail(function(data) {
+                       console.log(data['statusText']);
+                       out = '';
+                       for(var d in data){
+                         out += d+': '+data[d]+' \n';
+                       };
+                       alert( "ERROR out: "+out );
+                   });
+                   return(value);
+                }
+                , {
+                  //submit : 'OK',
+                  type : 'text',
+                  tooltip : 'Click to edit...',
+                  placeholder : '<em>...click to write</em>',
+                  data: $(this).attr('data'),
+                }
+            );
+        });
+        $('.fobi td[typ="select"]').editable(
+            function(value, settings) {
+               var dr = JSON.parse($(this).attr('data').split("u'").join('"').split("'").join('"'));
+               var labl = dr[value];
+               //alert('type:'+typeof(labl)+' labl: '+labl);
+
+               var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                   {id:$(this).attr('id'), value:labl}
+               );
+               posting.done(function(data){
+                   if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                   } else {
+                       location = location;
+                   };
+               }).fail(function(data) {
+                   console.log(data['statusText']);
+                   out = '';
+                   for(var d in data){
+                     out += d+': '+data[d]+' \n';
+                   };
+                   alert( "ERROR out: "+out );
+               });
+               return(labl);
+            }
+            , {
+              submit : 'save',
+              type : 'select',
+              data : function(value, settings) {
+                  var d = $(this).attr('data');
+                  d = d.split("u'").join('"').split("'").join('"');
+                  /*var darr = d.split('", "');
+                  for(var da in darr){
+                      var dr = darr[da].split('": "');
+                      for(var r in dr){
+                          if(dr[r].split('"}').join('') == value.split('<p>').join('').split('</p>').join('')){
+                              //dr[0] = 'selected';
+                              d = d.split(dr[0]).join('selected');
+                              break;
+                              //alert(dr);
+                          }
+                      }
+                      //alert(value);
+                  };*/
+                  //alert('d:'+d+' value:'+value);
+                  return d; //JSON.parse(d); //decodeURIComponent(JSON.parse(d));
+                },
+              tooltip : 'Click to edit...',
+              //placeholder : '<em>...click to write</em>',
+            }
+        );
+        $('.fobi td[typ="textarea"]').attr('class','edit_area').each(function(){
+            $(this).editable(
+                function(value, settings) {
+                   var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                       {id:$(this).attr('id'), value:value}
+                   );
+                   posting.done(function(data){
+                       if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                       } else {
+                           location = location;
+                       };
+                   }).fail(function(data) {
+                       console.log(data['statusText']);
+                       out = '';
+                       for(var d in data){
+                         out += d+': '+data[d]+' \n';
+                       };
+                       alert( "ERROR out: "+out );
+                   });
+                   return(value.split('\n').join('<br>'));
+                }
+                , {
+                  submit : 'save',
+                  type : 'textarea',
+                  tooltip : 'Click to edit...',
+                  placeholder : '<em>...click to write</em>',
+                  data: $(this).attr('data'),
+                }
+            );
+        });
+        $('.fobi th').css('background-color','#f9f9e2');
+       {% endif %}
 
     }); // end document.ready
 

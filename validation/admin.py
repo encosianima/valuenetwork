@@ -6,6 +6,6 @@ from validation.models import *
 
 
 class ValidationAdmin(admin.ModelAdmin):
-    list_display = ('event', 'validated_by', 'validation_date')
+    list_display = ('event', 'validated_by', 'validation_date', 'note')
 
 admin.site.register(Validation, ValidationAdmin)

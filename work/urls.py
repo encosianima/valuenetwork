@@ -94,6 +94,10 @@ urlpatterns = [
     url(r"^edit-relations/(?P<agent_id>\d+)/$", work.views.edit_relations, name="edit_relations"),
     url(r'^join-project/(?P<project_id>\d+)/$', work.views.join_project,
         name="join_project"),
+    url(r'^edit-form-field/(?P<joinrequest_id>\d+)/$', work.views.edit_form_field_data,
+        name="edit_form_field_data"),
+    url(r'^resend-candidate-credentials/(?P<joinrequest_id>\d+)/$', work.views.resend_candidate_credentials,
+        name="resend_candidate_credentials"),
 
     url(r'^connect-agent-to-join-request/(?P<agent_id>\d+)/(?P<join_request_id>\d+)/$', work.views.connect_agent_to_join_request,
         name="connect_agent_to_join_request"),
@@ -116,7 +120,13 @@ urlpatterns = [
         name="create_account_for_join_request"),
     # url(r"^comments/$", work.views.comments, name="comments"),
 
+    url(r'^delete-request-agent-user/(?P<join_request_id>\d+)/$', work.views.delete_request_agent_and_user,
+        name="delete_request_agent_and_user"),
+
     url(r'^payment-url/(?P<paymode>.+)/(?P<join_request_id>\d+)/$', work.views.payment_url, name="payment_url"),
+
+    url(r'^create-shares-exchange-types/(?P<agent_id>\d+)/$', work.views.create_shares_exchange_types, name="create_shares_exchange_types"),
+    url(r'^create-project-shares/(?P<agent_id>\d+)/$', work.views.create_project_shares, name="create_project_shares"),
 
     url(r'^share-payment/(?P<agent_id>\d+)/$', work.views.share_payment, name="share_payment"),
     url(r"^validate-nick/$", work.views.validate_nick, name="validate_nick"),

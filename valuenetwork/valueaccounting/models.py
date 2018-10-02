@@ -316,6 +316,7 @@ class Location(models.Model):
 
 class AgentTypeManager(models.Manager):
 
+    #note the following context agent methods are not valid, context agent flag is on agent now
     def context_agent_types(self):
         return AgentType.objects.filter(is_context=True)
 
@@ -368,11 +369,15 @@ class AgentType(models.Model):
             if updated:
                 agent_type.save()
                 if verbosity > 1:
-                    print "Updated %s AgentType" % name
+                    print "- Updated %s AgentType" % name
         except cls.DoesNotExist:
             cls(name=name, party_type=party_type, is_context=is_context).save()
             if verbosity > 1:
-                print "Created %s AgentType" % name
+                print "- Created %s AgentType" % name
+
+    @property #ValueFlows
+    def note(self):
+        return self.description
 
 
 class AgentAccount(object):
@@ -536,6 +541,10 @@ class EconomicAgent(models.Model):
         return self.description
 
     @property #ValueFlows
+    def primary_phone(self):
+        return self.phone_primary
+
+    @property #ValueFlows
     def type(self):
         tp = self.agent_type.name
         if tp == "Individual":
@@ -552,7 +561,29 @@ class EconomicAgent(models.Model):
         if context_agent_id:
             context_agent = EconomicAgent.objects.get(pk=context_agent_id)
         elif object_to_mutate:
-            context_agent = object_to_mutate.context_agent
+            if type(object_to_mutate) is Order: #orders do not have a context agent if not created from recipe
+                if object_to_mutate.pk: #update or delete
+                    if object_to_mutate.created_by == user:
+                        return True
+                    else:
+                        return False
+                else: #create not from recipe
+                    return True
+            elif type(object_to_mutate) is EconomicResource:
+                #arr = object_to_mutate. #TODO: add auth for resource (what?)
+                return True
+            elif type(object_to_mutate) is AgentAssociation:
+                #TODO: probably needs more definition, possibly including joining options; maybe a separate method....
+                if object_to_mutate.is_associate == self:
+                    return True
+                if object_to_mutate.has_associate == self:
+                    return True
+                if object_to_mutate.is_associate.is_context:
+                    context_agent = object_to_mutate.is_associate
+                elif object_to_mutate.has_associate.is_context:
+                    context_agent = object_to_mutate.has_associate
+            else:
+                context_agent = object_to_mutate.context_agent
         else:
             return False
         if context_agent not in self.is_member_of():
@@ -855,6 +886,14 @@ class EconomicAgent(models.Model):
     def score(self):
         return sum(art.score for art in self.resource_types.all())
 
+    def skills(self):
+        arts = self.resource_types.all()
+        rts = []
+        for art in arts:
+            if art.resource_type not in rts:
+                rts.append(art.resource_type)
+        return rts
+
     def contributions(self):
         return self.given_events.filter(is_contribution=True)
 
@@ -930,6 +969,9 @@ class EconomicAgent(models.Model):
             if proc.independent_demand():
                 if proc.independent_demand() not in plans:
                     plans.append(proc.independent_demand())
+            elif proc.plan:
+                if proc.plan not in plans:
+                    plans.append(proc.plan)
         plans.sort(lambda x, y: cmp(x.due_date, y.due_date))
         return plans
 
@@ -1100,23 +1142,23 @@ class EconomicAgent(models.Model):
             agents.extend([ocp])
         return list(set(agents))
 
-    def related_context_queryset(self):
+    def related_contexts_queryset(self):
         ctx_ids = [ctx.id for ctx in self.related_contexts()]
         return EconomicAgent.objects.filter(id__in=ctx_ids)
 
-    def related_agents_queryset(self):
-        ctx_ids = [ctx.id for ctx in self.related_contexts()]
-        return EconomicAgent.objects.filter(id__in=ctx_ids, is_context=True)
+    #def related_agents_queryset(self):
+    #    ctx_ids = [ctx.id for ctx in self.related_contexts()]
+    #    return EconomicAgent.objects.filter(id__in=ctx_ids, is_context=True)
 
     def related_all_contexts_queryset(self, agent=None, childs=True):
         ctx_ids = [ctx.id for ctx in self.related_all_contexts(childs)]
-        if agent:
+        if agent and not agent.id in ctx_ids:
           ctx_ids.append(agent.id)
         return EconomicAgent.objects.filter(id__in=ctx_ids)
 
     def related_all_agents_queryset(self, agent=None, childs=True):
         ctx_ids = [ctx.id for ctx in self.related_all_agents(childs)]
-        if agent:
+        if agent and not agent.id in ctx_ids:
           ctx_ids.append(agent.id)
         return EconomicAgent.objects.filter(id__in=ctx_ids)
 
@@ -1169,27 +1211,26 @@ class EconomicAgent(models.Model):
         return resp
 
     def need_exchanges(self):
-        resp = True
+        resp = False # True
         ags = self.related_contexts()
-        add = 0
-        if self.is_context and self in ags:
-            if len(ags) > 1:
-                add = 1
-            #ags.append(self)
-        noneed = []
+        #add = 0
+        #if self.is_context and self in ags:
+        #    if len(ags) > 1:
+        #        add = 1
+        need = [] #noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
-                    if not 'exchanges' in ag.project.services():
-                        noneed.append(ag)
+                    if 'exchanges' in ag.project.services(): # if not
+                        resp = True #noneed.append(ag)
                 else:
-                    noneed.append(ag)
+                    pass #noneed.append(ag)
             except:
                 pass
-        if len(ags)-add == len(noneed):
-            resp = False
-        if self in noneed:
-            resp = False
+        #if len(ags)-add == len(noneed):
+        #    resp = False
+        #if self in noneed:
+        #    resp = False
         return resp
 
     def need_projects(self):
@@ -1205,29 +1246,48 @@ class EconomicAgent(models.Model):
         return resp
 
     def need_tasks(self):
-        resp = True
+        resp = False #True
         ags = self.related_contexts()
-        add = 0
-        if self.is_context and self in ags:
-            if len(ags) > 1:
-                add = 1
-            #ags.append(self)
-        noneed = []
+        #add = 0
+        #if self.is_context and self in ags:
+        #    if len(ags) > 1:
+        #        add = 1
+        #noneed = []
         for ag in ags:
             try:
                 if ag.project and ag.project.services():
-                    if not 'tasks' in ag.project.services():
-                        noneed.append(ag)
+                    if 'tasks' in ag.project.services(): # if not
+                        resp = True #noneed.append(ag)
                 #else:
                 #    noneed.append(ag)
             except:
                 pass
-        if len(ags)-add == len(noneed):
-            resp = False
-        if self in noneed:
-            resp = False
+        #if len(ags)-add == len(noneed):
+        #    resp = False
+        #if self in noneed:
+        #    resp = False
         if not self.is_participant():
             resp = False
+        return resp
+
+    def need_multicurrency(self):
+        resp = False
+        ags = self.related_contexts()
+        add = 0
+        if self.is_context and not self in ags:
+            ags.append(self)
+        need = []
+        for ag in ags:
+            try:
+                if ag.project and ag.project.services():
+                    if 'multicurrency' in ag.project.services():
+                        need.append(ag)
+            except:
+                pass
+        if len(need):
+            resp = True
+
+        #import pdb; pdb.set_trace()
         return resp
 
     def invoicing_candidates(self):
@@ -1252,8 +1312,9 @@ class EconomicAgent(models.Model):
         else:
           return False
 
-    def used_units_ids(self):
-        exs = Exchange.objects.exchanges_by_type(self)
+    def used_units_ids(self, exs=None):
+        if not exs:
+            exs = Exchange.objects.exchanges_by_type(self)
         uids = []
         for ex in exs:
           txs = ex.transfers.all()#filter(events__unit_of_value__ocp_unit_type__isnull=False) #exchange_type.transfer_types.all()
@@ -1401,14 +1462,12 @@ class EconomicAgent(models.Model):
         parents = EconomicAgent.objects.filter(pk__in=parent_ids)
         return parents
 
-    def children(self): #returns a list or None
-        associations = self.has_associates.filter(association_type__association_behavior="child").filter(state="active")
-        children = None
-        if associations.count() > 0:
-            children = []
-            for association in associations:
-                children.append(association.from_agent)
-        return children
+    #def children(self): #TODO: not tested
+    #    associations = self.has_associates.filter(association_type__association_behavior="child").filter(state="active")
+    #    children = []
+    #    for association in associations:
+    #        children.append(association.has_associate)
+    #    return children
 
     def is_root(self):
         if self.parent():
@@ -1564,9 +1623,38 @@ class EconomicAgent(models.Model):
             resource__resource_type__behavior="account")
         return [var.resource for var in vars]
 
+    def owned_accounts(self):
+        vars = self.agent_resource_roles.filter(role__is_owner=True).filter(
+            Q(resource__resource_type__behavior="account") | Q(resource__resource_type__behavior="dig_acct")
+        ).distinct()
+        return [var.resource for var in vars]
+
     def owned_resources(self):
         arrs = self.agent_resource_roles.filter(role__is_owner=True).exclude(resource__quantity=0)
         return [arr.resource for arr in arrs]
+
+    #TODO: this is too simple, would be good to eliminate non-searchable words, manage ""'d words, search whole words only, etc.
+    #used for inventory type resources only
+    def search_owned_resources(self, search_string, also_search_children=True):
+        resources = self.owned_resources()
+        if also_search_children:
+            children = self.with_all_sub_agents()
+            for child in children:
+                resources.extend(child.owned_resources())
+        answer = []
+        strings = search_string.lower().split(" ")
+        for res in resources:
+            if res.resource_type.inventory_rule == "yes":
+                for string in strings:
+                    if string in res.resource_type.name.lower():
+                        answer.append(res)
+                    elif string in res.resource_type.description.lower():
+                        answer.append(res)
+                    elif string in res.notes.lower():
+                        answer.append(res)
+                    elif string in res.identifier.lower():
+                        answer.append(res)
+        return list(set(answer))
 
     def owned_currency_resources(self):
         arrs = self.agent_resource_roles.filter(role__is_owner=True).exclude(
@@ -1587,6 +1675,14 @@ class EconomicAgent(models.Model):
             Q(resource__resource_type__behavior="produced")).exclude(
             resource__quantity=0)
         return [arr.resource for arr in arrs]
+
+    def owned_inventory_resources_with_subs(self):
+        agents = self.with_all_sub_agents()
+        resources = []
+        for agent in agents:
+            ress = agent.owned_inventory_resources()
+            resources.extend(ress)
+        return resources
 
     def create_virtual_account(self, resource_type):
         role_types = AgentResourceRoleType.objects.filter(is_owner=True)
@@ -1694,7 +1790,13 @@ class EconomicAgent(models.Model):
 
     def all_active_associations(self):
         return AgentAssociation.objects.filter(
-            Q(has_associate=self ) | Q(is_associate=self)).filter(state="active")
+            Q(has_associate=self ) | Q(is_associate=self)).filter(state="active").order_by('association_type__name', 'has_associate__name')
+
+    def active_associates_as_subject(self):
+        return AgentAssociation.objects.filter(is_associate=self).filter(state="active").order_by('association_type__name', 'has_associate__name')
+
+    def active_associates_as_object(self): #has_associates
+        return AgentAssociation.objects.filter(has_associate=self).filter(state="active").order_by('association_type__name', 'has_associate__name')
 
     def active_association_types(self):
         assocs = self.all_active_associations()
@@ -1906,18 +2008,22 @@ class AgentAssociationType(models.Model):
             return "none"
 
 
-from django.db.models.signals import post_migrate
+#from django.db.models.signals import post_migrate
+#from valuenetwork.valueaccounting.apps import ValueAccountingAppConfig
 
 #def create_agent_types(app, **kwargs):
 #    if app != "valueaccounting":
 #        return
 def create_agent_types(**kwargs):
     AgentType.create('Individual', 'individual', False)
-    AgentType.create('Organization', 'org', False)
+    AgentType.create('Organization', 'org', True)
     AgentType.create('Network', 'network', True)
+    AgentType.create('Project', 'team', True)
+    #AgentType.create('Community', 'community', True)
+    AgentType.create('Company', 'company', True)
     print "created agent types"
 
-#post_migrate.connect(create_agent_types)
+#post_migrate.connect(create_agent_types, sender=ValueAccountingAppConfig)
 
 #def create_agent_association_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -1929,7 +2035,7 @@ def create_agent_association_types(**kwargs):
     AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer')
     print "created agent association types"
 
-#post_migrate.connect(create_agent_association_types)
+#post_migrate.connect(create_agent_association_types, sender=ValueAccountingAppConfig)
 
 RELATIONSHIP_STATE_CHOICES = (
     ('active', _('active')),
@@ -2057,6 +2163,8 @@ class EventTypeManager(models.Manager):
             return EventType.objects.get(name="Give")
         elif action == "take":
             return EventType.objects.get(name="Receive")
+        elif action == "adjust":
+            return EventType.objects.get(name="Adjust Quantity")
         else:
             return "NONE"
 
@@ -2151,6 +2259,8 @@ class EventType(models.Model):
             return "give"
         elif self.name == "Receive":
             return "take"
+        elif self.name == "Adjust Quantity":
+            return "adjust"
         else:
             return self.label
 
@@ -2275,11 +2385,32 @@ class ResourceClass(models.Model):
 
 class EconomicResourceTypeManager(models.Manager):
 
+    def resource_types_with_recipes(self, context_agent=None):
+        resource_types = []
+        if context_agent:
+            candidate_resource_types = context_agent.get_resource_types_with_recipe()
+            for rt in candidate_resource_types:
+                if rt.recipe_needs_starting_resource():
+                    rt.onhand_resources = []
+                    onhand = rt.onhand_for_resource_driven_recipe()
+                    if onhand:
+                        resource_types.append(rt)
+                        for oh in onhand:
+                            rt.onhand_resources.append(oh)
+                else:
+                    resource_types.append(rt)
+        else:
+            rts = EconomicResourceType.objects.all()
+            for rt in rts:
+                if rt.process_types.filter(event_type__relationship='out'):
+                    resource_types.append(rt)
+        return resource_types
+
     def membership_share(self):
         try:
-            share = EconomicResourceType.objects.get(name="Membership Share")
+            share = EconomicResourceType.objects.get(name="FreedomCoop Share")
         except EconomicResourceType.DoesNotExist:
-            raise ValidationError("Membership Share does not exist by that name")
+            raise ValidationError("FreedomCoop Share does not exist by that name")
         return share
 
     #moved this logic from views for use in api
@@ -2845,6 +2976,43 @@ class EconomicResourceType(models.Model):
             return True
         return False
 
+    def generate_mfg_work_order(self, order_name, due_date, created_by):
+        #made from code in view plan_from_recipe but simplified to minimum requirement
+        today = datetime.date.today()
+        due = datetime.datetime.strptime(due_date, '%Y-%m-%d').date()
+        demand = Order(
+            order_type="rand",
+            order_date=today,
+            due_date=due,
+            name=order_name,
+            created_by=created_by)
+        demand.save()
+
+        ptrt, inheritance = self.main_producing_process_type_relationship()
+        et = ptrt.event_type
+        if et:
+            commitment = demand.add_commitment(
+                resource_type=self,
+                #Todo: apply selected_context_agent here? Only if inheritance?
+                context_agent=ptrt.process_type.context_agent,
+                quantity=ptrt.quantity,
+                event_type=et,
+                unit=self.unit,
+                description=ptrt.description or "",
+                stage=ptrt.stage,
+                state=ptrt.state,
+                due=demand.due_date,
+                )
+            commitment.created_by=created_by
+            commitment.save()
+
+            process = commitment.generate_producing_process(created_by, [], inheritance=inheritance, explode=True)
+
+        #TODO: add notifications here if wanted, see view
+
+        return demand
+
+
     def generate_staged_work_order(self, order_name, start_date, user):
         #pr changed
         pts, inheritance = self.staged_process_type_sequence()
@@ -2858,7 +3026,7 @@ class EconomicResourceType(models.Model):
         processes = []
         new_start_date = start_date
         for pt in pts:
-            p = pt.create_process(new_start_date, user, inheritance)
+            p = pt.create_process(new_start_date, user, inheritance, order)
             new_start_date = p.end_date
             processes.append(p)
         if processes:
@@ -2889,7 +3057,7 @@ class EconomicResourceType(models.Model):
         processes = []
         new_start_date = start_date
         for pt in pts:
-            p = pt.create_process(new_start_date, user)
+            p = pt.create_process(new_start_date, user, order=order)
             new_start_date = p.end_date
             processes.append(p)
         if processes:
@@ -2927,7 +3095,7 @@ class EconomicResourceType(models.Model):
         processes = []
         new_start_date = start_date
         for pt in pts:
-            p = pt.create_process(new_start_date, user, inheritance)
+            p = pt.create_process(new_start_date, user, inheritance, order)
             new_start_date = p.end_date
             processes.append(p)
         if processes:
@@ -3768,7 +3936,7 @@ def create_use_cases(**kwargs):
     UseCase.create('demand_xfer', _('Outgoing Exchange'))
     print "created use cases"
 
-#post_migrate.connect(create_use_cases)
+#post_migrate.connect(create_use_cases, sender=ValueAccountingAppConfig)
 
 #def create_event_types(app, **kwargs):
 #    if app != "valueaccounting":
@@ -3811,7 +3979,7 @@ def create_event_types(**kwargs):
 
     print "created event types"
 
-#post_migrate.connect(create_event_types)
+#post_migrate.connect(create_event_types, sender=ValueAccountingAppConfig)
 
 class UseCaseEventType(models.Model):
     use_case = models.ForeignKey(UseCase,
@@ -3906,7 +4074,7 @@ def create_usecase_eventtypes(**kwargs):
 
     print "created use case event type associations"
 
-#post_migrate.connect(create_usecase_eventtypes)
+#post_migrate.connect(create_usecase_eventtypes, sender=ValueAccountingAppConfig)
 
 
 class PatternUseCase(models.Model):
@@ -4052,6 +4220,17 @@ class Order(models.Model):
         procs = self.unordered_processes()
         return len(list(procs))
 
+    def is_deletable(self):
+        answer = True
+        for proc in self.unordered_processes():
+            if not proc.is_deletable():
+                answer = False
+                break
+        if answer:
+            ex = self.exchange()
+            if ex:
+                answer = ex.is_deletable()
+        return answer
 
     @models.permalink
     def get_absolute_url(self):
@@ -4081,6 +4260,11 @@ class Order(models.Model):
                 name = str(self.id)
         return name
 
+    @property #ValueFlows
+    def created_by_agent(self):
+        agent_user = AgentUser.objects.get(user=self.created_by)
+        return agent_user.agent
+
     def delete_api(self):
         evs = self.all_events()
         if len(evs) == 0:
@@ -4107,6 +4291,11 @@ class Order(models.Model):
                 self.delete()
         else:
             raise ValidationError("Cannot delete a plan with economic events recorded.")
+
+    #def is_deletable(self):
+    #    if self.all_events():
+    #        return False
+    #    return True
 
     #TODO this is a start at something, check if it is still useful
     #assumes the order itself is already saved (adapted from view plan_from_recipe)
@@ -4351,16 +4540,18 @@ class Order(models.Model):
 
     def all_processes(self):
         # this method includes only processes for this order
-        deliverables = self.commitments.filter(event_type__relationship="out")
-        if deliverables:
-            processes = [d.process for d in deliverables if d.process]
-        else:
-            processes = []
-            commitments = Commitment.objects.filter(independent_demand=self)
-            for c in commitments:
-                if c.process:
-                    processes.append(c.process)
-            processes = list(set(processes))
+        processes = Process.objects.filter(plan=self)
+        if not processes:
+            deliverables = self.commitments.filter(event_type__relationship="out")
+            if deliverables:
+                processes = [d.process for d in deliverables if d.process]
+            else:
+                processes = []
+                commitments = Commitment.objects.filter(independent_demand=self)
+                for c in commitments:
+                    if c.process:
+                        processes.append(c.process)
+                processes = list(set(processes))
         ends = []
         for proc in processes:
             if not proc.next_processes_for_order(self):
@@ -4377,11 +4568,13 @@ class Order(models.Model):
     def unordered_processes(self):
         #this cd be cts = order.dependent_commitments.all()
         # or self.all_dependent_commitments()
-        cts = Commitment.objects.filter(independent_demand=self)
-        processes = set()
-        for ct in cts:
-            if ct.process:
-                processes.add(ct.process)
+        processes = Process.objects.filter(plan=self)
+        if not processes:
+            cts = Commitment.objects.filter(independent_demand=self)
+            processes = set()
+            for ct in cts:
+                if ct.process:
+                    processes.add(ct.process)
         return processes
 
     def all_dependent_commitments(self):
@@ -4604,7 +4797,7 @@ class ProcessType(models.Model):
     def color(self):
         return "blue"
 
-    def create_process(self, start_date, user, inheritance=None):
+    def create_process(self, start_date, user, inheritance=None, order=None):
         #pr changed
         end_date = start_date + datetime.timedelta(minutes=self.estimated_duration)
         process = Process(
@@ -4616,6 +4809,7 @@ class ProcessType(models.Model):
             url=self.url,
             start_date=start_date,
             end_date=end_date,
+            plan=order,
         )
         process.save()
         input_ctypes = self.all_input_resource_type_relationships()
@@ -5018,6 +5212,18 @@ class EconomicResourceManager(models.Manager):
 
     def all_economic_resources(self):
         return EconomicResource.objects.all()
+
+    #def search(self, agent_id=None, search_string):
+    #    agent = None
+    #    if agent_id:
+    #        agent = EconomicAgent.objects.get(pk=agent_id)
+    #    if search_string = "" or search_string is None:
+    #        raise ValidationError("Search string is required.")
+    #    if agent:
+    #        rts = agent.
+    #    else:
+    #        rts = EconomicResourceType.objects.all()
+
 
 class EconomicResource(models.Model):
     resource_type = models.ForeignKey(EconomicResourceType,
@@ -6979,6 +7185,9 @@ class Process(models.Model):
         blank=True, null=True,
         limit_choices_to={"is_context": True,},
         verbose_name=_('context agent'), related_name='processes')
+    plan = models.ForeignKey(Order,
+        blank=True, null=True,
+        verbose_name=_('plan'), related_name='processes')
     url = models.CharField(_('url'), max_length=255, blank=True)
     start_date = models.DateField(_('start date'))
     end_date = models.DateField(_('end date'), blank=True, null=True)
@@ -7096,6 +7305,10 @@ class Process(models.Model):
     @property #ValueFlows
     def planned_start(self):
         return self.start_date
+
+    @property #for api, will propose for ValueFlows
+    def planned_finish(self):
+        return self.end_date
 
     @property #ValueFlows
     def planned_duration(self):
@@ -7813,6 +8026,7 @@ class Process(models.Model):
                             url=next_pt.url,
                             end_date=self.start_date,
                             start_date=start_date,
+                            plan=demand,
                         )
                         next_process.save()
                         #this is the output commitment
@@ -8312,11 +8526,69 @@ class ExchangeManager(models.Manager):
             exchanges = Exchange.objects.filter(use_case__identifier="intrnl_xfer")
         return exchanges
 
-    def exchanges_by_date_and_context(self, start, end, agent):
-        return Exchange.objects.filter(start_date__range=[start, end]).filter( Q(context_agent__isnull=False, context_agent=agent) | Q(transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct() # | Q(context_agent__isnull=False, context_agent=agent) ) # bumbum add Q's from and to agent, also for commitments
+    def exchanges_by_date_and_context(self, start, end, agent, exchanges_by_type=None):
+        if not exchanges_by_type:
+            exchanges_by_type = self.exchanges_by_type(agent)
+
+        count = len(exchanges_by_type)
+        #print "- ebdan start: "+str(start)+" end: "+str(end)+" agent: "+str(agent.id)+" exs: "+str(count)
+
+        exs_bdc = exchanges_by_type.filter(start_date__range=[start, end])
+        count2 = len(exs_bdc)
+        if not count == count2:
+            print "- filtered exchanges_by_date_and_context start: "+str(start)+" end: "+str(end)+" agent: "+str(agent)+" count: "+str(count)+" count2: "+str(count2)
+
+        return exs_bdc
 
     def exchanges_by_type(self, agent):
-        return Exchange.objects.filter( Q(context_agent__isnull=False, context_agent=agent) | Q(context_agent__isnull=True, transfers__events__isnull=False, transfers__events__from_agent=agent) | Q(transfers__events__isnull=False, transfers__events__to_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__from_agent=agent) | Q(transfers__commitments__isnull=False, transfers__commitments__to_agent=agent) ).distinct().order_by(Lower('exchange_type__ocp_record_type__name').asc()) # bumbum add Q's from and to agent, also for commitments
+        agids = [c.id for c in agent.related_contexts()]
+        agids2 = agids[:]
+        if not agent.id in agids:
+            agids.append(agent.id)
+        if agent.id in agids2:
+            agids2.remove(agent.id)
+        otheragids = [c.id for c in EconomicAgent.objects.all().exclude(id__in=agids)]
+        print "- ebt agent: "+str(agent)+" ("+str(agent.id)+") context:"+str(agent.is_context)+" agids2: "+str(agids2)
+
+        exs_bt = Exchange.objects.filter(
+          Q(transfers__events__isnull=True, transfers__commitments__isnull=True, context_agent__isnull=False, context_agent__id=agent.id) |
+          Q(transfers__events__isnull=True, transfers__commitments__isnull=True, exchange_type__context_agent__isnull=False, exchange_type__context_agent__id=agent.id) |
+          Q(transfers__events__isnull=False, transfers__events__from_agent__isnull=False, transfers__events__from_agent=agent) |
+          Q(transfers__events__isnull=False, transfers__events__to_agent__isnull=False, transfers__events__to_agent=agent) |
+          Q(transfers__commitments__isnull=False, transfers__commitments__from_agent__isnull=False, transfers__commitments__from_agent=agent) |
+          Q(transfers__commitments__isnull=False, transfers__commitments__to_agent__isnull=False, transfers__commitments__to_agent=agent)
+        ).distinct()#.order_by('created_date') #.exclude(
+            #~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
+            #~Q(context_agent__isnull=False, context_agent__id__in=agids)
+        #).order_by(Lower('exchange_type__ocp_record_type__name').asc())
+
+        # bum2: This filter seems not enough (why? its still a MISTERY !?) so we create the id list to exclude exts, depending on is_context
+
+        count = len(exs_bt)
+        if agent.is_context:
+            #print "- ebt context: "+str(agent)+" 1 exs:"+str(count)
+            exs_bt = exs_bt.exclude(
+                ~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
+            #    Q(context_agent__isnull=False, context_agent__id__in=agids2) |
+            #    Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent__id__in=agids2)
+            ) #.order_by('-start_date')
+            count2 = len(exs_bt)
+            if not count == count2:
+                print "- filtered exchanges_by_type context: "+str(agent)+" count1:"+str(count)+" count2: "+str(count2)
+        else:
+            #print "- ebt individual: "+str(agent)+" exs:"+str(count)
+            exs_bt = exs_bt.exclude(
+                Q(transfers__isnull=True, context_agent__isnull=False, context_agent__id__in=agids2) |
+                #Q(transfers__events__isnull=True, transfers__commitments__isnull=True,
+                Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent__id__in=otheragids) |
+                #Q(transfers__events__isnull=True, transfers__commitments__isnull=True,
+                Q(context_agent__isnull=False, context_agent__id__in=otheragids)
+            ) #.order_by('-start_date')
+            count2 = len(exs_bt)
+            if not count == count2:
+                print "- filtered exchanges_by_type individual: "+str(agent)+" count:"+str(count)+" coun2: "+str(count2)
+
+        return exs_bt #.order_by(Lower('exchange_type__ocp_record_type__name').asc())
 
 
 class Exchange(models.Model):
@@ -9086,7 +9358,7 @@ class Transfer(models.Model):
         return None
 
     @property #ValueFlows
-    def planned_start(self):
+    def planned_date(self):
         return self.transfer_date.isoformat()
 
     @property #ValueFlows
@@ -10826,6 +11098,7 @@ class Commitment(models.Model):
                     url=pt.url,
                     end_date=self.due_date,
                     start_date=start_date,
+                    plan=self.independent_demand,
                     created_by=user,
                 )
                 process.save()
@@ -11998,7 +12271,6 @@ class EconomicEvent(models.Model):
         ])
 
     def save(self, *args, **kwargs):
-
         from_agt = 'Unassigned'
         agent = self.from_agent
         context_agent = self.context_agent
@@ -12071,6 +12343,7 @@ class EconomicEvent(models.Model):
     def save_api(self, user, old_quantity=None, old_resource=None, create_resource=False): #additional logic from views
         if create_resource:
             self.resource.save_api(process=self.process, event_type=self.event_type, commitment=self.commitment)
+            self.resource = self.resource
         self.save()
         process = self.process
         if process:

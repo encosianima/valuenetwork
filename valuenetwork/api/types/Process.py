@@ -27,7 +27,7 @@ class ProcessClassification(DjangoObjectType):
 class Process(DjangoObjectType):
     scope = graphene.Field(lambda: types.Agent)
     planned_start = graphene.String(source='planned_start')
-    planned_duration = graphene.String(source='planned_duration')
+    planned_finish = graphene.String(source='planned_finish')
     is_started = graphene.Boolean(source='is_started')
     is_finished = graphene.Boolean(source='is_finished')
     process_classified_as = graphene.Field(ProcessClassification)
@@ -36,6 +36,8 @@ class Process(DjangoObjectType):
     class Meta:
         model = ProcessProxy
         only_fields = ('id', 'name')
+
+    planned_duration = graphene.String(source='planned_duration')
 
     is_deletable = graphene.Boolean()
 
@@ -77,7 +79,7 @@ class Process(DjangoObjectType):
         return formatAgent(self.scope)
 
     def resolve_process_plan(self, args, *rargs):
-        return self.independent_demand()
+        return self.plan  #self.independent_demand()
 
     def resolve_process_classified_as(self, args, *rargs):
         return self.process_type

@@ -56,6 +56,10 @@ STATIC_URL = "/static/"
 
 #and you can override any other settings in settings.py
 
+# custom log file position
+settings.LOGGING['handlers']['applogfile']['filename'] = '/home/ocp/logs/ocp_debug.log' # put your desired path!
+
+
 # to run the multicurrency service you need to define the connection details with chipchap
 MULTICURRENCY = {
       'client_id': '',
@@ -65,6 +69,7 @@ MULTICURRENCY = {
       'url_client': "",
       'url_history': "",
       'url_balance': "",
+      'url_new_user': "",
 }
 
 DEFAULT_FROM_EMAIL = ""
@@ -128,9 +133,12 @@ PROJECTS_LOGIN = {
             'custom.domains.of.the.project',
             '127.0.0.1:8000'
         ],
-        'server_email': {
-            'address': 'email@address.test',
-            'password': ''
+        'smtp': {
+            'host': '', # put the smtp server host name
+            'username': '', # put the smtp host username
+            'password': '', # put the smtp host password
+            'port': 587, # change to your port
+            'use_tls': True # set TLS to True or False
         }
     },
     'another-project-slug': {
@@ -149,9 +157,12 @@ PROJECTS_LOGIN = {
             'custom.domain.of.another.project',
             #'127.0.0.1:8000'
         ],
-        'server_email': {
-            'address': '',
-            'password': ''
+        'smtp': {
+            'host': '', # put the smtp server host name
+            'username': '', # put the smtp host username
+            'password': '', # put the smtp host password
+            'port': 587, # change to your port
+            'use_tls': True # set TLS to True or False
         }
     }
 }

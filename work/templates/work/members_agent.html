@@ -10,12 +10,9 @@
 {% with user_agent as user %}
 
 {% block head_title %}
-{% if user in agent.managers %}
-{% trans "Your Project" %}: {{ agent.name }}
-{% else $}
-{% trans "Other Agent" %}: {{ agent.name }}
-{% endif %}
+  {{ agent.name }}
 {% endblock %}
+
 
 {% block extra_head %}
 
@@ -237,7 +234,7 @@
                 {% endif %}
                 {% if user_agent in agent.managers or user_agent == agent %}
                     {% for arr in agent.resource_relationships %}
-                        {% if arr.resource.resource_type.ocp_artwork_type.clas == 'MulticurrencyAuth' %}
+                        {% if arr.resource.resource_type.ocp_artwork_type.clas == 'MulticurrencyAuth' and agent.need_multicurrency %}
                           {% if agent.multicurrencyauth_set.count %}
 
                           {% else %}
@@ -273,15 +270,27 @@
             {% endif %}
 
             {% if user_agent in agent.managers or user_agent == agent or user.is_staff %}
+                {% if agn_form.errors %}
+                  <div class="error">{% trans "error found!" %}
+                  {% for fil in agn_form %}
+                    {% if fil.errors and not fil.name == 'name' and not fil.name == 'nick' and not fil.name == 'email' %}
+                        {{ fil.name }}: {{ fil.errors }}
+                    {% endif %}
+                  {% endfor %}
+                  </div>
+                {% endif %}
                 <div class="modal hide fade" id="agentChangeForm" tabindex="-1" role="dialog" aria-labelledby="agent-change-label" aria-hidden="true">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                         <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form enctype="multipart/form-data" action="{% url 'change_your_project' agent_id=agent.id %}" method="POST" >
+                        <form id="agentForm" enctype="multipart/form-data" action="{% url 'members_agent' agent_id=agent.id %}" method="POST" name="{{ agent.id }}" >
                             {% csrf_token %}
-                            {{ change_form|as_bootstrap }}
+                            {{ agn_form|as_bootstrap }}
+                            {% if pro_form %}
+                                {{ pro_form|as_bootstrap }}
+                            {% endif %}
                             <div class="modal-footer">
                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                             <button class="btn btn-primary">{% trans "Save changes" %}</button>
@@ -329,7 +338,7 @@
                             <h3 id="upload-label">{% trans "Upload Picture for " %} {{ agent.name }}</h3>
                         </div>
                         <div class="modal-body">
-                            <form enctype="multipart/form-data" action="{% url "upload_picture" agent_id=agent.id %}" method="POST" >
+                            <form id="uploadForm" enctype="multipart/form-data" action="{% url "upload_picture" agent_id=agent.id %}" method="POST" >
                                 {% csrf_token %}
                                 {{ upload_form|as_bootstrap }}
 
@@ -353,17 +362,17 @@
 
                   <tr>
                         <th style="width: 150px; text-align: right;">{% trans "Nickname" %}</th>
-                        <td>{{ agent.nick }}</td>
+                        <td>{{ agent.nick }} {% if agn_form.nick.errors %}<br> -> <span class="error">"{{ agn_form.nick.value }}": {{ agn_form.nick.errors|first }}</span>{% endif %}</td>
                   </tr>
                   {% if request.user.is_superuser and agent.user.user %}
                         <tr>
                             <th style="text-align: right;">{% trans "OCP role" %}</th>
-                            <td>{% if agent.user.user.is_superuser %} Superuser {% elif agent.user.user.is_staff %} Staff {% else %} User {% endif %}</td>
+                            <td>{% if agent.user.user.is_superuser %} Superuser {% elif agent.user.user.is_staff %} Staff {% else %} User {% endif %} </td>
                         </tr>
                   {% endif %}
                   <tr>
                         <th style="text-align: right;">{% trans "Full Name" %}</th>
-                        <td>{{ agent.name }}</td>
+                        <td>{{ agent.name }} {% if agn_form.name.errors %}<br> -> <span class="error">"{{ agn_form.name.value }}": {{ agn_form.name.errors|first }}</span>{% endif %}</td>
                   </tr>
                   <tr>
                         <th style="text-align: right;">{% trans "Type" %}</th>
@@ -388,12 +397,12 @@
                       </tr>
                   {% endif %}
                   {% if user_agent %}
-                        {% if agent.email %}
-                            <tr>
-                                <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
-                                <td>{{ agent.email }}</td>
-                            </tr>
-                        {% endif %}
+
+                    <tr>
+                        <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
+                        <td>{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %} {% if agn_form.email.errors %}<br> -> <span class="error">"{{ agn_form.email.value }}": {{ agn_form.email.errors|first }}</span>{% endif %}</td>
+                    </tr>
+
                         {% if user_agent in agent.managers or user_is_agent or agent.primary_location %}
                           <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "Work Location" %}</th>
@@ -409,9 +418,15 @@
                             </td>
                           </tr>
                         {% endif %}
+                     {% if agent.phone_primary %}
+                         <tr>
+                            <th style="text-align: right; vertical-align: top; ">{% trans "Phone" %}</th>
+                            <td>{{ agent.phone_primary }}</td>
+                        </tr>
+                     {% endif %}
                   {% endif %}
 
-                  {% if agent.multicurrencyauth_set.count %}
+                  {% if agent.multicurrencyauth_set.count and agent.need_multicurrency %}
                     {% if user_agent in agent.managers or user_is_agent %}
                       <tr>
                           <th style="text-align: right; vertical-align: top; ">{% trans "Multicurrency Accounts" %}</th>
@@ -504,8 +519,22 @@
                               {% endfor %}
                             </ul>
                             {% if request.user.is_superuser and agent.project.join_requests %}
-                                <span class="smaller">(AT: {{ agent.project.shares_account_type }})</span>
-                                <span class="smaller">(ST: {{ agent.project.shares_type }})</span>
+                                {% with agent.project.join_requests.all|first as req %}
+                                    {% if req.payment_account_type == agent.project.shares_account_type and agent.project.shares_account_type %}
+                                        <span class="smaller">(AT: {{ agent.project.shares_account_type }})<br>
+                                        (relRT: {{ agent.project.shares_account_type.ocp_artwork_type.rel_nonmaterial_type.name }})<br>
+                                        compact: <b>{{ agent.project.compact_name }}</b><br>
+                                        abbrev: <b>{{ agent.project.abbrev_name }}</b></span>
+                                    {% else %}
+                                        <span class="smaller error">(req AT: {{ req.payment_account_type }})</span>
+                                        <span class="smaller error">(pro AT: {{ agent.project.shares_account_type }})</span>
+                                        <span class="smaller">(KEYS: {{ agent.project.fobi_items_keys }} )<br>
+                                        compact: <b>{{ agent.project.compact_name }}</b><br>
+                                        abbrev: <b>{{ agent.project.abbrev_name }}</b></span>
+                                    {% endif %}
+                                    <!-- <br>
+                                    <b><a href="{% url "create_project_shares" agent_id=agent.id %}">Create Project Shares</a></b> -->
+                                {% endwith %}
                             {% endif %}
                             </td>
                           </tr>
@@ -524,7 +553,12 @@
                               {% for typ in agent.project.payment_options %}
                                 <li>{{ typ|safe }}</li>
                               {% endfor %}
-                            </ul></td>
+                            </ul>
+                            {% if request.user.is_superuser %}
+                                <span class="smaller">(KEYS: {{ agent.project.active_payment_options_obj }} )</span>
+                                <!-- <br><b><a href="{% url "create_shares_exchange_types" agent_id=agent.id %}">Create Exchange Types</a></b> -->
+                            {% endif %}
+                            </td>
                           </tr>
                         {% endif %}
                         {% if agent.project.services %}
@@ -602,41 +636,55 @@
               <!-- <div class="row-fluid" tyle="margin-top:2em;"> -->
                 <div class="span6 infobox" style="width:100%;">
                   <h3 class="">{% trans "Resources" %}:</h3>
-                  {% if related_rts %}
+                  {% if user_is_agent or user_agent in agent.managers %}
+                    {% if agent.owned_accounts %}
+                        <h4 class="hdg">{% trans "Accounts owned" %}:</h4>
+                        <ul>
+                            {% for acc in agent.owned_accounts %}
+                                <li>
+                                    <a href="{% url "project_resource" agent_id=agent.id resource_id=acc.id %}"> {{ acc.resource_type }}{% if acc.resource_type.unit_of_price %}:</a> <b>{{ acc.price_per_unit }} {{ acc.resource_type.unit_of_price.abbrev }}</b>{% else %}: {{ acc.identifier }}</a>{% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if agent.resources_created %}
+                        <h4 class="hdg">{% trans "Resources Created" %}:</h4>
+                        <ul>
+                            {% for resource in agent.resources_created %}
+                                <li>
+                                    <a href="{% url "project_resource" agent_id=agent.id resource_id=resource.id %}"> {{ resource.resource_type.name }}: {{ resource.identifier }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if agent.resource_relationships %}
+                        <h4 class="hdg">{% trans "Other Resources" %}:</h4>
+                        <ul>
+                            {% for rel in agent.resource_relationships %}
+                                {% if not rel.resource in agent.owned_accounts %}
+                                    {% ifchanged rel.role %}
+                                        <h4>{{ rel.role.name }} </h4>
+                                    {% endifchanged %}
+                                    <li>
+                                        <a href="{% url "project_resource" agent_id=agent.id resource_id=rel.resource.id %}"> {{ rel.resource }}</a>
+                                    </li>
+                              {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                  {% elif related_rts %}
                     <h4 class="hdg">{% trans "Related Resources" %}:</h4>
                     <ul>
                         {% for rel in agent.resource_relationships %}
                             {% if rel.resource.resource_type in related_rts %}
                                 <li>
-                                    <a href="{% url "project_resource" agent_id=agent.id resource_id=rel.resource.id %}"> {{ rel.resource }}</a>
+                                    <a href="{% url "project_resource" agent_id=agent.id resource_id=rel.resource.id %}"> {{ rel.resource.identifier }}</a>{% if rel.resource.resource_type.unit_of_price %}: <b>{{ rel.resource.price_per_unit }} {{ rel.resource.resource_type.unit_of_price.abbrev }}{% endif %}</b>
                                 </li>
                             {% endif %}
                         {% endfor %}
                     </ul>
                   {% else %}
-                  {% if agent.resources_created %}
-                    <h4 class="hdg">{% trans "Resources Created" %}:</h4>
-                    <ul>
-                        {% for resource in agent.resources_created %}
-                            <li>
-                                <a href="{% url "project_resource" agent_id=agent.id resource_id=resource.id %}"> {{ resource.resource_type.name }}: {{ resource.identifier }}</a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                  {% endif %}
-                  {% if agent.resource_relationships %}
-                    <h4 class="hdg">{% trans "Resource Relationships" %}:</h4>
-                    <ul>
-                        {% for rel in agent.resource_relationships %}
-                            {% ifchanged rel.role %}
-                                <h4>{{ rel.role.name }} </h4>
-                            {% endifchanged %}
-                            <li>
-                                <a href="{% url "project_resource" agent_id=agent.id resource_id=rel.resource.id %}"> {{ rel.resource }}</a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                  {% endif %}
+
                   {% endif %}
                 </div>
 
@@ -871,11 +919,14 @@
                   {% endif %}
                   </h4>
                   <ul>
+                      <div>
                     {% for assoc in has_associations %}
-                        {% ifchanged assoc.association_type and assoc.state %}
+                        {% ifchanged assoc.association_type and assoc.state %}</div>
                             <h4>{% if not assoc.state == 'active' %}{% trans "has candidates" %}{% else %}
-                                {{ assoc.association_type.inverse_label }}{% endif %}: </h4>
+                                {{ assoc.association_type.inverse_label }}{% endif %}: <span class="showhide smaller small" style="font-size:0.9em" id="sh-assoc_{{ assoc.association_type }}_{{ assoc.state }}" >{% trans "(SHOW)" %}</span> </h4> <div class="list" id="list-assoc_{{ assoc.association_type }}_{{ assoc.state }}">
                         {% endifchanged %}
+
+
                         {% if user_agent in agent.managers and not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
                             {% with assoc.is_associate.membership_request_id as id %}
@@ -906,7 +957,10 @@
                         {% elif not assoc.state == "inactive" and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a> {% if assoc.state == "inactive" %}{% trans "(inactive)" %}{% endif %}</li>
                         {% endif %}
+
+
                     {% endfor %}
+
                   </ul>
               {% endif %}
 
@@ -932,7 +986,7 @@
 
 
 
-      {% if agent.is_individual and agent.need_skills and user.is_staff %}
+      {% if False and agent.is_individual and agent.need_skills and user.is_staff %}
           <div class="span8">
               <h4 class="hdg"> {% trans "Cumulative Contributions" %}</h4>
               <div id="chart_div0"></div>
@@ -1028,7 +1082,7 @@
           var id = event.target.id;
           var listId = '#list-' + id.split('-')[1];
           $(listId).slideToggle(200);
-          $(this).text($(this).text() == 'HIDE' ? 'SHOW' : 'HIDE');
+          $(this).text($(this).text() == {% trans '(HIDE)' %} ? {% trans '(SHOW)' %} : {% trans '(HIDE)' %});
         });
 
         /*var ObjChosSingle = {
@@ -1066,8 +1120,8 @@
           jQuery.validator.setDefaults({
             success: function(label) {
               label
-              .text('').addClass('valid')
-              .closest('.control-group').addClass('success');
+              //.text('').addClass('valid')
+              .closest('.control-group').removeClass('error').addClass('success');
             }
           });
 
@@ -1086,6 +1140,48 @@
               },
               highlight: function(label) {
                   $(label).closest('.control-group').addClass('error');
+              },
+          });
+
+          $( "#agentForm" ).validate({
+              rules: {
+                  nick: {
+                      required: true,
+                      maxlength: 32,
+                      remote: {
+                          url:"/work/validate-nick/",
+                          //type: "post",
+                          data: {
+                              agent_id: function() {
+                                return $( "#agentForm" ).attr('name');
+                              }
+                          },
+                          async:false
+                      }
+                  },
+                  url: {
+                      url: true
+                  },
+                  email: {
+                      email: true
+                  },
+                  name: {
+                      required: true,
+                  },
+              },
+              highlight: function(label) {
+                  $(label).closest('.control-group').removeClass('success').addClass('error');
+              },
+          });
+
+          $( "#uploadForm" ).validate({
+              rules: {
+                  photo_url: {
+                      url: true
+                  },
+              },
+              highlight: function(label) {
+                  $(label).closest('.control-group').removeClass('success').addClass('error');
               },
           });
         };

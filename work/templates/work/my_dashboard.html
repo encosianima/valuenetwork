@@ -221,6 +221,7 @@ th, td {
         <li><h3><a href="{% url 'your_projects' %}">{% trans 'Your projects' %}</a></h3>
           {% trans "Here you can see the projects you are involved in and their structure. If you are a project coordinator you can manage your project also here." %}
         </li>
+        {% if agent.need_tasks and agent.is_participant %}
         <li><h3><a href="{% url 'project_work' %}">{% trans 'Your project tasks' %}</a></h3>
           {% trans "A complete list of tasks related to the projects you are involved in." %}
         </li>
@@ -230,7 +231,7 @@ th, td {
           <li><h3><a href="{% url "plan_work" rand=1 %}">{% trans 'Plan project proceses' %}</a> </h3>
             {% trans "Here you can define a work plan for your managed project and setup the needed process with work orders and tasks." %}
           </li>
-        {% endif %}
+        {% endif %}{% endif %}
         <li><h3><a href="#">{% trans "OCP project's tutorial" %}</a> <small><em>{% trans "(coming soon)" %}</em></small></h3>
           {% trans "To learn how to use OCP and structure your project and create process plans for it" %}
         </li>

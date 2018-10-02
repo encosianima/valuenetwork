@@ -21,6 +21,8 @@ class Plan(DjangoObjectType):
         only_fields = ('id')
 
 
+    created_by = graphene.Field(lambda: types.Agent)
+
     scope = graphene.List(lambda: types.Agent)
 
     plan_processes = graphene.List(lambda: types.Process,
@@ -39,8 +41,13 @@ class Plan(DjangoObjectType):
 
     kanban_state = graphene.String()
 
+    is_deletable = graphene.Boolean()
+
     def resolve_scope(self, args, *rargs):
         return formatAgentList(self.plan_context_agents())
+
+    def resolve_created_by(self, args, *rargs):
+        return formatAgent(self.created_by_agent)
 
     def resolve_plan_processes(self, args, context, info):
         year = args.get('year', None)
@@ -72,3 +79,6 @@ class Plan(DjangoObjectType):
     # returns "planned", "doing", "done"
     def resolve_kanban_state(self, args, *rargs):
         return self.kanban_state()
+
+    def resolve_is_deletable(self, args, *rargs):
+        return self.is_deletable()
