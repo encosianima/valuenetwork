@@ -211,7 +211,7 @@ class Project(models.Model):
             shr_rt = None
             for rt in rts:
                 if rt.ocp_artwork_type.general_unit_type:
-                    if rt.ocp_artwork_type.general_unit_type.clas == 'share':
+                    if rt.ocp_artwork_type.general_unit_type.clas == self.fobi_slug+'_shares':
                         shr_rt = rt
             if shr_rt:
                 shares_res = EconomicResource.objects.filter(resource_type=shr_rt)
