@@ -2775,14 +2775,12 @@ def create_unit_types(**kwargs):
     share_rt.unit_of_price = ocp_euro
     share_rt.save()
 
-        rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
-            resource_type=share_rt,
-            facet_value=fv_sh
-        )
-        if created:
-            print "- created ResourceTypeFacetValue: "+str(share_rt)+" / "+str(fv_sh)
-    else:
-        print "WARNING can't find the FreedomCoop Share rt, or there is more than one!"
+    rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=share_rt,
+        facet_value=fv_sh
+    )
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(share_rt)+" / "+str(fv_sh)
 
     artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
         name='FreedomCoop Share',
