@@ -478,7 +478,8 @@
                     </tr>
                   {% endif %}
 
-                  {% if user_agent in agent.managers and agent.project %}
+                  {% if user_agent in agent.managers or user_is_agent %}
+                    {% if agent.project %}
                       <tr>
                         <th>{% trans "Project Joining Style:" %}</th>
                         <td>{{ agent.project.joining_style }}
@@ -555,8 +556,15 @@
                               {% endfor %}
                             </ul>
                             {% if request.user.is_superuser %}
-                                <span class="smaller">(KEYS: {{ agent.project.active_payment_options_obj }} )</span>
-                                <!-- <br><b><a href="{% url "create_shares_exchange_types" agent_id=agent.id %}">Create Exchange Types</a></b> -->
+                                <span class="smaller">(KEYS: {{ agent.project.active_payment_options_obj }} )<br>
+                                {% for et in agent.project.shares_account_type.ocp_artwork_type.rel_nonmaterial_type.ocp_record_types.all %}
+                                    - <a href="{% url "change_exchange_type" exchange_type_id=et.exchange_type.id %}" >{{ et.exchange_type }}</a><br>
+                                    {% for tt in et.exchange_type.transfer_types.all %}
+                                      &nbsp; - {{ tt }}<br>
+                                    {% endfor %}
+                                {% endfor %}
+                                </span>
+                                <br><b><a href="{% url "create_shares_exchange_types" agent_id=agent.id %}">Create Exchange Types</a></b><!--  -->
                             {% endif %}
                             </td>
                           </tr>
@@ -590,6 +598,7 @@
                           </tr>
                         {% endif %}
                       {% endif %}
+                    {% endif %}
                   {% endif %}
 
                   {% if agent.membership_request %}
