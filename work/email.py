@@ -37,7 +37,7 @@ class EmailBackend(BaseBackend):
 
         from_email = settings.DEFAULT_FROM_EMAIL
         connection = None
-        if context['context_agent']:
+        if hasattr(context, 'context_agent') and context['context_agent']:
             from_email = context['context_agent'].email
             if not from_email:
                 raise ValidationError("The project sending this notice is missing an email address! agent:"+str(context['context_agent']))
