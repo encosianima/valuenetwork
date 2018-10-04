@@ -3786,7 +3786,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         "context_agent": agent,
         "nav_form": nav_form,
         "usecases": usecases,
-        "Etype_tree": exchange_types, #Ocp_Record_Type.objects.filter(lft__gt=gen_ext.lft, rght__lt=gen_ext.rght, tree_id=gen_ext.tree_id).exclude( Q(exchange_type__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) ),
+        "Etype_tree": Ocp_Record_Type.objects.filter(lft__gt=gen_ext.lft, rght__lt=gen_ext.rght, tree_id=gen_ext.tree_id).exclude( Q(exchange_type__isnull=False), Q(exchange_type__context_agent__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) ),
         "Rtype_tree": Ocp_Artwork_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False),  ~Q(resource_type__context_agent__id__in=context_ids) ),
         "Stype_tree": Ocp_Skill_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ),
         "Rtype_form": Rtype_form,
@@ -5118,7 +5118,7 @@ def create_project_shares(request, agent_id):
     arrs = AgentResourceRole.objects.filter(agent=agent, role=owner, resource__resource_type=ert_acc)
     if arrs:
         if len(arrs) > 1:
-            raise ValidationError("There are two accounts of the same type for the samr agent! "+str(arrs))
+            raise ValidationError("There are two accounts of the same type for the same agent! "+str(arrs))
         aresrol = arrs[0]
         res = aresrol.resource
     else:
@@ -5190,8 +5190,8 @@ def create_shares_exchange_types(request, agent_id):
     if not botc:
         botc = EconomicAgent.objects.filter(nick="BotC")
     if not botc:
-        print "- WARNING: the BoC agent don't exist, not created any unit for shares"
-        raise ValidationError("- WARNING: the BoC agent don't exist, not created any unit for shares")
+        print "- WARNING: the BotC agent don't exist, not created any exchange type for shares"
+        raise ValidationError("- WARNING: the BotC agent don't exist, not created any exchange type for shares")
     else:
         botc = botc[0]
 
@@ -5243,11 +5243,22 @@ def create_shares_exchange_types(request, agent_id):
     et_sharebuy.name = 'shares Buy'
     et_sharebuy.clas = 'buy'
 
-    etsh, created = ExchangeType.objects.get_or_create(
-        name="buy Project Shares",
-        use_case=usecas)
-    if created:
-        print "- created ExchangeType: 'buy Project Shares'"
+    etshs = ExchangeType.objects.filter(name__iexact="buy Project Shares")
+    if not etshs:
+        etshs = ExchangeType.objects.filter(name__iexact="share-buy Project Shares")
+    if etshs:
+        if len(etshs) > 1:
+            raise ValidationError("There're more than 1 ExchangeType with same name : "+str(etshs))
+        etsh = etshs[0]
+    else:
+        etsh, created = ExchangeType.objects.get_or_create(
+            name="share-buy Project Shares",
+            use_case=usecas)
+        if created:
+            print "- created ExchangeType: 'share-buy Project Shares'"
+    etsh.name = "share-buy Project Shares"
+    etsh.use_case = usecas
+    etsh.save()
 
     et_sharebuy.exchange_type = etsh
     et_sharebuy.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares", name="Shares")
@@ -5279,7 +5290,7 @@ def create_shares_exchange_types(request, agent_id):
     ttpay.can_create_resource = False
     ttpay.save()
 
-    fvmoney = FacetValue.objects.get(value="Money")
+    fvmoney = FacetValue.objects.get(value="Money") # maybe better just Shares (not multi gateway)?
     ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttpay,
         facet_value=fvmoney)
@@ -5346,11 +5357,11 @@ def create_shares_exchange_types(request, agent_id):
             extyp = extyps[0]
         else:
             extyp, created = ExchangeType.objects.get_or_create(
-                name="buy "+str(project.compact_name())+" Shares",
+                name="share-buy "+str(project.compact_name())+" Shares",
                 use_case=usecas)
             if created:
-                print "- created ExchangeType: 'buy "+str(project.compact_name())+" Shares'"
-        extyp.name = "buy "+str(project.compact_name())+" Shares"
+                print "- created ExchangeType: 'share-buy "+str(project.compact_name())+" Shares'"
+        extyp.name = "share-buy "+str(project.compact_name())+" Shares"
         extyp.use_case = usecas
         extyp.context_agent = project.agent
         extyp.save()
@@ -5364,17 +5375,19 @@ def create_shares_exchange_types(request, agent_id):
         rectyps = Ocp_Record_Type.objects.filter(name__iexact="buy "+str(project.compact_name())+" Shares")
         if not rectyps:
             rectyps = Ocp_Record_Type.objects.filter(name__iexact="buy "+str(project.agent.name)+" Shares")
+        if not rectyps:
+            rectyps = Ocp_Record_Type.objects.filter(name__iexact="share-buy "+str(project.agent.name)+" Shares")
         if rectyps:
             if len(rectyps) > 1:
                 raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(rectyps))
             rectyp = rectyps[0]
         else:
             rectyp, created = Ocp_Record_Type.objects.get_or_create(
-                name="buy "+str(project.compact_name())+" Shares",
+                name="share-buy "+str(project.compact_name())+" Shares",
                 parent=et_sharebuy)
             if created:
-                print "- created Ocp_Record_Type: 'buy "+str(project.compact_name())+" Shares'"
-        rectyp.name = "buy "+str(project.compact_name())+" Shares"
+                print "- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'"
+        rectyp.name = "share-buy "+str(project.compact_name())+" Shares"
         rectyp.parent = et_sharebuy
         rectyp.exchange_type = extyp
         rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
@@ -5393,7 +5406,7 @@ def create_shares_exchange_types(request, agent_id):
                 name="Payment of the "+str(project.agent.name)+" shares",
                 exchange_type=extyp)
             if created:
-                print "created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
+                print "- created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
         ttpay.name = "Payment of the "+str(project.agent.name)+" shares"
         ttpay.exchange_type = extyp
         ttpay.sequence = 1
@@ -5449,7 +5462,7 @@ def create_shares_exchange_types(request, agent_id):
             print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
 
 
-        curfacet = Facet.objects.get(name="Currency", clas="Currency_Type")
+        curfacet = Facet.objects.get(name="Currency")
         nonfacet = Facet.objects.get(name="Non-material")
         gate_keys = project.active_payment_options_obj()
         for obj in gate_keys:
@@ -5458,24 +5471,33 @@ def create_shares_exchange_types(request, agent_id):
             parent_rectyp = None
             slug = None
             nome = None
-            for ob in obj:
-                if ob == 'transfer' or ob == 'ccard':
-                    slug = 'fiat'
-                    nome = 'Fiat'
-                    title = 'Fiat-currency'
-                elif ob == 'faircoin':
-                    slug = 'fair'
-                    nome = 'Fair'
-                    title = 'Faircoin'
-                elif ob == 'btc' or ob == 'eth':
-                    slug = 'crypto'
-                    nome = 'Crypto'
-                    title = 'Cryptocoins'
+            ob = obj[0]
+            if ob == 'transfer' or ob == 'ccard':
+                slug = 'fiat'
+                nome = 'Fiat'
+                title = 'Fiat-currency'
+            elif ob == 'faircoin':
+                slug = 'fair'
+                nome = 'Fair'
+                title = 'Faircoin'
+            elif ob == 'btc' or ob == 'eth':
+                slug = 'crypto'
+                nome = 'Crypto'
+                title = 'Cryptocoins'
+            elif ob == 'share':
+                slug = 'share'
+                nome = 'Shares'
+                title = 'Shares'
+                gatefv = shrfv
+                continue # the share-buy et tree is already there
+            else:
+                raise ValidationError("Payment gateway not known: "+str(ob))
 
 
-            gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
-            if created:
-                print "- created FacetValue: '"+nome+" currency'"
+            if not gatefv:
+                gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
+                if created:
+                    print "- created FacetValue: '"+nome+" currency'"
 
             etfiats = ExchangeType.objects.filter(name=title+" Economy")
             if etfiats:
@@ -5751,6 +5773,8 @@ def create_shares_exchange_types(request, agent_id):
             #   P R O J E C T    B U Y    S H A R E S
 
             fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
+            if not fiat_ets:
+                fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
             if fiat_ets:
                 if len(fiat_ets) > 1:
                     raise ValidationError("There's more than 1 ExchangeType named: '"+slug+"-buy "+str(project.compact_name())+" Share")
@@ -5831,6 +5855,10 @@ def create_shares_exchange_types(request, agent_id):
 
 
             pro_shr_rectyps = Ocp_Record_Type.objects.filter(exchange_type=fiat_et)
+            if not pro_shr_rectyps:
+                pro_shr_rectyps = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
+            if not pro_shr_rectyps:
+                pro_shr_rectyps = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
             if pro_shr_rectyps:
                 if len(pro_shr_rectyps) > 1:
                     raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(pro_shr_rectyp))
