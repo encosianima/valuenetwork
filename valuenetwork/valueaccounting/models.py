@@ -8533,7 +8533,7 @@ class ExchangeManager(models.Manager):
         count = len(exchanges_by_type)
         #print "- ebdan start: "+str(start)+" end: "+str(end)+" agent: "+str(agent.id)+" exs: "+str(count)
 
-        exs_bdc = exchanges_by_type.filter(start_date__range=[start, end])
+        exs_bdc = exchanges_by_type.filter(start_date__range=[start, end]).order_by('created_date')
         count2 = len(exs_bdc)
         if not count == count2:
             print "- filtered exchanges_by_date_and_context start: "+str(start)+" end: "+str(end)+" agent: "+str(agent)+" count: "+str(count)+" count2: "+str(count2)
@@ -8557,7 +8557,7 @@ class ExchangeManager(models.Manager):
           Q(transfers__events__isnull=False, transfers__events__to_agent__isnull=False, transfers__events__to_agent=agent) |
           Q(transfers__commitments__isnull=False, transfers__commitments__from_agent__isnull=False, transfers__commitments__from_agent=agent) |
           Q(transfers__commitments__isnull=False, transfers__commitments__to_agent__isnull=False, transfers__commitments__to_agent=agent)
-        ).distinct()#.order_by('created_date') #.exclude(
+        ).distinct().order_by('exchange_type', 'created_date') #.exclude(
             #~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
             #~Q(context_agent__isnull=False, context_agent__id__in=agids)
         #).order_by(Lower('exchange_type__ocp_record_type__name').asc())
@@ -8567,14 +8567,16 @@ class ExchangeManager(models.Manager):
         count = len(exs_bt)
         if agent.is_context:
             #print "- ebt context: "+str(agent)+" 1 exs:"+str(count)
-            exs_bt = exs_bt.exclude(
+            exs_bt2 = exs_bt.exclude(
                 ~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
             #    Q(context_agent__isnull=False, context_agent__id__in=agids2) |
             #    Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent__id__in=agids2)
             ) #.order_by('-start_date')
-            count2 = len(exs_bt)
+            count2 = len(exs_bt2)
             if not count == count2:
                 print "- filtered exchanges_by_type context: "+str(agent)+" count1:"+str(count)+" count2: "+str(count2)
+                if count2:
+                    exs_bt = exs_bt2
         else:
             #print "- ebt individual: "+str(agent)+" exs:"+str(count)
             exs_bt = exs_bt.exclude(
