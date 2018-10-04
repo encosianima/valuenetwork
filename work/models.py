@@ -860,11 +860,11 @@ class JoinRequest(models.Model):
         if payopt.has_key('key'):
           if rt and rt.ocp_artwork_type:
             recordts = Ocp_Record_Type.objects.filter(
-                ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type,
+                ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type.rel_nonmaterial_type,
                 exchange_type__isnull=False)
             if not recordts:
                 recordts = Ocp_Record_Type.objects.filter(
-                    ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type.rel_nonmaterial_type,
+                    ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type,
                     exchange_type__isnull=False)
             if len(recordts) > 0:
                 for rec in recordts:
@@ -881,6 +881,8 @@ class JoinRequest(models.Model):
                         for an in ancs:
                             if an.clas == 'crypto_economy':
                                 recs.append(rec)
+                    else:
+                        raise ValidationError("Payment mode not known: "+str(payopt['key'])+" at JR:"+str(self.id)+" pro:"+str(self.project))
                 if len(recs) > 1:
                     for rec in recs:
                         ancs = rec.get_ancestors(True,True)
@@ -892,11 +894,11 @@ class JoinRequest(models.Model):
 
                 #import pdb; pdb.set_trace()
                 if not et or not len(recs):
-                    pass #raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
+                    raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
             elif recordts:
                 raise ValidationError("found ocp_record_type's ?? : "+str(recordts)) # pass #et = recordts[0].exchange_type
             else:
-                raise ValidationError("not found any ocp_record_type related: "+str(rt.ocp_artwork_type))
+                pass #raise ValidationError("not found any ocp_record_type related: "+str(rt.ocp_artwork_type))
           else:
             raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
         else: # no payopt
@@ -2369,8 +2371,8 @@ def create_unit_types(**kwargs):
     else:
         fairacc_rt = fairacc_rts[0]
     fairacc_rt.unit = ocp_fair
-    fairacc_rt.unit_of_use = ocp_fair
-    #fairacc_rt.unit_of_value = ocp_fair
+    #fairacc_rt.unit_of_use = ocp_fair
+    fairacc_rt.unit_of_value = ocp_fair
     #fairacc_rt.value_per_unit = 1
     fairacc_rt.value_per_unit_of_use = 1 #decimal.Decimal('1.00')
     #fairacc_rt.price_per_unit = 1
@@ -2781,6 +2783,8 @@ def create_unit_types(**kwargs):
     boc_share.save()
 
     share_rts = EconomicResourceType.objects.filter(name__icontains="BankOfTheCommons Share")
+    if not share_rts:
+        share_rts = EconomicResourceType.objects.filter(name__icontains="Bank of the Commons Share")
     if share_rts:
         if len(share_rts) > 1:
             raise ValidationError("There are more than 1 EconomicResourceType named: 'BankOfTheCommons Share'")
@@ -2802,6 +2806,8 @@ def create_unit_types(**kwargs):
     share_rt.save()
 
     artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="BankOfTheCommons Share")
+    if not artw_bocs:
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="Bank of the Commons Share")
     if artw_bocs:
         if len(artw_bocs) > 1:
             raise ValidationError("There are more than 1 Ocp_Artwork_Type named: 'BankOfTheCommons Share' ")
