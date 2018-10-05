@@ -2248,6 +2248,48 @@ def create_unit_types(**kwargs):
     kilo.save()
 
 
+    # FacetValues
+
+    curfacet, created = Facet.objects.get_or_create(
+        name="Currency")
+    if created:
+        print "- created Facet: 'Currency'"
+    curfacet.clas = "Currency_Type"
+    curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
+    curfacet.save()
+
+    shrfv, created = FacetValue.objects.get_or_create(
+        facet=curfacet,
+        value="Project Shares")
+    if created:
+        print "- created FacetValue: 'Project Shares'"
+
+    nonfacet, created = Facet.objects.get_or_create(
+        name="Non-material",
+        clas="Nonmaterial_Type")
+    if created:
+        print "- created Facet: 'Non-material'"
+    fvmoney, created = FacetValue.objects.get_or_create(
+        facet=nonfacet,
+        value='Money')
+    if created:
+        print "- created FacetValue: 'Money'"
+
+    fairfv, created = FacetValue.objects.get_or_create(value="Fair currency", facet=curfacet)
+    if created:
+        print "- created FacetValue: 'Fair currency'"
+
+    fiatfv, created = FacetValue.objects.get_or_create(value="Fiat currency", facet=curfacet)
+    if created:
+        print "- created FacetValue: 'Fiat currency'"
+
+    cryptfv, created = FacetValue.objects.get_or_create(value="Crypto currency", facet=curfacet)
+    if created:
+        print "- created FacetValue: 'Crypto currency'"
+
+
+
+
     # FairCoin
     ocp_fair, created = Unit.objects.get_or_create(name='FairCoin', unit_type='value')
     if created:
@@ -2317,6 +2359,17 @@ def create_unit_types(**kwargs):
     ocp_fair_rt.save()
 
 
+    for fv in ocp_fair_rt.facets.all():
+        if not fv.facet_value == fairfv:
+            print "- deleted: "+str(fv)
+            fv.delete()
+    ocp_fair_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=ocp_fair_rt,
+        facet_value=fairfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(ocp_fair_rtfv)
+
+
     nonmat_typs = Ocp_Artwork_Type.objects.filter(clas='Nonmaterial')
     if nonmat_typs:
         if len(nonmat_typs) > 1:
@@ -2381,6 +2434,8 @@ def create_unit_types(**kwargs):
     #fairacc_rt.inventory_rule = 'yes'
     fairacc_rt.behavior = 'dig_acct'
     fairacc_rt.save()
+
+    print "- "+str(fairacc_rt)+" FV's: "+str([fv.facet_value.value+', ' for fv in fairacc_rt.facets.all()])
 
     digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Account')
     if not digacc_typs:
@@ -2612,6 +2667,8 @@ def create_unit_types(**kwargs):
 
     artw_share = Ocp_Artwork_Type.objects.filter(name='Share')
     if not artw_share:
+        artw_share = Ocp_Artwork_Type.objects.filter(name='Shares')
+    if not artw_share:
         artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(
             name='Shares',
             parent=digcur_typ)
@@ -2625,34 +2682,6 @@ def create_unit_types(**kwargs):
     artw_sh.resource_type = None
     artw_sh.general_unit_type = gen_share_typ
     artw_sh.save()
-
-
-    # FacetValues
-
-    curfacet, created = Facet.objects.get_or_create(
-        name="Currency")
-    if created:
-        print "- created Facet: 'Currency'"
-    curfacet.clas = "Currency_Type"
-    curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
-    curfacet.save()
-
-    shrfv, created = FacetValue.objects.get_or_create(
-        facet=curfacet,
-        value="Project Shares")
-    if created:
-        print "- created FacetValue: 'Project Shares'"
-
-    nonfacet, created = Facet.objects.get_or_create(
-        name="Non-material",
-        clas="Nonmaterial_Type")
-    if created:
-        print "- created Facet: 'Non-material'"
-    fvmoney, created = FacetValue.objects.get_or_create(
-        facet=nonfacet,
-        value='Money')
-    if created:
-        print "- created FacetValue: 'Money'"
 
 
 
@@ -2698,7 +2727,9 @@ def create_unit_types(**kwargs):
     fdc_share.ocp_unit = ocp_share
     fdc_share.save()
 
-    ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
+    ocp_share_rts = EconomicResourceType.objects.filter(name='Share')
+    if not ocp_share_rts:
+        ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
     if not ocp_share_rts:
         ocp_share_rts = EconomicResourceType.objects.filter(name='FreedomCoop Share')
     if ocp_share_rts:
@@ -2711,17 +2742,34 @@ def create_unit_types(**kwargs):
         if created:
             print "- created EconomicResourceType: 'FreedomCoop Share'"
     share_rt.name = 'FreedomCoop Share'
-    share_rt.unit = ocp_each
+    share_rt.unit = ocp_share
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
     share_rt.save()
 
-    artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
-        name='FreedomCoop Share',
-        parent = Type.objects.get(id=artw_sh.id)
-    )
+    for fv in share_rt.facets.all():
+        if not fv.facet_value == shrfv:
+            print "- delete: "+str(fv)
+            fv.delete()
+    share_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=share_rt,
+        facet_value=shrfv)
     if created:
-        print "- created Ocp_Artwork_Type: 'FreedomCoop Share'"
+        print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+
+
+    artw_fdcs = Ocp_Artwork_Type.objects.filter(name="Share")
+    if not artw_fdcs:
+        artw_fdcs = Ocp_Artwork_Type.objects.filter(name="Membership Share")
+    if artw_fdcs:
+        artw_fdc = artw_fdcs[0]
+    else:
+        artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='FreedomCoop Share',
+            parent = Type.objects.get(id=artw_sh.id)
+        )
+        if created:
+            print "- created Ocp_Artwork_Type: 'FreedomCoop Share'"
     artw_fdc.parent = Type.objects.get(id=artw_sh.id)
     artw_fdc.resource_type = share_rt
     artw_fdc.general_unit_type = Unit_Type.objects.get(id=gen_fdc_typ.id)
@@ -2782,9 +2830,9 @@ def create_unit_types(**kwargs):
     boc_share.ocp_unit = ocpboc_share
     boc_share.save()
 
-    share_rts = EconomicResourceType.objects.filter(name__icontains="BankOfTheCommons Share")
+    share_rts = EconomicResourceType.objects.filter(name__icontains="BankOfTheCommons Share").exclude(name__icontains="Account")
     if not share_rts:
-        share_rts = EconomicResourceType.objects.filter(name__icontains="Bank of the Commons Share")
+        share_rts = EconomicResourceType.objects.filter(name__icontains="Bank of the Commons Share").exclude(name__icontains="Account")
     if share_rts:
         if len(share_rts) > 1:
             raise ValidationError("There are more than 1 EconomicResourceType named: 'BankOfTheCommons Share'")
@@ -2799,15 +2847,25 @@ def create_unit_types(**kwargs):
         if created:
             print "- created EconomicResourceType: 'Bank of the Commons Share'"
     share_rt.name = "Bank of the Commons Share"
-    share_rt.unit = ocp_each
+    share_rt.unit = ocpboc_share
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
     share_rt.context_agent = boc_ag
     share_rt.save()
 
-    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="BankOfTheCommons Share")
+    for fv in share_rt.facets.all():
+        if not fv.facet_value == shrfv:
+            print "- delete: "+str(fv)
+            fv.delete()
+    share_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=share_rt,
+        facet_value=shrfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+
+    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="BankOfTheCommons Share").exclude(name__icontains="Account")
     if not artw_bocs:
-        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="Bank of the Commons Share")
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="Bank of the Commons Share").exclude(name__icontains="Account")
     if artw_bocs:
         if len(artw_bocs) > 1:
             raise ValidationError("There are more than 1 Ocp_Artwork_Type named: 'BankOfTheCommons Share' ")
