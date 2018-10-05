@@ -73,9 +73,15 @@ class EmailBackend(BaseBackend):
         # EmailMultiAlternatives(subject='', body='', from_email=None, to=None, bcc=None, connection=None, attachments=None,
         #                        headers=None, alternatives=None, cc=None, reply_to=None)
 
-        email = EmailMultiAlternatives(subject, body, from_email=from_email, to=[recipient.email], reply_to=[from_email], connection=connection)
+        if connection:
+            email = EmailMultiAlternatives(subject, body, from_email=from_email, to=[recipient.email], reply_to=[from_email], connection=connection)
+        else:
+            email = EmailMultiAlternatives(subject, body, from_email=from_email, to=[recipient.email], reply_to=[from_email])
+
         #import pdb; pdb.set_trace()
-        email.send()
+        result = email.send()
+
+        logging.debug('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time())+' result:'+str(result))
 
         #send_mail(subject, body, from_email, [recipient.email], connection=connection)
 
