@@ -2358,14 +2358,19 @@ def create_unit_types(**kwargs):
     ocp_fair_rt.behavior = 'dig_curr'
     ocp_fair_rt.save()
 
-
     for fv in ocp_fair_rt.facets.all():
-        if not fv.facet_value == fairfv:
+        if not fv.facet_value == fairfv and not fv.facet_value == fvmoney:
             print "- deleted: "+str(fv)
             fv.delete()
     ocp_fair_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
         resource_type=ocp_fair_rt,
         facet_value=fairfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(ocp_fair_rtfv)
+
+    ocp_fair_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=ocp_fair_rt,
+        facet_value=fvmoney)
     if created:
         print "- created ResourceTypeFacetValue: "+str(ocp_fair_rtfv)
 
@@ -2645,8 +2650,79 @@ def create_unit_types(**kwargs):
 
 
 
+    # Cryptos Bitcoin
 
-    # Shares
+    ocp_btc, created = Unit.objects.get_or_create(name='Bitcoin', unit_type='value')
+    if created:
+        print "- created a main ocp Unit: 'Bitcoin'"
+    ocp_btc.abbrev = 'btc'
+    ocp_btc.unit_type = 'value'
+    ocp_btc.save()
+
+    gen_btc_typ, created = Ocp_Unit_Type.objects.get_or_create(
+        name='Bitcoins',
+        parent=gen_crypto_typ
+    )
+    if created:
+        print "- created Ocp_Unit_Type: 'Bitcoins'"
+    gen_btc_typ.clas = 'bitcoin'
+    gen_btc_typ.save()
+
+    btcs = Gene_Unit.objects.filter(name='Bitcoin')
+    if not btcs:
+        btc, created = Gene_Unit.objects.get_or_create(
+            name='Bitcoin',
+            code='btc'
+        )
+        if created:
+            print "- created General.Unit for Bitcoin: 'Bitcoin'"
+    else:
+        btc = btcs[0]
+    btc.code = 'btc'
+    btc.unit_type = gen_btc_typ
+    btc.ocp_unit = ocp_btc
+    btc.save()
+
+    ocp_btc_rts = EconomicResourceType.objects.filter(name='Bitcoin')
+    if not ocp_btc_rts:
+        ocp_btc_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Bitcoin')
+        if created:
+            print "- created EconomicResourceType: 'Bitcoin'"
+    else:
+        ocp_btc_rt = ocp_btc_rts[0]
+    ocp_btc_rt.unit = ocp_btc
+    ocp_btc_rt.unit_of_use = ocp_btc
+    #ocp_btc_rt.unit_of_value = ocp_fair
+    #ocp_btc_rt.value_per_unit = 1
+    #ocp_btc_rt.value_per_unit_of_use = 1
+    ocp_btc_rt.price_per_unit = 1
+    ocp_btc_rt.unit_of_price = ocp_btc
+    ocp_btc_rt.substitutable = True
+    ocp_btc_rt.inventory_rule = 'yes'
+    ocp_btc_rt.behavior = 'dig_curr'
+    ocp_btc_rt.save()
+
+
+    for fv in ocp_btc_rt.facets.all():
+        if not fv.facet_value == cryptfv and not fv.facet_value == fvmoney:
+            print "- deleted: "+str(fv)
+            fv.delete()
+    ocp_btc_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=ocp_btc_rt,
+        facet_value=cryptfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(ocp_btc_rtfv)
+
+    ocp_btc_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=ocp_btc_rt,
+        facet_value=fvmoney)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(ocp_btc_rtfv)
+
+
+
+    #   S h a r e s
 
     gen_share_typs = Ocp_Unit_Type.objects.filter(name='Shares')
     if not gen_share_typs:
@@ -2782,7 +2858,7 @@ def create_unit_types(**kwargs):
 
     ## BankOfTheCommons
 
-    boc_ag = EconomicAgent.objects.filter(nick="BoC")
+    """boc_ag = EconomicAgent.objects.filter(nick="BoC")
     if not boc_ag:
         boc_ag = EconomicAgent.objects.filter(nick="BotC")
     if not boc_ag:
@@ -2881,7 +2957,8 @@ def create_unit_types(**kwargs):
     artw_boc.parent = Type.objects.get(id=artw_sh.id)
     artw_boc.resource_type = share_rt
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
-    artw_boc.save()
+    artw_boc.save()"""
+
 
     print "...end of the units analisys."
 
