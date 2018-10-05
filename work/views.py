@@ -5291,6 +5291,11 @@ def create_shares_exchange_types(request, agent_id):
     ttpay.save()
 
     fvmoney = FacetValue.objects.get(value="Money") # maybe better just Shares (not multi gateway)?
+
+    for fv in ttpay.facet_values.all():
+        if not fv.facet_value == fvmoney:
+            print "- delete: "+str(fv)
+            fv.delete()
     ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttpay,
         facet_value=fvmoney)
@@ -5324,6 +5329,11 @@ def create_shares_exchange_types(request, agent_id):
     ttshr.save()
 
     shrfv = FacetValue.objects.get(value="Project Shares")
+
+    for fv in ttshr.facet_values.all():
+        if not fv.facet_value == shrfv:
+            print "- delete: "+str(fv)
+            fv.delete()
     ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttshr,
         facet_value=shrfv)
@@ -5455,6 +5465,10 @@ def create_shares_exchange_types(request, agent_id):
         ttshr.save()
 
         ###  TransferTypeFacetValue  ->  receive  ->  share
+        for fv in ttshr.facet_values.all():
+            if not fv.facet_value == shrfv:
+                print "- delete: "+str(fv)
+                fv.delete()
         ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttshr,
             facet_value=shrfv)
@@ -5589,6 +5603,7 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 ttpay, created = TransferType.objects.get_or_create(
                     name="Payment of the Non-material ("+slug+")",
+                    exchange_type=etfiat_non
                     #give_agent_is_context=True,
                 )
                 if created:
@@ -5608,6 +5623,10 @@ def create_shares_exchange_types(request, agent_id):
             ttpay.save()
 
             ###  TransferTypeFacetValue  ->  pay  ->  gatefv
+            for fv in ttpay.facet_values.all():
+                if not fv.facet_value == gatefv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
@@ -5623,12 +5642,14 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 ttnon, created = TransferType.objects.get_or_create(
                     name="Receive the Non-material",
+                    exchange_type=etfiat_non
                     #receive_agent_is_context=True,
                 )
                 if created:
                     print "- created TransferType: 'Receive the Non-material' ("+slug+")"
 
             ttnon.name = "Receive the Non-material"
+            ttnon.exchange_type = etfiat_non
             ttnon.sequence = 2
             ttnon.give_agent_is_context = True
             ttnon.receive_agent_is_context = False
@@ -5723,6 +5744,10 @@ def create_shares_exchange_types(request, agent_id):
             ttfiat.save()
 
             ###  TransferTypeFacetValue  ->  pay  ->  gatefv
+            for fv in ttfiat.facet_values.all():
+                if not fv.facet_value == gatefv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttfiat,
                 facet_value=gatefv)
@@ -5757,6 +5782,10 @@ def create_shares_exchange_types(request, agent_id):
             ttshr.save()
 
             ###  TransferTypeFacetValue  ->  receive  ->  shares
+            for fv in ttshr.facet_values.all():
+                if not fv.facet_value == shrfv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
                 facet_value=shrfv)
@@ -5813,6 +5842,10 @@ def create_shares_exchange_types(request, agent_id):
             ttpay.can_create_resource = False
             ttpay.save()
 
+            for fv in ttpay.facet_values.all():
+                if not fv.facet_value == gatefv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
@@ -5842,6 +5875,10 @@ def create_shares_exchange_types(request, agent_id):
             ttshr.can_create_resource = False
             ttshr.save()
 
+            for fv in ttshr.facet_values.all():
+                if not fv.facet_value == shrfv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
                 facet_value=shrfv)
