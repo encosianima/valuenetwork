@@ -8339,13 +8339,17 @@ class TransferType(models.Model):
             try:
               if hasattr(self.exchange_type, 'ocp_record_type'):
                 oet = self.exchange_type.ocp_record_type
-                if hasattr(oet, 'ocp_resource_type'):
-                  ort = oet.ocp_resource_type
+                if hasattr(oet, 'ocpRecordType_ocp_artwork_type'):
+                  ort = oet.ocpRecordType_ocp_artwork_type
                   if ort:
+                     from work.models import Ocp_Artwork_Type
                      orts = Ocp_Artwork_Type.objects.filter(lft__gte=ort.lft, rght__lte=ort.rght, tree_id=ort.tree_id)
                      answer_ids = [rt.resource_type.id for rt in orts]
                      answer = EconomicResourceType.objects.filter(id__in=answer_ids)
-                     return answer
+                     if answer:
+                        return answer
+                     else:
+                        raise ValidationError("get_resource_types of "+str(self)+" are not found by rt.ids: "+str(answer_ids)+" of tree: "+str(orts))
             except:
                pass
 
