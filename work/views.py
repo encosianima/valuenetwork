@@ -2217,6 +2217,7 @@ def create_account_for_join_request(request, join_request_id):
                     name = data["name"]
                     if notification:
                         managers = project.agent.managers()
+                        sett = set_user_notification_by_type(agent.user().user, "work_new_account", True)
                         users = [agent.user().user,]
                         for manager in managers:
                             if manager.user():
@@ -2335,9 +2336,6 @@ def resend_candidate_credentials(request, joinrequest_id):
     messages.warning(request, _('The email with the user credentials was sended again.'))
     return redirect(next, agent_id=jn_req.project.agent.id, join_request_id=jn_req.id)
 
-
-def send_credentials_email(jn_req, from_agent=None, users=[]):
-    pass
 
 
 @login_required
@@ -2533,10 +2531,10 @@ def connect_agent_to_join_request(request, agent_id, join_request_id):
             mbr_req.state = "new"
             mbr_req.save()
         else:
-            raise ValidationError(agent_form.errors)
+            raise ValidationError(agent_form.errors)"""
 
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/agent', project_agent.id, 'join-requests'))"""
+        % ('work/agent', project_agent.id, 'join-requests'))
 
 
 from six import text_type, PY3

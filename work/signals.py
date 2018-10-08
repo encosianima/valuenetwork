@@ -4,6 +4,7 @@ def comment_notification(sender, comment, **kwargs):
     from django.conf import settings
     from django.contrib.auth.models import User
     from django.contrib.sites.models import Site
+    from work.utils import set_user_notification_by_type
 
     ct_commented = comment.content_type
 
@@ -36,9 +37,12 @@ def comment_notification(sender, comment, **kwargs):
 
         if "pinax.notifications" in settings.INSTALLED_APPS:
             from pinax.notifications import models as notification
+
             users = []
             if jr_creator:
                 users.append(jr_creator.user)
+
+            sett = set_user_notification_by_type(jr_creator.user, "comment_join_request", True)
 
             for manager in jr_managers:
                 if manager.user():
@@ -69,6 +73,8 @@ def comment_notification(sender, comment, **kwargs):
                     "joinrequest_url": joinrequest_url,
                     "jn_req": comment.content_object,
                     "current_site": domain,
+                    "context_agent": comment.content_object.project.agent,
+                    "request_host": domain,
                     }
                 )
 
