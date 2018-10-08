@@ -4,6 +4,10 @@ from django.template.loader import render_to_string
 from django.utils.translation import ugettext
 from django.core.exceptions import ValidationError
 
+import logging
+import time
+logger = logging.getLogger("ocp")
+
 #from .base import BaseBackend
 if "pinax.notifications" in settings.INSTALLED_APPS:
     #from pinax.notifications import models as notification
@@ -52,7 +56,7 @@ class EmailBackend(BaseBackend):
             else:
                 pass #raise ValidationError("There's no custom email object (or no 'host') for project: "+str(project))
         else:
-            raise ValidationError("There's no context_agent related this notice?")
+            logger.debug("There's no context_agent related this notice? "+str(notice_type))
 
         messages = self.get_formatted_messages((
             "short.txt",
@@ -69,6 +73,7 @@ class EmailBackend(BaseBackend):
         })
         body = render_to_string("pinax/notifications/email_body.txt", context)
 
+        #logger.debug('ocp sending email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time()))
         #print 'sending email from: '+from_email
         # EmailMultiAlternatives(subject='', body='', from_email=None, to=None, bcc=None, connection=None, attachments=None,
         #                        headers=None, alternatives=None, cc=None, reply_to=None)
@@ -81,7 +86,7 @@ class EmailBackend(BaseBackend):
         #import pdb; pdb.set_trace()
         result = email.send()
 
-        logging.debug('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time())+' result:'+str(result))
+        logger.debug('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time())+' result:'+str(result))
 
         #send_mail(subject, body, from_email, [recipient.email], connection=connection)
 
