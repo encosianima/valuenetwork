@@ -560,7 +560,7 @@
                                 {% for et in agent.project.shares_account_type.ocp_artwork_type.rel_nonmaterial_type.ocp_record_types.all %}
                                     <a href="{% url "change_exchange_type" exchange_type_id=et.exchange_type.id %}" >{{ et.exchange_type }}</a><br>
                                     {% for tt in et.exchange_type.transfer_types.all %}
-                                      &nbsp; &nbsp;{% if tt.inherit_types %}+{% else %}-{% endif %} {{ tt }} ({% for rt in tt.get_resource_types %}{{ rt }}, {% endfor %}) <em>(FV:{% for fv in tt.facet_values.all %}{{ fv.facet_value }}, {% endfor %})</em><br>
+                                      &nbsp; &nbsp;<span class="{% if not tt.get_resource_types %}error{% endif %}">{% if tt.inherit_types %}+{% else %}-{% endif %} {{ tt }} ({% for rt in tt.get_resource_types %}{{ rt }}, {% endfor %}) <em>(FV:{% for fv in tt.facet_values.all %}{{ fv.facet_value }}, {% endfor %})</em></span><br>
                                     {% endfor %}
                                 {% endfor %}
                                 </span>
