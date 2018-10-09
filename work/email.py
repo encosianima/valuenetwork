@@ -41,12 +41,17 @@ class EmailBackend(BaseBackend):
 
         from_email = settings.DEFAULT_FROM_EMAIL
         connection = None
-        if hasattr(context, 'context_agent') and context['context_agent']:
-            from_email = context['context_agent'].email
-            if not from_email:
-                raise ValidationError("The project sending this notice is missing an email address! agent:"+str(context['context_agent']))
+        agent = None
+        if 'context_agent' in context:
+            agent = context['context_agent']
+            if not agent:
+                raise ValidationError("context agent is in context but agent is none?? "+str(context))
 
-            obj = context['context_agent'].project.custom_smtp()
+            from_email = agent.email
+            if not from_email:
+                raise ValidationError("The project sending this notice is missing an email address! agent:"+str(agent))
+
+            obj = agent.project.custom_smtp()
             if obj and obj['host']:
                 try:
                     connection = CoreEmailBackend(host=obj['host'], port=obj['port'], username=obj['username'], password=obj['password'], use_tls=obj['use_tls'])
@@ -54,9 +59,9 @@ class EmailBackend(BaseBackend):
                 except:
                     raise
             else:
-                pass #raise ValidationError("There's no custom email object (or no 'host') for project: "+str(project))
+                logger.debug("There's no custom email object (or no 'host') for project: "+str(agent.project))
         else:
-            logger.debug("There's no context_agent related this notice? "+str(notice_type))
+            logger.debug("There's no context_agent related this notice? "+str(notice_type)+" context:"+str(context))
 
         messages = self.get_formatted_messages((
             "short.txt",
@@ -86,7 +91,7 @@ class EmailBackend(BaseBackend):
         #import pdb; pdb.set_trace()
         result = email.send()
 
-        logger.debug('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time())+' result:'+str(result))
+        logger.debug('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time())+' result:'+str(result)+' agent:'+str(agent))
 
         #send_mail(subject, body, from_email, [recipient.email], connection=connection)
 
