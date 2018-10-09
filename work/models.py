@@ -2703,7 +2703,6 @@ def create_unit_types(**kwargs):
     ocp_btc_rt.behavior = 'dig_curr'
     ocp_btc_rt.save()
 
-
     for fv in ocp_btc_rt.facets.all():
         if not fv.facet_value == cryptfv and not fv.facet_value == fvmoney:
             print "- deleted: "+str(fv)
@@ -2719,6 +2718,21 @@ def create_unit_types(**kwargs):
         facet_value=fvmoney)
     if created:
         print "- created ResourceTypeFacetValue: "+str(ocp_btc_rtfv)
+
+
+    btc_rts = Ocp_Artwork_Type.objects.filter(name='Bitcoin')
+    if not btc_rts:
+        btc_rt, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Bitcoin',
+            parent=digcur_typ)
+        if created:
+            print "- created Ocp_Artwork_Types: 'Bitcoin'"
+    else:
+        btc_rt = btc_rts[0]
+    btc_rt.clas = 'btc_digital'
+    btc_rt.resource_type = ocp_btc_rt
+    btc_rt.general_unit_type = gen_btc_typ
+    btc_rt.save()
 
 
 
