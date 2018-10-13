@@ -5,8 +5,13 @@ def comment_notification(sender, comment, **kwargs):
     from django.contrib.auth.models import User
     from django.contrib.sites.models import Site
     from work.utils import set_user_notification_by_type
+    from django.core.exceptions import ValidationError
+    import logging
+    logger = logging.getLogger("ocp")
 
     ct_commented = comment.content_type
+
+    logger.debug("About to send a comment related the object: "+str(ct_commented))
 
     if ct_commented.model == 'membershiprequest':
         msr_creator_username = comment.content_object.requested_username
@@ -64,6 +69,7 @@ def comment_notification(sender, comment, **kwargs):
                 joinrequest_url= "https://" + domain +\
                     "/work/project-feedback/" + str(comment.content_object.project.agent.id) +\
                     "/" + str(comment.content_object.id) + "/"
+                logger.debug("Ready to send comment notification at jr_url: "+str(joinrequest_url))
                 notification.send(
                     users,
                     "comment_join_request",
@@ -77,6 +83,9 @@ def comment_notification(sender, comment, **kwargs):
                     "request_host": domain,
                     }
                 )
+    else:
+        logger.error("The comment is related an unknown model: "+str(ct_commented.model))
+        raise ValidationError("The comment is related an unknown model: "+str(ct_commented.model))
 
 
 # Connecting signal "comment_was_posted" to comment_notification()
