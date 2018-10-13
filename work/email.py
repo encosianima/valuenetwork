@@ -47,9 +47,10 @@ class EmailBackend(BaseBackend):
             if not agent:
                 raise ValidationError("context agent is in context but agent is none?? "+str(context))
 
-            from_email = agent.email
-            if not from_email:
-                raise ValidationError("The project sending this notice is missing an email address! agent:"+str(agent))
+            if not agent.email:
+                logger.debug("The project sending this notice is missing an email address! agent:"+str(agent)+", using:"+str(from_email))
+            else:
+                from_email = agent.email
 
             obj = agent.project.custom_smtp()
             if obj and obj['host']:
