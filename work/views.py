@@ -74,6 +74,10 @@ def work_home(request):
 @login_required
 def my_dashboard(request):
     agent = get_agent(request)
+    for pro in agent.managed_projects():
+        if pro.project:
+            if not pro.email and pro.project.is_moderated() and pro.project.join_requests:
+                messages.warning(request, _("Please provide an email for the project \"{0}\" to use as a remitent for its moderated joining process notifications!").format(pro.name))
 
     return render(request, "work/my_dashboard.html", {
         "agent": agent,
@@ -1004,8 +1008,8 @@ def members_agent(request, agent_id):
                             break
                         """
 
-
-
+    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
+        messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
 
     return render(request, "work/members_agent.html", {
         "agent": agent,
@@ -1998,6 +2002,9 @@ def join_requests(request, agent_id):
             else:
               req.entries = []
 
+    if project.is_moderated() and not agent.email:
+        messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
+
     return render(request, "work/join_requests.html", {
         "help": get_help("join_requests"),
         "requests": requests,
@@ -2403,6 +2410,9 @@ def project_feedback(request, agent_id, join_request_id):
             jn_req.items_data = []
             for key in fobi_keys:
               jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key), "ky": key, "typ": jn_req.elem_typs[key], "opts": jn_req.elem_choi[key]})
+
+    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
+        messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
 
     return render(request, "work/join_request_with_comments.html", {
         "help": get_help("project_feedback"),
