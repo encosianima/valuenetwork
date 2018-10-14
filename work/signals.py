@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-def comment_notification(sender, comment, **kwargs):
+def comment_notification(sender, comment=None, **kwargs):
     from django.conf import settings
     from django.contrib.auth.models import User
     from django.contrib.sites.models import Site
@@ -11,7 +11,7 @@ def comment_notification(sender, comment, **kwargs):
 
     ct_commented = comment.content_type
 
-    logger.debug("About to send a comment related the object: "+str(ct_commented))
+    #logger.debug("About to send a comment related the object: "+str(ct_commented))
 
     if ct_commented.model == 'membershiprequest':
         msr_creator_username = comment.content_object.requested_username
@@ -69,7 +69,7 @@ def comment_notification(sender, comment, **kwargs):
                 joinrequest_url= "https://" + domain +\
                     "/work/project-feedback/" + str(comment.content_object.project.agent.id) +\
                     "/" + str(comment.content_object.id) + "/"
-                logger.debug("Ready to send comment notification at jr_url: "+str(joinrequest_url))
+                #logger.debug("Ready to send comment notification at jr_url: "+str(joinrequest_url))
                 notification.send(
                     users,
                     "comment_join_request",
@@ -88,7 +88,9 @@ def comment_notification(sender, comment, **kwargs):
         raise ValidationError("The comment is related an unknown model: "+str(ct_commented.model))
 
 
+# This don't work anymore!! now the connection is at work/apps.py ...
+
 # Connecting signal "comment_was_posted" to comment_notification()
-from django_comments.models import Comment
-from django_comments.signals import comment_was_posted
-comment_was_posted.connect(comment_notification, sender=Comment)
+#from django_comments.models import Comment
+#from django_comments.signals import comment_was_posted, comment_will_be_posted
+#comment_was_posted.connect(comment_notification, sender=Comment)
