@@ -75,7 +75,7 @@ def comment_notification(sender, comment=None, **kwargs):
                     "comment_join_request",
                     {"name": comment.name,
                     "comment": comment.comment,
-                    "site_name": site_name,
+                    "site_name": comment.content_object.project.agent.nick, #site_name,
                     "joinrequest_url": joinrequest_url,
                     "jn_req": comment.content_object,
                     "current_site": domain,
