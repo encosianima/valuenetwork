@@ -75,7 +75,7 @@ def work_home(request):
 def my_dashboard(request):
     agent = get_agent(request)
     for pro in agent.managed_projects():
-        if pro.project:
+        if hasattr(pro, 'project') and pro.project:
             if not pro.email and pro.project.is_moderated() and pro.project.join_requests:
                 messages.warning(request, _("Please provide an email for the project \"{0}\" to use as a remitent for its moderated joining process notifications!").format(pro.name))
 
@@ -1615,16 +1615,16 @@ def joinaproject_request_internal(request, agent_id = False):
         if join_form.is_valid():
             human = True
             data = join_form.cleaned_data
-            type_of_user = proj_agent.agent_type #data["type_of_user"]
-            name = proj_agent.name #data["name"]
-            #surname = proj_agent.surname #data["surname"]
+            type_of_user = usr_agent.agent_type #data["type_of_user"]
+            name = usr_agent.name #data["name"]
+            surname = usr_agent.surname #data["surname"]
             #description = data["description"]
 
             jn_req = join_form.save(commit=False)
             jn_req.project = project
-            if request.user.agent.agent:
-              jn_req.agent = request.user.agent.agent
-              jn_req.name = request.user.agent.agent.name
+            if usr_agent:
+              jn_req.agent = usr_agent
+              jn_req.name = usr_agent.name
             jn_req.save()
 
             #request.POST._mutable = True
@@ -1759,7 +1759,7 @@ def joinaproject_request_internal(request, agent_id = False):
                         users,
                         "work_join_request",
                         {"name": name,
-                        #"surname": surname,
+                        "surname": surname,
                         "type_of_user": type_of_user,
                         "description": description,
                         "site_name": site_name,
@@ -2387,12 +2387,11 @@ def project_feedback(request, agent_id, join_request_id):
                         obj = {}
                         for op in opts:
                             arr = op.split(', ')
-                            if jn_req.data[nam] == arr[1]:
-                                #obj['selected'] = arr[1]
-                                obj[str(arr[0])] = arr[1]
-                            else:
-                                obj[str(arr[0])] = arr[1]
-
+                            #if jn_req.data[nam] == arr[1]:
+                            #    #obj['selected'] = arr[1]
+                            #    obj[str(arr[0])] = arr[1]
+                            #else:
+                            obj[str(arr[0])] = arr[1]
                             #import pdb; pdb.set_trace()
                         jn_req.elem_choi[nam] = obj
                     else:
