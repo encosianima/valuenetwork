@@ -48,7 +48,7 @@ class EmailBackend(BaseBackend):
                 raise ValidationError("context agent is in context but agent is none?? "+str(context))
 
             if not agent.email:
-                logger.debug("The project sending this notice is missing an email address! agent:"+str(agent)+", using:"+str(from_email))
+                logger.info("The project sending this notice is missing an email address! agent:"+str(agent)+", using:"+str(from_email))
             else:
                 from_email = agent.email
 
@@ -62,7 +62,7 @@ class EmailBackend(BaseBackend):
             else:
                 logger.warning("There's no custom email object (or no 'host') for project: "+str(agent.project))
         else:
-            logger.debug("There's no context_agent related this notice? "+str(notice_type)+" context:"+str(context))
+            logger.warning("There's no context_agent related this notice? "+str(notice_type)+" context:"+str(context))
 
         messages = self.get_formatted_messages((
             "short.txt",
@@ -92,7 +92,7 @@ class EmailBackend(BaseBackend):
         #import pdb; pdb.set_trace()
         result = email.send()
 
-        logger.info('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time())+' result:'+str(result)+' agent:'+str(agent))
+        logger.info('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' agent:'+str(agent)+' result:'+str(result))
 
         #send_mail(subject, body, from_email, [recipient.email], connection=connection)
 
