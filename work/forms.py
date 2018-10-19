@@ -70,23 +70,23 @@ class WorkAgentCreateForm(AgentCreateForm):
         name = data["name"]
         email = data['email']
         if nick and name and email:
-            ags = EconomicAgent.objects.filter(nick=nick).exclude(email=email)
+            ags = EconomicAgent.objects.filter(nick=nick).exclude(email=email).exclude(name=name)
             if ags:
                 #print "- ERROR nick present! "
                 self.add_error('nick', _("This nickname is already present in the system."))
-            ags = EconomicAgent.objects.filter(name=name).exclude(email=email)
+            ags = EconomicAgent.objects.filter(name=name).exclude(email=email).exclude(nick=nick)
             if ags:
                 #print "- ERROR name present! "
                 self.add_error('name', _("This name is already present in the system."))
             ags = EconomicAgent.objects.filter(email=email).exclude(nick=nick).exclude(name=name)
-            if ags:
+            if ags and not self.instance.is_context:
                 #print "- ERROR email present! "
                 self.add_error('email', _("This email is already present in the system."))
         else:
             if not email:
                 pass
             else:
-                print "- ERROR clean WorkAgentCreateForm ! data: "+str(data)
+                pass #print "- ERROR clean WorkAgentCreateForm ! data: "+str(data)
 
 
     def _clean_fields(self):

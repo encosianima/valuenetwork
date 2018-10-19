@@ -294,10 +294,10 @@ LOGGING = {
         },
         'applogfile': {
             'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
+            'class':'logging.FileHandler', # was logging.handlers.RotatingFileHandler
             'filename': 'ocp_debug.log', # put the log file in your desired directory
-            'maxBytes': 1024*1024*15, # 15MB
-            'backupCount': 10,
+            #'maxBytes': 1024*1024*15, # 15MB
+            #'backupCount': 10,
             'formatter': 'verbose'
         }
     },

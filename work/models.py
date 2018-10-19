@@ -211,7 +211,7 @@ class Project(models.Model):
             shr_rt = None
             for rt in rts:
                 if rt.ocp_artwork_type.general_unit_type:
-                    if rt.ocp_artwork_type.general_unit_type.clas == 'share':
+                    if rt.ocp_artwork_type.general_unit_type.clas == self.fobi_slug+'_shares':
                         shr_rt = rt
             if shr_rt:
                 shares_res = EconomicResource.objects.filter(resource_type=shr_rt)
@@ -860,11 +860,11 @@ class JoinRequest(models.Model):
         if payopt.has_key('key'):
           if rt and rt.ocp_artwork_type:
             recordts = Ocp_Record_Type.objects.filter(
-                ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type,
+                ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type.rel_nonmaterial_type,
                 exchange_type__isnull=False)
             if not recordts:
                 recordts = Ocp_Record_Type.objects.filter(
-                    ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type.rel_nonmaterial_type,
+                    ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type,
                     exchange_type__isnull=False)
             if len(recordts) > 0:
                 for rec in recordts:
@@ -881,6 +881,8 @@ class JoinRequest(models.Model):
                         for an in ancs:
                             if an.clas == 'crypto_economy':
                                 recs.append(rec)
+                    else:
+                        raise ValidationError("Payment mode not known: "+str(payopt['key'])+" at JR:"+str(self.id)+" pro:"+str(self.project))
                 if len(recs) > 1:
                     for rec in recs:
                         ancs = rec.get_ancestors(True,True)
@@ -892,11 +894,11 @@ class JoinRequest(models.Model):
 
                 #import pdb; pdb.set_trace()
                 if not et or not len(recs):
-                    pass #raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
+                    raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
             elif recordts:
                 raise ValidationError("found ocp_record_type's ?? : "+str(recordts)) # pass #et = recordts[0].exchange_type
             else:
-                raise ValidationError("not found any ocp_record_type related: "+str(rt.ocp_artwork_type))
+                pass #raise ValidationError("not found any ocp_record_type related: "+str(rt.ocp_artwork_type))
           else:
             raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
         else: # no payopt
@@ -2246,6 +2248,48 @@ def create_unit_types(**kwargs):
     kilo.save()
 
 
+    # FacetValues
+
+    curfacet, created = Facet.objects.get_or_create(
+        name="Currency")
+    if created:
+        print "- created Facet: 'Currency'"
+    curfacet.clas = "Currency_Type"
+    curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
+    curfacet.save()
+
+    shrfv, created = FacetValue.objects.get_or_create(
+        facet=curfacet,
+        value="Project Shares")
+    if created:
+        print "- created FacetValue: 'Project Shares'"
+
+    nonfacet, created = Facet.objects.get_or_create(
+        name="Non-material",
+        clas="Nonmaterial_Type")
+    if created:
+        print "- created Facet: 'Non-material'"
+    fvmoney, created = FacetValue.objects.get_or_create(
+        facet=nonfacet,
+        value='Money')
+    if created:
+        print "- created FacetValue: 'Money'"
+
+    fairfv, created = FacetValue.objects.get_or_create(value="Fair currency", facet=curfacet)
+    if created:
+        print "- created FacetValue: 'Fair currency'"
+
+    fiatfv, created = FacetValue.objects.get_or_create(value="Fiat currency", facet=curfacet)
+    if created:
+        print "- created FacetValue: 'Fiat currency'"
+
+    cryptfv, created = FacetValue.objects.get_or_create(value="Crypto currency", facet=curfacet)
+    if created:
+        print "- created FacetValue: 'Crypto currency'"
+
+
+
+
     # FairCoin
     ocp_fair, created = Unit.objects.get_or_create(name='FairCoin', unit_type='value')
     if created:
@@ -2299,7 +2343,7 @@ def create_unit_types(**kwargs):
         ocp_fair_rt, created = EconomicResourceType.objects.get_or_create(
             name='FairCoin')
         if created:
-            print "- created ResourceType: 'FairCoin'"
+            print "- created EconomicResourceType: 'FairCoin'"
     else:
         ocp_fair_rt = ocp_fair_rts[0]
     ocp_fair_rt.unit = ocp_fair
@@ -2313,6 +2357,22 @@ def create_unit_types(**kwargs):
     ocp_fair_rt.inventory_rule = 'yes'
     ocp_fair_rt.behavior = 'dig_curr'
     ocp_fair_rt.save()
+
+    for fv in ocp_fair_rt.facets.all():
+        if not fv.facet_value == fairfv and not fv.facet_value == fvmoney:
+            print "- deleted: "+str(fv)
+            fv.delete()
+    ocp_fair_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=ocp_fair_rt,
+        facet_value=fairfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(ocp_fair_rtfv)
+
+    ocp_fair_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=ocp_fair_rt,
+        facet_value=fvmoney)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(ocp_fair_rtfv)
 
 
     nonmat_typs = Ocp_Artwork_Type.objects.filter(clas='Nonmaterial')
@@ -2358,6 +2418,59 @@ def create_unit_types(**kwargs):
     fair_rt.resource_type = ocp_fair_rt
     fair_rt.general_unit_type = gen_fair_typ
     fair_rt.save()
+
+    # Faircoin Ocp Account
+    fairacc_rts = EconomicResourceType.objects.filter(name='Faircoin Ocp Account')
+    if not fairacc_rts:
+        fairacc_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Faircoin Ocp Account')
+        if created:
+            print "- created EconomicResourceType: 'Faircoin Ocp Account'"
+    else:
+        fairacc_rt = fairacc_rts[0]
+    fairacc_rt.unit = ocp_fair
+    #fairacc_rt.unit_of_use = ocp_fair
+    fairacc_rt.unit_of_value = ocp_fair
+    #fairacc_rt.value_per_unit = 1
+    fairacc_rt.value_per_unit_of_use = 1 #decimal.Decimal('1.00')
+    #fairacc_rt.price_per_unit = 1
+    #fairacc_rt.unit_of_price = ocp_fair
+    fairacc_rt.substitutable = True
+    #fairacc_rt.inventory_rule = 'yes'
+    fairacc_rt.behavior = 'dig_acct'
+    fairacc_rt.save()
+
+    print "- "+str(fairacc_rt)+" FV's: "+str([fv.facet_value.value+', ' for fv in fairacc_rt.facets.all()])
+
+    digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Account')
+    if not digacc_typs:
+        digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Accounts')
+    if not digacc_typs:
+        digacc_typ, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='digital Accounts',
+            parent=digart_typ)
+        if created:
+            print "- created Ocp_Artwork_Types: 'digital Accounts'"
+    else:
+        digacc_typ = digacc_typs[0]
+    digacc_typ.name = 'digital Accounts'
+    digacc_typ.clas = 'accounts'
+    digacc_typ.parent = digart_typ
+    digacc_typ.save()
+
+    facc_rts = Ocp_Artwork_Type.objects.filter(name='Faircoin Ocp Account')
+    if not facc_rts:
+        facc_rt, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Faircoin Ocp Account',
+            parent=digacc_typ)
+        if created:
+            print "- created Ocp_Artwork_Types: 'Faircoin Ocp Account'"
+    else:
+        facc_rt = facc_rts[0]
+    facc_rt.clas = 'fair_ocp_account'
+    facc_rt.resource_type = fairacc_rt
+    #facc_rt.general_unit_type = gen_fair_typ
+    facc_rt.save()
 
 
     # Euros
@@ -2537,8 +2650,93 @@ def create_unit_types(**kwargs):
 
 
 
+    # Cryptos Bitcoin
 
-    # Shares
+    ocp_btc, created = Unit.objects.get_or_create(name='Bitcoin', unit_type='value')
+    if created:
+        print "- created a main ocp Unit: 'Bitcoin'"
+    ocp_btc.abbrev = 'btc'
+    ocp_btc.unit_type = 'value'
+    ocp_btc.save()
+
+    gen_btc_typ, created = Ocp_Unit_Type.objects.get_or_create(
+        name='Bitcoins',
+        parent=gen_crypto_typ
+    )
+    if created:
+        print "- created Ocp_Unit_Type: 'Bitcoins'"
+    gen_btc_typ.clas = 'bitcoin'
+    gen_btc_typ.save()
+
+    btcs = Gene_Unit.objects.filter(name='Bitcoin')
+    if not btcs:
+        btc, created = Gene_Unit.objects.get_or_create(
+            name='Bitcoin',
+            code='btc'
+        )
+        if created:
+            print "- created General.Unit for Bitcoin: 'Bitcoin'"
+    else:
+        btc = btcs[0]
+    btc.code = 'btc'
+    btc.unit_type = gen_btc_typ
+    btc.ocp_unit = ocp_btc
+    btc.save()
+
+    ocp_btc_rts = EconomicResourceType.objects.filter(name='Bitcoin')
+    if not ocp_btc_rts:
+        ocp_btc_rt, created = EconomicResourceType.objects.get_or_create(
+            name='Bitcoin')
+        if created:
+            print "- created EconomicResourceType: 'Bitcoin'"
+    else:
+        ocp_btc_rt = ocp_btc_rts[0]
+    ocp_btc_rt.unit = ocp_btc
+    ocp_btc_rt.unit_of_use = ocp_btc
+    #ocp_btc_rt.unit_of_value = ocp_fair
+    #ocp_btc_rt.value_per_unit = 1
+    #ocp_btc_rt.value_per_unit_of_use = 1
+    ocp_btc_rt.price_per_unit = 1
+    ocp_btc_rt.unit_of_price = ocp_btc
+    ocp_btc_rt.substitutable = True
+    ocp_btc_rt.inventory_rule = 'yes'
+    ocp_btc_rt.behavior = 'dig_curr'
+    ocp_btc_rt.save()
+
+    for fv in ocp_btc_rt.facets.all():
+        if not fv.facet_value == cryptfv and not fv.facet_value == fvmoney:
+            print "- deleted: "+str(fv)
+            fv.delete()
+    ocp_btc_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=ocp_btc_rt,
+        facet_value=cryptfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(ocp_btc_rtfv)
+
+    ocp_btc_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=ocp_btc_rt,
+        facet_value=fvmoney)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(ocp_btc_rtfv)
+
+
+    btc_rts = Ocp_Artwork_Type.objects.filter(name='Bitcoin')
+    if not btc_rts:
+        btc_rt, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='Bitcoin',
+            parent=digcur_typ)
+        if created:
+            print "- created Ocp_Artwork_Types: 'Bitcoin'"
+    else:
+        btc_rt = btc_rts[0]
+    btc_rt.clas = 'btc_digital'
+    btc_rt.resource_type = ocp_btc_rt
+    btc_rt.general_unit_type = gen_btc_typ
+    btc_rt.save()
+
+
+
+    #   S h a r e s
 
     gen_share_typs = Ocp_Unit_Type.objects.filter(name='Shares')
     if not gen_share_typs:
@@ -2559,6 +2757,8 @@ def create_unit_types(**kwargs):
 
     artw_share = Ocp_Artwork_Type.objects.filter(name='Share')
     if not artw_share:
+        artw_share = Ocp_Artwork_Type.objects.filter(name='Shares')
+    if not artw_share:
         artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(
             name='Shares',
             parent=digcur_typ)
@@ -2572,34 +2772,6 @@ def create_unit_types(**kwargs):
     artw_sh.resource_type = None
     artw_sh.general_unit_type = gen_share_typ
     artw_sh.save()
-
-
-    # FacetValues
-
-    curfacet, created = Facet.objects.get_or_create(
-        name="Currency")
-    if created:
-        print "- created Facet: 'Currency'"
-    curfacet.clas = "Currency_Type"
-    curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
-    curfacet.save()
-
-    shrfv, created = FacetValue.objects.get_or_create(
-        facet=curfacet,
-        value="Project Shares")
-    if created:
-        print "- created FacetValue: 'Project Shares'"
-
-    nonfacet, created = Facet.objects.get_or_create(
-        name="Non-material",
-        clas="Nonmaterial_Type")
-    if created:
-        print "- created Facet: 'Non-material'"
-    fvmoney, created = FacetValue.objects.get_or_create(
-        facet=nonfacet,
-        value='Money')
-    if created:
-        print "- created FacetValue: 'Money'"
 
 
 
@@ -2645,7 +2817,9 @@ def create_unit_types(**kwargs):
     fdc_share.ocp_unit = ocp_share
     fdc_share.save()
 
-    ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
+    ocp_share_rts = EconomicResourceType.objects.filter(name='Share')
+    if not ocp_share_rts:
+        ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
     if not ocp_share_rts:
         ocp_share_rts = EconomicResourceType.objects.filter(name='FreedomCoop Share')
     if ocp_share_rts:
@@ -2658,17 +2832,34 @@ def create_unit_types(**kwargs):
         if created:
             print "- created EconomicResourceType: 'FreedomCoop Share'"
     share_rt.name = 'FreedomCoop Share'
-    share_rt.unit = ocp_each
+    share_rt.unit = ocp_share
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
     share_rt.save()
 
-    artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
-        name='FreedomCoop Share',
-        parent = Type.objects.get(id=artw_sh.id)
-    )
+    for fv in share_rt.facets.all():
+        if not fv.facet_value == shrfv:
+            print "- delete: "+str(fv)
+            fv.delete()
+    share_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=share_rt,
+        facet_value=shrfv)
     if created:
-        print "- created Ocp_Artwork_Type: 'FreedomCoop Share'"
+        print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+
+
+    artw_fdcs = Ocp_Artwork_Type.objects.filter(name="Share")
+    if not artw_fdcs:
+        artw_fdcs = Ocp_Artwork_Type.objects.filter(name="Membership Share")
+    if artw_fdcs:
+        artw_fdc = artw_fdcs[0]
+    else:
+        artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
+            name='FreedomCoop Share',
+            parent = Type.objects.get(id=artw_sh.id)
+        )
+        if created:
+            print "- created Ocp_Artwork_Type: 'FreedomCoop Share'"
     artw_fdc.parent = Type.objects.get(id=artw_sh.id)
     artw_fdc.resource_type = share_rt
     artw_fdc.general_unit_type = Unit_Type.objects.get(id=gen_fdc_typ.id)
@@ -2685,7 +2876,7 @@ def create_unit_types(**kwargs):
     if not boc_ag:
         boc_ag = EconomicAgent.objects.filter(nick="BotC")
     if not boc_ag:
-        print "- WARNING: the BoC agent don't exist, not created any unit for shares"
+        print "- WARNING: the BotC agent don't exist, not created any unit for shares"
         return
     else:
         boc_ag = boc_ag[0]
@@ -2729,7 +2920,9 @@ def create_unit_types(**kwargs):
     boc_share.ocp_unit = ocpboc_share
     boc_share.save()
 
-    share_rts = EconomicResourceType.objects.filter(name__icontains="BankOfTheCommons Share")
+    share_rts = EconomicResourceType.objects.filter(name__icontains="BankOfTheCommons Share").exclude(name__icontains="Account")
+    if not share_rts:
+        share_rts = EconomicResourceType.objects.filter(name__icontains="Bank of the Commons Share").exclude(name__icontains="Account")
     if share_rts:
         if len(share_rts) > 1:
             raise ValidationError("There are more than 1 EconomicResourceType named: 'BankOfTheCommons Share'")
@@ -2744,13 +2937,25 @@ def create_unit_types(**kwargs):
         if created:
             print "- created EconomicResourceType: 'Bank of the Commons Share'"
     share_rt.name = "Bank of the Commons Share"
-    share_rt.unit = ocp_each
+    share_rt.unit = ocpboc_share
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
     share_rt.context_agent = boc_ag
     share_rt.save()
 
-    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="BankOfTheCommons Share")
+    for fv in share_rt.facets.all():
+        if not fv.facet_value == shrfv:
+            print "- delete: "+str(fv)
+            fv.delete()
+    share_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=share_rt,
+        facet_value=shrfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+
+    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="BankOfTheCommons Share").exclude(name__icontains="Account")
+    if not artw_bocs:
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="Bank of the Commons Share").exclude(name__icontains="Account")
     if artw_bocs:
         if len(artw_bocs) > 1:
             raise ValidationError("There are more than 1 Ocp_Artwork_Type named: 'BankOfTheCommons Share' ")
@@ -2767,6 +2972,7 @@ def create_unit_types(**kwargs):
     artw_boc.resource_type = share_rt
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
     artw_boc.save()"""
+
 
     print "...end of the units analisys."
 
