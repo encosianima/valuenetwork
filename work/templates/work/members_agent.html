@@ -885,7 +885,7 @@
                 {% trans "Relations:" %}
               </h3>
 
-              <h4 class="hdg"> {{ agent.name }} {% trans "is associated with" %}: </h4>
+              <h4 class="hdg"> {{ agent.name }} {% trans "is associated with" %}: </h4>{% if user_agent.is_superuser %}<!-- debug:managed_projects: {% for pro in agent.managed_projects %}{{ pro.name}} ({{ pro.id }}), {% endfor %} -->{% endif %}
               <ul>
                 {% for assoc in is_associated_with  %}
                     {% ifchanged assoc.association_type %}
