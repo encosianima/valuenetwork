@@ -1474,7 +1474,7 @@ def joinaproject_request(request, form_slug = False):
 
 
                     event_type = EventType.objects.get(relationship="todo")
-                    join_url = get_url_starter(request) + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
+                    join_url = get_url_starter(request) + "/work/project-feedback/" + str(jn_req.project.agent.id) +"/"+str(jn_req.id)
                     context_agent = jn_req.project.agent
 
                     if jn_req.payment_url(): # its a credit card payment, create the user and the agent
@@ -1517,7 +1517,7 @@ def joinaproject_request(request, form_slug = False):
                           if manager.user():
                             users.append(manager.user().user)
                         if users:
-                            site_name = get_site_name(request)
+                            site_name = jn_req.project.agent.nick #get_site_name(request)
                             notification.send(
                                 users,
                                 "work_join_request",
@@ -1750,7 +1750,7 @@ def joinaproject_request_internal(request, agent_id = False):
                   if manager.user():
                     users.append(manager.user().user)
                 if users:
-                    site_name = get_site_name(request)
+                    site_name = jn_req.project.agent.nick #get_site_name(request)
                     notification.send(
                         users,
                         "work_join_request",
@@ -2226,7 +2226,7 @@ def create_account_for_join_request(request, join_request_id):
                             #allusers = chain(users, agent)
                             #users = list(users)
                             #users.append(agent.user)
-                            site_name = get_site_name(request)
+                            site_name = project.agent.nick #get_site_name(request)
                             notification.send(
                                 users,
                                 "work_new_account",
@@ -2310,8 +2310,8 @@ def resend_candidate_credentials(request, joinrequest_id):
 
         users = [jn_req.agent.user().user,]
         if users:
-            site_name = project.agent.name #get_site_name(request)
-            notification.send(
+            site_name = project.agent.nick #get_site_name(request)
+            notification.send_now(
                 users,
                 "work_new_account",
                 {"name": jn_req.agent.name,
@@ -2332,6 +2332,7 @@ def resend_candidate_credentials(request, joinrequest_id):
     if not next:
         next = "project_feedback"
 
+    messages.warning(request, _('The email with the user credentials was sended again.'))
     return redirect(next, agent_id=jn_req.project.agent.id, join_request_id=jn_req.id)
 
 

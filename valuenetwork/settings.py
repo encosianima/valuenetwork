@@ -239,6 +239,7 @@ MAP_ZOOM = 11
 
 RANDOM_PASSWORD_LENGHT = 20
 
+ACCOUNT_EMAIL_UNIQUE = True
 ACCOUNT_NOTIFY_ON_PASSWORD_CHANGE = False
 
 # multicurrency settings
@@ -250,7 +251,7 @@ PAYMENT_GATEWAYS = {} # Fill the object in local_settings.py with custom gateway
 
 PINAX_NOTIFICATIONS_QUEUE_ALL = True
 PINAX_NOTIFICATIONS_BACKENDS = [
-        ("email", "pinax.notifications.backends.email.EmailBackend", 1),
+        ("email", "work.email.EmailBackend", 1), # pinax.notifications.backends.email.EmailBackend
     ]
 
 THUMBNAIL_DEBUG = True
