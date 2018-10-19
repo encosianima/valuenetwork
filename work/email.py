@@ -60,7 +60,7 @@ class EmailBackend(BaseBackend):
                 except:
                     raise
             else:
-                logger.debug("There's no custom email object (or no 'host') for project: "+str(agent.project))
+                logger.warning("There's no custom email object (or no 'host') for project: "+str(agent.project))
         else:
             logger.debug("There's no context_agent related this notice? "+str(notice_type)+" context:"+str(context))
 
@@ -92,7 +92,7 @@ class EmailBackend(BaseBackend):
         #import pdb; pdb.set_trace()
         result = email.send()
 
-        logger.debug('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time())+' result:'+str(result)+' agent:'+str(agent))
+        logger.info('ocp sended email from '+str(from_email)+' to '+str(recipient.email)+' - time:'+str(time.time())+' result:'+str(result)+' agent:'+str(agent))
 
         #send_mail(subject, body, from_email, [recipient.email], connection=connection)
 
