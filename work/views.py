@@ -2391,9 +2391,15 @@ def project_feedback(request, agent_id, join_request_id):
                             #    #obj['selected'] = arr[1]
                             #    obj[str(arr[0])] = arr[1]
                             #else:
-                            obj[str(arr[0])] = arr[1]
+                            if len(arr) == 2 and arr[0] and arr[1]:
+                                obj[str(arr[0])] = arr[1]
+                            else:
+                                logger.warning("The choice option for join_request id "+str(jn_req.id)+" is not understood: "+str(op))
                             #import pdb; pdb.set_trace()
-                        jn_req.elem_choi[nam] = obj
+                        if len(obj):
+                            jn_req.elem_choi[nam] = obj
+                        else:
+                            logger.warning("No obj to assign options ("+str(opts)+") to select name "+str(nam)+" for jn_req: "+str(jn_req.id))
                     else:
                         jn_req.elem_typs[nam] = elem.plugin_uid # 'text' 'textarea'
                         jn_req.elem_choi[nam] = ''

@@ -2,6 +2,8 @@ from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 #from django_comments.models import Comment
 from django_comments.signals import comment_was_posted #, comment_will_be_posted
+import logging
+logger = logging.getLogger("ocp")
 
 class WorkAppConfig(AppConfig):
     name = 'work'
@@ -19,3 +21,4 @@ class WorkAppConfig(AppConfig):
         post_migrate.connect(create_exchange_skills, sender=self)
         comment_was_posted.connect(comment_notification, sender=self) #Comment)
         #comment_will_be_posted.connect(pre_comment, sender=Comment)
+        logger.info("Connected signals to post_migrate and comment_was_posted")

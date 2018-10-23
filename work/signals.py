@@ -11,7 +11,7 @@ def comment_notification(sender, comment=None, **kwargs):
 
     ct_commented = comment.content_type
 
-    #logger.debug("About to send a comment related the object: "+str(ct_commented))
+    logger.info("About to send a comment related the object: "+str(ct_commented.model))
 
     if ct_commented.model == 'membershiprequest':
         msr_creator_username = comment.content_object.requested_username
@@ -88,9 +88,9 @@ def comment_notification(sender, comment=None, **kwargs):
         raise ValidationError("The comment is related an unknown model: "+str(ct_commented.model))
 
 
-# This don't work anymore!! now the connection is at work/apps.py ...
+# This don't work anymore! now the connection is at work/apps.py ... but seems not enough? connect here too
 
 # Connecting signal "comment_was_posted" to comment_notification()
-#from django_comments.models import Comment
-#from django_comments.signals import comment_was_posted, comment_will_be_posted
-#comment_was_posted.connect(comment_notification, sender=Comment)
+from django_comments.models import Comment
+from django_comments.signals import comment_was_posted#, comment_will_be_posted
+comment_was_posted.connect(comment_notification, sender=Comment)
