@@ -11,7 +11,7 @@ def comment_notification(sender, comment=None, **kwargs):
 
     ct_commented = comment.content_type
 
-    logger.info("About to send a comment related the object: "+str(ct_commented.model))
+    logger.info("About to send a comment related the object: "+str(ct_commented.model)+" name:"+str(comment.name))
 
     if ct_commented.model == 'membershiprequest':
         msr_creator_username = comment.content_object.requested_username
