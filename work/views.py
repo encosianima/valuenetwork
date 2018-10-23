@@ -37,6 +37,9 @@ from faircoin.models import FaircoinTransaction
 from fobi.models import FormEntry
 from general.models import Artwork_Type #, Unit_Type
 
+import logging
+loger = logging.getLogger("ocp")
+
 if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
 else:
@@ -2394,12 +2397,12 @@ def project_feedback(request, agent_id, join_request_id):
                             if len(arr) == 2 and arr[0] and arr[1]:
                                 obj[str(arr[0])] = arr[1]
                             else:
-                                logger.warning("The choice option for join_request id "+str(jn_req.id)+" is not understood: "+str(op))
+                                loger.warning("The choice option for join_request id "+str(jn_req.id)+" is not understood: "+str(op))
                             #import pdb; pdb.set_trace()
                         if len(obj):
                             jn_req.elem_choi[nam] = obj
                         else:
-                            logger.warning("No obj to assign options ("+str(opts)+") to select name "+str(nam)+" for jn_req: "+str(jn_req.id))
+                            loger.warning("No obj to assign options ("+str(opts)+") to select name "+str(nam)+" for jn_req: "+str(jn_req.id))
                     else:
                         jn_req.elem_typs[nam] = elem.plugin_uid # 'text' 'textarea'
                         jn_req.elem_choi[nam] = ''
