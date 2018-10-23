@@ -44,7 +44,7 @@
                 {% endfor %}
             </tr>
             {% for row in notice_settings.rows %}
-              {% if "valnet_" in row.notice_type.label and request.user.agent.agent.need_skills %}
+              {% if "valnet_" in row.notice_type.label and request.user.agent.agent.need_tasks %}
                 {% ifchanged True %}
                     <tr class="notice-group"><td><h4><em>{% trans "Related Tasks & Skills:" %}</em></h4></td><td></td></tr>
                 {% endifchanged %}

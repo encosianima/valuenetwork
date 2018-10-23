@@ -12,7 +12,7 @@
 
         <div class="subnav">
             <a class="indent" href="{% url "work_account_password" %}" >{% trans "Change password" %}</a>
-            {% if request.user.agent.agent.managed_projects or request.user.agent.agent.need_skills %}<a class="indent" href="{% url "pinax_notifications:notice_settings" %}" >{% trans "Notification Settings" %}</a>{% endif %}
+            {% if request.user.agent.agent.managed_projects or request.user.agent.agent.need_tasks %}<a class="indent" href="{% url "pinax_notifications:notice_settings" %}" >{% trans "Notification Settings" %}</a>{% endif %}
         </div>
     </legend>
     <form method="POST" action="{% url "work_account_settings" %}">

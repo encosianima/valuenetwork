@@ -37,6 +37,9 @@ from faircoin.models import FaircoinTransaction
 from fobi.models import FormEntry
 from general.models import Artwork_Type #, Unit_Type
 
+import logging
+loger = logging.getLogger("ocp")
+
 if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
 else:
@@ -74,6 +77,10 @@ def work_home(request):
 @login_required
 def my_dashboard(request):
     agent = get_agent(request)
+    for pro in agent.managed_projects():
+        if hasattr(pro, 'project') and pro.project:
+            if not pro.email and pro.project.is_moderated() and pro.project.join_requests:
+                messages.warning(request, _("Please provide an email for the project \"{0}\" to use as a remitent for its moderated joining process notifications!").format(pro.name))
 
     return render(request, "work/my_dashboard.html", {
         "agent": agent,
@@ -1107,8 +1114,8 @@ def members_agent(request, agent_id):
                             break
                         """
 
-
-
+    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
+        messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
 
     return render(request, "work/members_agent.html", {
         "agent": agent,
@@ -1720,16 +1727,16 @@ def joinaproject_request_internal(request, agent_id = False):
         if join_form.is_valid():
             human = True
             data = join_form.cleaned_data
-            type_of_user = proj_agent.agent_type #data["type_of_user"]
-            name = proj_agent.name #data["name"]
-            #surname = proj_agent.surname #data["surname"]
+            type_of_user = usr_agent.agent_type #data["type_of_user"]
+            name = usr_agent.name #data["name"]
+            surname = "" # usr_agent.surname #data["surname"] # TODO? there's no surname in agent nor in the internal join form
             #description = data["description"]
 
             jn_req = join_form.save(commit=False)
             jn_req.project = project
-            if request.user.agent.agent:
-              jn_req.agent = request.user.agent.agent
-              jn_req.name = request.user.agent.agent.name
+            if usr_agent:
+              jn_req.agent = usr_agent
+              jn_req.name = usr_agent.name
             jn_req.save()
 
             #request.POST._mutable = True
@@ -1864,7 +1871,7 @@ def joinaproject_request_internal(request, agent_id = False):
                         users,
                         "work_join_request",
                         {"name": name,
-                        #"surname": surname,
+                        "surname": surname,
                         "type_of_user": type_of_user,
                         "description": description,
                         "site_name": site_name,
@@ -2107,6 +2114,9 @@ def join_requests(request, agent_id):
             else:
               req.entries = []
 
+    if project.is_moderated() and not agent.email:
+        messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
+
     return render(request, "work/join_requests.html", {
         "help": get_help("join_requests"),
         "requests": requests,
@@ -2326,6 +2336,7 @@ def create_account_for_join_request(request, join_request_id):
                     name = data["name"]
                     if notification:
                         managers = project.agent.managers()
+                        sett = set_user_notification_by_type(agent.user().user, "work_new_account", True)
                         users = [agent.user().user,]
                         for manager in managers:
                             if manager.user():
@@ -2445,9 +2456,6 @@ def resend_candidate_credentials(request, joinrequest_id):
     return redirect(next, agent_id=jn_req.project.agent.id, join_request_id=jn_req.id)
 
 
-def send_credentials_email(jn_req, from_agent=None, users=[]):
-    pass
-
 
 @login_required
 def project_feedback(request, agent_id, join_request_id):
@@ -2491,14 +2499,19 @@ def project_feedback(request, agent_id, join_request_id):
                         obj = {}
                         for op in opts:
                             arr = op.split(', ')
-                            if jn_req.data[nam] == arr[1]:
-                                #obj['selected'] = arr[1]
+                            #if jn_req.data[nam] == arr[1]:
+                            #    #obj['selected'] = arr[1]
+                            #    obj[str(arr[0])] = arr[1]
+                            #else:
+                            if len(arr) == 2 and arr[0] and arr[1]:
                                 obj[str(arr[0])] = arr[1]
                             else:
-                                obj[str(arr[0])] = arr[1]
-
+                                loger.warning("The choice option for join_request id "+str(jn_req.id)+" is not understood: "+str(op))
                             #import pdb; pdb.set_trace()
-                        jn_req.elem_choi[nam] = obj
+                        if len(obj):
+                            jn_req.elem_choi[nam] = obj
+                        else:
+                            loger.warning("No obj to assign options ("+str(opts)+") to select name "+str(nam)+" for jn_req: "+str(jn_req.id))
                     else:
                         jn_req.elem_typs[nam] = elem.plugin_uid # 'text' 'textarea'
                         jn_req.elem_choi[nam] = ''
@@ -2514,6 +2527,9 @@ def project_feedback(request, agent_id, join_request_id):
             jn_req.items_data = []
             for key in fobi_keys:
               jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key), "ky": key, "typ": jn_req.elem_typs[key], "opts": jn_req.elem_choi[key]})
+
+    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
+        messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
 
     return render(request, "work/join_request_with_comments.html", {
         "help": get_help("project_feedback"),
@@ -2642,10 +2658,10 @@ def connect_agent_to_join_request(request, agent_id, join_request_id):
             mbr_req.state = "new"
             mbr_req.save()
         else:
-            raise ValidationError(agent_form.errors)
+            raise ValidationError(agent_form.errors)"""
 
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/agent', project_agent.id, 'join-requests'))"""
+        % ('work/agent', project_agent.id, 'join-requests'))
 
 
 from six import text_type, PY3
@@ -3895,7 +3911,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         "context_agent": agent,
         "nav_form": nav_form,
         "usecases": usecases,
-        "Etype_tree": exchange_types, #Ocp_Record_Type.objects.filter(lft__gt=gen_ext.lft, rght__lt=gen_ext.rght, tree_id=gen_ext.tree_id).exclude( Q(exchange_type__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) ),
+        "Etype_tree": Ocp_Record_Type.objects.filter(lft__gt=gen_ext.lft, rght__lt=gen_ext.rght, tree_id=gen_ext.tree_id).exclude( Q(exchange_type__isnull=False), Q(exchange_type__context_agent__isnull=False), ~Q(exchange_type__context_agent__id__in=context_ids) ),
         "Rtype_tree": Ocp_Artwork_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False),  ~Q(resource_type__context_agent__id__in=context_ids) ),
         "Stype_tree": Ocp_Skill_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ),
         "Rtype_form": Rtype_form,
@@ -5227,7 +5243,7 @@ def create_project_shares(request, agent_id):
     arrs = AgentResourceRole.objects.filter(agent=agent, role=owner, resource__resource_type=ert_acc)
     if arrs:
         if len(arrs) > 1:
-            raise ValidationError("There are two accounts of the same type for the samr agent! "+str(arrs))
+            raise ValidationError("There are two accounts of the same type for the same agent! "+str(arrs))
         aresrol = arrs[0]
         res = aresrol.resource
     else:
@@ -5299,8 +5315,8 @@ def create_shares_exchange_types(request, agent_id):
     if not botc:
         botc = EconomicAgent.objects.filter(nick="BotC")
     if not botc:
-        print "- WARNING: the BoC agent don't exist, not created any unit for shares"
-        raise ValidationError("- WARNING: the BoC agent don't exist, not created any unit for shares")
+        print "- WARNING: the BotC agent don't exist, not created any exchange type for shares"
+        raise ValidationError("- WARNING: the BotC agent don't exist, not created any exchange type for shares")
     else:
         botc = botc[0]
 
@@ -5352,11 +5368,22 @@ def create_shares_exchange_types(request, agent_id):
     et_sharebuy.name = 'shares Buy'
     et_sharebuy.clas = 'buy'
 
-    etsh, created = ExchangeType.objects.get_or_create(
-        name="buy Project Shares",
-        use_case=usecas)
-    if created:
-        print "- created ExchangeType: 'buy Project Shares'"
+    etshs = ExchangeType.objects.filter(name__iexact="buy Project Shares")
+    if not etshs:
+        etshs = ExchangeType.objects.filter(name__iexact="share-buy Project Shares")
+    if etshs:
+        if len(etshs) > 1:
+            raise ValidationError("There're more than 1 ExchangeType with same name : "+str(etshs))
+        etsh = etshs[0]
+    else:
+        etsh, created = ExchangeType.objects.get_or_create(
+            name="share-buy Project Shares",
+            use_case=usecas)
+        if created:
+            print "- created ExchangeType: 'share-buy Project Shares'"
+    etsh.name = "share-buy Project Shares"
+    etsh.use_case = usecas
+    etsh.save()
 
     et_sharebuy.exchange_type = etsh
     et_sharebuy.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares", name="Shares")
@@ -5388,7 +5415,12 @@ def create_shares_exchange_types(request, agent_id):
     ttpay.can_create_resource = False
     ttpay.save()
 
-    fvmoney = FacetValue.objects.get(value="Money")
+    fvmoney = FacetValue.objects.get(value="Money") # maybe better just Shares (not multi gateway)?
+
+    for fv in ttpay.facet_values.all():
+        if not fv.facet_value == fvmoney:
+            print "- delete: "+str(fv)
+            fv.delete()
     ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttpay,
         facet_value=fvmoney)
@@ -5422,6 +5454,11 @@ def create_shares_exchange_types(request, agent_id):
     ttshr.save()
 
     shrfv = FacetValue.objects.get(value="Project Shares")
+
+    for fv in ttshr.facet_values.all():
+        if not fv.facet_value == shrfv:
+            print "- delete: "+str(fv)
+            fv.delete()
     ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttshr,
         facet_value=shrfv)
@@ -5455,11 +5492,11 @@ def create_shares_exchange_types(request, agent_id):
             extyp = extyps[0]
         else:
             extyp, created = ExchangeType.objects.get_or_create(
-                name="buy "+str(project.compact_name())+" Shares",
+                name="share-buy "+str(project.compact_name())+" Shares",
                 use_case=usecas)
             if created:
-                print "- created ExchangeType: 'buy "+str(project.compact_name())+" Shares'"
-        extyp.name = "buy "+str(project.compact_name())+" Shares"
+                print "- created ExchangeType: 'share-buy "+str(project.compact_name())+" Shares'"
+        extyp.name = "share-buy "+str(project.compact_name())+" Shares"
         extyp.use_case = usecas
         extyp.context_agent = project.agent
         extyp.save()
@@ -5473,17 +5510,19 @@ def create_shares_exchange_types(request, agent_id):
         rectyps = Ocp_Record_Type.objects.filter(name__iexact="buy "+str(project.compact_name())+" Shares")
         if not rectyps:
             rectyps = Ocp_Record_Type.objects.filter(name__iexact="buy "+str(project.agent.name)+" Shares")
+        if not rectyps:
+            rectyps = Ocp_Record_Type.objects.filter(name__iexact="share-buy "+str(project.agent.name)+" Shares")
         if rectyps:
             if len(rectyps) > 1:
                 raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(rectyps))
             rectyp = rectyps[0]
         else:
             rectyp, created = Ocp_Record_Type.objects.get_or_create(
-                name="buy "+str(project.compact_name())+" Shares",
+                name="share-buy "+str(project.compact_name())+" Shares",
                 parent=et_sharebuy)
             if created:
-                print "- created Ocp_Record_Type: 'buy "+str(project.compact_name())+" Shares'"
-        rectyp.name = "buy "+str(project.compact_name())+" Shares"
+                print "- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'"
+        rectyp.name = "share-buy "+str(project.compact_name())+" Shares"
         rectyp.parent = et_sharebuy
         rectyp.exchange_type = extyp
         rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
@@ -5502,7 +5541,7 @@ def create_shares_exchange_types(request, agent_id):
                 name="Payment of the "+str(project.agent.name)+" shares",
                 exchange_type=extyp)
             if created:
-                print "created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
+                print "- created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
         ttpay.name = "Payment of the "+str(project.agent.name)+" shares"
         ttpay.exchange_type = extyp
         ttpay.sequence = 1
@@ -5551,6 +5590,10 @@ def create_shares_exchange_types(request, agent_id):
         ttshr.save()
 
         ###  TransferTypeFacetValue  ->  receive  ->  share
+        for fv in ttshr.facet_values.all():
+            if not fv.facet_value == shrfv:
+                print "- delete: "+str(fv)
+                fv.delete()
         ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttshr,
             facet_value=shrfv)
@@ -5558,7 +5601,7 @@ def create_shares_exchange_types(request, agent_id):
             print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
 
 
-        curfacet = Facet.objects.get(name="Currency", clas="Currency_Type")
+        curfacet = Facet.objects.get(name="Currency")
         nonfacet = Facet.objects.get(name="Non-material")
         gate_keys = project.active_payment_options_obj()
         for obj in gate_keys:
@@ -5567,24 +5610,33 @@ def create_shares_exchange_types(request, agent_id):
             parent_rectyp = None
             slug = None
             nome = None
-            for ob in obj:
-                if ob == 'transfer' or ob == 'ccard':
-                    slug = 'fiat'
-                    nome = 'Fiat'
-                    title = 'Fiat-currency'
-                elif ob == 'faircoin':
-                    slug = 'fair'
-                    nome = 'Fair'
-                    title = 'Faircoin'
-                elif ob == 'btc' or ob == 'eth':
-                    slug = 'crypto'
-                    nome = 'Crypto'
-                    title = 'Cryptocoins'
+            ob = obj[0]
+            if ob == 'transfer' or ob == 'ccard':
+                slug = 'fiat'
+                nome = 'Fiat'
+                title = 'Fiat-currency'
+            elif ob == 'faircoin':
+                slug = 'fair'
+                nome = 'Fair'
+                title = 'Faircoin'
+            elif ob == 'btc' or ob == 'eth':
+                slug = 'crypto'
+                nome = 'Crypto'
+                title = 'Cryptocoins'
+            elif ob == 'share':
+                slug = 'share'
+                nome = 'Shares'
+                title = 'Shares'
+                gatefv = shrfv
+                continue # the share-buy et tree is already there
+            else:
+                raise ValidationError("Payment gateway not known: "+str(ob))
 
 
-            gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
-            if created:
-                print "- created FacetValue: '"+nome+" currency'"
+            if not gatefv:
+                gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
+                if created:
+                    print "- created FacetValue: '"+nome+" currency'"
 
             etfiats = ExchangeType.objects.filter(name=title+" Economy")
             if etfiats:
@@ -5676,6 +5728,7 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 ttpay, created = TransferType.objects.get_or_create(
                     name="Payment of the Non-material ("+slug+")",
+                    exchange_type=etfiat_non
                     #give_agent_is_context=True,
                 )
                 if created:
@@ -5695,6 +5748,10 @@ def create_shares_exchange_types(request, agent_id):
             ttpay.save()
 
             ###  TransferTypeFacetValue  ->  pay  ->  gatefv
+            for fv in ttpay.facet_values.all():
+                if not fv.facet_value == gatefv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
@@ -5710,12 +5767,14 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 ttnon, created = TransferType.objects.get_or_create(
                     name="Receive the Non-material",
+                    exchange_type=etfiat_non
                     #receive_agent_is_context=True,
                 )
                 if created:
                     print "- created TransferType: 'Receive the Non-material' ("+slug+")"
 
             ttnon.name = "Receive the Non-material"
+            ttnon.exchange_type = etfiat_non
             ttnon.sequence = 2
             ttnon.give_agent_is_context = True
             ttnon.receive_agent_is_context = False
@@ -5810,6 +5869,10 @@ def create_shares_exchange_types(request, agent_id):
             ttfiat.save()
 
             ###  TransferTypeFacetValue  ->  pay  ->  gatefv
+            for fv in ttfiat.facet_values.all():
+                if not fv.facet_value == gatefv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttfiat,
                 facet_value=gatefv)
@@ -5844,6 +5907,10 @@ def create_shares_exchange_types(request, agent_id):
             ttshr.save()
 
             ###  TransferTypeFacetValue  ->  receive  ->  shares
+            for fv in ttshr.facet_values.all():
+                if not fv.facet_value == shrfv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
                 facet_value=shrfv)
@@ -5860,6 +5927,8 @@ def create_shares_exchange_types(request, agent_id):
             #   P R O J E C T    B U Y    S H A R E S
 
             fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
+            if not fiat_ets:
+                fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
             if fiat_ets:
                 if len(fiat_ets) > 1:
                     raise ValidationError("There's more than 1 ExchangeType named: '"+slug+"-buy "+str(project.compact_name())+" Share")
@@ -5898,6 +5967,10 @@ def create_shares_exchange_types(request, agent_id):
             ttpay.can_create_resource = False
             ttpay.save()
 
+            for fv in ttpay.facet_values.all():
+                if not fv.facet_value == gatefv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
@@ -5927,6 +6000,10 @@ def create_shares_exchange_types(request, agent_id):
             ttshr.can_create_resource = False
             ttshr.save()
 
+            for fv in ttshr.facet_values.all():
+                if not fv.facet_value == shrfv:
+                    print "- delete: "+str(fv)
+                    fv.delete()
             ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
                 facet_value=shrfv)
@@ -5940,6 +6017,10 @@ def create_shares_exchange_types(request, agent_id):
 
 
             pro_shr_rectyps = Ocp_Record_Type.objects.filter(exchange_type=fiat_et)
+            if not pro_shr_rectyps:
+                pro_shr_rectyps = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
+            if not pro_shr_rectyps:
+                pro_shr_rectyps = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
             if pro_shr_rectyps:
                 if len(pro_shr_rectyps) > 1:
                     raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(pro_shr_rectyp))

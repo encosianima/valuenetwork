@@ -1385,6 +1385,21 @@ class EconomicAgent(models.Model):
             answer = [a.is_associate for a in self.all_has_associates() if a.is_associate.is_individual()]
         return answer
 
+    def commitments_with_my_skills(self):
+        answer = []
+        if not self.is_context:
+            skill_ids = self.resource_types.values_list('resource_type__id', flat=True)
+            my_projects = self.is_member_of()
+            project_ids = []
+            for proj in my_projects:
+                project_ids.append(proj.id)
+            answer = Commitment.objects.unfinished().filter(
+                from_agent=None,
+                event_type__relationship="work",
+                resource_type__id__in=skill_ids,
+                process__context_agent__id__in=project_ids)
+        return answer
+
     def child_tree(self):
         from valuenetwork.valueaccounting.utils import agent_dfs_by_association
         #todo: figure out why this failed when AAs were ordered by from_agent
@@ -1907,6 +1922,14 @@ class EconomicAgent(models.Model):
             return False
         if self.faircoin_resource():
             return False
+        if self.events.filter(quantity__gt=0):
+            return False
+        if self.commitments.filter(quantity__gt=0):
+            return False
+        if self.is_associate_of.all():
+            return False
+        if self.has_associates.all():
+            return False        
         return True
 
     def contexts_participated_in(self):
@@ -8339,13 +8362,17 @@ class TransferType(models.Model):
             try:
               if hasattr(self.exchange_type, 'ocp_record_type'):
                 oet = self.exchange_type.ocp_record_type
-                if hasattr(oet, 'ocp_resource_type'):
-                  ort = oet.ocp_resource_type
+                if hasattr(oet, 'ocpRecordType_ocp_artwork_type'):
+                  ort = oet.ocpRecordType_ocp_artwork_type
                   if ort:
+                     from work.models import Ocp_Artwork_Type
                      orts = Ocp_Artwork_Type.objects.filter(lft__gte=ort.lft, rght__lte=ort.rght, tree_id=ort.tree_id)
                      answer_ids = [rt.resource_type.id for rt in orts]
                      answer = EconomicResourceType.objects.filter(id__in=answer_ids)
-                     return answer
+                     if answer:
+                        return answer
+                     else:
+                        raise ValidationError("get_resource_types of "+str(self)+" are not found by rt.ids: "+str(answer_ids)+" of tree: "+str(orts))
             except:
                pass
 
@@ -8533,7 +8560,7 @@ class ExchangeManager(models.Manager):
         count = len(exchanges_by_type)
         #print "- ebdan start: "+str(start)+" end: "+str(end)+" agent: "+str(agent.id)+" exs: "+str(count)
 
-        exs_bdc = exchanges_by_type.filter(start_date__range=[start, end])
+        exs_bdc = exchanges_by_type.filter(start_date__range=[start, end]).order_by('created_date')
         count2 = len(exs_bdc)
         if not count == count2:
             print "- filtered exchanges_by_date_and_context start: "+str(start)+" end: "+str(end)+" agent: "+str(agent)+" count: "+str(count)+" count2: "+str(count2)
@@ -8557,7 +8584,7 @@ class ExchangeManager(models.Manager):
           Q(transfers__events__isnull=False, transfers__events__to_agent__isnull=False, transfers__events__to_agent=agent) |
           Q(transfers__commitments__isnull=False, transfers__commitments__from_agent__isnull=False, transfers__commitments__from_agent=agent) |
           Q(transfers__commitments__isnull=False, transfers__commitments__to_agent__isnull=False, transfers__commitments__to_agent=agent)
-        ).distinct()#.order_by('created_date') #.exclude(
+        ).distinct().order_by('exchange_type', 'created_date') #.exclude(
             #~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
             #~Q(context_agent__isnull=False, context_agent__id__in=agids)
         #).order_by(Lower('exchange_type__ocp_record_type__name').asc())
@@ -8567,14 +8594,16 @@ class ExchangeManager(models.Manager):
         count = len(exs_bt)
         if agent.is_context:
             #print "- ebt context: "+str(agent)+" 1 exs:"+str(count)
-            exs_bt = exs_bt.exclude(
+            exs_bt2 = exs_bt.exclude(
                 ~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
             #    Q(context_agent__isnull=False, context_agent__id__in=agids2) |
             #    Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent__id__in=agids2)
             ) #.order_by('-start_date')
-            count2 = len(exs_bt)
+            count2 = len(exs_bt2)
             if not count == count2:
                 print "- filtered exchanges_by_type context: "+str(agent)+" count1:"+str(count)+" count2: "+str(count2)
+                if count2:
+                    exs_bt = exs_bt2
         else:
             #print "- ebt individual: "+str(agent)+" exs:"+str(count)
             exs_bt = exs_bt.exclude(

@@ -606,9 +606,10 @@ hr {
                     {% endif %}
                 </div> <!-- end tabs -->
               </div>
-              {% if request.user.is_superuser %}<span style="font-size:0.8em;color:#666;">(debug) <b>Contexts:</b> ({{ context_agent.related_all_agents|length }}) <span class="showhide" id="sh-debug_contexts" >SHOW</span>
+              {% if request.user.is_superuser %}<span style="font-size:0.8em;color:#666;">(debug) <b>RelAgents:</b> ({{ context_agent.related_contexts|length }}) <b>Contexts:</b> ({{ context_agent.related_all_agents|length }}) <span class="showhide" id="sh-debug_contexts" >SHOW</span>
                 <div id="list-debug_contexts" class="list">
-                    {% for ag in context_agent.related_all_agents %} {{ ag.name }} {% if not ag.nick == ag.name %}({{ ag.nick }}){% endif %}, {% endfor %}
+                    <b>Contexts:</b> {% for ag in context_agent.related_contexts %} {{ ag.name }} {% if not ag.nick == ag.name %}({{ ag.nick }}){% endif %}, {% endfor %}<br>
+                    <b>Agents:</b> {% for ag in context_agent.related_all_agents %} {{ ag.name }} {% if not ag.nick == ag.name %}({{ ag.nick }}){% endif %}, {% endfor %}
                 </div>
               </span>{% endif %}
               <span id="new_name"></span>
