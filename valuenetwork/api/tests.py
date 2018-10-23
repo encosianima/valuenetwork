@@ -1123,6 +1123,21 @@ query($token: String) {
   }
 }
 
+query($token: String) {
+  viewer(token: $token) {
+    person(id:6) {
+      name
+      commitmentsMatchingSkills {
+        id
+        action
+        resourceClassifiedAs {
+          name
+        }
+      }
+    }
+  }
+}
+
 query ($token: String) {
   viewer(token: $token) {
     agent(id: 39) {
@@ -3472,6 +3487,24 @@ mutation ($token: String!) {
         name
       }
       primaryPhone
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deletePerson(token: $token, id: 39) {
+    person {
+      id
+      name
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deleteOrganization(token: $token, id: 142) {
+    organization {
+      id
+      name
     }
   }
 }
