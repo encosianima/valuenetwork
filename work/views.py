@@ -1617,7 +1617,7 @@ def joinaproject_request_internal(request, agent_id = False):
             data = join_form.cleaned_data
             type_of_user = usr_agent.agent_type #data["type_of_user"]
             name = usr_agent.name #data["name"]
-            surname = usr_agent.surname #data["surname"]
+            surname = "" # usr_agent.surname #data["surname"] # TODO? there's no surname in agent nor in the internal join form
             #description = data["description"]
 
             jn_req = join_form.save(commit=False)
