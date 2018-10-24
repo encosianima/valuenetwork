@@ -592,6 +592,11 @@ class EconomicAgent(models.Model):
                         return False
                 else:
                     return False
+            elif type(object_to_mutate) is AgentResourceType:
+                if self == object_to_mutate.agent:
+                    return True
+                else:
+                    return False
             else:
                 context_agent = object_to_mutate.context_agent
         else:
@@ -6885,6 +6890,10 @@ class AgentResourceType(models.Model):
             self.event_type.label,
             self.resource_type.name,
         ])
+
+    @property #ValueFlows
+    def action(self):
+        return self.event_type.action
 
     def label(self):
         return "source"
