@@ -1061,7 +1061,8 @@ def edit_relations(request, agent_id):
                 # check there's no join request
                 reqs = agent.project.join_requests.filter(agent=member_assn.subject) # .subject is the new VF property (is_associate)
                 if reqs:
-                    raise ValidationError("Can't disable the relation because there's still a join-request: "+str(reqs))
+                    messages.error(request, _("Can't disable the relation because there's still a join-request for this agent."))
+                    #raise ValidationError("Can't disable the relation because there's still a join-request: "+str(reqs))
                 else:
                     member_assn.state = 'inactive'
                     member_assn.save()
@@ -2126,11 +2127,13 @@ def confirm_request(request, join_request_id):
     if not jn_req.project:
         raise ValidationError("This request has no project ??!!!")
     if not jn_req.project.agent.email:
-        raise ValidationError("The project is missing an Email Address !! (needed to send notifications to users)")
-    user_agent = get_agent(request)
-    if not user_agent in jn_req.project.agent.managers():
-        raise ValidationError("You don't have permission to do this !!!")
-    jn_req.create_useragent_randompass(request)
+        messages.error(request, _("The project is missing an Email Address !! (needed to send notifications to users)"))
+        #raise ValidationError("The project is missing an Email Address !! (needed to send notifications to users)")
+    else:
+        user_agent = get_agent(request)
+        if not user_agent in jn_req.project.agent.managers():
+            raise ValidationError("You don't have permission to do this !!!")
+        jn_req.create_useragent_randompass(request)
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', jn_req.project.agent.id, 'join-requests'))
 
