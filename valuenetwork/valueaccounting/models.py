@@ -582,6 +582,21 @@ class EconomicAgent(models.Model):
                     context_agent = object_to_mutate.is_associate
                 elif object_to_mutate.has_associate.is_context:
                     context_agent = object_to_mutate.has_associate
+            elif type(object_to_mutate) is EconomicAgent:
+                if object_to_mutate == self:
+                    return True
+                elif object_to_mutate.is_context == True:
+                    if self.is_manager_of(object_to_mutate): #TODO: need actual generic requirement
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            elif type(object_to_mutate) is AgentResourceType:
+                if self == object_to_mutate.agent:
+                    return True
+                else:
+                    return False
             else:
                 context_agent = object_to_mutate.context_agent
         else:
@@ -893,6 +908,9 @@ class EconomicAgent(models.Model):
             if art.resource_type not in rts:
                 rts.append(art.resource_type)
         return rts
+
+    def skill_relationships(self):
+        return self.resource_types.all()
 
     def contributions(self):
         return self.given_events.filter(is_contribution=True)
@@ -6875,6 +6893,10 @@ class AgentResourceType(models.Model):
             self.event_type.label,
             self.resource_type.name,
         ])
+
+    @property #ValueFlows
+    def action(self):
+        return self.event_type.action
 
     def label(self):
         return "source"

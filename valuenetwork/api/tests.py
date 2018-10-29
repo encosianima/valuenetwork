@@ -1050,6 +1050,20 @@ query($token: String) {
   }
 }
 
+query ($token: String) {
+  viewer(token: $token) {
+    myAgent {
+      id
+      agentSkillRelationships {
+        id
+        resourceClassification {
+          name
+        }
+      }
+    }
+  }
+}
+
 query($token: String) {
   viewer(token: $token) {
     allPeople {
@@ -3603,6 +3617,35 @@ mutation ($token: String!) {
         name
       }
       note
+    }
+  }
+}
+
+mutation ($token: String!) {
+  createAgentResourceClassification(token: $token, agentId: 6, resourceClassificationId: 60) {
+    agentResourceClassification {
+      id
+      agent {
+        name
+      }
+      resourceClassification {
+        name
+      }
+      action
+    }
+  }
+}
+
+mutation ($token: String!) {
+  deleteAgentResourceClassification(token: $token, id: 42) {
+    agentResourceClassification {
+      agent {
+        name
+      }
+      resourceClassification {
+        name
+      }
+      action
     }
   }
 }
