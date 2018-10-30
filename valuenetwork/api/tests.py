@@ -1181,6 +1181,28 @@ query ($token: String) {
 
 query($token: String) {
   viewer(token: $token) {
+    agent(id:106) {
+      name
+      searchAgentCommitments(searchString:"Fruit") {
+        id
+        note
+      }
+      searchAgentPlans(searchString:"Fruit", isFinished: false) {
+        id
+        name
+        note
+      }
+      searchAgentProcesses(searchString:"fruit") {
+        id
+        name
+        note
+      }
+    }
+  }
+}
+
+query($token: String) {
+  viewer(token: $token) {
     organizationTypes {
       name
     }
