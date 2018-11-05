@@ -135,19 +135,11 @@
 	                  <tr>
                         <th style="text-align: right;">{% trans "Balance" %}</th>
                         {% if wallet %}
-                          {% if confirmed_balance and unconfirmed_balance %}
                             {% if not confirmed_balance == unconfirmed_balance %}
                                 <td>{{ confirmed_balance }} (-> {{ unconfirmed_balance }}) {{ resource.unit_of_quantity }}</td>
                             {% else %}
                                 <td>{{ confirmed_balance }} {{ resource.unit_of_quantity }}</td>
                             {% endif %}
-                          {% else %}
-                            {% if not confirmed_balance == unconfirmed_balance %}
-                                <td>{{ confirmed_balance }} (-> {{ unconfirmed_balance }}) {{ resource.unit_of_quantity }}</td>
-                            {% else %}
-                                <td>{{ confirmed_balance }} {{ resource.unit_of_quantity }}</td>
-                            {% endif %}
-                          {% endif %}
                         {% else %}
                             <td><span class="error">{% trans "Not available now" %}</span></td>
                         {% endif %}
@@ -300,7 +292,7 @@
                         </table>
                       </div>
                           {% if not confirmed_balance == "Not accessible now" %}
-                              <br/>	
+                              <br/>
                               <span><input id="id_send_all" type="checkbox" name="send_all" style="float:left;"/></span>
                               <span style="float:left;">{% trans "Send all funds" %}</span>
                               <span><button class="btn btn-primary" style="float:right;" name="sendCoins" value="coins" onclick="clicked(event)" id="id_send_button">{% trans "Send" %}</button></span>
@@ -458,11 +450,11 @@ function clicked(e) {
        var balance = "{{ confirmed_balance }}";
        balance = balance.replace(',', '.');
        if ( parseFloat(qty) > parseFloat(balance) ) {
-           msg = "Insufficient funds confirmed.\n\nYour request       :  " + qty + "\n\nConfirmed funds :  " + balance;   
+           msg = "Insufficient funds confirmed.\n\nYour request       :  " + qty + "\n\nConfirmed funds :  " + balance;
            alert(msg);
            e.preventDefault();
-           return false; 
-       } 
+           return false;
+       }
        var msg = "Please confirm the transaction:\n\n  Send :  " + qty + "  FairCoins\n  To address :  " + toadd + "\n\nThis action is irreversible and can not be undone.";
        if (confirm(msg)) {
            return true;
