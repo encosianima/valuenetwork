@@ -7,7 +7,7 @@
 
 {% if request.user.is_authenticated %}
 
-  {% block head_title %}{% trans "Request to join a project" %}{% endblock %}
+  {% block head_title %}{% trans "Join" %} {{ project.agent.name }}{% endblock %}
 
   {% block extra_head %}
   <script src="{% static "pinax/js/jquery.js" %}"></script>
