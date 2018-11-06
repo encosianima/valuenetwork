@@ -1215,8 +1215,9 @@ def create_user_accounts(request, agent, project=None):
         user_is_agent = True
     for jnreq in agent.project_join_requests.all():
         if jnreq.check_user_pass():
-            auto_resource += _("The Accounts needed for this agent has not been created because the user's email is not confirmed yet (has not changed his/her initial password)")+''
-            return auto_resource
+            auto_resource += _("The Accounts needed for this agent (related {0}) as not been created because the user's email is not confirmed yet (has not changed his/her initial password)").format(jnreq.project.agent.nick)+''
+    if not auto_resource == '':
+        return auto_resource
 
     is_associated_with = agent.all_is_associates()
     #import pdb; pdb.set_trace()
