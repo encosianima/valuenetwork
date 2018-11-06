@@ -1798,6 +1798,9 @@ def edit_form_field_data(request, joinrequest_id):
         if request.method == 'POST':
             key = request.POST['id']
             val = request.POST['value']
+            if ';' in val:
+                val = val.split(';')
+            loger.debug(request, "Key:"+str(key)+" Val:"+str(val))
             if req.fobi_data and req.fobi_data.pk:
                 req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
@@ -2127,13 +2130,12 @@ def confirm_request(request, join_request_id):
     if not jn_req.project:
         raise ValidationError("This request has no project ??!!!")
     if not jn_req.project.agent.email:
-        messages.error(request, _("The project is missing an Email Address !! (needed to send notifications to users)"))
+        messages.warning(request, _("The project is missing its own Email Address! (needed to send notifications to users from the project)"))
         #raise ValidationError("The project is missing an Email Address !! (needed to send notifications to users)")
-    else:
-        user_agent = get_agent(request)
-        if not user_agent in jn_req.project.agent.managers():
-            raise ValidationError("You don't have permission to do this !!!")
-        jn_req.create_useragent_randompass(request)
+    user_agent = get_agent(request)
+    if not user_agent in jn_req.project.agent.managers():
+        raise ValidationError("You don't have permission to do this !!!")
+    jn_req.create_useragent_randompass(request)
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/agent', jn_req.project.agent.id, 'join-requests'))
 
@@ -2388,7 +2390,10 @@ def project_feedback(request, agent_id, join_request_id):
                 #pos = elem.position
                 if nam:
                     if choi:
-                        jn_req.elem_typs[nam] = 'select'
+                        if elem.plugin_uid == "select_multiple":
+                            jn_req.elem_typs[nam] = "select_multiple"
+                        else:
+                            jn_req.elem_typs[nam] = 'select'
                         opts = choi.split('\r\n')
                         obj = {}
                         for op in opts:
@@ -2399,6 +2404,13 @@ def project_feedback(request, agent_id, join_request_id):
                             #else:
                             if len(arr) == 2 and arr[0] and arr[1]:
                                 obj[str(arr[0])] = arr[1]
+                            elif len(arr) == 1:
+                                selected = ''
+                                if len(jn_req.data[nam]):
+                                    for val in jn_req.data[nam]:
+                                        if val == op:
+                                            selected = ":selected"
+                                obj[str(op)] = op+' '+selected
                             else:
                                 loger.warning("The choice option for join_request id "+str(jn_req.id)+" is not understood: "+str(op))
                             #import pdb; pdb.set_trace()
@@ -2420,7 +2432,13 @@ def project_feedback(request, agent_id, join_request_id):
             jn_req.items = jn_req.data.items()
             jn_req.items_data = []
             for key in fobi_keys:
-              jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key), "ky": key, "typ": jn_req.elem_typs[key], "opts": jn_req.elem_choi[key]})
+                if not key in jn_req.form_headers:
+                    jn_req.form_headers[key] = 'error'
+                elif not key in jn_req.elem_typs:
+                    jn_req.elem_typs[key] = 'error'
+                elif not key in jn_req.elem_choi:
+                    jn_req.elem_choi[key] = 'error'
+                jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key), "ky": key, "typ": jn_req.elem_typs[key], "opts": jn_req.elem_choi[key]})
 
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
