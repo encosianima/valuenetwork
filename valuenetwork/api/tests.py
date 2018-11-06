@@ -1141,7 +1141,7 @@ query($token: String) {
   viewer(token: $token) {
     person(id:6) {
       name
-      commitmentsMatchingSkills {
+      commitmentsMatchingSkills(page:1) {
         id
         action
         resourceClassifiedAs {
@@ -2550,7 +2550,7 @@ query ($token: String) {
         }
         note
       }
-      agentCommitments(latestNumberOfDays: 30) {
+      agentCommitments(page:1) {
         id
         action
         plannedStart
