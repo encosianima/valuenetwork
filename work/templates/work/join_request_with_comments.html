@@ -127,6 +127,10 @@ a.more-link {
           </div>
         </legend>
 
+      {% if auto_resource %}<div class="alert">
+            {{ auto_resource|safe }}
+            </div>
+      {% endif %}
       <div id="member-request-block">
         {% with jn_req as req %}
         <table style="/*display:block; max-width:1024px; width:100%;*/" class="table table-bordered table-hover table-condensed" >
