@@ -206,7 +206,7 @@ a.more-link {
                   {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
                     {% if req.payment_url %}
                         {% if req.payment_fees and req.payment_fees_payer == req.agent %}
-                           (+ {{ req.payment_fees }} {% trans "gateway fees" %})
+                           (+ {{ req.payment_fees }} {{ req.payment_unit_rt.unit.symbol }} {% trans "gateway fees" %})
                         {% endif %}
                         <form action="{{ req.payment_url }}" method="POST" style="display:inline" target="_blank">
                             {% csrf_token %}
