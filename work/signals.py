@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import logging
+logger = logging.getLogger("ocp")
+
 def comment_notification(sender, comment=None, **kwargs):
     from django.conf import settings
     from django.contrib.auth.models import User
     from django.contrib.sites.models import Site
     from work.utils import set_user_notification_by_type
     from django.core.exceptions import ValidationError
-    import logging
-    logger = logging.getLogger("ocp")
 
     ct_commented = comment.content_type
 
@@ -94,3 +95,4 @@ def comment_notification(sender, comment=None, **kwargs):
 from django_comments.models import Comment
 from django_comments.signals import comment_was_posted#, comment_will_be_posted
 comment_was_posted.connect(comment_notification, sender=Comment)
+logger.debug("Connect comment_was_posted signal with Comment sender")
