@@ -533,8 +533,9 @@
                                         compact: <b>{{ agent.project.compact_name }}</b><br>
                                         abbrev: <b>{{ agent.project.abbrev_name }}</b></span>
                                     {% endif %}
-                                    <br>
-                                    <b><a href="{% url "create_project_shares" agent_id=agent.id %}">Create Project Shares</a></b><!--  -->
+                                    {% if not agent.project.share_types %}<br><br>
+                                      <b><a href="{% url "create_project_shares" agent_id=agent.id %}">Create Project Shares</a></b>
+                                    {% endif %}
                                 {% endwith %}
                             {% endif %}
                             </td>
