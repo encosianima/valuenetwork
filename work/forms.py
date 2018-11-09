@@ -274,6 +274,9 @@ class JoinRequestForm(forms.ModelForm):
 
     def clean(self):
         data = super(JoinRequestForm, self).clean()
+        if not 'requested_username' in data:
+            self.add_error('requested_username', _("This field is required."))
+            return
         username = data["requested_username"]
         email = data["email_address"]
         nome = data["name"]

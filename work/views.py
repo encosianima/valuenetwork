@@ -938,8 +938,8 @@ def members_agent(request, agent_id):
                     if rt in rts:
                         related_rts.append(rt)
 
-    auto_resource = ''
-    if user_agent in agent.managers() or user_is_agent: # or request.user.is_staff:
+    auto_resource = create_user_accounts(request, agent)
+    """if user_agent in agent.managers() or user_is_agent: # or request.user.is_staff:
       #import pdb; pdb.set_trace()
       for ag in is_associated_with:
         if hasattr(ag.has_associate, 'project'):
@@ -980,36 +980,10 @@ def members_agent(request, agent_id):
                             auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
                             auto_resource += _("It has been created for you automatically!")+"<br />"
                     else:
-                        pass
-                        """
-                        ress = agent.resource_relationships() #list(set([arr.resource for arr in agent.resource_relationships()]))
-                        res = ress.get(resource__resource_type=rt).resource
-                        resarr = res.identifier.split(ag.has_associate.nick)
-                        if len(resarr) < 2:
-                            resarr = res.identifier.split(ag.has_associate.name)
-                        if len(resarr) < 2:
-                            resarr = res.identifier.split('BoC')
-                            auto_resource += "..trying to repair BoC nick to BotC in resources identifiers...<br>"
-                        if len(resarr) == 2:
-                            if agent.nick in resarr[1]:
-                                res.identifier = ag.has_associate.nick+resarr[1]
-                            else:
-                                res.identifier = ag.has_associate.nick+resarr[1]+agent.nick
-                            res.quantity = 1
-                            res.save()
-                            #auto_resource += _("Updated the name of the account: ")+str(res)
-                        elif len(resarr) == 3:
-                            if agent.nick in resarr[1]:
-                                res.identifier = ag.has_associate.nick+resarr[1]
-                            else:
-                                res.identifier = ag.has_associate.nick+resarr[1]+agent.nick
-                            res.quantity = 1
-                            res.save()
-                            auto_resource += _("Updated the name of the project's account: ")+str(res)
-                        else:
-                            auto_resource += _("There's a problem with the naming of the account: ")+str(res)+"<br>"
-                            break
-                        """
+                        pass"""
+
+    if not auto_resource == '':
+        pass #messages.warning(request, auto_resource)
 
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
@@ -1061,7 +1035,8 @@ def edit_relations(request, agent_id):
                 # check there's no join request
                 reqs = agent.project.join_requests.filter(agent=member_assn.subject) # .subject is the new VF property (is_associate)
                 if reqs:
-                    raise ValidationError("Can't disable the relation because there's still a join-request: "+str(reqs))
+                    messages.error(request, _("Can't disable the relation because there's still a join-request for this agent."))
+                    #raise ValidationError("Can't disable the relation because there's still a join-request: "+str(reqs))
                 else:
                     member_assn.state = 'inactive'
                     member_assn.save()
@@ -1229,6 +1204,105 @@ def change_your_project(request, agent_id):
 
     return HttpResponseRedirect('/%s/%s/'
         % ('work/agent', agent.id))
+
+
+@login_required
+def create_user_accounts(request, agent, project=None):
+    auto_resource = ''
+    user_agent = get_agent(request)
+    user_is_agent = False
+    if agent == user_agent:
+        user_is_agent = True
+    for jnreq in agent.project_join_requests.all():
+        if jnreq.check_user_pass():
+            auto_resource += _("The Accounts needed for this agent (related {0}) as not been created because the user's email is not confirmed yet (has not changed his/her initial password)").format(jnreq.project.agent.nick)+''
+    if not auto_resource == '':
+        return auto_resource
+
+    is_associated_with = agent.all_is_associates()
+    #import pdb; pdb.set_trace()
+    for ag in is_associated_with:
+        if hasattr(ag.has_associate, 'project'):
+          if project and not project.agent == ag.has_associate:
+            #if request.user.is_superuser: auto_resource += _("Skip accounts creation for ")+str(ag.has_associate)+"<br>"
+            continue
+          if user_agent == ag.has_associate or user_agent in ag.has_associate.managers() or user_agent in agent.managers() or user_is_agent:
+            rtsc = ag.has_associate.project.rts_with_clas()
+            for rt in rtsc:
+                is_account = False
+                ancs = rt.ocp_artwork_type.get_ancestors(True, True)
+                for anc in ancs:
+                    if anc.clas == 'accounts':
+                        is_account = True
+                if is_account:
+                    rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
+                    if not rt in rts:
+                        res = ag.has_associate.agent_resource_roles.filter(resource__resource_type=rt)[0].resource
+                        if res.resource_type.name == "Faircoin Ocp Account":
+                            #if request.user.is_superuser: auto_resource += _("Not cloning a Faircoin Ocp Account: ")+res.identifier+'<br>'
+                            continue
+                        resarr = res.identifier.split(ag.has_associate.nick)
+                        if len(resarr) > 1 and not ag.has_associate.nick == 'Freedom Coop':
+                            res.id = None
+                            res.pk = None
+                            if not resarr[1]:
+                                auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
+                                auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
+                                auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
+                                break
+                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
+                            res.quantity = 1
+                            res.price_per_unit = 0
+                            res.save()
+                            rol = AgentResourceRoleType.objects.filter(is_owner=True)[0]
+                            arr = AgentResourceRole(
+                                agent=agent,
+                                resource=res,
+                                role=rol,
+                                owner_percentage=100
+                            )
+                            arr.save()
+                            #import pdb; pdb.set_trace()
+                            auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
+                            auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
+                            auto_resource += _("It has been created for you automatically!")+"<br />"
+                    else:
+                        pass
+                        """
+                        ress = agent.resource_relationships() #list(set([arr.resource for arr in agent.resource_relationships()]))
+                        res = ress.get(resource__resource_type=rt).resource
+                        resarr = res.identifier.split(ag.has_associate.nick)
+                        if len(resarr) < 2:
+                            resarr = res.identifier.split(ag.has_associate.name)
+                        if len(resarr) < 2:
+                            resarr = res.identifier.split('BoC')
+                            auto_resource += "..trying to repair BoC nick to BotC in resources identifiers...<br>"
+                        if len(resarr) == 2:
+                            if agent.nick in resarr[1]:
+                                res.identifier = ag.has_associate.nick+resarr[1]
+                            else:
+                                res.identifier = ag.has_associate.nick+resarr[1]+agent.nick
+                            res.quantity = 1
+                            res.save()
+                            #auto_resource += _("Updated the name of the account: ")+str(res)
+                        elif len(resarr) == 3:
+                            if agent.nick in resarr[1]:
+                                res.identifier = ag.has_associate.nick+resarr[1]
+                            else:
+                                res.identifier = ag.has_associate.nick+resarr[1]+agent.nick
+                            res.quantity = 1
+                            res.save()
+                            auto_resource += _("Updated the name of the project's account: ")+str(res)
+                        else:
+                            auto_resource += _("There's a problem with the naming of the account: ")+str(res)+"<br>"
+                            break
+                        """
+          else:
+            pass # no permission
+        else:
+          pass # no project
+
+    return auto_resource
 
 
 
@@ -1797,6 +1871,9 @@ def edit_form_field_data(request, joinrequest_id):
         if request.method == 'POST':
             key = request.POST['id']
             val = request.POST['value']
+            if ';' in val:
+                val = val.split(';')
+            loger.debug(request, "Key:"+str(key)+" Val:"+str(val))
             if req.fobi_data and req.fobi_data.pk:
                 req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
@@ -2126,7 +2203,8 @@ def confirm_request(request, join_request_id):
     if not jn_req.project:
         raise ValidationError("This request has no project ??!!!")
     if not jn_req.project.agent.email:
-        raise ValidationError("The project is missing an Email Address !! (needed to send notifications to users)")
+        messages.warning(request, _("The project is missing its own Email Address! (needed to send notifications to users from the project)"))
+        #raise ValidationError("The project is missing an Email Address !! (needed to send notifications to users)")
     user_agent = get_agent(request)
     if not user_agent in jn_req.project.agent.managers():
         raise ValidationError("You don't have permission to do this !!!")
@@ -2385,7 +2463,10 @@ def project_feedback(request, agent_id, join_request_id):
                 #pos = elem.position
                 if nam:
                     if choi:
-                        jn_req.elem_typs[nam] = 'select'
+                        if elem.plugin_uid == "select_multiple":
+                            jn_req.elem_typs[nam] = "select_multiple"
+                        else:
+                            jn_req.elem_typs[nam] = 'select'
                         opts = choi.split('\r\n')
                         obj = {}
                         for op in opts:
@@ -2396,6 +2477,13 @@ def project_feedback(request, agent_id, join_request_id):
                             #else:
                             if len(arr) == 2 and arr[0] and arr[1]:
                                 obj[str(arr[0])] = arr[1]
+                            elif len(arr) == 1:
+                                selected = ''
+                                if len(jn_req.data[nam]):
+                                    for val in jn_req.data[nam]:
+                                        if val == op:
+                                            selected = ":selected"
+                                obj[str(op)] = op+' '+selected
                             else:
                                 loger.warning("The choice option for join_request id "+str(jn_req.id)+" is not understood: "+str(op))
                             #import pdb; pdb.set_trace()
@@ -2417,7 +2505,17 @@ def project_feedback(request, agent_id, join_request_id):
             jn_req.items = jn_req.data.items()
             jn_req.items_data = []
             for key in fobi_keys:
-              jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key), "ky": key, "typ": jn_req.elem_typs[key], "opts": jn_req.elem_choi[key]})
+                if not key in jn_req.form_headers:
+                    jn_req.form_headers[key] = 'error'
+                elif not key in jn_req.elem_typs:
+                    jn_req.elem_typs[key] = 'error'
+                elif not key in jn_req.elem_choi:
+                    jn_req.elem_choi[key] = 'error'
+                jn_req.items_data.append({"key": jn_req.form_headers[key], "val": jn_req.data.get(key), "ky": key, "typ": jn_req.elem_typs[key], "opts": jn_req.elem_choi[key]})
+
+    auto_resource = ''
+    if jn_req.agent and not jn_req.check_user_pass():
+        auto_resource = create_user_accounts(request, jn_req.agent, jn_req.project)
 
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
@@ -2428,6 +2526,7 @@ def project_feedback(request, agent_id, join_request_id):
         "user_agent": user_agent,
         "agent": agent,
         "fobi_headers": fobi_headers,
+        "auto_resource": auto_resource,
     })
 
 

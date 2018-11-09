@@ -63,6 +63,8 @@ def manage_faircoin_account(request, resource_id):
                 confirmed_balance = Decimal(balances[0]) / FAIRCOIN_DIVISOR
                 if unconfirmed_balance < 0:
                     confirmed_balance += unconfirmed_balance
+                elif unconfirmed_balance == 0:
+                    unconfirmed_balance = confirmed_balance
             except:
                 confirmed_balance = "Not accessible now"
                 unconfirmed_balance = "Not accessible now"
@@ -139,7 +141,7 @@ def transfer_faircoins(request, resource_id):
             quantity = data["quantity"]
 
             if ("send_all" in request.POST) and request.POST['send_all']: sub_fee = True
-            else: sub_fee = data['minus_fee'] 
+            else: sub_fee = data['minus_fee']
             address_origin = resource.faircoin_address.address
             if address_origin and address_end and quantity:
                 exchange_service = ExchangeService.get()

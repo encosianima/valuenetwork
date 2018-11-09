@@ -127,6 +127,10 @@ a.more-link {
           </div>
         </legend>
 
+      {% if auto_resource %}<div class="alert">
+            {{ auto_resource|safe }}
+            </div>
+      {% endif %}
       <div id="member-request-block">
         {% with jn_req as req %}
         <table style="/*display:block; max-width:1024px; width:100%;*/" class="table table-bordered table-hover table-condensed" >
@@ -187,7 +191,7 @@ a.more-link {
               {% for obj in req.items_data %}
                 <tr class="fobi">
                   <th>{{ obj.key }}:</th>
-                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}' {% elif obj.val %}data="{{ obj.val }}" {% endif %}>{% if obj.val %}{{ obj.val|linebreaks }}{% else %}{% endif %}</td>
+                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}' {% elif obj.val %}data="{{ obj.val }}" {% endif %}>{% if obj.val %}{% if obj.typ == 'select_multiple' %}{% for v in obj.val %}{{ v }}{% if v == obj.val|last %}{% else %}, {% endif %}{% endfor %}{% else %}{{ obj.val|linebreaks }}{% endif %}{% else %}{% endif %}</td>
                 </tr>
               {% endfor %}
             {% else %}
@@ -202,7 +206,7 @@ a.more-link {
                   {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
                     {% if req.payment_url %}
                         {% if req.payment_fees and req.payment_fees_payer == req.agent %}
-                           (+ {{ req.payment_fees }} {% trans "gateway fees" %})
+                           (+ {{ req.payment_fees }} {{ req.payment_unit_rt.unit.symbol }} {% trans "gateway fees" %})
                         {% endif %}
                         <form action="{{ req.payment_url }}" method="POST" style="display:inline" target="_blank">
                             {% csrf_token %}
@@ -310,7 +314,9 @@ a.more-link {
 {% block extra_body %}
     {{ block.super }}
     <script type="text/javascript" src="{% static "js/jquery.expander.min.js" %}"></script>
-    <script type="text/javascript" src="{% static "js/jquery.jeditable.mini.js" %}"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jeditable.js/2.0.6/jquery.jeditable.js"></script>
+    <!-- <script type="text/javascript" src="{% static "js/jquery.jeditable.mini.js" %}"></script> -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jeditable.js/2.0.6/jquery.jeditable.checkbox.js"></script>
     <script type="text/javascript">
 
     $(document).ready(function(){
@@ -358,7 +364,7 @@ a.more-link {
                 , {
                   //submit : 'OK',
                   type : 'text',
-                  tooltip : 'Click to edit...',
+                  tooltip : '<em>Click to edit...</em>',
                   placeholder : '<em>...click to write</em>',
                   data: $(this).attr('data'),
                 }
@@ -410,7 +416,7 @@ a.more-link {
                   //alert('d:'+d+' value:'+value);
                   return d; //JSON.parse(d); //decodeURIComponent(JSON.parse(d));
                 },
-              tooltip : 'Click to edit...',
+              tooltip : '<em>Click to edit...</em>',
               //placeholder : '<em>...click to write</em>',
             }
         );
@@ -438,12 +444,78 @@ a.more-link {
                 , {
                   submit : 'save',
                   type : 'textarea',
-                  tooltip : 'Click to edit...',
+                  tooltip : '<em>Click to edit...</em>',
                   placeholder : '<em>...click to write</em>',
                   data: $(this).attr('data'),
                 }
             );
         });
+
+        $('.fobi td[typ="select_multiple"]').editable(
+            function(value, settings) {
+               //var dr = JSON.parse($(this).attr('data').split("u'").join('"').split("'").join('"'));
+               var labl = "";
+               for(val in value){
+                   labl += value[val]+";";
+               };
+               labl = labl.slice(0, -1);
+               //alert('type:'+typeof(labl)+' labl: '+labl+' value:'+value);
+
+               var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                   {id:$(this).attr('id'), value:labl}
+               );
+               posting.done(function(data){
+                   if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                   } else {
+                       location = location;
+                   };
+               }).fail(function(data) {
+                   console.log(data['statusText']);
+                   out = '';
+                   for(var d in data){
+                     out += d+': '+data[d]+' \n';
+                   };
+                   alert( "ERROR out: "+out );
+               });
+               return(value.join(', '));
+            }
+            , {
+              submit : 'save',
+              type : 'select',
+              multiple : true,
+              data : function(value, settings) {
+                  var d = $(this).attr('data');
+                  d = d.split("u'").join('"').split("'").join('"');
+                  //alert('d:'+d+' value:'+value);
+                  return d; //JSON.parse(d); //decodeURIComponent(JSON.parse(d));
+                },
+              tooltip : '<em>Click to edit...</em>',
+              //placeholder : '<em>...click to write</em>',
+              //onblur: function() { return true; },
+              // use intercept to display the results as we want it
+              intercept: function(result, status) {
+                  return "You selected: " + result + ". ";
+              },
+              onerror: function(settings, self, xhr) {
+                  console.log("Error with status code: " + xhr.status);
+              },
+              submitdata: function(revert, settings, result) {
+                  console.log("User selected values: " + result.value);
+              },
+              onedit: function(){ //alert($(this).parent().html()); //find('option').length);
+                window.setTimeout(function(){ //alert($('.fobi td[typ="select_multiple"]').html());
+                    $('.fobi td[typ="select_multiple"]').find("option").each(function(){
+                        var txt = $(this).text();
+                        if(txt.indexOf(":selected") != -1){
+                            $(this).text(txt.split(':selected').join('')).attr('selected','selected');
+                        };
+                    });
+                }, 100);
+              },
+              select: true,
+            }
+        );
+
         $('.fobi th').css('background-color','#f9f9e2');
        {% endif %}
 
