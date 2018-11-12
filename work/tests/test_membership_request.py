@@ -69,7 +69,8 @@ class MembershipRequestTestCase(LiveServerTestCase):
         s.find_element_by_xpath('//input[@value="Submit"]').click()
         self.wait_loading(s, '//title[contains(text(), "Thank you for your membership request")]')
 
-        return # TODO: add freedom-coop project to objects_for_work_test.py
+        print "test_membership_request completed the first part."
+        # TODO: add freedom-coop project to objects_for_work_test.py
         '''
         # Admin login.
         s.get('%s%s' % (self.live_server_url, "/freedom-coop"))

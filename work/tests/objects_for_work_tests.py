@@ -73,11 +73,11 @@ def initial_test_data():
 
     # Manage FairCoin
     FC_unit = Unit.objects.get(name='FairCoin') #_or_create(unit_type='value', name='FairCoin', abbrev='fair')
-    #if c: print "t- created Unit: 'FairCoin'"
+    if FC_unit: print "t- found Unit: 'FairCoin'"
 
     ert = EconomicResourceType.objects.get(name='Faircoin Ocp Account') #, unit=FC_unit, unit_of_use=FC_unit,
         #value_per_unit_of_use=decimal.Decimal('1.00'), substitutable=True, behavior='dig_acct')
-    #if c: print "t- created EconomicResourceType: 'FairCoin'"
+    if ert: print "t- found EconomicResourceType: 'Faircoin Ocp Account'"
 
     arrt, c = AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
     if c: print "t- created AgentResourceRoleType: "+str(arrt)
