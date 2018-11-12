@@ -2345,6 +2345,8 @@ def create_unit_types(**kwargs):
         if created:
             print "- created EconomicResourceType: 'FairCoin'"
     else:
+        if len(ocp_fair_rts) > 1:
+            raise ValidationError("There are more than one EconomicResourceType named 'FairCoin'.")
         ocp_fair_rt = ocp_fair_rts[0]
     ocp_fair_rt.unit = ocp_fair
     ocp_fair_rt.unit_of_use = ocp_fair
@@ -2429,7 +2431,7 @@ def create_unit_types(**kwargs):
     else:
         fairacc_rt = fairacc_rts[0]
     fairacc_rt.unit = ocp_fair
-    #fairacc_rt.unit_of_use = ocp_fair
+    fairacc_rt.unit_of_use = ocp_fair
     fairacc_rt.unit_of_value = ocp_fair
     #fairacc_rt.value_per_unit = 1
     fairacc_rt.value_per_unit_of_use = 1 #decimal.Decimal('1.00')

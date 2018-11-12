@@ -75,7 +75,7 @@ def initial_test_data():
     FC_unit = Unit.objects.get(name='FairCoin') #_or_create(unit_type='value', name='FairCoin', abbrev='fair')
     #if c: print "t- created Unit: 'FairCoin'"
 
-    ert = EconomicResourceType.objects.get(name='FairCoin') #, unit=FC_unit, unit_of_use=FC_unit,
+    ert = EconomicResourceType.objects.get(name='Faircoin Ocp Account') #, unit=FC_unit, unit_of_use=FC_unit,
         #value_per_unit_of_use=decimal.Decimal('1.00'), substitutable=True, behavior='dig_acct')
     #if c: print "t- created EconomicResourceType: 'FairCoin'"
 
