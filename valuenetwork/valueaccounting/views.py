@@ -17,6 +17,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import validators
 from django.forms.models import formset_factory, modelformset_factory, inlineformset_factory, BaseModelFormSet
 from django.forms import ValidationError
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import json as simplejson
 from collections import OrderedDict
 from django.contrib.auth.forms import UserCreationForm
@@ -237,32 +238,53 @@ def create_user_and_agent(request):
     })
 
 def projects(request):
+    page = request.GET.get('page', 1)
+    project_name = request.POST.get('project_name', '')
+
     projects = EconomicAgent.objects.context_agents()
-    roots = [p for p in projects if p.is_root()]
-    for root in roots:
-        root.nodes = root.child_tree()
-        annotate_tree_properties(root.nodes)
-        for node in root.nodes:
-            aats = []
-            for aat in node.agent_association_types():
-                if aat.association_behavior != "child":
-                    aat.assoc_count = node.associate_count_of_type(aat.identifier)
-                    assoc_list = node.all_has_associates_by_type(aat.identifier)
-                    for assoc in assoc_list:
-                        associations = AgentAssociation.objects.filter(is_associate=assoc, has_associate=node, association_type=aat)
-                        if associations:
-                            association = associations[0]
-                            assoc.state = association.get_state_display()
-                    aat.assoc_list = assoc_list
-                    aats.append(aat)
-            node.aats = aats
-    agent = get_agent(request)
-    agent_form = AgentCreateForm()
-    nicks = '~'.join([
-        agt.nick for agt in EconomicAgent.objects.all()])
+    if project_name:
+        projects = projects.filter(name__icontains=project_name)
+
+    paginator = Paginator(projects, 25)
+
+    try:
+        projects = paginator.page(page)
+        print projects
+        roots = [p for p in projects if p.is_root()]
+        for root in roots:
+            root.nodes = root.child_tree()
+            annotate_tree_properties(root.nodes)
+            for node in root.nodes:
+                aats = []
+                for aat in node.agent_association_types():
+                    if aat.association_behavior != "child":
+                        aat.assoc_count = node.associate_count_of_type(aat.identifier)
+                        assoc_list = node.all_has_associates_by_type(aat.identifier)
+                        for assoc in assoc_list:
+                            associations = AgentAssociation.objects.filter(is_associate=assoc, has_associate=node, association_type=aat)
+                            if associations:
+                                association = associations[0]
+                                assoc.state = association.get_state_display()
+                        aat.assoc_list = assoc_list
+                        aats.append(aat)
+                node.aats = aats
+        agent = get_agent(request)
+        agent_form = AgentCreateForm()
+        nicks = '~'.join([
+            agt.nick for agt in EconomicAgent.objects.all()])
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        projects = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        projects = paginator.page(paginator.num_pages)
+    except Exception, e:
+        print "EXCEPT: ", str(e)
+
 
     return render(request, "valueaccounting/projects.html", {
         "roots": roots,
+        "projects": projects,
         "agent": agent,
         "help": get_help("projects"),
         "agent_form": agent_form,
