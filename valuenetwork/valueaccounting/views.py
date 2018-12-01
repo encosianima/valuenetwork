@@ -4107,7 +4107,7 @@ def start(request):
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None,
-            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)
+            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)[:10]
     else:
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None,
