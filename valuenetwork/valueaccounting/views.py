@@ -24,6 +24,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django_comments.models import Comment, CommentFlag
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
@@ -32,6 +35,7 @@ from valuenetwork.valueaccounting.utils import *
 from work.models import MembershipRequest, SkillSuggestion, Ocp_Artwork_Type
 from work.forms import ContextTransferForm, ContextTransferCommitmentForm, ResourceRoleContextAgentForm
 from work.utils import *
+from account.utils import password_generator
 
 if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
@@ -498,8 +502,11 @@ def agent(request, agent_id):
     user_form = None
     #if agent.is_individual():
     if not agent.username():
-        init = {"username": agent.nick,}
+        password1 = password2 = password_generator()
+        init = {"username": agent.nick, "password1": password1, "password2": password2,}
         user_form = UserCreationForm(initial=init)
+        user_form.fields['password1'].widget.render_value = True
+        user_form.fields['password2'].widget.render_value = True
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
 
@@ -12925,3 +12932,27 @@ def resource_role_context_agent_formset(prefix, data=None):
         )
     formset = RraFormSet(prefix=prefix, queryset=AgentResourceRole.objects.none(), data=data)
     return formset
+
+@login_required
+def send_fdc_welcome(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    return_data = "ERROR"
+    if send_email(request, agent, agent.faircoin_address(), password_generator()):
+        return_data = "OK"
+    return HttpResponse(return_data, content_type="text/plain")
+
+def send_email(request, user, faircoin_address, password):
+    protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
+    current_site = get_current_site(request)
+    print current_site
+    ctx = {
+        "user": user,
+        "faircoin_address": faircoin_address,
+        "password": password,
+        "protocol": protocol,
+        "current_site": current_site,
+    }
+    subject = render_to_string("valueaccounting/email_fdc_welcome_subject.txt", ctx)
+    subject = "".join(subject.splitlines())
+    message = render_to_string("valueaccounting/email_fdc_welcome_body.txt", ctx)
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])

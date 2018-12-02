@@ -1,0 +1,45 @@
+{% autoescape off %}{% load i18n %}
+
+((( Versión en Español debajo)))
+
+Hello,
+
+We've created the following personal Login data with your user and a generated password, which you should keep safe until you change it.
+
+User: {{ user }}
+Password: {{ password }}
+
+The website is: https://ocp.freedomcoop.eu/
+
+To pay the fee to complete the membership process we have created for you a Faircoin address in your OCP profile: {{ faircoin_address }}
+
+If you already have Faircoin just send it from your wallet the necessary amount to pay the contribution: 1 share = 25 FAIR
+If you dont have Faircoins you can exchange euros in getfaircoin.net,  follow the instructions and put the address we gave you above (remember that in getfaircoin can be charged some extra fee from third parties)
+Attached, you will also find a guide with all the possibilities we can offer and an instruction to pay the issued shares to become a member of Freedom Coop. Until the process is completed you will have a limited access. https://git.fairkom.net/faircoop/FreedomCoop/wikis/Welcome-to-Freedom-Coop-guide.-First-Steps
+Little instructions and explanations are also available as soon as you are logged in to your account and click on "Home". More information will follow as the OCP, Freedom Coop and its tools further develop.
+If you have questions or need more information, please contact us here or in the "Membership" area on your profile under “comments”.
+NICE TO SEE YOU HERE FLYING WITH US!
+The Freedom Coop Welcome Team
+
+----------------------------------------------------------------------------
+
+Hola!
+Acabamos de crearte los siguientes datos personales para que puedas iniciar sesión: un usuario y una contraseña que deberás mantener a salvo hasta que puedas cambiarla por otra más segura.
+
+Usuario: {{ user }}
+Contraseña: {{ password }}
+La página web es: https://ocp.freedomcoop.eu/
+
+Para pagar la contribución para hacerse miembro te hemos creado una dirección de Faircoin en tu perfil de OCP: {{ faircoin_address }}
+
+Si ya tienes Faircoin simplemente envía desde tu monedero la cantidad necesaria para pagar la contribución: 1 Share= 25FAIR.
+Si no tienes Faircoin puedes cambiar euros en getfaircoin.net seguir las instrucciones y poner la dirección que te hemos dado mas arriba (recuerda que en getfaircoin se pueden cargar algunas comisiones extras de terceras partes).
+Adjunta encontrarás también una guía con todas las posibilidades que te ofrecemos junto a las instrucciones necesarias para que pagues las acciones y te conviertas en miembro de Freedom Coop. Hasta que el proceso se complete tendrás acceso limitado.
+https://git.fairkom.net/faircoop/FreedomCoop/wikis/Guía-de-bienvenida-a-freedomcoop.-primeros-pasos
+Si  tienes preguntas o necesitas más información, ponte en contacto
+con nosotros desde aquí o en la zona de "membresía" (membership) en su perfil en "comentarios" (Write a new comment).
+Un placer tenerte aquí volando con nosotros!
+El equipo de bienvenida Freedom Coop
+
+
+{% endautoescape %}
