@@ -21,4 +21,4 @@ class WorkAppConfig(AppConfig):
         post_migrate.connect(create_exchange_skills, sender=self)
         comment_was_posted.connect(comment_notification, sender=self) #Comment)
         #comment_will_be_posted.connect(pre_comment, sender=Comment)
-        logger.info("Connected signals to post_migrate and comment_was_posted")
+        logger.debug("Connected signals to post_migrate and comment_was_posted")

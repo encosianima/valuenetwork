@@ -323,9 +323,9 @@ class ExchangeService(object):
         if role_types:
             owner_role_type = role_types[0]
         resource_types = EconomicResourceType.objects.filter(
-            behavior="dig_acct")
+            behavior="dig_acct", name__icontains="Faircoin Ocp Account")
         if resource_types.count() == 0:
-            raise ValidationError("Cannot create digital currency resource for " + agent.nick + " because no digital currency account ResourceTypes.")
+            raise ValidationError("Cannot create digital currency resource for " + agent.nick + " because no digital currency account ResourceTypes with 'Faircoin Ocp Account' in the name.")
             return None
         if resource_types.count() > 1:
             raise ValidationError("Cannot create digital currency resource for " + agent.nick + ", more than one digital currency account ResourceTypes.")

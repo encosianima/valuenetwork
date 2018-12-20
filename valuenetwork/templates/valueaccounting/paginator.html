@@ -1,0 +1,15 @@
+        <div class="pagination">
+            <span class="step-links">
+                {% if projects.has_previous %}
+                    <a class="btn" href="?page={{ projects.previous_page_number }}">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Page {{ projects.number }} of {{ projects.paginator.num_pages }}
+                </span>
+        
+                {% if projects.has_next %}
+                    <a class="btn" href="?page={{ projects.next_page_number }}">next</a>
+                {% endif %}
+            </span>
+        </div>
