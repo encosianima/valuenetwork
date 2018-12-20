@@ -571,7 +571,7 @@ def membership_discussion(request, membership_request_id):
             if jr.project.agent == fdc:
                 print "Already existent join request!! "+str(jr)
                 #return project_feedback(request, agent_id=fdc.id, join_request_id=jr.id)
-                migrate_fdc_shares(jr)
+                migrate_fdc_shares(request, jr)
                 return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jr.pk)))
 
         form_entry = fdc.project.fobi_form()
@@ -677,10 +677,14 @@ def membership_discussion(request, membership_request_id):
 
                 messages.info(request, _("The old FdC membership request has been converted to the new modular join_request system, copying all the fields and the comments in the thread. From now on this will be the page for comunication feedback."))
 
-                migrate_fdc_shares(jn_req)
+                auto_resource = create_user_accounts(request, jn_req.agent, jn_req.project)
+                if not auto_resource == '':
+                    messages.warning(request, auto_resource)
 
-                #return project_feedback(request, agent_id=fdc.id, join_request_id=jn_req.id)
-                return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jn_req.id)))
+                migrate_fdc_shares(request, jn_req)
+
+                return project_feedback(request, agent_id=fdc.id, join_request_id=jn_req.id)
+                #return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jn_req.id)))
             else:
                 print "Fobi form not valid: "+str(fobi_form.errors)
                 loger.error("Fobi form not valid: "+str(fobi_form.errors))
@@ -698,16 +702,52 @@ def membership_discussion(request, membership_request_id):
     })
 
 
-def migrate_fdc_shares(jr):
+def migrate_fdc_shares(request, jr):
     fdc = Project.objects.filter(fobi_slug='freedom-coop')
     if len(fdc) == 1:
         fdc = fdc[0].agent
     else:
         raise ValidationError("More than one or none projects with fobi_slug 'freedom-coop'")
     shacct = fdc.project.shares_account_type()
-    rts = list(set([arr.resource.resource_type for arr in jr.agent.resource_relationships()]))
-    if not shacct in rts:
-       print str(shacct)+' not in rts: '+str(rts)
+    mems = jr.agent.membership_requests.all()
+    if not len(mems) == 1:
+        raise ValidationError("More than one membership request to migrate?! agent:"+str(jr.agent))
+    else:
+        mem = mems[0]
+        if not mem.state == 'accepted':
+            print "FdC membership still not accepted! "+str(mem)
+    fdcshrt = EconomicResourceType.objects.membership_share()
+    shs = []
+    arrs = jr.agent.resource_relationships()
+    res = list(set([arr.resource for arr in arrs]))
+    account = None
+    for rs in res:
+        if rs.resource_type == shacct:
+            account = rs
+        if rs.resource_type == fdcshrt:
+            shs.append(rs)
+    if account:
+        if len(shs) > 0:
+            #print shs
+            account.price_per_unit = len(shs)
+            account.save()
+            loger.info("FdC shares had been migrated to the new system for agent "+str(jr.agent))
+            messages.warning(request, "FdC shares had been migrated to the new system for agent "+str(jr.agent))
+            for sh in shs:
+                for ar in arrs:
+                    if ar.resource == sh:
+                        ar.delete()
+                        sh.delete()
+                        loger.info("FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
+                        messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
+
+        else:
+            print "FdC migrating agent has no owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
+    else:
+        print str(shacct)+' not in res: '+str(res)
+        loger.info("Can't migrate FdC shares before user has shares account! "+str(jr.agent))
+        messages.warning(request, "Can't migrate FdC shares before user has shares account! "+str(jr.agent))
+        return
 
 
 
@@ -1067,6 +1107,8 @@ def members_agent(request, agent_id):
 
     upload_form = UploadAgentForm(instance=agent)
 
+    auto_resource = create_user_accounts(request, agent)
+
     related_rts = []
     if agent.project_join_requests:
         for req in agent.project_join_requests.all():
@@ -1077,52 +1119,6 @@ def members_agent(request, agent_id):
                     if rt in rts:
                         related_rts.append(rt)
 
-    auto_resource = create_user_accounts(request, agent)
-    """if user_agent in agent.managers() or user_is_agent: # or request.user.is_staff:
-      #import pdb; pdb.set_trace()
-      for ag in is_associated_with:
-        if hasattr(ag.has_associate, 'project'):
-            rtsc = ag.has_associate.project.rts_with_clas()
-            for rt in rtsc:
-                is_account = False
-                ancs = rt.ocp_artwork_type.get_ancestors(True, True)
-                for anc in ancs:
-                    if anc.clas == 'accounts':
-                        is_account = True
-                if is_account:
-                    rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
-                    if not rt in rts:
-                        res = ag.has_associate.agent_resource_roles.filter(resource__resource_type=rt)[0].resource
-                        resarr = res.identifier.split(ag.has_associate.nick)
-                        if len(resarr) > 1: # and not ag.has_associate.nick == 'Freedom Coop':
-                            res.id = None
-                            res.pk = None
-                            if not resarr[1]:
-                                auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
-                                auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
-                                auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
-                                break
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
-                            res.quantity = 1
-                            res.price_per_unit = 0
-                            res.save()
-                            rol = AgentResourceRoleType.objects.filter(is_owner=True)[0]
-                            arr = AgentResourceRole(
-                                agent=agent,
-                                resource=res,
-                                role=rol,
-                                owner_percentage=100
-                            )
-                            arr.save()
-                            #import pdb; pdb.set_trace()
-                            auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
-                            auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
-                            auto_resource += _("It has been created for you automatically!")+"<br />"
-                    else:
-                        pass"""
-
-    if not auto_resource == '':
-        pass #messages.warning(request, auto_resource)
 
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
@@ -1381,7 +1377,7 @@ def create_user_accounts(request, agent, project=None):
                             #if request.user.is_superuser: auto_resource += _("Not cloning a Faircoin Ocp Account: ")+res.identifier+'<br>'
                             continue
                         resarr = res.identifier.split(ag.has_associate.nick)
-                        if len(resarr) > 1 and not ag.has_associate.nick == 'Freedom Coop':
+                        if len(resarr) > 1: # and not ag.has_associate.nick == 'Freedom Coop':
                             res.id = None
                             res.pk = None
                             if not resarr[1]:
@@ -1389,7 +1385,7 @@ def create_user_accounts(request, agent, project=None):
                                 auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
                                 auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
                                 break
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
+                            res.identifier = ag.has_associate.nick+resarr[1]+agent.name #.identifier.split(ag.has_associate.nick)
                             res.quantity = 1
                             res.price_per_unit = 0
                             res.save()

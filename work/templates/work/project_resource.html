@@ -51,7 +51,7 @@
 		<legend>
         <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>
       > <a class="indent" href="{% url 'project_resources' agent_id=agent.id %}">{% trans "Resources" %}</a>
-           > {{ resource }}
+           > {{ resource.identifier }}
 			    <!-- &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url "resource_types" %}">{% trans "Resource Types" %}</a>
 			    &nbsp;&nbsp;&nbsp;&nbsp; <a href="{% url "locations" %}">{% trans "Locations" %}</a> -->
 
