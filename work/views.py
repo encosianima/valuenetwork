@@ -567,6 +567,12 @@ def membership_discussion(request, membership_request_id):
     fdc = Project.objects.filter(fobi_slug='freedom-coop')
     if fdc:
         fdc = fdc[0].agent
+        for jr in mbr_req.agent.project_join_requests.all():
+            if jr.project.agent == fdc:
+                print "Already existent join request!! "+str(jr)
+                #return project_feedback(request, agent_id=fdc.id, join_request_id=jr.id)
+                migrate_fdc_shares(jr)
+                return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jr.pk)))
 
         form_entry = fdc.project.fobi_form()
 
@@ -602,15 +608,16 @@ def membership_discussion(request, membership_request_id):
                 if filnam == 'website':
                     obj[filnam] = mbr_req.website
                 if filnam == 'payment_mode':
-                    obj[filnam] = 'Faircoin'
+                    obj[filnam] = 'faircoin'
             #print "OBJ: "+str(obj)
             print "FdC shares: "+str(fdc.project.share_types())
+            #loger.info("FdC shares: "+str(fdc.project.share_types())
             #print "FdC req_date: "+str(mbr_req.request_date)
 
             fobi_form = FormClass(obj, request.FILES)
 
             fire_form_callbacks(form_entry=form_entry, request=request, form=fobi_form, stage=CALLBACK_BEFORE_FORM_VALIDATION)
-            if False and fobi_form.is_valid():
+            if fobi_form.is_valid():
                 #print "valid!"
                 jn_req, created = JoinRequest.objects.get_or_create(
                     project=fdc.project,
@@ -627,6 +634,7 @@ def membership_discussion(request, membership_request_id):
                 )
                 if created:
                     print "- created JoinRequest for FdC migration: "+str(jn_req)
+                    loger.info("- created JoinRequest for FdC migration: "+str(jn_req))
                 jn_req.created_date = mbr_req.request_date
 
 
@@ -640,10 +648,11 @@ def membership_discussion(request, membership_request_id):
                     user = mbr_req.agent.user().user if mbr_req.agent.user().user and mbr_req.agent.user().user.pk else None,
                     form_data_headers = json.dumps(field_name_to_label_map),
                     saved_data = json.dumps(cleaned_data),
-                    created = mbr_req.created_date
+                    created = mbr_req.request_date
                 )
                 if created:
                     print "- created fobi SavedFormDataEntry for FdC migration: "+str(json.dumps(cleaned_data))
+                    loger.info("- created fobi SavedFormDataEntry for FdC migration: "+str(json.dumps(cleaned_data)))
 
                 jn_req.fobi_data = fob_dat
                 jn_req.save()
@@ -664,14 +673,41 @@ def membership_discussion(request, membership_request_id):
                     )
                     if created:
                         print "- created Comment for JoinRequest (FdC migration): "+str(com.comment)
+                        loger.info("- created Comment for JoinRequest (FdC migration): "+str(com.comment))
 
-                return project_feedback(request, agent_id=fdc.id, join_request_id=jn_req.id)
+                messages.info(request, _("The old FdC membership request has been converted to the new modular join_request system, copying all the fields and the comments in the thread. From now on this will be the page for comunication feedback."))
+
+                migrate_fdc_shares(jn_req)
+
+                #return project_feedback(request, agent_id=fdc.id, join_request_id=jn_req.id)
+                return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jn_req.id)))
+            else:
+                print "Fobi form not valid: "+str(fobi_form.errors)
+                loger.error("Fobi form not valid: "+str(fobi_form.errors))
+        else:
+            print "ERROR form_entry not found"
+            loger.error("ERROR form_entry not found")
+    else:
+        print "ERROR FdC not found"
+        loger.error("ERROR FdC not found")
 
     return render(request, "work/membership_request_with_comments.html", {
         "help": get_help("membership_request"),
         "mbr_req": mbr_req,
         "user_agent": user_agent,
     })
+
+
+def migrate_fdc_shares(jr):
+    fdc = Project.objects.filter(fobi_slug='freedom-coop')
+    if len(fdc) == 1:
+        fdc = fdc[0].agent
+    else:
+        raise ValidationError("More than one or none projects with fobi_slug 'freedom-coop'")
+    shacct = fdc.project.shares_account_type()
+    rts = list(set([arr.resource.resource_type for arr in jr.agent.resource_relationships()]))
+    if not shacct in rts:
+       print str(shacct)+' not in rts: '+str(rts)
 
 
 
