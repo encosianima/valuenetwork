@@ -675,11 +675,11 @@ def membership_discussion(request, membership_request_id):
                         print "- created Comment for JoinRequest (FdC migration): "+str(com.comment)
                         loger.info("- created Comment for JoinRequest (FdC migration): "+str(com.comment))
 
-                messages.info(request, _("The old FdC membership request has been converted to the new modular join_request system, copying all the fields and the comments in the thread. From now on this will be the page for comunication feedback."))
+                messages.info(request, _("The old FdC membership request has been converted to the new modular join_request system, copying all the fields and the comments in the thread."))
 
-                auto_resource = create_user_accounts(request, jn_req.agent, jn_req.project)
-                if not auto_resource == '':
-                    messages.warning(request, auto_resource)
+                request.auto_resource = create_user_accounts(request, jn_req.agent, jn_req.project)
+                #if not auto_resource == '':
+                #    messages.warning(request, auto_resource)
 
                 migrate_fdc_shares(request, jn_req)
 
