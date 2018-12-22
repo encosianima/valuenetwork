@@ -498,7 +498,7 @@
                         <th>{% trans "Resource Type Visibility:" %}</th>
                         <td>{{ agent.project.resource_type_selection }}</td>
                       </tr>
-                      {% if agent.project.joining_style == 'moderated' %}
+                      {% if agent.project.is_moderated %}
                         <tr>
                           <th>{% trans "Project Slug:" %}</th>
                           <td>{% if agent.project.fobi_slug %}

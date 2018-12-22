@@ -50,6 +50,7 @@ class MembershipRequestTestCase(LiveServerTestCase):
         s.maximize_window()
 
         # Anonymous user fills the membership request form.
+        print "opening url: "+str('%s%s' % (self.live_server_url, "/freedom-coop"))
         s.get('%s%s' % (self.live_server_url, "/freedom-coop"))
         self.wait_loading(s, '//title[contains(text(), "Freedom Coop")]')
         sel = s.find_element_by_xpath('//select[@name="language"]')

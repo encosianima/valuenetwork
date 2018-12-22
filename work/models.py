@@ -173,6 +173,26 @@ class Project(models.Model):
                     rts_with_clas.append(rt)
         return rts_with_clas
 
+    def shares_account_type(self):
+        at = None
+        form = self.fobi_form()
+        if form:
+            fields = form.formelemententry_set.all()
+            for fi in fields:
+                data = json.loads(fi.plugin_data)
+                name = data.get('name')
+                for rt in self.rts_with_clas():
+                    if rt.ocp_artwork_type.clas == name: # matches the rt clas identifier with the fobi field name
+                        at = rt
+        return at
+
+    def shares_type(self):
+        st = None
+        at = self.shares_account_type()
+        if at:
+            st = at.ocp_artwork_type.rel_nonmaterial_type.resource_type
+        return st
+
     def share_types(self):
         shr_ts = []
         if self.is_moderated() and self.fobi_slug:
@@ -438,6 +458,8 @@ import random
 import hashlib
 
 from django_comments.models import Comment
+from general.models import UnitRatio
+from faircoin import utils as faircoin_utils
 
 USER_TYPE_CHOICES = (
     #('participant', _('project participant (no membership)')),
@@ -589,7 +611,7 @@ class JoinRequest(models.Model):
     def payment_option(self):
         answer = {}
         data2 = None
-        if self.project.joining_style == "moderated" and self.fobi_data:
+        if self.project.is_moderated() and self.fobi_data:
             for key in self.fobi_items_keys():
                 if key == "payment_mode": # fieldname specially defined in the fobi form
                     self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
@@ -605,7 +627,7 @@ class JoinRequest(models.Model):
                             for op in opts:
                                 opa = op.split(',')
                                 #import pdb; pdb.set_trace()
-                                if val.strip() == opa[1].strip():
+                                if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
                                     answer['key'] = opa[0]
             if not answer.has_key('key') and data2:
                 raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
@@ -634,6 +656,7 @@ class JoinRequest(models.Model):
 
     def payment_html(self):
         payopt = self.payment_option()
+        fairrs = self.agent.faircoin_resource()
         obj = None
         if settings.PAYMENT_GATEWAYS and payopt:
             gates = settings.PAYMENT_GATEWAYS
@@ -643,13 +666,50 @@ class JoinRequest(models.Model):
                 except:
                     pass
             if obj and obj['html']:
-                return obj['html']
+                if payopt['key'] == 'faircoin' and self.project.agent.need_faircoins() and fairrs:
+                    addr = self.agent.faircoin_address()
+                    wallet = faircoin_utils.is_connected()
+                    unitFc = Unit.objects.get(abbrev='fair')
+                    unit = self.project.shares_type().unit_of_price
+                    if not unit == unitFc:
+                        ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=unitFc.gen_unit).rate
+                        price = self.project.shares_type().price_per_unit/ratio
+                        amount = self.pending_shares()*price
+                    else:
+                        amount = self.pending_shares()*self.project.shares_type().price_per_unit
+                    balance = 0
+                    txt = ''
+                    if addr:
+                      if wallet:
+                        is_wallet_address = faircoin_utils.is_mine(addr)
+                        if is_wallet_address:
+                            balance = fairrs.faircoin_address.balance()
+                            if balance != None:
+                                if balance < amount:
+                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)d fairs. You can send them to your account %(ac)s and then pay the shares") % {'f':(confirmed_balance - amount)*-1, 'ac':addr})
+                                else:
+                                    txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))+"</b> <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                            else:
+                                txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
+                        else:
+                            txt = str(_("The faircoin address is not from the same wallet!"))
+                      else:
+                        txt = str(_("The OCP wallet is not available now, try later."))#+' '+str(self.project.shares_type().price_per_unit*self.pending_shares())+' '+str(self.project.shares_type().unit_of_price)+' : '+str(amount)
+                        #txt = str(_("Your actual balance is enough. You can pay the shares now!"))+" <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                    else:
+                        txt = str(_("No faircoin address?"))
+
+                    if not balance:
+                        txt = "<span class='error'>"+txt+"</span>"
+                    return obj['html']+"<br>Amount to pay: <b> "+str(amount)+" ƒ</b><br>"+txt
+                else:
+                    return obj['html']
         return False
 
     def payment_amount(self):
         amount = 0
         shat = self.project.shares_account_type()
-        if self.project.joining_style == "moderated" and self.fobi_data and shat:
+        if self.project.is_moderated() and self.fobi_data and shat:
             for key in self.fobi_items_keys():
                 if key == shat.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
                     self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
@@ -822,7 +882,10 @@ class JoinRequest(models.Model):
                 try:
                     obj = gates[self.project.fobi_slug][payopt['key']]
                 except:
-                    pass
+                    raise ValidationError("Can't find a payment gateway for slug "+self.project.fobi_slug+" named "+str(payopt))
+            else:
+                raise ValidationError("Can't find payment gateways for slug "+self.project.fobi_slug)
+
             if obj:
                 try:
                     unit = Unit.objects.get(abbrev=obj['unit'].lower())
@@ -2775,9 +2838,45 @@ def create_unit_types(**kwargs):
     artw_sh.general_unit_type = gen_share_typ
     artw_sh.save()
 
+    fa_curr, created = Facet.objects.get_or_create(
+        name='Currency'
+    )
+    if created:
+        print "- created Facet: Currency"
+    fa_curr.clas = "Currency_Type"
+    fa_curr.save()
+
+    fv_shs = FacetValue.objects.filter(value='Shares')
+    if fv_shs:
+        fv_sh = fv_shs[0]
+    else:
+        fv_shs = FacetValue.objects.filter(value='CoopShares')
+        if fv_shs:
+            fv_sh = fv_shs[0]
+        else:
+            fv_sh, created = FacetValue.objects.get_or_create(
+                value='CoopShares',
+                facet=fa_curr
+            )
+            if created:
+                print "- created FacetValue: CoopShares"
+    fv_sh.value = 'CoopShares'
+    fv_sh.facet = fa_curr
+    fv_sh.save()
+
+
 
 
     ## FreedomCoop
+
+    fdc_ag = EconomicAgent.objects.filter(nick="Freedom Coop")
+    if not fdc_ag:
+        fdc_ag = EconomicAgent.objects.filter(nick="FreedomCoop")
+    if not fdc_ag:
+        print "- WARNING: the FreedomCoop agent don't exist, not created any unit for shares"
+        return
+    else:
+        fdc_ag = fdc_ag[0]
 
     ocp_shares = Unit.objects.filter(name='Share')
     if not ocp_shares:
@@ -2837,6 +2936,8 @@ def create_unit_types(**kwargs):
     share_rt.unit = ocp_share
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
+    share_rt.price_per_unit = 30
+    share_rt.unit_of_price = ocp_euro
     share_rt.save()
 
     for fv in share_rt.facets.all():
@@ -2943,6 +3044,8 @@ def create_unit_types(**kwargs):
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
     share_rt.context_agent = boc_ag
+    share_rt.price_per_unit = 1
+    share_rt.unit_of_price = ocp_euro
     share_rt.save()
 
     for fv in share_rt.facets.all():
@@ -3067,4 +3170,43 @@ def create_exchange_skills(**kwargs):
 #post_migrate.connect(create_exchange_skills, sender=WorkAppConfig)
 
 
+"""
+def migrate_freedomcoop_memberships(**kwargs):
+    fdc = Project.objects.filter(fobi_slug='freedom-coop')
+    if fdc:
+        fdc = fdc[0].agent
+    if fdc:
+        form_entry = None
+        try:
+            form_entry = FormEntry.objects.get(slug=fdc.project.fobi_slug)
+        except:
+            pass
+        if form_entry:
+            form_element_entries = form_entry.formelemententry_set.all()[:]
+
+        else:
+            print "FdC migration error: no form entries"
+
+        old_reqs = MembershipRequest.objects.all()
+        new_reqs = fdc.project.join_requests.all()
+        print "FdC reqs: old-"+str(len(old_reqs))+" <> new-"+str(len(new_reqs))
+        for orq in old_reqs:
+            nrq, created = JoinRequest.objects.get_or_create(
+                project=fdc.project,
+                request_date=orq.request_date,
+                type_of_user=orq.type_of_membership,
+                name=orq.name,
+                surname=orq.surname,
+                requested_username=orq.requested_username,
+                email_address=orq.email_address,
+                phone_number=orq.phone_number,
+                address=orq.address,
+                agent=orq.agent,
+                state=orq.state
+            )
+            if created:
+                print "created FdC JoinRequest: "+nrq.requested_username+" ("+nrq.email_address+")"
+
+post_migrate.connect(migrate_freedomcoop_memberships)
+"""
 

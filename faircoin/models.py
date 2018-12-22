@@ -6,12 +6,36 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent
+from faircoin import utils as faircoin_utils
+from decimal import Decimal
+
+FAIRCOIN_DIVISOR = Decimal("100000000.00")
 
 class FaircoinAddress(models.Model):
     resource = models.OneToOneField(EconomicResource, on_delete=models.CASCADE,
         verbose_name=_('resource'), related_name='faircoin_address')
     address = models.CharField(_("faircoin address"), max_length=96,
         null=False, editable=False)
+
+    def balance(self):
+        wallet = faircoin_utils.is_connected()
+        if wallet:
+            is_wallet_address = faircoin_utils.is_mine(self.address)
+            if is_wallet_address:
+                try:
+                    balances = faircoin_utils.get_address_balance(self.address)
+                    unconfirmed_balance =  Decimal(balances[1]) / FAIRCOIN_DIVISOR
+                    unconfirmed_balance += self.resource.balance_in_tx_state_new()
+                    confirmed_balance = Decimal(balances[0]) / FAIRCOIN_DIVISOR
+                    if unconfirmed_balance < 0:
+                        confirmed_balance += unconfirmed_balance
+                    elif unconfirmed_balance == 0:
+                        unconfirmed_balance = confirmed_balance
+                    return confirmed_balance
+                except:
+                    pass
+        return None
+
 
 TX_STATE_CHOICES = (
     ('new', _('New')),

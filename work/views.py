@@ -564,11 +564,190 @@ def membership_discussion(request, membership_request_id):
     if not allowed:
         return render(request, 'work/no_permission.html')
 
+    fdc = Project.objects.filter(fobi_slug='freedom-coop')
+    if fdc:
+        fdc = fdc[0].agent
+        for jr in mbr_req.agent.project_join_requests.all():
+            if jr.project.agent == fdc:
+                print "Already existent join request!! "+str(jr)
+                #return project_feedback(request, agent_id=fdc.id, join_request_id=jr.id)
+                migrate_fdc_shares(request, jr)
+                return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jr.pk)))
+
+        form_entry = fdc.project.fobi_form()
+
+        if form_entry:
+            form_element_entries = form_entry.formelemententry_set.all()[:]
+
+            # This is where the most of the magic happens. Our form is being built
+            # dynamically.
+            FormClass = assemble_form_class(
+                form_entry,
+                form_element_entries = form_element_entries,
+                request = request
+            )
+            obj = {}
+            for fil in form_element_entries:
+                filnam = json.loads(fil.plugin_data)['name']
+                if filnam == 'languages':
+                    obj[filnam] = mbr_req.native_language
+                if filnam == 'freedomcoopshares':
+                    obj[filnam] = mbr_req.number_of_shares
+                if filnam == 'fairnetwork_username':
+                    obj[filnam] = mbr_req.fairnetwork
+                if filnam == 'usefaircoin_profile':
+                    obj[filnam] = mbr_req.usefaircoin
+                if filnam == 'fairmarket_shop':
+                    obj[filnam] = mbr_req.fairmarket
+                if filnam == 'otherfaircoopparticipantsreferences':
+                    obj[filnam] = mbr_req.known_member
+                if filnam == 'comments_and_questions':
+                    obj[filnam] = mbr_req.comments_and_questions
+                if filnam == 'description':
+                    obj[filnam] = mbr_req.description
+                if filnam == 'website':
+                    obj[filnam] = mbr_req.website
+                if filnam == 'payment_mode':
+                    obj[filnam] = 'faircoin'
+            #print "OBJ: "+str(obj)
+            print "FdC shares: "+str(fdc.project.share_types())
+            #loger.info("FdC shares: "+str(fdc.project.share_types())
+            #print "FdC req_date: "+str(mbr_req.request_date)
+
+            fobi_form = FormClass(obj, request.FILES)
+
+            fire_form_callbacks(form_entry=form_entry, request=request, form=fobi_form, stage=CALLBACK_BEFORE_FORM_VALIDATION)
+            if fobi_form.is_valid():
+                #print "valid!"
+                jn_req, created = JoinRequest.objects.get_or_create(
+                    project=fdc.project,
+                    request_date=mbr_req.request_date,
+                    type_of_user=mbr_req.type_of_membership,
+                    name=mbr_req.name,
+                    surname=mbr_req.surname,
+                    requested_username=mbr_req.requested_username,
+                    email_address=mbr_req.email_address,
+                    phone_number=mbr_req.phone_number,
+                    address=mbr_req.address,
+                    agent=mbr_req.agent,
+                    state=mbr_req.state
+                )
+                if created:
+                    print "- created JoinRequest for FdC migration: "+str(jn_req)
+                    loger.info("- created JoinRequest for FdC migration: "+str(jn_req))
+                jn_req.created_date = mbr_req.request_date
+
+
+                # fobi form
+                field_name_to_label_map, cleaned_data = get_processed_form_data(
+                    fobi_form,
+                    form_element_entries
+                )
+                fob_dat, created = SavedFormDataEntry.objects.get_or_create(
+                    form_entry = form_entry,
+                    user = mbr_req.agent.user().user if mbr_req.agent.user().user and mbr_req.agent.user().user.pk else None,
+                    form_data_headers = json.dumps(field_name_to_label_map),
+                    saved_data = json.dumps(cleaned_data),
+                    created = mbr_req.request_date
+                )
+                if created:
+                    print "- created fobi SavedFormDataEntry for FdC migration: "+str(json.dumps(cleaned_data))
+                    loger.info("- created fobi SavedFormDataEntry for FdC migration: "+str(json.dumps(cleaned_data)))
+
+                jn_req.fobi_data = fob_dat
+                jn_req.save()
+
+                con_typ = ContentType.objects.get(model='membershiprequest')
+                jr_con_typ = ContentType.objects.get(model='joinrequest')
+                coms = Comment.objects.filter(content_type=con_typ, object_pk=mbr_req.id)
+                #print "Comments: "+str(coms)
+                for com in coms:
+                    jn_com, created = Comment.objects.get_or_create(
+                        content_type=jr_con_typ,
+                        object_pk=jn_req.pk,
+                        user_name=com.user_name,
+                        user_email=com.user_email,
+                        submit_date=com.submit_date,
+                        comment=com.comment,
+                        site=com.site
+                    )
+                    if created:
+                        print "- created Comment for JoinRequest (FdC migration): "+str(com.comment)
+                        loger.info("- created Comment for JoinRequest (FdC migration): "+str(com.comment))
+
+                messages.info(request, _("The old FdC membership request has been converted to the new modular join_request system, copying all the fields and the comments in the thread."))
+
+                request.auto_resource = create_user_accounts(request, jn_req.agent, jn_req.project)
+                #if not auto_resource == '':
+                #    messages.warning(request, auto_resource)
+
+                migrate_fdc_shares(request, jn_req)
+
+                return project_feedback(request, agent_id=fdc.id, join_request_id=jn_req.id)
+                #return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jn_req.id)))
+            else:
+                print "Fobi form not valid: "+str(fobi_form.errors)
+                loger.error("Fobi form not valid: "+str(fobi_form.errors))
+        else:
+            print "ERROR form_entry not found"
+            loger.error("ERROR form_entry not found")
+    else:
+        print "ERROR FdC not found"
+        loger.error("ERROR FdC not found")
+
     return render(request, "work/membership_request_with_comments.html", {
         "help": get_help("membership_request"),
         "mbr_req": mbr_req,
         "user_agent": user_agent,
     })
+
+
+def migrate_fdc_shares(request, jr):
+    fdc = Project.objects.filter(fobi_slug='freedom-coop')
+    if len(fdc) == 1:
+        fdc = fdc[0].agent
+    else:
+        raise ValidationError("More than one or none projects with fobi_slug 'freedom-coop'")
+    shacct = fdc.project.shares_account_type()
+    mems = jr.agent.membership_requests.all()
+    if not len(mems) == 1:
+        raise ValidationError("More than one membership request to migrate?! agent:"+str(jr.agent))
+    else:
+        mem = mems[0]
+        if not mem.state == 'accepted':
+            print "FdC membership still not accepted! "+str(mem)
+    fdcshrt = EconomicResourceType.objects.membership_share()
+    shs = []
+    arrs = jr.agent.resource_relationships()
+    res = list(set([arr.resource for arr in arrs]))
+    account = None
+    for rs in res:
+        if rs.resource_type == shacct:
+            account = rs
+        if rs.resource_type == fdcshrt:
+            shs.append(rs)
+    if account:
+        if len(shs) > 0:
+            #print shs
+            account.price_per_unit = len(shs)
+            account.save()
+            loger.info("FdC shares had been migrated to the new system for agent "+str(jr.agent))
+            messages.warning(request, "FdC shares had been migrated to the new system for agent "+str(jr.agent))
+            for sh in shs:
+                for ar in arrs:
+                    if ar.resource == sh:
+                        ar.delete()
+                        sh.delete()
+                        loger.info("FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
+                        messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
+
+        else:
+            print "FdC migrating agent has no owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
+    else:
+        print str(shacct)+' not in res: '+str(res)
+        loger.info("Can't migrate FdC shares before user has shares account! "+str(jr.agent))
+        messages.warning(request, "Can't migrate FdC shares before user has shares account! "+str(jr.agent))
+        return
 
 
 
@@ -928,6 +1107,8 @@ def members_agent(request, agent_id):
 
     upload_form = UploadAgentForm(instance=agent)
 
+    auto_resource = create_user_accounts(request, agent)
+
     related_rts = []
     if agent.project_join_requests:
         for req in agent.project_join_requests.all():
@@ -938,52 +1119,6 @@ def members_agent(request, agent_id):
                     if rt in rts:
                         related_rts.append(rt)
 
-    auto_resource = create_user_accounts(request, agent)
-    """if user_agent in agent.managers() or user_is_agent: # or request.user.is_staff:
-      #import pdb; pdb.set_trace()
-      for ag in is_associated_with:
-        if hasattr(ag.has_associate, 'project'):
-            rtsc = ag.has_associate.project.rts_with_clas()
-            for rt in rtsc:
-                is_account = False
-                ancs = rt.ocp_artwork_type.get_ancestors(True, True)
-                for anc in ancs:
-                    if anc.clas == 'accounts':
-                        is_account = True
-                if is_account:
-                    rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
-                    if not rt in rts:
-                        res = ag.has_associate.agent_resource_roles.filter(resource__resource_type=rt)[0].resource
-                        resarr = res.identifier.split(ag.has_associate.nick)
-                        if len(resarr) > 1 and not ag.has_associate.nick == 'Freedom Coop':
-                            res.id = None
-                            res.pk = None
-                            if not resarr[1]:
-                                auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
-                                auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
-                                auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
-                                break
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
-                            res.quantity = 1
-                            res.price_per_unit = 0
-                            res.save()
-                            rol = AgentResourceRoleType.objects.filter(is_owner=True)[0]
-                            arr = AgentResourceRole(
-                                agent=agent,
-                                resource=res,
-                                role=rol,
-                                owner_percentage=100
-                            )
-                            arr.save()
-                            #import pdb; pdb.set_trace()
-                            auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
-                            auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
-                            auto_resource += _("It has been created for you automatically!")+"<br />"
-                    else:
-                        pass"""
-
-    if not auto_resource == '':
-        pass #messages.warning(request, auto_resource)
 
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
@@ -1242,7 +1377,7 @@ def create_user_accounts(request, agent, project=None):
                             #if request.user.is_superuser: auto_resource += _("Not cloning a Faircoin Ocp Account: ")+res.identifier+'<br>'
                             continue
                         resarr = res.identifier.split(ag.has_associate.nick)
-                        if len(resarr) > 1 and not ag.has_associate.nick == 'Freedom Coop':
+                        if len(resarr) > 1: # and not ag.has_associate.nick == 'Freedom Coop':
                             res.id = None
                             res.pk = None
                             if not resarr[1]:
@@ -1250,7 +1385,7 @@ def create_user_accounts(request, agent, project=None):
                                 auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
                                 auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
                                 break
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
+                            res.identifier = ag.has_associate.nick+resarr[1]+agent.name #.identifier.split(ag.has_associate.nick)
                             res.quantity = 1
                             res.price_per_unit = 0
                             res.save()
@@ -1397,7 +1532,7 @@ from django.utils.html import escape, escapejs
 
 def joinaproject_request(request, form_slug = False):
     if form_slug and form_slug == 'freedom-coop':
-        return redirect('membership_request')
+        pass #return redirect('membership_request')
 
     fobi_form = False
     cleaned_data = False
@@ -1410,6 +1545,11 @@ def joinaproject_request(request, form_slug = False):
                 return joinaproject_request_internal(request, project.agent.id)
         except:
             user_agent = False
+
+        # exception meanwhile
+        #if form_slug == 'freedom-coop' and not user_agent:
+        #    return redirect('membership_request')
+        #
 
         if not project or project.visibility != "public": # or not user_agent:
             return HttpResponseRedirect('/%s/' % ('home'))
@@ -1653,9 +1793,10 @@ def joinaproject_request_internal(request, agent_id = False):
     proj_agent = get_object_or_404(EconomicAgent, id=agent_id)
     project = proj_agent.project
     form_slug = project.fobi_slug
-    if form_slug and form_slug == 'freedom-coop':
-        return redirect('membership_request')
     usr_agent = request.user.agent.agent
+    #if form_slug and form_slug == 'freedom-coop':
+    #    if not usr_agent:
+    #        return redirect('membership_request')
     reqs = JoinRequest.objects.filter(project=project, agent=usr_agent)
 
     join_form = JoinRequestInternalForm(data=request.POST or None)

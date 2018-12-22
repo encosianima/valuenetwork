@@ -113,6 +113,7 @@ legend {
 
             {% if user.is_staff %}
                 <a href="#agentChangeForm" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Change" %}</a>
+                <a id="send_welcome_email" role="button" class="btn btn-primary">{% trans "Send welcome email" %}</a>
                 {% if use_faircoin and not agent.faircoin_address %}
                     <form
                         style="display: inline;"
@@ -645,6 +646,21 @@ legend {
             }
             {% endif %}
 
+
+        $("#send_welcome_email").on('click', function() {
+             $.ajax({
+               url: "{% url 'send_fdc_welcome' agent.id %}",
+               //data: {"user": "{{ agent.name }}", "faircon_address": "{{ agent.faircoin_address }}"},
+               beforeSend: function( xhr ) {
+                 xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+               }
+             })
+               .done(function( data ) {
+                 if ( console && console.log ) {
+                   console.log( "Sample of data:", data.slice( 0, 100 ) );
+                 }
+               });
+        });
     </script>
 
 {% endblock %}

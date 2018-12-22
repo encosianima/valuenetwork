@@ -17,12 +17,16 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import validators
 from django.forms.models import formset_factory, modelformset_factory, inlineformset_factory, BaseModelFormSet
 from django.forms import ValidationError
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import json as simplejson
 from collections import OrderedDict
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django_comments.models import Comment, CommentFlag
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
 
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.forms import *
@@ -31,6 +35,7 @@ from valuenetwork.valueaccounting.utils import *
 from work.models import MembershipRequest, SkillSuggestion, Ocp_Artwork_Type
 from work.forms import ContextTransferForm, ContextTransferCommitmentForm, ResourceRoleContextAgentForm
 from work.utils import *
+from account.utils import password_generator
 
 if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
@@ -237,32 +242,53 @@ def create_user_and_agent(request):
     })
 
 def projects(request):
+    page = request.GET.get('page', 1)
+    project_name = request.POST.get('project_name', '')
+
     projects = EconomicAgent.objects.context_agents()
-    roots = [p for p in projects if p.is_root()]
-    for root in roots:
-        root.nodes = root.child_tree()
-        annotate_tree_properties(root.nodes)
-        for node in root.nodes:
-            aats = []
-            for aat in node.agent_association_types():
-                if aat.association_behavior != "child":
-                    aat.assoc_count = node.associate_count_of_type(aat.identifier)
-                    assoc_list = node.all_has_associates_by_type(aat.identifier)
-                    for assoc in assoc_list:
-                        associations = AgentAssociation.objects.filter(is_associate=assoc, has_associate=node, association_type=aat)
-                        if associations:
-                            association = associations[0]
-                            assoc.state = association.get_state_display()
-                    aat.assoc_list = assoc_list
-                    aats.append(aat)
-            node.aats = aats
-    agent = get_agent(request)
-    agent_form = AgentCreateForm()
-    nicks = '~'.join([
-        agt.nick for agt in EconomicAgent.objects.all()])
+    if project_name:
+        projects = projects.filter(name__icontains=project_name)
+
+    paginator = Paginator(projects, 25)
+
+    try:
+        projects = paginator.page(page)
+        print projects
+        roots = [p for p in projects if p.is_root()]
+        for root in roots:
+            root.nodes = root.child_tree()
+            annotate_tree_properties(root.nodes)
+            for node in root.nodes:
+                aats = []
+                for aat in node.agent_association_types():
+                    if aat.association_behavior != "child":
+                        aat.assoc_count = node.associate_count_of_type(aat.identifier)
+                        assoc_list = node.all_has_associates_by_type(aat.identifier)
+                        for assoc in assoc_list:
+                            associations = AgentAssociation.objects.filter(is_associate=assoc, has_associate=node, association_type=aat)
+                            if associations:
+                                association = associations[0]
+                                assoc.state = association.get_state_display()
+                        aat.assoc_list = assoc_list
+                        aats.append(aat)
+                node.aats = aats
+        agent = get_agent(request)
+        agent_form = AgentCreateForm()
+        nicks = '~'.join([
+            agt.nick for agt in EconomicAgent.objects.all()])
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        projects = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        projects = paginator.page(paginator.num_pages)
+    except Exception, e:
+        print "EXCEPT: ", str(e)
+
 
     return render(request, "valueaccounting/projects.html", {
         "roots": roots,
+        "projects": projects,
         "agent": agent,
         "help": get_help("projects"),
         "agent_form": agent_form,
@@ -476,8 +502,11 @@ def agent(request, agent_id):
     user_form = None
     #if agent.is_individual():
     if not agent.username():
-        init = {"username": agent.nick,}
+        password1 = password2 = password_generator()
+        init = {"username": agent.nick, "password1": password1, "password2": password2,}
         user_form = UserCreationForm(initial=init)
+        user_form.fields['password1'].widget.render_value = True
+        user_form.fields['password2'].widget.render_value = True
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
 
@@ -4085,7 +4114,7 @@ def start(request):
             resource_type__id__in=skill_ids)
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None,
-            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)
+            event_type__relationship="work").exclude(resource_type__id__in=skill_ids)[:10]
     else:
         other_unassigned = Commitment.objects.unfinished().filter(
             from_agent=None,
@@ -12903,3 +12932,27 @@ def resource_role_context_agent_formset(prefix, data=None):
         )
     formset = RraFormSet(prefix=prefix, queryset=AgentResourceRole.objects.none(), data=data)
     return formset
+
+@login_required
+def send_fdc_welcome(request, agent_id):
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    return_data = "ERROR"
+    if send_email(request, agent, agent.faircoin_address(), password_generator()):
+        return_data = "OK"
+    return HttpResponse(return_data, content_type="text/plain")
+
+def send_email(request, user, faircoin_address, password):
+    protocol = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
+    current_site = get_current_site(request)
+    print current_site
+    ctx = {
+        "user": user,
+        "faircoin_address": faircoin_address,
+        "password": password,
+        "protocol": protocol,
+        "current_site": current_site,
+    }
+    subject = render_to_string("valueaccounting/email_fdc_welcome_subject.txt", ctx)
+    subject = "".join(subject.splitlines())
+    message = render_to_string("valueaccounting/email_fdc_welcome_body.txt", ctx)
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
