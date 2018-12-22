@@ -458,6 +458,8 @@ import random
 import hashlib
 
 from django_comments.models import Comment
+from general.models import UnitRatio
+from faircoin import utils as faircoin_utils
 
 USER_TYPE_CHOICES = (
     #('participant', _('project participant (no membership)')),
@@ -654,6 +656,7 @@ class JoinRequest(models.Model):
 
     def payment_html(self):
         payopt = self.payment_option()
+        fairrs = self.agent.faircoin_resource()
         obj = None
         if settings.PAYMENT_GATEWAYS and payopt:
             gates = settings.PAYMENT_GATEWAYS
@@ -663,7 +666,44 @@ class JoinRequest(models.Model):
                 except:
                     pass
             if obj and obj['html']:
-                return obj['html']
+                if payopt['key'] == 'faircoin' and self.project.agent.need_faircoins() and fairrs:
+                    addr = self.agent.faircoin_address()
+                    wallet = faircoin_utils.is_connected()
+                    unitFc = Unit.objects.get(abbrev='fair')
+                    unit = self.project.shares_type().unit_of_price
+                    if not unit == unitFc:
+                        ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=unitFc.gen_unit).rate
+                        price = self.project.shares_type().price_per_unit/ratio
+                        amount = self.pending_shares()*price
+                    else:
+                        amount = self.pending_shares()*self.project.shares_type().price_per_unit
+                    balance = 0
+                    txt = ''
+                    if addr:
+                      if wallet:
+                        is_wallet_address = faircoin_utils.is_mine(addr)
+                        if is_wallet_address:
+                            balance = fairrs.faircoin_address.balance()
+                            if balance != None:
+                                if balance < amount:
+                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)d fairs. You can send them to your account %(ac)s and then pay the shares") % {'f':(confirmed_balance - amount)*-1, 'ac':addr})
+                                else:
+                                    txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))+"</b> <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                            else:
+                                txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
+                        else:
+                            txt = str(_("The faircoin address is not from the same wallet!"))
+                      else:
+                        txt = str(_("The OCP wallet is not available now, try later."))#+' '+str(self.project.shares_type().price_per_unit*self.pending_shares())+' '+str(self.project.shares_type().unit_of_price)+' : '+str(amount)
+                        #txt = str(_("Your actual balance is enough. You can pay the shares now!"))+" <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                    else:
+                        txt = str(_("No faircoin address?"))
+
+                    if not balance:
+                        txt = "<span class='error'>"+txt+"</span>"
+                    return obj['html']+"<br>Amount to pay: <b> "+str(amount)+" ƒ</b><br>"+txt
+                else:
+                    return obj['html']
         return False
 
     def payment_amount(self):
