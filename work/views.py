@@ -5228,6 +5228,7 @@ def create_project_shares(request, agent_id):
         )
         if created:
             print "- created OCP Unit: '"+nome+" Share ("+abbr+")'"
+            loger.info("- created OCP Unit: '"+nome+" Share ("+abbr+")'")
     else:
         if len(ocpboc_shares) > 1:
             raise ValidationError("There is more than one Unit !? "+str(ocpboc_shares))
@@ -5247,6 +5248,7 @@ def create_project_shares(request, agent_id):
             parent=gen_share_typ)
         if created:
             print "- created Ocp_Unit_Type: '"+nome+" Shares'"
+            loger.info("- created Ocp_Unit_Type: '"+nome+" Shares'")
     else:
         if len(gen_boc_typs) > 1:
             raise ValidationError("There are more than one Ocp_Unit_Type !? "+str(gen_boc_typs))
@@ -5268,6 +5270,7 @@ def create_project_shares(request, agent_id):
             code=abbr)
         if created:
             print "- created General.Unit: '"+nome+" Share'"
+            loger.info("- created General.Unit: '"+nome+" Share'")
     boc_share.name = nome+" Share"
     boc_share.code = abbr
     boc_share.unit_type = gen_boc_typ
@@ -5275,9 +5278,15 @@ def create_project_shares(request, agent_id):
     boc_share.save()
 
     #  EconomicResourceType
-    share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share").exclude(id=project.shares_account_type().id)
-    if not share_rts:
-        share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().id)
+    acc_typ = project.shares_account_type()
+    if acc_typ:
+        share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share").exclude(id=acc_typ.id)
+        if not share_rts:
+            share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share").exclude(id=acc_typ.id)
+    else:
+        share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share")
+        if not share_rts:
+            share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share")
     if share_rts:
         if len(share_rts) > 1:
             raise ValidationError("There are more than 1 EconomicResourceType with same name: "+str(share_rts))
@@ -5291,6 +5300,7 @@ def create_project_shares(request, agent_id):
         )
         if created:
             print "- created EconomicResourceType: '"+nome+" Share'"
+            loger.info("- created EconomicResourceType: '"+nome+" Share'")
     share_rt.name = nome+" Share"
     share_rt.unit = ocp_each
     share_rt.inventory_rule = 'yes'
@@ -5299,9 +5309,14 @@ def create_project_shares(request, agent_id):
     share_rt.save()
 
     #  Ocp_Artwork_Type
-    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share").exclude(id=project.shares_account_type().ocp_artwork_type.id)
-    if not artw_bocs:
-        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share").exclude(id=project.shares_account_type().ocp_artwork_type.id)
+    if acc_typ:
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share").exclude(id=acc_typ.ocp_artwork_type.id)
+        if not artw_bocs:
+            artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share").exclude(id=acc_typ.ocp_artwork_type.id)
+    else:
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share")
+        if not artw_bocs:
+            artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share")
     if artw_bocs:
         if len(artw_bocs) > 1:
             raise ValidationError("There are more than 1 Ocp_Artwork_Type with same name: "+str(artw_bocs))
@@ -5313,6 +5328,7 @@ def create_project_shares(request, agent_id):
         )
         if created:
             print "- created Ocp_Artwork_Type: '"+nome+" Share'"
+            loger.info("- created Ocp_Artwork_Type: '"+nome+" Share'")
     artw_boc.name = nome+" Share"
     artw_boc.parent = Type.objects.get(id=artw_sh.id)
     artw_boc.resource_type = share_rt
@@ -5338,6 +5354,7 @@ def create_project_shares(request, agent_id):
             behavior='account')
         if created:
             print "- created EconomicResourceType: "+str(ert_acc)
+            loger.info("- created EconomicResourceType: "+str(ert_acc))
     ert_acc.name = agent.name+" Shares Account"
     ert_acc.unit = ocp_each
     ert_acc.inventory_rule = 'yes'
@@ -5361,6 +5378,7 @@ def create_project_shares(request, agent_id):
             parent=parent_accs)
         if created:
             print "- created Ocp_Artwork_Type: '"+nome+" Shares Account'"
+            loger.info("- created Ocp_Artwork_Type: '"+nome+" Shares Account'")
     proacc.name = agent.name+" Shares Account"
     proacc.parent = parent_accs
     proacc.clas = nome.lower()+'shares'
@@ -5396,6 +5414,7 @@ def create_project_shares(request, agent_id):
             )
             if created:
                 print "- created EconomicResource: "+str(res)
+                loger.info("- created EconomicResource: "+str(res))
     res.resource_type = ert_acc
     res.identifier = abbr+" shares account for "+agent.nick
     res.quantity = 1
@@ -5409,6 +5428,7 @@ def create_project_shares(request, agent_id):
             role=owner)
         if created:
             print "- created AgentResourceRole: "+str(aresrol)
+            loger.info("- created AgentResourceRole: "+str(aresrol))
 
 
 
@@ -5438,6 +5458,7 @@ def create_shares_exchange_types(request, agent_id):
             is_context=True)
         if created:
             print "- created EconomicAgent: 'Dummy'"
+            loger.info("- created EconomicAgent: 'Dummy'")
     dummy.name = "Dummy ContextAgent"
     dummy.is_context = True
     dummy.save()
@@ -5447,6 +5468,7 @@ def create_shares_exchange_types(request, agent_id):
         botc = EconomicAgent.objects.filter(nick="BotC")
     if not botc:
         print "- WARNING: the BotC agent don't exist, not created any exchange type for shares"
+        loger.info("- WARNING: the BotC agent don't exist, not created any exchange type for shares")
         raise ValidationError("- WARNING: the BotC agent don't exist, not created any exchange type for shares")
     else:
         botc = botc[0]
@@ -5468,6 +5490,7 @@ def create_shares_exchange_types(request, agent_id):
             parent=ocpext)
         if created:
             print "- created Ocp_Record_Type branch: 'Shares Economy'"
+            loger.info("- created Ocp_Record_Type branch: 'Shares Economy'")
     et_shareco.name = "Shares Economy:"
     et_shareco.clas = "shares_economy"
 
@@ -5475,6 +5498,7 @@ def create_shares_exchange_types(request, agent_id):
         name="Shares Economy")
     if created:
         print "- created ExchangeType: 'Shares Economy'"
+        loger.info("- created ExchangeType: 'Shares Economy'")
 
     shareco.context_agent = botc
     shareco.use_case = usecas
@@ -5496,6 +5520,7 @@ def create_shares_exchange_types(request, agent_id):
             parent=et_shareco)
         if created:
             print "- created Ocp_Record_Type branch: 'shares Buy'"
+            loger.info("- created Ocp_Record_Type branch: 'shares Buy'")
     et_sharebuy.name = 'shares Buy'
     et_sharebuy.clas = 'buy'
 
@@ -5512,6 +5537,7 @@ def create_shares_exchange_types(request, agent_id):
             use_case=usecas)
         if created:
             print "- created ExchangeType: 'share-buy Project Shares'"
+            loger.info("- created ExchangeType: 'share-buy Project Shares'")
     etsh.name = "share-buy Project Shares"
     etsh.use_case = usecas
     etsh.save()
@@ -5533,6 +5559,7 @@ def create_shares_exchange_types(request, agent_id):
         )
         if created:
             print "- created TransferType: 'Payment of the Project shares'"
+            loger.info("- created TransferType: 'Payment of the Project shares'")
     ttpay.name = "Payment of the Project shares"
     ttpay.exchange_type = etsh
     ttpay.sequence = 1
@@ -5551,12 +5578,14 @@ def create_shares_exchange_types(request, agent_id):
     for fv in ttpay.facet_values.all():
         if not fv.facet_value == fvmoney:
             print "- delete: "+str(fv)
+            loger.info("- delete: "+str(fv))
             fv.delete()
     ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttpay,
         facet_value=fvmoney)
     if created:
         print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney)
+        loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney))
 
     #  TransferType  ->  receive
     ttshrs = TransferType.objects.filter(exchange_type=etsh, inherit_types=True)
@@ -5571,6 +5600,7 @@ def create_shares_exchange_types(request, agent_id):
         )
         if created:
             print "- created TransferType: 'Receive the Project shares'"
+            loger.info("- created TransferType: 'Receive the Project shares'")
     ttshr.name = "Receive the Project shares"
     ttshr.exchange_type = etsh
     ttshr.sequence = 2
@@ -5589,12 +5619,14 @@ def create_shares_exchange_types(request, agent_id):
     for fv in ttshr.facet_values.all():
         if not fv.facet_value == shrfv:
             print "- delete: "+str(fv)
+            loger.info("- delete: "+str(fv))
             fv.delete()
     ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttshr,
         facet_value=shrfv)
     if created:
         print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+        loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
 
 
@@ -5627,6 +5659,7 @@ def create_shares_exchange_types(request, agent_id):
                 use_case=usecas)
             if created:
                 print "- created ExchangeType: 'share-buy "+str(project.compact_name())+" Shares'"
+                loger.info("- created ExchangeType: 'share-buy "+str(project.compact_name())+" Shares'")
         extyp.name = "share-buy "+str(project.compact_name())+" Shares"
         extyp.use_case = usecas
         extyp.context_agent = project.agent
@@ -5653,6 +5686,7 @@ def create_shares_exchange_types(request, agent_id):
                 parent=et_sharebuy)
             if created:
                 print "- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'"
+                loger.info("- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'")
         rectyp.name = "share-buy "+str(project.compact_name())+" Shares"
         rectyp.parent = et_sharebuy
         rectyp.exchange_type = extyp
@@ -5673,6 +5707,7 @@ def create_shares_exchange_types(request, agent_id):
                 exchange_type=extyp)
             if created:
                 print "- created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
+                loger.info("- created TransferType: 'Payment of the "+str(project.agent.name)+" shares'")
         ttpay.name = "Payment of the "+str(project.agent.name)+" shares"
         ttpay.exchange_type = extyp
         ttpay.sequence = 1
@@ -5692,6 +5727,7 @@ def create_shares_exchange_types(request, agent_id):
             facet_value=fvmoney)
         if created:
             print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney)
+            loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney))
 
         ##  TransferType  ->  project  ->  receive
         ttshrs = TransferType.objects.filter(exchange_type=extyp, inherit_types=True)
@@ -5707,6 +5743,7 @@ def create_shares_exchange_types(request, agent_id):
                 exchange_type=extyp)
             if created:
                 print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares'"
+                loger.info("- created TransferType: 'Receive the "+str(project.agent.name)+" shares'")
         ttshr.name = "Receive the "+str(project.agent.name)+" shares"
         ttshr.exchange_type = extyp
         ttshr.sequence = 2
@@ -5724,12 +5761,14 @@ def create_shares_exchange_types(request, agent_id):
         for fv in ttshr.facet_values.all():
             if not fv.facet_value == shrfv:
                 print "- delete: "+str(fv)
+                loger.info("- delete: "+str(fv))
                 fv.delete()
         ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttshr,
             facet_value=shrfv)
         if created:
             print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+            loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
 
         curfacet = Facet.objects.get(name="Currency")
@@ -5768,6 +5807,7 @@ def create_shares_exchange_types(request, agent_id):
                 gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
                 if created:
                     print "- created FacetValue: '"+nome+" currency'"
+                    loger.info("- created FacetValue: '"+nome+" currency'")
 
             etfiats = ExchangeType.objects.filter(name=title+" Economy")
             if etfiats:
@@ -5793,6 +5833,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+title+" Economy:'"
+                    loger.info("- created Ocp_Record_Type: '"+title+" Economy:'")
             parent_rectyp.name = title+" Economy:"
             parent_rectyp.parent = ocpext
             parent_rectyp.clas = slug+"_economy"
@@ -5806,6 +5847,7 @@ def create_shares_exchange_types(request, agent_id):
             )
             if created:
                 print "- created Ocp_Record_Type: '"+slug+" Buy'"
+                loger.info("- created Ocp_Record_Type: '"+slug+" Buy'")
             parent_rectypbuy.clas = "buy"
             parent_rectypbuy.save()
 
@@ -5825,6 +5867,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+slug+"-buy Non-materials'"
+                    loger.info("- created Ocp_Record_Type: '"+slug+"-buy Non-materials'")
             parent_rectypbuy_non.name = slug+"-buy Non-materials"
             parent_rectypbuy_non.parent = parent_rectypbuy
             parent_rectypbuy_non.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="Nonmaterial")
@@ -5843,6 +5886,7 @@ def create_shares_exchange_types(request, agent_id):
                     name=slug+"-buy Non-materials")
                 if created:
                     print "- created ExchangeType: '"+slug+"-buy Non-materials'"
+                    loger.info("- created ExchangeType: '"+slug+"-buy Non-materials'")
             etfiat_non.name = slug+"-buy Non-materials"
             etfiat_non.use_case = usecas
             etfiat_non.save()
@@ -5864,6 +5908,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created TransferType: 'Payment of the Non-material ("+slug+")'"
+                    loger.info("- created TransferType: 'Payment of the Non-material ("+slug+")'")
 
             ttpay.name = "Payment of the Non-material ("+slug+")"
             ttpay.exchange_type = etfiat_non
@@ -5882,12 +5927,14 @@ def create_shares_exchange_types(request, agent_id):
             for fv in ttpay.facet_values.all():
                 if not fv.facet_value == gatefv:
                     print "- delete: "+str(fv)
+                    loger.info("- delete: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
             if created:
                 print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+                loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
 
             ##  TransferType  ->  receive
             ttnons = TransferType.objects.filter(exchange_type=etfiat_non, inherit_types=True)
@@ -5903,6 +5950,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created TransferType: 'Receive the Non-material' ("+slug+")"
+                    loger.info("- created TransferType: 'Receive the Non-material' ("+slug+")")
 
             ttnon.name = "Receive the Non-material"
             ttnon.exchange_type = etfiat_non
@@ -5925,10 +5973,12 @@ def create_shares_exchange_types(request, agent_id):
                     facet_value=fv)
                 if created:
                     print "- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv)
+                    loger.info("- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv))
 
             tts = etfiat_non.transfer_types.all()
             if not len(tts) == 2:
                 print "The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts)
+                loger.info("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
                 raise ValidationError("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
 
 
@@ -5948,6 +5998,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+slug+"-buy Project Shares'"
+                    loger.info("- created Ocp_Record_Type: '"+slug+"-buy Project Shares'")
             fiat_rectyp.name = slug+"-buy Project Shares"
             fiat_rectyp.parent = parent_rectypbuy_non
             fiat_rectyp.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares")
@@ -5965,6 +6016,7 @@ def create_shares_exchange_types(request, agent_id):
                     name=slug+"-buy Project Shares")
                 if created:
                     print "- created ExchangeType: '"+slug+"-buy Project Shares'"
+                    loger.info("- created ExchangeType: '"+slug+"-buy Project Shares'")
 
             etfiat_shr.name = slug+"-buy Project Shares"
             etfiat_shr.use_case = usecas
@@ -5986,6 +6038,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created TransferType: 'Payment of the Shares ("+slug+")'"
+                    loger.info("- created TransferType: 'Payment of the Shares ("+slug+")'")
             ttfiat.name = "Payment of the Shares ("+slug+")"
             ttfiat.sequence = 1
             ttfiat.exchange_type = etfiat_shr
@@ -6003,12 +6056,14 @@ def create_shares_exchange_types(request, agent_id):
             for fv in ttfiat.facet_values.all():
                 if not fv.facet_value == gatefv:
                     print "- delete: "+str(fv)
+                    loger.info("- delete: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttfiat,
                 facet_value=gatefv)
             if created:
                 print "- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv)
+                loger.info("- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv))
 
             ##  TransferType  ->  receive
             ttshrs = TransferType.objects.filter(exchange_type=etfiat_shr, inherit_types=True)
@@ -6024,6 +6079,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created TransferType: 'Receive the Shares' ("+slug+")"
+                    loger.info("- created TransferType: 'Receive the Shares' ("+slug+")")
             ttshr.name = "Receive the Shares"
             ttshr.exchange_type = etfiat_shr
             ttshr.sequence = 2
@@ -6041,16 +6097,19 @@ def create_shares_exchange_types(request, agent_id):
             for fv in ttshr.facet_values.all():
                 if not fv.facet_value == shrfv:
                     print "- delete: "+str(fv)
+                    loger.info("- delete: "+str(fv))
                     fv.delete()
             ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
                 facet_value=shrfv)
             if created:
                 print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+                loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
             tts = etfiat_shr.transfer_types.all()
             if len(tts) > 2:
                 print "The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts)
+                loger.info("The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts))
                 raise ValidationError("The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts))
 
 
@@ -6070,6 +6129,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Shares'"
+                    loger.info("- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Shares'")
             fiat_et.name = slug+"-buy "+str(project.compact_name())+" Shares"
             fiat_et.use_case = usecas
             fiat_et.context_agent = project.agent
@@ -6085,6 +6145,7 @@ def create_shares_exchange_types(request, agent_id):
                 ttpay.pk = None
                 ttpay.id = None
                 print "- created TransferType: 'Payment of the "+str(project.agent.name)+" shares ("+slug+")'"
+                loger.info("- created TransferType: 'Payment of the "+str(project.agent.name)+" shares ("+slug+")'")
             ttpay.name = "Payment of the "+str(project.agent.name)+" shares ("+slug+")"
             ttpay.exchange_type = fiat_et
             ttpay.sequence = 1
@@ -6101,12 +6162,14 @@ def create_shares_exchange_types(request, agent_id):
             for fv in ttpay.facet_values.all():
                 if not fv.facet_value == gatefv:
                     print "- delete: "+str(fv)
+                    loger.info("- delete: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
             if created:
                 print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+                loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
 
             # TransferType  ->  receive  ->  share
             ttshrs = TransferType.objects.filter(exchange_type=fiat_et, inherit_types=True)
@@ -6118,6 +6181,7 @@ def create_shares_exchange_types(request, agent_id):
                 ttshr.pk = None
                 ttshr.id = None
                 print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")"
+                loger.info("- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")")
             ttshr.name = "Receive the "+str(project.agent.name)+" shares"
             ttshr.exchange_type = fiat_et
             ttshr.sequence = 2
@@ -6134,12 +6198,14 @@ def create_shares_exchange_types(request, agent_id):
             for fv in ttshr.facet_values.all():
                 if not fv.facet_value == shrfv:
                     print "- delete: "+str(fv)
+                    loger.info("- delete: "+str(fv))
                     fv.delete()
             ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
                 facet_value=shrfv)
             if created:
                 print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+                loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
 
             tts = fiat_et.transfer_types.all()
@@ -6163,6 +6229,7 @@ def create_shares_exchange_types(request, agent_id):
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name)+" Shares'"
+                    loger.info("- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name)+" Shares'")
             pro_shr_rectyp.name = slug+"-buy "+str(project.compact_name())+" Shares"
             pro_shr_rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
             pro_shr_rectyp.parent = fiat_rectyp
