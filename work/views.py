@@ -5206,7 +5206,7 @@ def create_project_shares(request, agent_id):
         raise ValidationError("The project abbrev name is too short to create shares ?! "+abbr)
 
     user_agent = get_agent(request)
-    if not user_agent or not project.share_types() or not request.user.is_superuser or not project.fobi_slug:
+    if not user_agent or not request.user.is_superuser or not project.fobi_slug: # or not project.share_types()
         return render(request, 'work/no_permission.html')
 
     # Project Shares
