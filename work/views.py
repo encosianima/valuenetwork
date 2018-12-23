@@ -1385,7 +1385,7 @@ def create_user_accounts(request, agent, project=None):
                                 auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
                                 auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
                                 break
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.name #.identifier.split(ag.has_associate.nick)
+                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
                             res.quantity = 1
                             res.price_per_unit = 0
                             res.save()
@@ -5397,7 +5397,9 @@ def create_project_shares(request, agent_id):
         res = aresrol.resource
     else:
         #  EconomicResource
-        ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.name)
+        ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+abbr)
+        if not ress:
+            ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.name)
         if not ress:
             ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.nick)
         if not ress:
@@ -5409,16 +5411,27 @@ def create_project_shares(request, agent_id):
         else:
             res, created = EconomicResource.objects.get_or_create(
                 resource_type=ert_acc,
-                identifier=abbr+" shares account for "+agent.nick,
+                identifier=agent.nick+" shares account for "+agent.nick,
                 quantity=1
             )
             if created:
                 print "- created EconomicResource: "+str(res)
                 loger.info("- created EconomicResource: "+str(res))
+    old_ident = res.identifier
     res.resource_type = ert_acc
-    res.identifier = abbr+" shares account for "+agent.nick
+    res.identifier = agent.nick+" shares account for "+agent.nick
     res.quantity = 1
     res.save()
+    if not res.identifier == old_ident:
+        print "The resource name has changed! rename member accounts?"
+        loger.info("The resource name has changed! rename member accounts?")
+        for ag in agent.all_has_associates():
+            for rs in ag.has_associate.owned_accounts():
+                if abbr+" shares account" in rs.identifier:
+                    rs.identifier = agent.nick+" shares account for "+ag.has_associate.nick
+                    rs.save()
+                    print "- Renamed account! "+rs.identifier
+                    loger.info("- Renamed account! "+rs.identifier)
 
     #  AgentResourceRole
     if not aresrol:
