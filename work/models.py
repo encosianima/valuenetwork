@@ -621,15 +621,19 @@ class JoinRequest(models.Model):
                     answer['val'] = val
                     for elem in self.fobi_data.form_entry.formelemententry_set.all():
                         data2 = json.loads(elem.plugin_data)
-                        choi = data2.get('choices') # works with radio or select
-                        if choi:
+                        nam = data2.get('name')
+                        if nam == key:
+                          choi = data2.get('choices') # works with radio or select
+                          if choi:
                             opts = choi.split('\r\n')
                             for op in opts:
                                 opa = op.split(',')
                                 #import pdb; pdb.set_trace()
                                 if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
                                     answer['key'] = opa[0]
-            if not answer.has_key('key') and data2:
+                          else:
+                            raise ValidationError("The payment mode field has no choices? "+str(data2))
+            if not answer.has_key('key') and val:
                 raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
         return answer
 

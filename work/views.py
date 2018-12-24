@@ -570,6 +570,7 @@ def membership_discussion(request, membership_request_id):
         for jr in mbr_req.agent.project_join_requests.all():
             if jr.project.agent == fdc:
                 print "Already existent join request!! "+str(jr)
+                loger.info("Already existent join request!! "+str(jr))
                 #return project_feedback(request, agent_id=fdc.id, join_request_id=jr.id)
                 migrate_fdc_shares(request, jr)
                 return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jr.pk)))
@@ -608,10 +609,10 @@ def membership_discussion(request, membership_request_id):
                 if filnam == 'website':
                     obj[filnam] = mbr_req.website
                 if filnam == 'payment_mode':
-                    obj[filnam] = 'faircoin'
+                    obj[filnam] = 'FairCoin'
             #print "OBJ: "+str(obj)
             print "FdC shares: "+str(fdc.project.share_types())
-            #loger.info("FdC shares: "+str(fdc.project.share_types())
+            loger.info("FdC shares: "+str(fdc.project.share_types()))
             #print "FdC req_date: "+str(mbr_req.request_date)
 
             fobi_form = FormClass(obj, request.FILES)
@@ -716,6 +717,7 @@ def migrate_fdc_shares(request, jr):
         mem = mems[0]
         if not mem.state == 'accepted':
             print "FdC membership still not accepted! "+str(mem)
+            loger.info("FdC membership still not accepted! "+str(mem))
     fdcshrt = EconomicResourceType.objects.membership_share()
     shs = []
     arrs = jr.agent.resource_relationships()
@@ -743,6 +745,7 @@ def migrate_fdc_shares(request, jr):
 
         else:
             print "FdC migrating agent has no owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
+            loger.info("FdC migrating agent has no owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price))
     else:
         print str(shacct)+' not in res: '+str(res)
         loger.info("Can't migrate FdC shares before user has shares account! "+str(jr.agent))
@@ -1385,7 +1388,7 @@ def create_user_accounts(request, agent, project=None):
                                 auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
                                 auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
                                 break
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.name #.identifier.split(ag.has_associate.nick)
+                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
                             res.quantity = 1
                             res.price_per_unit = 0
                             res.save()
@@ -5397,7 +5400,9 @@ def create_project_shares(request, agent_id):
         res = aresrol.resource
     else:
         #  EconomicResource
-        ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.name)
+        ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+abbr)
+        if not ress:
+            ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.name)
         if not ress:
             ress = EconomicResource.objects.filter(resource_type=ert_acc, identifier=abbr+" shares account for "+agent.nick)
         if not ress:
@@ -5409,16 +5414,27 @@ def create_project_shares(request, agent_id):
         else:
             res, created = EconomicResource.objects.get_or_create(
                 resource_type=ert_acc,
-                identifier=abbr+" shares account for "+agent.nick,
+                identifier=agent.nick+" shares account for "+agent.nick,
                 quantity=1
             )
             if created:
                 print "- created EconomicResource: "+str(res)
                 loger.info("- created EconomicResource: "+str(res))
+    old_ident = res.identifier
     res.resource_type = ert_acc
-    res.identifier = abbr+" shares account for "+agent.nick
+    res.identifier = agent.nick+" shares account for "+agent.nick
     res.quantity = 1
     res.save()
+    if not res.identifier == old_ident:
+        print "The resource name has changed! rename member accounts?"
+        loger.info("The resource name has changed! rename member accounts?")
+        for ag in agent.all_has_associates():
+            for rs in ag.has_associate.owned_accounts():
+                if abbr+" shares account" in rs.identifier:
+                    rs.identifier = agent.nick+" shares account for "+ag.has_associate.nick
+                    rs.save()
+                    print "- Renamed account! "+rs.identifier
+                    loger.info("- Renamed account! "+rs.identifier)
 
     #  AgentResourceRole
     if not aresrol:
