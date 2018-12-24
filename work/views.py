@@ -570,6 +570,7 @@ def membership_discussion(request, membership_request_id):
         for jr in mbr_req.agent.project_join_requests.all():
             if jr.project.agent == fdc:
                 print "Already existent join request!! "+str(jr)
+                loger.info("Already existent join request!! "+str(jr))
                 #return project_feedback(request, agent_id=fdc.id, join_request_id=jr.id)
                 migrate_fdc_shares(request, jr)
                 return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jr.pk)))
@@ -608,10 +609,10 @@ def membership_discussion(request, membership_request_id):
                 if filnam == 'website':
                     obj[filnam] = mbr_req.website
                 if filnam == 'payment_mode':
-                    obj[filnam] = 'faircoin'
+                    obj[filnam] = 'FairCoin'
             #print "OBJ: "+str(obj)
             print "FdC shares: "+str(fdc.project.share_types())
-            #loger.info("FdC shares: "+str(fdc.project.share_types())
+            loger.info("FdC shares: "+str(fdc.project.share_types()))
             #print "FdC req_date: "+str(mbr_req.request_date)
 
             fobi_form = FormClass(obj, request.FILES)
@@ -716,6 +717,7 @@ def migrate_fdc_shares(request, jr):
         mem = mems[0]
         if not mem.state == 'accepted':
             print "FdC membership still not accepted! "+str(mem)
+            loger.info("FdC membership still not accepted! "+str(mem))
     fdcshrt = EconomicResourceType.objects.membership_share()
     shs = []
     arrs = jr.agent.resource_relationships()
@@ -743,6 +745,7 @@ def migrate_fdc_shares(request, jr):
 
         else:
             print "FdC migrating agent has no owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
+            loger.info("FdC migrating agent has no owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price))
     else:
         print str(shacct)+' not in res: '+str(res)
         loger.info("Can't migrate FdC shares before user has shares account! "+str(jr.agent))
