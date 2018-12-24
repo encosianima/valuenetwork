@@ -633,6 +633,8 @@ class JoinRequest(models.Model):
                                     answer['key'] = opa[0]
                           else:
                             raise ValidationError("The payment mode field has no choices? "+str(data2))
+                    if not answer.has_key('key'):
+                        raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
             if not answer.has_key('key') and val:
                 raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
         return answer
