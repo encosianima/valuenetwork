@@ -718,6 +718,11 @@ def migrate_fdc_shares(request, jr):
         if not mem.state == 'accepted':
             print "FdC membership still not accepted! "+str(mem)
             loger.info("FdC membership still not accepted! "+str(mem))
+        if not jr.state == mem.state:
+            print "- FdC update state of jn_req: "+str(jr)
+            loger.info("- FdC update state of jn_req: "+str(jr))
+            jr.state = mem.state
+            jr.save()
     fdcshrt = EconomicResourceType.objects.membership_share()
     shs = []
     arrs = jr.agent.resource_relationships()
