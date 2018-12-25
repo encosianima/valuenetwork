@@ -21,6 +21,8 @@ if "pinax.notifications" in settings.INSTALLED_APPS:
 else:
     notification = None
 
+import logging
+loger = logging.getLogger("ocp")
 
 def get_site_name(request=None):
     if request:
@@ -670,6 +672,8 @@ class JoinRequest(models.Model):
                 try:
                     obj = gates[self.project.fobi_slug][payopt['key']]
                 except:
+                    print "WARN Can't find the key '"+str(payopt['key'])+"' in PAYMENT_GATEWAYS object for slug "+str(self.project.fobi_slug)
+                    loger.info("WARN Can't find the key '"+str(payopt['key'])+"' in PAYMENT_GATEWAYS object for slug "+str(self.project.fobi_slug))
                     pass
             if obj and obj['html']:
                 if payopt['key'] == 'faircoin' and self.project.agent.need_faircoins() and fairrs:
