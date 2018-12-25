@@ -609,7 +609,7 @@ def membership_discussion(request, membership_request_id):
                 if filnam == 'website':
                     obj[filnam] = mbr_req.website
                 if filnam == 'payment_mode':
-                    obj[filnam] = 'FairCoin'
+                    obj[filnam] = 'faircoin'
             #print "OBJ: "+str(obj)
             print "FdC shares: "+str(fdc.project.share_types())
             loger.info("FdC shares: "+str(fdc.project.share_types()))
@@ -637,6 +637,7 @@ def membership_discussion(request, membership_request_id):
                     print "- created JoinRequest for FdC migration: "+str(jn_req)
                     loger.info("- created JoinRequest for FdC migration: "+str(jn_req))
                 jn_req.created_date = mbr_req.request_date
+                jn_req.state = mbr_req.state
 
 
                 # fobi form
@@ -723,6 +724,18 @@ def migrate_fdc_shares(request, jr):
             loger.info("- FdC update state of jn_req: "+str(jr))
             jr.state = mem.state
             jr.save()
+
+    agrel = jr.agent.is_associate_of.filter(has_associate=jr.project.agent)
+    if len(agrel) == 1:
+        agrel = agrel[0]
+        if agrel.state == 'active' and not jr.state == 'accepted':
+            agrel.state = 'candidate'
+            agrel.save()
+            print "WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel)
+            loger.info("WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel))
+    else:
+        print "FdC migrating agent has no one relation with FdC?? "+str(agrel)+" jr:"+str(jr)
+        loger.info("FdC migrating agent has no one relation with FdC?? "+str(agrel)+" jr:"+str(jr))
     fdcshrt = EconomicResourceType.objects.membership_share()
     shs = []
     arrs = jr.agent.resource_relationships()
@@ -749,8 +762,13 @@ def migrate_fdc_shares(request, jr):
                         messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
 
         else:
-            print "FdC migrating agent has no owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
-            loger.info("FdC migrating agent has no owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price))
+            print "FdC migrating agent has no old owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
+            loger.info("FdC migrating agent has no old owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price))
+            if jr.state == 'accepted' and not account.price_per_unit:
+                jr.state = 'new'
+                jr.save()
+                print "WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr)
+                loger.info("WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr))
     else:
         print str(shacct)+' not in res: '+str(res)
         loger.info("Can't migrate FdC shares before user has shares account! "+str(jr.agent))
