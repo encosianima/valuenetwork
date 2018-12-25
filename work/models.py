@@ -520,7 +520,7 @@ class JoinRequest(models.Model):
       return False
 
     def __unicode__(self):
-        return self.name
+        return self.name+":"+self.state
 
     def form_prefix(self):
         return "".join(["JR", str(self.id)])
