@@ -642,16 +642,18 @@ def create_your_project(request):
     if not user_agent or not user_agent.is_active_freedom_coop_member:
         return render(request, 'work/no_permission.html')
     if request.method == "POST":
-        pro_form = ProjectCreateForm(request.POST)
-        agn_form = WorkAgentCreateForm(request.POST)
-        if pro_form.is_valid() and agn_form.is_valid():
+        agn_form = WorkAgentCreateForm(agent=None, data=request.POST)
+        if agn_form.is_valid():
             agent = agn_form.save(commit=False)
             agent.created_by=request.user
             agent.is_context=True
-            agent.save()
-            project = pro_form.save(commit=False)
-            project.agent = agent
-            project.save()
+            #agent.save()
+            pro_form = ProjectCreateForm(agent=agent, data=request.POST)
+            if pro_form.is_valid():
+                agent.save()
+                project = pro_form.save(commit=False)
+                project.agent = agent
+                project.save()
 
             association_type = AgentAssociationType.objects.get(identifier="manager")
             fc_aa = AgentAssociation(
@@ -1147,13 +1149,13 @@ def change_your_project(request, agent_id):
             except:
               project = False
             if not project:
-              pro_form = ProjectCreateForm(request.POST)
+              pro_form = ProjectCreateForm(agent=agent, data=request.POST)
               if pro_form.is_valid():
                 project = pro_form.save(commit=False)
                 project.agent = agent
                 project.save()
             else:
-              pro_form = ProjectCreateForm(instance=project, data=request.POST)
+              pro_form = ProjectCreateForm(instance=project, agent=agent, data=request.POST)
 
             agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
             if agn_form.is_valid() and pro_form.is_valid():
