@@ -733,6 +733,7 @@ def migrate_fdc_shares(request, jr):
             agrel.save()
             print "WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel)
             loger.info("WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel))
+            messages.warning(request, "Converted the agent relation to 'candidate' because the join request is not accepted yet.")
     else:
         print "FdC migrating agent has no one relation with FdC?? "+str(agrel)+" jr:"+str(jr)
         loger.info("FdC migrating agent has no one relation with FdC?? "+str(agrel)+" jr:"+str(jr))
@@ -769,12 +770,112 @@ def migrate_fdc_shares(request, jr):
                 jr.save()
                 print "WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr)
                 loger.info("WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr))
+                messages.warning(request, "Converted the request state to 'new' because the member has no shares yet.")
     else:
         print str(shacct)+' not in res: '+str(res)
         loger.info("Can't migrate FdC shares before user has shares account! "+str(jr.agent))
         messages.warning(request, "Can't migrate FdC shares before user has shares account! "+str(jr.agent))
-        return
 
+    return
+
+
+
+def run_fdc_scripts(request, agent):
+    if not agent.name == "Freedom Coop":
+        raise ValidationError("This is only intended for Freedom Coop agent migration")
+    fdc = agent
+    acctyp = fdc.project.shares_account_type()
+    oldshr = EconomicResourceType.objects.membership_share()
+    if not acctyp:
+        raise ValidationError("The FdC project still has not a shares_account_type ?")
+    # fix fdc memberships associations
+    agids = MembershipRequest.objects.filter(agent__isnull=False).values_list('agent')
+    ags = EconomicAgent.objects.filter(pk__in=agids)
+    partis = fdc.participants()
+    candis = fdc.candidates()
+    for ag in ags:
+        if not ag in partis and not ag in candis:
+            relags = list(rel.has_associate for rel in ag.is_associate_of.all())
+            if fdc.parent() in relags:
+                rels = ag.is_associate_of.filter(has_associate=fdc.parent())
+                if len(rels) > 1:
+                    raise ValidationError("Found more than one association with FdC parent !? "+str(rels))
+                else:
+                    rel = rels[0]
+                    print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR with state "+str(rel.state)
+                    loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR with state "+str(rel.state))
+
+                    ress = list(rel.resource.resource_type for rel in ag.agent_resource_roles.all())
+                    if acctyp in ress or oldshr in ress:
+                        if rel.state == "active":
+                            agas, created = AgentAssociation.objects.get_or_create(
+                                is_associate=ag,
+                                has_associate=fdc,
+                                association_type=AgentAssociationType.objects.get(name="Member"),
+                                state=rel.state
+                            )
+                            if created:
+                                print "- created new active AgentAssociation: "+str(agas)
+                                loger.info("- created new active AgentAssociation: "+str(agas))
+                                messages.info(request, "- created new active AgentAssociation: "+str(agas))
+                        else:
+                            print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair"
+                            loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair")
+                    else:
+                        if rel.state == 'candidate':
+                            agas, created = AgentAssociation.objects.get_or_create(
+                                is_associate=ag,
+                                has_associate=fdc,
+                                association_type=AgentAssociationType.objects.get(name="Member"),
+                                state=rel.state
+                            )
+                            if created:
+                                print "- created new candidate AgentAssociation: "+str(agas)
+                                loger.info("- created new candidate AgentAssociation: "+str(agas))
+                                messages.info(request, "- created new candidate AgentAssociation: "+str(agas))
+                        else:
+                            print "- Not found any FdC share but relation with FdC parent is not 'candidate': SKIP repair"
+                            loger.info("- Not found any FdC share but relation with FdC parent is not 'candidate': SKIP repair")
+            elif fdc in relags:
+                rels = ag.is_associate_of.filter(has_associate=fdc)
+                if len(rels) > 1:
+                    raise ValidationError("More than one relation with FdC ?? "+str(rels))
+                rel = rels[0]
+                if rel.association_type.name == 'Participant':
+                    rel.association_type = AgentAssociationType.objects.get(name="Member")
+                    rel.save()
+                    print "- REPAIRED agent association with FdC to 'member': "+str(rel)
+                    loger.info("- REPAIRED agent association with FdC to 'member': "+str(rel))
+                    messages.info(request, "- REPAIRED agent association with FdC to 'member': "+str(rel))
+                else:
+                    print "WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state
+                    loger.info("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state)
+            else:
+                #pass #print "- Not found agent "+str(ag)+" in participants or candidates of FdC (but has membership request: "+str(ag.membership_requests.all().values_list('name', 'state'))+"), found: "+str(ag.is_associate_of.all())
+                ress = list(rel.resource.resource_type for rel in ag.agent_resource_roles.all())
+                if not acctyp in ress and not oldshr in ress:
+                    #print "- Not found "+str(acctyp)+" nor any old "+str(oldshr)+" in the agent resources" #: "+str(ress)
+                    for req in ag.membership_requests.all():
+                        if req.state == 'accepted':
+                            print "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, what to do? Relations: "+str(relags)+" - Resources: "+str(ress)
+                            messages.warning(request, "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, what to do?") # Relations: "+str(relags)+" - Resources: "+str(ress))
+                        elif req.state == 'declined':
+                            print "Found declined membership request, don't do nothing: "+str(req)
+                        elif req.state == 'new':
+                            print "FOUND new membership request for agent: "+str(ag)+" with no shares, repair association!"
+                            agas, created = AgentAssociation.objects.get_or_create(
+                                is_associate=ag,
+                                has_associate=fdc,
+                                association_type=AgentAssociationType.objects.get(name="Member"),
+                                state='candidate'
+                            )
+                            if created:
+                                print "- Created new association as FdC candidate: "+str(agas)
+                                loger.info("- Created new association as FdC candidate: "+str(agas))
+                                messages.info(request, "- Created new association as FdC candidate: "+str(agas))
+                else:
+                    print "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair"
+                    loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
 
 
 
@@ -892,6 +993,8 @@ def members_agent(request, agent_id):
     user_agent = get_agent(request)
     if not user_agent or not user_agent.is_participant: # or not agent in user_agent.related_all_agents(): # or not user_agent.is_active_freedom_coop_member:
         return render(request, 'work/no_permission.html')
+
+    if agent.nick == "Freedom Coop": run_fdc_scripts(request, agent)
 
     user_is_agent = False
     if agent == user_agent:
