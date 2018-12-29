@@ -796,6 +796,11 @@ def run_fdc_scripts(request, agent):
     aamem = AgentAssociationType.objects.get(name="Member")
     for ag in ags:
         if not ag in partis and not ag in candis:
+            reqs = ag.membership_requests.all()
+            if len(reqs) > 1:
+                loger.warning("ERROR-SKIP: There are more than one FdC membership requests for agent "+str(ag)+"'. Solve duplicates? "+str(reqs))
+                messages.error(request, "There are more than one FdC membership requests for agent "+str(ag)+"'. Solve duplicates? "+str(reqs))
+                continue
             relags = list(rel.has_associate for rel in ag.is_associate_of.all())
             if fdc.parent() in relags:
                 rels = ag.is_associate_of.filter(has_associate=fdc.parent())
@@ -826,6 +831,13 @@ def run_fdc_scripts(request, agent):
                                 print "- created new active AgentAssociation: "+str(agas)
                                 loger.info("- created new active AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new active AgentAssociation: "+str(agas))
+                            else:
+                                if rel.association_type == aamem and rel.has_associate == fdc.parent():
+                                    rel.association_type = AgentAssociationType.objects.get(name="Participant")
+                                    rel.save()
+                                    print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)
+                                    loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel))
+                                    messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel))
                         else:
                             print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)
                             loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel))
@@ -861,9 +873,9 @@ def run_fdc_scripts(request, agent):
                     if rel.association_type.name == 'Participant':
                         rel.association_type = aamem
                         rel.save()
-                        print "- REPAIRED agent association with FdC to 'member': "+str(rel)
-                        loger.info("- REPAIRED agent association with FdC to 'member': "+str(rel))
-                        messages.info(request, "- REPAIRED agent association with FdC to 'member': "+str(rel))
+                        print "- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+rel.state
+                        loger.info("- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+rel.state)
+                        messages.info(request, "- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+rel.state)
                     elif not rel.association_type == aamem:
                         print "WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state
                         loger.info("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state)
@@ -875,6 +887,8 @@ def run_fdc_scripts(request, agent):
                 if not acctyp in ress and not oldshr in ress:
                     #print "- Not found "+str(acctyp)+" nor any old "+str(oldshr)+" in the agent resources" #: "+str(ress)
                     reqs = ag.membership_requests.all()
+                    if len(reqs) > 1:
+                        raise ValidationError("There are more than one FdC membership requests for agent "+str(ag))
                     for req in reqs:
                         if req.state == 'accepted':
                             print "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, what to do? Relations: "+str(relags)+" - Resources: "+str(ress)
