@@ -841,6 +841,7 @@ def run_fdc_scripts(request, agent):
                         else:
                             print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)
                             loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel))
+                            messages.error("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel))
                     else:
                         if rel.state == 'candidate':
                             agas, created = AgentAssociation.objects.get_or_create(
@@ -854,8 +855,9 @@ def run_fdc_scripts(request, agent):
                                 loger.info("- created new candidate AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new candidate AgentAssociation: "+str(agas))
                         else:
-                            print "- Not found any FdC share but relation with FdC parent is not 'candidate': SKIP repair"
-                            loger.info("- Not found any FdC share but relation with FdC parent is not 'candidate': SKIP repair")
+                            print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)
+                            loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel))
+                            messages.error(request, "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel))
             elif fdc in relags:
                 rels = ag.is_associate_of.filter(has_associate=fdc)
                 rel = None
