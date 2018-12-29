@@ -21,6 +21,8 @@ if "pinax.notifications" in settings.INSTALLED_APPS:
 else:
     notification = None
 
+import logging
+loger = logging.getLogger("ocp")
 
 def get_site_name(request=None):
     if request:
@@ -635,8 +637,8 @@ class JoinRequest(models.Model):
                             raise ValidationError("The payment mode field has no choices? "+str(data2))
                     if not answer.has_key('key'):
                         raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
-            if not answer.has_key('key') and val:
-                raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
+            if not answer.has_key('key') or not answer.has_key('val'):
+                raise ValidationError("can't find the payment_option key! answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
         return answer
 
     def payment_url(self):
@@ -670,6 +672,8 @@ class JoinRequest(models.Model):
                 try:
                     obj = gates[self.project.fobi_slug][payopt['key']]
                 except:
+                    print "WARN Can't find the key '"+str(payopt['key'])+"' in PAYMENT_GATEWAYS object for slug "+str(self.project.fobi_slug)
+                    loger.info("WARN Can't find the key '"+str(payopt['key'])+"' in PAYMENT_GATEWAYS object for slug "+str(self.project.fobi_slug))
                     pass
             if obj and obj['html']:
                 if payopt['key'] == 'faircoin' and self.project.agent.need_faircoins() and fairrs:
@@ -678,8 +682,19 @@ class JoinRequest(models.Model):
                     unitFc = Unit.objects.get(abbrev='fair')
                     unit = self.project.shares_type().unit_of_price
                     if not unit == unitFc:
-                        ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=unitFc.gen_unit).rate
-                        price = self.project.shares_type().price_per_unit/ratio
+                        try:
+                            ratio = UnitRatio.objects.get(in_unit=unitFc.gen_unit, out_unit=unit.gen_unit).rate
+                            price = self.project.shares_type().price_per_unit/ratio
+                        except:
+                            print "No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed..."
+                            loger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
+                            try:
+                                ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=unitFc.gen_unit).rate
+                                price = self.project.shares_type().price_per_unit*ratio
+                            except:
+                                print "No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting..."
+                                loger.info("No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting...")
+                                raise ValidationError("Can't find the UnitRatio to convert the price to faircoin from "+str(unit))
                         amount = self.pending_shares()*price
                     else:
                         amount = self.pending_shares()*self.project.shares_type().price_per_unit
@@ -710,6 +725,12 @@ class JoinRequest(models.Model):
                     return obj['html']+"<br>Amount to pay: <b> "+str(amount)+" ƒ</b><br>"+txt
                 else:
                     return obj['html']
+            else:
+                print "There's no obj or 'html' obj key: "+str(obj)
+                loger.info("There's no obj or 'html' obj key: "+str(obj))
+        else:
+            print "No settings obj gateways or no payment option: "+str(payopt)
+            loger.info("No settings obj gateways or no payment option:, paypot: "+str(payopt))
         return False
 
     def payment_amount(self):
