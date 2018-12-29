@@ -793,25 +793,33 @@ def run_fdc_scripts(request, agent):
     ags = EconomicAgent.objects.filter(pk__in=agids)
     partis = fdc.participants()
     candis = fdc.candidates()
+    aamem = AgentAssociationType.objects.get(name="Member")
     for ag in ags:
         if not ag in partis and not ag in candis:
             relags = list(rel.has_associate for rel in ag.is_associate_of.all())
             if fdc.parent() in relags:
                 rels = ag.is_associate_of.filter(has_associate=fdc.parent())
+                rel = None
                 if len(rels) > 1:
-                    raise ValidationError("Found more than one association with FdC parent !? "+str(rels))
+                    #raise ValidationError("Found more than one association with FdC parent !? "+str(rels))
+                    for re in rels:
+                        if re.association_type == aamem:
+                            rel = re
+                        else:
+                            print "NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state)
+                            loger.info("NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state))
                 else:
                     rel = rels[0]
                     print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR with state "+str(rel.state)
                     loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR with state "+str(rel.state))
-
-                    ress = list(rel.resource.resource_type for rel in ag.agent_resource_roles.all())
+                if rel:
+                    ress = list(arr.resource.resource_type for arr in ag.agent_resource_roles.all())
                     if acctyp in ress or oldshr in ress:
                         if rel.state == "active":
                             agas, created = AgentAssociation.objects.get_or_create(
                                 is_associate=ag,
                                 has_associate=fdc,
-                                association_type=AgentAssociationType.objects.get(name="Member"),
+                                association_type=aamem,
                                 state=rel.state
                             )
                             if created:
@@ -819,14 +827,14 @@ def run_fdc_scripts(request, agent):
                                 loger.info("- created new active AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new active AgentAssociation: "+str(agas))
                         else:
-                            print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair"
-                            loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair")
+                            print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)
+                            loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel))
                     else:
                         if rel.state == 'candidate':
                             agas, created = AgentAssociation.objects.get_or_create(
                                 is_associate=ag,
                                 has_associate=fdc,
-                                association_type=AgentAssociationType.objects.get(name="Member"),
+                                association_type=aamem,
                                 state=rel.state
                             )
                             if created:
@@ -838,35 +846,48 @@ def run_fdc_scripts(request, agent):
                             loger.info("- Not found any FdC share but relation with FdC parent is not 'candidate': SKIP repair")
             elif fdc in relags:
                 rels = ag.is_associate_of.filter(has_associate=fdc)
+                rel = None
                 if len(rels) > 1:
-                    raise ValidationError("More than one relation with FdC ?? "+str(rels))
-                rel = rels[0]
-                if rel.association_type.name == 'Participant':
-                    rel.association_type = AgentAssociationType.objects.get(name="Member")
-                    rel.save()
-                    print "- REPAIRED agent association with FdC to 'member': "+str(rel)
-                    loger.info("- REPAIRED agent association with FdC to 'member': "+str(rel))
-                    messages.info(request, "- REPAIRED agent association with FdC to 'member': "+str(rel))
+                    #raise ValidationError("More than one relation with FdC ?? "+str(rels))
+                    for re in rels:
+                        if re.association_type == aamem:
+                            rel = re
+                        else:
+                            print "NOTE agent "+str(ag)+" has another association type with FdC: "+str(re)+" state:"+str(re.state)
+                            loger.info("NOTE agent "+str(ag)+" has another association type with FdC: "+str(re)+" state:"+str(re.state))
+                elif rels:
+                    rel = rels[0]
+                if rel:
+                    if rel.association_type.name == 'Participant':
+                        rel.association_type = aamem
+                        rel.save()
+                        print "- REPAIRED agent association with FdC to 'member': "+str(rel)
+                        loger.info("- REPAIRED agent association with FdC to 'member': "+str(rel))
+                        messages.info(request, "- REPAIRED agent association with FdC to 'member': "+str(rel))
+                    elif not rel.association_type == aamem:
+                        print "WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state
+                        loger.info("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state)
                 else:
-                    print "WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state
-                    loger.info("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state)
+                    raise ValidationError("IMPOSSIBLE! FdC is related this agent? "+str(ag))
             else:
                 #pass #print "- Not found agent "+str(ag)+" in participants or candidates of FdC (but has membership request: "+str(ag.membership_requests.all().values_list('name', 'state'))+"), found: "+str(ag.is_associate_of.all())
                 ress = list(rel.resource.resource_type for rel in ag.agent_resource_roles.all())
                 if not acctyp in ress and not oldshr in ress:
                     #print "- Not found "+str(acctyp)+" nor any old "+str(oldshr)+" in the agent resources" #: "+str(ress)
-                    for req in ag.membership_requests.all():
+                    reqs = ag.membership_requests.all()
+                    for req in reqs:
                         if req.state == 'accepted':
                             print "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, what to do? Relations: "+str(relags)+" - Resources: "+str(ress)
                             messages.warning(request, "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, what to do?") # Relations: "+str(relags)+" - Resources: "+str(ress))
                         elif req.state == 'declined':
-                            print "Found declined membership request, don't do nothing: "+str(req)
+                            print "Found declined membership request, don't do nothing? "+str(req)
+                            loger.info("Found declined membership request, don't do nothing? "+str(req))
                         elif req.state == 'new':
                             print "FOUND new membership request for agent: "+str(ag)+" with no shares, repair association!"
                             agas, created = AgentAssociation.objects.get_or_create(
                                 is_associate=ag,
                                 has_associate=fdc,
-                                association_type=AgentAssociationType.objects.get(name="Member"),
+                                association_type=aamem,
                                 state='candidate'
                             )
                             if created:
