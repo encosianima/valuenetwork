@@ -854,6 +854,12 @@ def run_fdc_scripts(request, agent):
                                 print "- created new candidate AgentAssociation: "+str(agas)
                                 loger.info("- created new candidate AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new candidate AgentAssociation: "+str(agas))
+                        elif rel.state == 'active' and fdc in relags and rel.association_type == aamem:
+                            rel.association_type = AgentAssociationType.objects.get(name="Participant")
+                            rel.save()
+                            print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state)
+                            loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
+                            messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                         else:
                             print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state)
                             loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state))
