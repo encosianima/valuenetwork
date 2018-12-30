@@ -813,7 +813,7 @@ def run_fdc_scripts(request, agent):
                         else:
                             print "NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state)
                             loger.info("NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state))
-                else:
+                elif rels:
                     rel = rels[0]
                     print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR with state "+str(rel.state)
                     loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR with state "+str(rel.state))
@@ -835,14 +835,14 @@ def run_fdc_scripts(request, agent):
                                 if rel.association_type == aamem and rel.has_associate == fdc.parent():
                                     rel.association_type = AgentAssociationType.objects.get(name="Participant")
                                     rel.save()
-                                    print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)
-                                    loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel))
-                                    messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel))
+                                    print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+rel.state
+                                    loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+rel.state)
+                                    messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+rel.state)
                         else:
-                            print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)
-                            loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel))
-                            messages.error("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel))
-                    else:
+                            print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+rel.state
+                            loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+rel.state)
+                            messages.error("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+rel.state)
+                    else: # missing shares
                         if rel.state == 'candidate':
                             agas, created = AgentAssociation.objects.get_or_create(
                                 is_associate=ag,
@@ -855,9 +855,12 @@ def run_fdc_scripts(request, agent):
                                 loger.info("- created new candidate AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new candidate AgentAssociation: "+str(agas))
                         else:
-                            print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)
-                            loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel))
-                            messages.error(request, "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel))
+                            print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+rel.state
+                            loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+rel.state)
+                            messages.error(request, "Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+rel.state)
+                else: # missing rel
+                    print "ERROR Not found a relation with FdC parent for agent: "+str(ag)
+                    loger.info("ERROR Not found a relation with FdC parent for agent: "+str(ag))
             elif fdc in relags:
                 rels = ag.is_associate_of.filter(has_associate=fdc)
                 rel = None
@@ -893,13 +896,14 @@ def run_fdc_scripts(request, agent):
                         raise ValidationError("There are more than one FdC membership requests for agent "+str(ag))
                     for req in reqs:
                         if req.state == 'accepted':
-                            print "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, what to do? Relations: "+str(relags)+" - Resources: "+str(ress)
-                            messages.warning(request, "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, what to do?") # Relations: "+str(relags)+" - Resources: "+str(ress))
+                            print "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, SKIP repair! Relations: "+str(relags)+" - Resources: "+str(ress)
+                            messages.error(request, "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has no FdC shares, SKIP repair! ") # Relations: "+str(relags)+" - Resources: "+str(ress))
                         elif req.state == 'declined':
                             print "Found declined membership request, don't do nothing? "+str(req)
                             loger.info("Found declined membership request, don't do nothing? "+str(req))
                         elif req.state == 'new':
                             print "FOUND new membership request for agent: "+str(ag)+" with no shares, repair association!"
+                            loger.info("FOUND new membership request for agent: "+str(ag)+" with no shares, repair association!")
                             agas, created = AgentAssociation.objects.get_or_create(
                                 is_associate=ag,
                                 has_associate=fdc,
@@ -913,6 +917,7 @@ def run_fdc_scripts(request, agent):
                 else:
                     print "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair"
                     loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
+                    messages.warning("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
 
 
 
