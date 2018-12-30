@@ -835,13 +835,13 @@ def run_fdc_scripts(request, agent):
                                 if rel.association_type == aamem and rel.has_associate == fdc.parent():
                                     rel.association_type = AgentAssociationType.objects.get(name="Participant")
                                     rel.save()
-                                    print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+rel.state
-                                    loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+rel.state)
-                                    messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+rel.state)
+                                    print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state)
+                                    loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
+                                    messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                         else:
-                            print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+rel.state
-                            loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+rel.state)
-                            messages.error("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+rel.state)
+                            print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state)
+                            loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
+                            messages.error("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                     else: # missing shares
                         if rel.state == 'candidate':
                             agas, created = AgentAssociation.objects.get_or_create(
@@ -855,9 +855,9 @@ def run_fdc_scripts(request, agent):
                                 loger.info("- created new candidate AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new candidate AgentAssociation: "+str(agas))
                         else:
-                            print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+rel.state
-                            loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+rel.state)
-                            messages.error(request, "Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+rel.state)
+                            print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state)
+                            loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state))
+                            messages.error(request, "Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                 else: # missing rel
                     print "ERROR Not found a relation with FdC parent for agent: "+str(ag)
                     loger.info("ERROR Not found a relation with FdC parent for agent: "+str(ag))
@@ -878,12 +878,12 @@ def run_fdc_scripts(request, agent):
                     if rel.association_type.name == 'Participant':
                         rel.association_type = aamem
                         rel.save()
-                        print "- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+rel.state
-                        loger.info("- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+rel.state)
-                        messages.info(request, "- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+rel.state)
+                        print "- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+str(rel.state)
+                        loger.info("- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+str(rel.state))
+                        messages.info(request, "- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+str(rel.state))
                     elif not rel.association_type == aamem:
-                        print "WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state
-                        loger.info("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+rel.state)
+                        print "WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+str(rel.state)
+                        loger.info("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+str(rel.state))
                 else:
                     raise ValidationError("IMPOSSIBLE! FdC is related this agent? "+str(ag))
             else:
