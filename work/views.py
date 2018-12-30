@@ -816,8 +816,8 @@ def run_fdc_scripts(request, agent):
                 elif rels:
                     rel = rels[0]
                 if rel:
-                    print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state "+str(rel.state)
-                    loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state "+str(rel.state))
+                    print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state)
+                    loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state))
                     ress = list(arr.resource.resource_type for arr in ag.agent_resource_roles.all())
                     if acctyp in ress or oldshr in ress:
                         if rel.state == "active":
@@ -927,6 +927,42 @@ def run_fdc_scripts(request, agent):
                     print "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair"
                     loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
                     messages.warning("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
+
+
+        else: # is found in candidates or participants
+
+            reqs = ag.membership_requests.all()
+            if len(reqs) > 1:
+                loger.warning("ERROR-SKIP: There are more than one FdC membership requests for agent "+str(ag)+"'. Solve duplicates? "+str(reqs))
+                messages.error(request, "There are more than one FdC membership requests for agent "+str(ag)+"'. Solve duplicates? "+str(reqs))
+                continue
+            relags = list(rel.has_associate for rel in ag.is_associate_of.all())
+            if fdc.parent() in relags:
+                rels = ag.is_associate_of.filter(has_associate=fdc.parent())
+                rel = None
+                if len(rels) > 1:
+                    #raise ValidationError("Found more than one association with FdC parent !? "+str(rels))
+                    for re in rels:
+                        if re.association_type == aamem:
+                            rel = re
+                        else:
+                            print "NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state)
+                            loger.info("NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state))
+                elif rels:
+                    rel = rels[0]
+                if rel:
+                    print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state)
+                    loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state))
+                    if rel.association_type == aamem: #and rel.has_associate == fdc.parent():
+                        rel.association_type = AgentAssociationType.objects.get(name="Participant")
+                        rel.save()
+                        print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state)
+                        loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
+                        messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
+                    else:
+                        print "- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state)
+                        loger.info("- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state))
+
 
 
 
