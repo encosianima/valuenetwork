@@ -815,9 +815,9 @@ def run_fdc_scripts(request, agent):
                             loger.info("NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state))
                 elif rels:
                     rel = rels[0]
-                    print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR with state "+str(rel.state)
-                    loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR with state "+str(rel.state))
                 if rel:
+                    print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state "+str(rel.state)
+                    loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state "+str(rel.state))
                     ress = list(arr.resource.resource_type for arr in ag.agent_resource_roles.all())
                     if acctyp in ress or oldshr in ress:
                         if rel.state == "active":
@@ -838,6 +838,9 @@ def run_fdc_scripts(request, agent):
                                     print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state)
                                     loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                                     messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
+                                else:
+                                    print "- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state)
+                                    loger.info("- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state))
                         else:
                             print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state)
                             loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
