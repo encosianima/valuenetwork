@@ -839,8 +839,8 @@ def run_fdc_scripts(request, agent):
                                     loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                                     messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                                 else:
-                                    print "- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state)
-                                    loger.info("- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state))
+                                    pass #print "- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state)
+                                    #loger.info("- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state))
                         else:
                             print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state)
                             loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
@@ -857,12 +857,24 @@ def run_fdc_scripts(request, agent):
                                 print "- created new candidate AgentAssociation: "+str(agas)
                                 loger.info("- created new candidate AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new candidate AgentAssociation: "+str(agas))
-                        elif rel.state == 'active' and fdc in relags and rel.association_type == aamem:
-                            rel.association_type = AgentAssociationType.objects.get(name="Participant")
-                            rel.save()
-                            print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state)
-                            loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
-                            messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
+                        elif rel.state == 'active':
+                            if rel.association_type == aamem:
+                                rel.association_type = AgentAssociationType.objects.get(name="Participant")
+                                rel.save()
+                                print "- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel)
+                                loger.info("- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel))
+                                messages.info(request, "- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel))
+                                if not fdc in relags:
+                                    agas, created = AgentAssociation.objects.get_or_create(
+                                        is_associate=ag,
+                                        has_associate=fdc,
+                                        association_type=aamem,
+                                        state='candidate'
+                                    )
+                                    if created:
+                                        print "- created new candidate AgentAssociation (no shares): "+str(agas)
+                                        loger.info("- created new candidate AgentAssociation (no shares): "+str(agas))
+                                        messages.info(request, "- created new candidate AgentAssociation (no shares): "+str(agas))
                         else:
                             print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state)
                             loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state))
@@ -895,7 +907,7 @@ def run_fdc_scripts(request, agent):
                         loger.info("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+str(rel.state))
                 else:
                     raise ValidationError("IMPOSSIBLE! FdC is related this agent? "+str(ag))
-            else:
+            else: # No relation with FdC or its parent
                 #pass #print "- Not found agent "+str(ag)+" in participants or candidates of FdC (but has membership request: "+str(ag.membership_requests.all().values_list('name', 'state'))+"), found: "+str(ag.is_associate_of.all())
                 ress = list(rel.resource.resource_type for rel in ag.agent_resource_roles.all())
                 if not acctyp in ress and not oldshr in ress:
@@ -904,9 +916,25 @@ def run_fdc_scripts(request, agent):
                     if len(reqs) > 1:
                         raise ValidationError("There are more than one FdC membership requests for agent "+str(ag))
                     for req in reqs:
-                        if req.state == 'accepted':
+                        if req.state == 'accepted': # Error: accepted without shares
                             print "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, SKIP repair! Relations: "+str(relags)+" - Resources: "+str(ress)
-                            messages.error(request, "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has no FdC shares, SKIP repair! ") # Relations: "+str(relags)+" - Resources: "+str(ress))
+                            messages.error(request,
+                                "Found accepted <a href='"+str(reverse('membership_discussion',
+                                args=(req.id,)))+"'>membership request</a> but the agent <b>"+str(ag)
+                                +"</b> is not member of FdC (or its parent) and has no FdC shares. CREATE candidate relation and REPAIR request state to 'new'! ",
+                                extra_tags='safe') # Relations: "+str(relags)+" - Resources: "+str(ress))
+                            agas, created = AgentAssociation.objects.get_or_create(
+                                is_associate=ag,
+                                has_associate=fdc,
+                                association_type=aamem,
+                                state='candidate'
+                            )
+                            if created:
+                                print "- Created new association as FdC candidate (no shares found): "+str(agas)
+                                loger.info("- Created new association as FdC candidate (no shares found): "+str(agas))
+                                messages.info(request, "- Created new association as FdC candidate (no shares found): "+str(agas))
+                            req.state = 'new'
+                            req.save()
                         elif req.state == 'declined':
                             print "Found declined membership request, don't do nothing? "+str(req)
                             loger.info("Found declined membership request, don't do nothing? "+str(req))
@@ -946,13 +974,13 @@ def run_fdc_scripts(request, agent):
                         if re.association_type == aamem:
                             rel = re
                         else:
-                            print "NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state)
-                            loger.info("NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state))
+                            pass #print "NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state)
+                            #loger.info("NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state))
                 elif rels:
                     rel = rels[0]
                 if rel:
-                    print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state)
-                    loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state))
+                    #print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state)
+                    #loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state))
                     if rel.association_type == aamem: #and rel.has_associate == fdc.parent():
                         rel.association_type = AgentAssociationType.objects.get(name="Participant")
                         rel.save()
@@ -960,9 +988,14 @@ def run_fdc_scripts(request, agent):
                         loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                         messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                     else:
-                        print "- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state)
-                        loger.info("- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state))
+                        pass #print "- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state)
+                        #loger.info("- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state))
 
+    tot_mem = MembershipRequest.objects.all()
+    tot_jrq = JoinRequest.objects.filter(project=fdc.project)
+    pend = len(tot_mem) - len(tot_jrq)
+    if pend:
+        messages.error(request, "Membership Requests pending to MIGRATE to the new generic JoinRequest system: <b>"+str(pend)+"</b>", extra_tags='safe')
 
 
 
@@ -1335,6 +1368,7 @@ def members_agent(request, agent_id):
                     if rt in rts:
                         related_rts.append(rt)
 
+    dups = check_duplicate_agents(request, agent)
 
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
@@ -1616,7 +1650,7 @@ def create_user_accounts(request, agent, project=None):
                             #import pdb; pdb.set_trace()
                             auto_resource += _("To participate in")+" <b>"+ag.has_associate.name+"</b> "
                             auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
-                            auto_resource += _("It has been created for you automatically!")+"<br />"
+                            auto_resource += _("It has been created for agent <b>{0}</b> automatically!").format(ag.is_associate.name)+"<br />"
                     else:
                         pass
                         """
@@ -1654,6 +1688,41 @@ def create_user_accounts(request, agent, project=None):
           pass # no project
 
     return auto_resource
+
+
+def check_duplicate_agents(request, agent):
+    ags = agent.all_has_associates()
+    user_agent = request.user.agent.agent
+    if user_agent in agent.managers() or user_agent == agent or request.user.is_staff:
+      if ags:
+        copis = None
+        for ag in ags:
+            copis = EconomicAgent.objects.filter(name=ag.is_associate.name)
+            if len(copis) > 1:
+                cases = []
+                for co in copis:
+                    cases.append('<b><a href="'+reverse('members_agent', args={co.id})+'">'+co.nick+'</a></b>')
+                cases = ' and '.join(cases)
+                messages.error(request, _("WARNING: The Name '<b>{0}</b>' is set for various agents: ").format(co.name)+cases, extra_tags='safe')
+
+            if ag.is_associate.email:# and request.user.is_superuser:
+                copis = EconomicAgent.objects.filter(email=ag.is_associate.email)
+                if len(copis) > 1:
+                    cases = []
+                    usrs = ''
+                    for co in copis:
+                        users = co.users.all()
+                        if users:
+                            if len(users) > 1 or not str(users[0].user) == str(ag.is_associate.nick):
+                                usrs = ' (users: '+(', '.join([str(us.user) for us in users]))+')'
+                        cases.append('<b><a href="'+reverse('members_agent', args={co.id})+'">'+co.nick+'</a></b>'+str(usrs))
+                    cases = ' and '.join(cases)
+                    messages.warning(request, _("WARNING: The Email '<b>{0}</b>' is set for various agents: ").format(co.email)+cases, extra_tags='safe')
+
+        if copis: #len(copis) > 1:
+            return copis
+    return None
+
 
 
 

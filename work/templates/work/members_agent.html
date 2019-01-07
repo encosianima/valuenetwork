@@ -132,7 +132,14 @@
 
 {% block body_base %}
     <div class="container">
-        {% include "_messages.html" %}
+        {% if messages %}
+        <div class="alert fade in alert-safe">
+            <a class="close" href="#" data-dismiss="alert">×</a>
+            {% for message in messages %}
+            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{% if 'safe' in message.extra_tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
 
 		<legend>
 			  {{ agent.agent_type }}: <b>{{ agent.name }}</b>
@@ -366,7 +373,7 @@
                   </tr>
                   {% if request.user.is_superuser and agent.user.user %}
                         <tr>
-                            <th style="text-align: right;">{% trans "OCP role" %}</th>
+                            <th style="text-align: right;"><em>{% trans "OCP role" %}</em></th>
                             <td>{% if agent.user.user.is_superuser %} Superuser {% elif agent.user.user.is_staff %} Staff {% else %} User {% endif %} </td>
                         </tr>
                   {% endif %}
@@ -942,7 +949,7 @@
                             {% with assoc.is_associate.membership_request_id as id %}
                                 {% if id %}
                                   {% if user_agent.membership_request_id == id or agent.nick == "FC MembershipRequest" or agent.nick == "Freedom Coop" %}
-                                    {% if not assoc.state == "accepted" %} ({{ assoc.get_state_display }}) {% endif %}
+                                    {% if not assoc.state == "accepted" %} ({{ assoc.get_state_display }}: {{ assoc.is_associate.membership_request.state }}) {% endif %}
                                     &nbsp;
                                     <a href="{% url 'membership_discussion' membership_request_id=id %}">
                                         {% trans "Membership discussion" %}
@@ -953,7 +960,7 @@
                             {% for req in assoc.is_associate.joinaproject_requests %}
                               {% if req.project.agent == agent %}
                                 {% if req.id %}
-                                    {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
+                                    {% if not assoc.state == "active" and not assoc.is_associate.membership_request_id %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
                                     &nbsp;
                                     {% get_comment_count for req as ncom  %}
                                     <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
