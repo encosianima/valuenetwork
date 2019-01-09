@@ -133,12 +133,17 @@
 {% block body_base %}
     <div class="container">
         {% if messages %}
-        <div class="alert fade in alert-safe">
-            <a class="close" href="#" data-dismiss="alert">×</a>
-            {% for message in messages %}
-            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{% if 'safe' in message.extra_tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}</p>
+            {% regroup messages|dictsort:"tags" by tags as messags %}
+            {% for message in messags %}
+                <div class="alert fade in alert-{{ message.grouper }}">
+                    <a class="close" href="#" data-dismiss="alert">×</a>
+                        {% for messa in message.list|dictsort:"message" %}
+                          {% ifchanged messa.message %}
+                            <p{% if message.grouper %} class="{{ message.grouper }}"{% endif %}>{% if 'safe' in messa.extra_tags %}{{ messa|safe }}{% else %}{{ messa }}{% endif %}</p>
+                          {% endifchanged %}
+                        {% endfor %}
+                </div>
             {% endfor %}
-        </div>
         {% endif %}
 
 		<legend>

@@ -1700,12 +1700,21 @@ def check_duplicate_agents(request, agent):
             copis = EconomicAgent.objects.filter(name=ag.is_associate.name)
             if len(copis) > 1:
                 cases = []
+                usrs = ''
                 for co in copis:
-                    cases.append('<b><a href="'+reverse('members_agent', args={co.id})+'">'+co.nick+'</a></b>')
+                    users = co.users.all()
+                    if users and request.user.is_superuser:
+                        if len(users) > 1 or not str(users[0].user) == str(co.nick):
+                            usrs = ' (user'+('s!' if len(users)>1 else '')+': '+(', '.join([str(us.user) for us in users]))+')'
+                        else:
+                            usrs = ' (=user)'
+                    else:
+                        usrs = ''
+                    cases.append('<b><a href="'+reverse('members_agent', args={co.id})+'">'+co.nick+'</a></b>'+str(usrs))
                 cases = ' and '.join(cases)
                 messages.error(request, _("WARNING: The Name '<b>{0}</b>' is set for various agents: ").format(co.name)+cases, extra_tags='safe')
 
-            if ag.is_associate.email:# and request.user.is_superuser:
+            '''if ag.is_associate.email and request.user.is_superuser:
                 copis = EconomicAgent.objects.filter(email=ag.is_associate.email)
                 if len(copis) > 1:
                     cases = []
@@ -1713,11 +1722,14 @@ def check_duplicate_agents(request, agent):
                     for co in copis:
                         users = co.users.all()
                         if users:
-                            if len(users) > 1 or not str(users[0].user) == str(ag.is_associate.nick):
-                                usrs = ' (users: '+(', '.join([str(us.user) for us in users]))+')'
+                            if len(users) > 1 or not str(users[0].user) == str(co.nick):
+                                usrs = ' (user'+('s!' if len(users)>1 else '')+': '+(', '.join([str(us.user) for us in users]))+')'
+                            else:
+                                usrs = ' (=user)'
                         cases.append('<b><a href="'+reverse('members_agent', args={co.id})+'">'+co.nick+'</a></b>'+str(usrs))
                     cases = ' and '.join(cases)
                     messages.warning(request, _("WARNING: The Email '<b>{0}</b>' is set for various agents: ").format(co.email)+cases, extra_tags='safe')
+            '''
 
         if copis: #len(copis) > 1:
             return copis
