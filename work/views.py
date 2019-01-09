@@ -647,7 +647,7 @@ def membership_discussion(request, membership_request_id):
                 )
                 fob_dat, created = SavedFormDataEntry.objects.get_or_create(
                     form_entry = form_entry,
-                    user = mbr_req.agent.user().user if mbr_req.agent.user().user and mbr_req.agent.user().user.pk else None,
+                    user = mbr_req.agent.user().user if mbr_req.agent.user() else None,
                     form_data_headers = json.dumps(field_name_to_label_map),
                     saved_data = json.dumps(cleaned_data),
                     created = mbr_req.request_date
