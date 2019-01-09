@@ -1472,9 +1472,10 @@ class JoinRequest(models.Model):
         return password
 
     def check_user_pass(self, showpass=False):
-        con_typ = ContentType.objects.get(model='joinrequest')
-        coms = Comment.objects.filter(content_type=con_typ, object_pk=self.pk)
-        for c in coms:
+        if self.agent and self.agent.user():
+          con_typ = ContentType.objects.get(model='joinrequest')
+          coms = Comment.objects.filter(content_type=con_typ, object_pk=self.pk)
+          for c in coms:
             first = c.comment.split(' ')[0]
             if len(first) == settings.RANDOM_PASSWORD_LENGHT:
                 if self.agent.user().user.check_password(first):
@@ -1494,7 +1495,7 @@ class JoinRequest(models.Model):
             elif reqs:
                 return False
             else:
-                raise ValidationError("This join_request is wrong!")
+                raise ValidationError("This join_request is wrong! req:"+str(self)+" ag:"+str(self.agent))
         else:
             reqs = JoinRequest.objects.filter(project=self.project, requested_username=self.requested_username)
             if len(reqs) > 1:
@@ -1504,7 +1505,7 @@ class JoinRequest(models.Model):
             elif reqs:
                 return False
             else:
-                raise ValidationError("This join_request is wrong!")
+                raise ValidationError("This join_request is wrong! req:"+str(self))
 
 
 class NewFeature(models.Model):
