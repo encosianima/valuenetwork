@@ -674,8 +674,8 @@ def membership_discussion(request, membership_request_id):
                         site=com.site
                     )
                     if created:
-                        print "- created Comment for JoinRequest (FdC migration): "+str(com.comment)
-                        loger.info("- created Comment for JoinRequest (FdC migration): "+str(com.comment))
+                        print "- created Comment for JoinRequest (FdC migration): "+str(jn_req.id)+" by "+str(jn_com.user_name)+" to join "+str(jn_req.project.agent.nick) #com.comment.encode('utf-8'))
+                        loger.info("- created Comment for JoinRequest (FdC migration): "+str(jn_req.id)+" by "+str(jn_com.user_name)+" to join "+str(jn_req.project.agent.nick)) #com.comment.encode('utf-8')))
 
                 messages.info(request, _("The old FdC membership request has been converted to the new modular join_request system, copying all the fields and the comments in the thread."))
 
