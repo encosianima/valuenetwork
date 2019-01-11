@@ -676,7 +676,9 @@ class JoinRequest(models.Model):
                     loger.info("WARN Can't find the key '"+str(payopt['key'])+"' in PAYMENT_GATEWAYS object for slug "+str(self.project.fobi_slug))
                     pass
             if obj and obj['html']:
-                if payopt['key'] == 'faircoin' and self.project.agent.need_faircoins() and fairrs:
+                if payopt['key'] == 'faircoin':
+                  balance = 0
+                  if self.project.agent.need_faircoins():
                     addr = self.agent.faircoin_address()
                     wallet = faircoin_utils.is_connected()
                     unitFc = Unit.objects.get(abbrev='fair')
@@ -698,12 +700,12 @@ class JoinRequest(models.Model):
                         amount = self.pending_shares()*price
                     else:
                         amount = self.pending_shares()*self.project.shares_type().price_per_unit
-                    balance = 0
                     txt = ''
-                    if addr:
-                      if wallet:
-                        is_wallet_address = faircoin_utils.is_mine(addr)
-                        if is_wallet_address:
+                    if fairrs:
+                      if addr:
+                        if wallet:
+                          is_wallet_address = faircoin_utils.is_mine(addr)
+                          if is_wallet_address:
                             balance = fairrs.faircoin_address.balance()
                             if balance != None:
                                 if balance < amount:
@@ -712,17 +714,17 @@ class JoinRequest(models.Model):
                                     txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))+"</b> <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
                             else:
                                 txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
-                        else:
+                          else:
                             txt = str(_("The faircoin address is not from the same wallet!"))
+                        else:
+                          txt = str(_("The OCP wallet is not available now, try later."))
                       else:
-                        txt = str(_("The OCP wallet is not available now, try later."))#+' '+str(self.project.shares_type().price_per_unit*self.pending_shares())+' '+str(self.project.shares_type().unit_of_price)+' : '+str(amount)
-                        #txt = str(_("Your actual balance is enough. You can pay the shares now!"))+" <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
-                    else:
                         txt = str(_("No faircoin address?"))
-
-                    if not balance:
-                        txt = "<span class='error'>"+txt+"</span>"
-                    return obj['html']+"<br>Amount to pay: <b> "+str(amount)+" ƒ</b><br>"+txt
+                    else:
+                      txt = str(_("This agent don't have an OCP Faircoin Account yet."))
+                  if not balance:
+                    txt = "<span class='error'>"+txt+"</span>"
+                  return obj['html']+"<br>Amount to pay: <b> "+str(amount)+" ƒ</b><br>"+txt
                 else:
                     return obj['html']
             else:
