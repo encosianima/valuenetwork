@@ -6,7 +6,7 @@
 {% load thumbnail %}
 {% load mptt_tags %}
 {% load comments %}
-
+{% load filters %}
 {% with user_agent as user %}
 
 {% block head_title %}
@@ -956,16 +956,20 @@
                                   {% if user_agent.membership_request_id == id or agent.nick == "FC MembershipRequest" or agent.nick == "Freedom Coop" %}
                                     {% if not assoc.state == "accepted" %} ({{ assoc.get_state_display }}: {{ assoc.is_associate.membership_request.state }}) {% endif %}
                                     &nbsp;
+                                    {% get_comment_count for assoc.is_associate.membership_request as ncom  %}
                                     <a href="{% url 'membership_discussion' membership_request_id=id %}">
-                                        {% trans "Migrate the membership!" %}
+                                        {% trans "Migrate the membership!" %} {{ ncom }}
                                     </a>
                                   {% endif %}
                                 {% elif id and request.user.is_superuser %}
                                     &nbsp;
                                     (<a href="{% url 'membership_discussion' membership_request_id=id %}">old</a>)
                                 {% endif %}
+                                {% if assoc.is_associate.membership_requests.all|length > 1 %}
+                                    &nbsp;<b class="error">ERROR: multiple FdC memberships!</b>
+                                {% endif %}
                             {% endwith %}
-                            {% for req in assoc.is_associate.joinaproject_requests %}
+                            {% for req in assoc.is_associate.joinaproject_requests|related_agent:agent %}
                               {% if req.project.agent == agent %}
                                 {% if req.id %}
                                     {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
@@ -976,6 +980,7 @@
                                     </a>
                                     {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% endif %}
+                                {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                               {% endif %}
                             {% endfor %}
                           </li>
