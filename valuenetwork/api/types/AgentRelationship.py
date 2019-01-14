@@ -34,6 +34,7 @@ class AgentRelationship(DjangoObjectType):
     object = graphene.Field(lambda: types.Agent)
     relationship = graphene.Field(lambda: AgentRelationshipRole)
     note = graphene.String(source='description')
+    join_request_date = graphene.String(source='join_request_date')
 
     class Meta:
         model = AgentAssociation
