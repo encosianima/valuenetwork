@@ -20,6 +20,9 @@ from django.urls import reverse
 from faircoin import utils as faircoin_utils
 from easy_thumbnails.fields import ThumbnailerImageField
 
+import logging
+loger = logging.getLogger("ocp")
+
 """Models based on REA
 
 These models are based on the Bill McCarthy's Resource-Event-Agent accounting model:
@@ -1745,6 +1748,20 @@ class EconomicAgent(models.Model):
             resource__resource_type__behavior="account")
         return [var.resource for var in vars]
 
+    def owned_shares(self):
+        shares = []
+        for rs in self.owned_resources():
+            if rs.resource_type in EconomicResourceType.objects.shares_types():
+                shares.append(rs)
+        return shares
+
+    def owned_shares_accounts(self):
+        shares = []
+        for rs in self.owned_resources():
+            if rs.resource_type in EconomicResourceType.objects.share_accounts_types():
+                shares.append(rs)
+        return shares
+
     def owned_accounts(self):
         vars = self.agent_resource_roles.filter(role__is_owner=True).filter(
             Q(resource__resource_type__behavior="account") | Q(resource__resource_type__behavior="dig_acct")
@@ -2036,7 +2053,7 @@ class EconomicAgent(models.Model):
         if self.is_associate_of.all():
             return False
         if self.has_associates.all():
-            return False        
+            return False
         return True
 
     def contexts_participated_in(self):
@@ -2554,6 +2571,33 @@ class EconomicResourceTypeManager(models.Manager):
         except EconomicResourceType.DoesNotExist:
             raise ValidationError("FreedomCoop Share does not exist by that name")
         return share
+
+    def shares_types(self):
+        shats = []
+        try:
+            from work.models import Ocp_Artwork_Type
+            shr = Ocp_Artwork_Type.objects.get(clas='shares')
+            ids = [sh.id for sh in shr.get_descendants()]
+            shats = EconomicResourceType.objects.filter(ocp_artwork_type__id__in=ids)
+        except:
+            loger.error("Can't find share types! at "+str(self))
+            pass
+        return shats
+
+    def share_accounts_types(self):
+        shats = []
+        try:
+            from work.models import Ocp_Artwork_Type
+            shr = Ocp_Artwork_Type.objects.get(clas='accounts')
+            ats = [rs.ocp_artwork_type for rs in self.shares_types()]
+            accs = Ocp_Artwork_Type.objects.filter(rel_nonmaterial_type__in=ats)
+            for ac in accs:
+                shats.append(ac.resource_type)
+        except:
+            loger.error("Can't find share account types! at "+str(self))
+            pass
+        return shats
+
 
     #moved this logic from views for use in api
     def resource_types_by_facet_values(self, fvs_string=None):
