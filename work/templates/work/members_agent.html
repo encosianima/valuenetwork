@@ -944,10 +944,9 @@
                       <div>
                     {% for assoc in has_associations %}
                         {% ifchanged assoc.association_type and assoc.state %}</div>
-                            <h4>{% if not assoc.state == 'active' %}{% trans "has candidates" %}{% else %}
+                            <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.inverse_label }} {% trans "candidates" %}{% else %}
                                 {{ assoc.association_type.inverse_label }}{% endif %}: <span class="showhide smaller small" style="font-size:0.9em" id="sh-assoc_{{ assoc.association_type }}_{{ assoc.state }}" >{% trans "(SHOW)" %}</span> </h4> <div class="list" id="list-assoc_{{ assoc.association_type }}_{{ assoc.state }}">
                         {% endifchanged %}
-
 
                         {% if user_agent in agent.managers and not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
@@ -969,7 +968,7 @@
                                     &nbsp;<b class="error">ERROR: multiple FdC memberships!</b>
                                 {% endif %}
                             {% endwith %}
-                            {% for req in assoc.is_associate.joinaproject_requests|related_agent:agent %}
+                            {% for req in assoc.is_associate.joinaproject_requests|reqs_related_agent:agent %}
                               {% if req.project.agent == agent %}
                                 {% if req.id %}
                                     {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
@@ -983,6 +982,16 @@
                                 {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                               {% endif %}
                             {% endfor %}
+                            {% if assoc.association_type.identifier == "member" and request.user.is_superuser %}
+                              {% if assoc.is_associate.owned_shares|shares_related_project:agent.project %}
+                                  - <span class="error">OldShares: {{ assoc.is_associate.owned_shares|shares_related_project:agent.project }}</span>
+                              {% endif %}
+                              {% if assoc.is_associate.owned_shares_accounts|shares_related_project:agent.project %}
+                                  - ({{ assoc.is_associate.owned_shares_accounts|shares_related_project:agent.project }} shares)
+                              {% elif assoc.state == "active" %}
+                                  &nbsp;<b class="error">warning</b>
+                              {% endif %}
+                            {% endif %}
                           </li>
                         {% elif not assoc.state == "inactive" and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a> {% if assoc.state == "inactive" %}{% trans "(inactive)" %}{% endif %}</li>
