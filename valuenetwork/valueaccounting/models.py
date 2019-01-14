@@ -2214,6 +2214,18 @@ class AgentAssociation(models.Model):
     def relationship(self):
         return self.association_type
 
+    @property #ValueFlows
+    def join_request_date(self):
+        import pdb; pdb.set_trace()
+        from work.models import JoinRequest, Project
+        proj = Project.objects.filter(agent=self.has_associate)
+        if proj:
+            jrs = JoinRequest.objects.filter(project=proj[0]).filter(agent=self.is_associate)
+            if jrs:
+                jr = jrs[0]
+                return jr.request_date
+        return None
+
 
 #todo exchange redesign fallout
 #many of these are obsolete
