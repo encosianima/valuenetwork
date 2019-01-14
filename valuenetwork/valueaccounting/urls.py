@@ -549,6 +549,7 @@ urlpatterns += [
     url(r'^undecline-suggestion/(?P<suggestion_id>\d+)/$', valuenetwork.valueaccounting.views.undecline_suggestion,
         name="undecline_suggestion"),
     url(r"^validate-resource-type-name/$", valuenetwork.valueaccounting.views.validate_resource_type_name, name="validate_resource_type_name"),
+    url(r"^send-fdc-welcome/(?P<agent_id>.*)/$", valuenetwork.valueaccounting.views.send_fdc_welcome, name="send_fdc_welcome"),
 ]
 
 if 'faircoin' in settings.INSTALLED_APPS:

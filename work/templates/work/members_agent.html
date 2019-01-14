@@ -6,7 +6,7 @@
 {% load thumbnail %}
 {% load mptt_tags %}
 {% load comments %}
-
+{% load filters %}
 {% with user_agent as user %}
 
 {% block head_title %}
@@ -132,7 +132,19 @@
 
 {% block body_base %}
     <div class="container">
-        {% include "_messages.html" %}
+        {% if messages %}
+            {% regroup messages|dictsort:"tags" by tags as messags %}
+            {% for message in messags %}
+                <div class="alert fade in alert-{{ message.grouper }}">
+                    <a class="close" href="#" data-dismiss="alert">×</a>
+                        {% for messa in message.list|dictsort:"message" %}
+                          {% ifchanged messa.message %}
+                            <p{% if message.grouper %} class="{{ message.grouper }}"{% endif %}>{% if 'safe' in messa.extra_tags %}{{ messa|safe }}{% else %}{{ messa }}{% endif %}</p>
+                          {% endifchanged %}
+                        {% endfor %}
+                </div>
+            {% endfor %}
+        {% endif %}
 
 		<legend>
 			  {{ agent.agent_type }}: <b>{{ agent.name }}</b>
@@ -366,7 +378,7 @@
                   </tr>
                   {% if request.user.is_superuser and agent.user.user %}
                         <tr>
-                            <th style="text-align: right;">{% trans "OCP role" %}</th>
+                            <th style="text-align: right;"><em>{% trans "OCP role" %}</em></th>
                             <td>{% if agent.user.user.is_superuser %} Superuser {% elif agent.user.user.is_staff %} Staff {% else %} User {% endif %} </td>
                         </tr>
                   {% endif %}
@@ -498,7 +510,7 @@
                         <th>{% trans "Resource Type Visibility:" %}</th>
                         <td>{{ agent.project.resource_type_selection }}</td>
                       </tr>
-                      {% if agent.project.joining_style == 'moderated' %}
+                      {% if agent.project.is_moderated %}
                         <tr>
                           <th>{% trans "Project Slug:" %}</th>
                           <td>{% if agent.project.fobi_slug %}
@@ -940,17 +952,24 @@
                         {% if user_agent in agent.managers and not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
                             {% with assoc.is_associate.membership_request_id as id %}
-                                {% if id %}
+                                {% if id and not agent.project in assoc.is_associate.joinaproject_requests_projects %}
                                   {% if user_agent.membership_request_id == id or agent.nick == "FC MembershipRequest" or agent.nick == "Freedom Coop" %}
-                                    {% if not assoc.state == "accepted" %} ({{ assoc.get_state_display }}) {% endif %}
+                                    {% if not assoc.state == "accepted" %} ({{ assoc.get_state_display }}: {{ assoc.is_associate.membership_request.state }}) {% endif %}
                                     &nbsp;
+                                    {% get_comment_count for assoc.is_associate.membership_request as ncom  %}
                                     <a href="{% url 'membership_discussion' membership_request_id=id %}">
-                                        {% trans "Membership discussion" %}
+                                        {% trans "Migrate the membership!" %} {{ ncom }}
                                     </a>
                                   {% endif %}
+                                {% elif id and request.user.is_superuser %}
+                                    &nbsp;
+                                    (<a href="{% url 'membership_discussion' membership_request_id=id %}">old</a>)
+                                {% endif %}
+                                {% if assoc.is_associate.membership_requests.all|length > 1 %}
+                                    &nbsp;<b class="error">ERROR: multiple FdC memberships!</b>
                                 {% endif %}
                             {% endwith %}
-                            {% for req in assoc.is_associate.joinaproject_requests %}
+                            {% for req in assoc.is_associate.joinaproject_requests|related_agent:agent %}
                               {% if req.project.agent == agent %}
                                 {% if req.id %}
                                     {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
@@ -961,6 +980,7 @@
                                     </a>
                                     {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% endif %}
+                                {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                               {% endif %}
                             {% endfor %}
                           </li>
