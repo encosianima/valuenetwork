@@ -127,6 +127,9 @@ def make_transaction_from_address(address_origin, address_end, amount, minus_fee
     if not tx:
         msg = ("ERROR: Can not build the tx")
         logging.error(msg)
+        if not minus_fee:
+            logging.warning("Trying to resend the tx substracting the fee.")
+            msg = make_transaction_from_address(address_origin, address_end, amount, True)
         return msg
     # Broadcast tx
     rec_tx_state, rec_tx_out = network.broadcast(tx, 30)
