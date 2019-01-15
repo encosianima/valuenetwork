@@ -1732,6 +1732,13 @@ class EconomicAgent(models.Model):
             parent = parent.parent()
         return None
 
+    def defined_resource_types(self, event_type=None):
+        agents = list(self.all_ancestors())
+        rts = []
+        for agent in agents:
+            rts.extend(agent.context_resource_types.all())
+        return list(set(rts))
+
     def virtual_accounts(self):
         vars = self.agent_resource_roles.filter(
             role__is_owner=True,
@@ -2206,6 +2213,18 @@ class AgentAssociation(models.Model):
     @property #ValueFlows
     def relationship(self):
         return self.association_type
+
+    @property #ValueFlows
+    def join_request_date(self):
+        import pdb; pdb.set_trace()
+        from work.models import JoinRequest, Project
+        proj = Project.objects.filter(agent=self.has_associate)
+        if proj:
+            jrs = JoinRequest.objects.filter(project=proj[0]).filter(agent=self.is_associate)
+            if jrs:
+                jr = jrs[0]
+                return jr.request_date
+        return None
 
 
 #todo exchange redesign fallout
@@ -10239,7 +10258,7 @@ class Option(models.Model):
 class CommitmentManager(models.Manager):
 
     def unfinished(self):
-        return Commitment.objects.filter(finished=False)
+        return Commitment.objects.filter(finished=False).filter(process__finished=False)
 
     def finished(self):
         return Commitment.objects.filter(finished=True)
