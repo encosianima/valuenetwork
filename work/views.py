@@ -1735,7 +1735,7 @@ def check_duplicate_agents(request, agent):
                     messages.warning(request, _("WARNING: The Email '<b>{0}</b>' is set for various agents: ").format(co.email)+cases, extra_tags='safe')
             '''
 
-            if agent.project.shares_type(): # if project has shares, participants should become members
+            if hasattr(agent, 'project') and agent.project.shares_type(): # if project has shares, participants should become members
                 #print "Project has shares, convert participants to members"
                 aass = AgentAssociation.objects.filter(has_associate=agent, is_associate=ag.is_associate)
                 for aas in aass:
@@ -1743,7 +1743,7 @@ def check_duplicate_agents(request, agent):
                         aas.association_type = aamem
                         aas.save()
                         loger.info(_("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
-                        messages.warning(request, _("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
+                        messages.info(request, _("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
                     else:
                         pass #print 'Other association type: '+str(aas)
 
