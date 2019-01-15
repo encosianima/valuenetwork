@@ -38,10 +38,10 @@
     <legend>
 
         {% if agent %}
-            {% if agent.primary_location %}
+            {% if False and agent.primary_location %}
                 {% trans "Current work location" %}: <span class="currentLoc">{{ agent.primary_location }}.</span> &nbsp;&nbsp;
                 <span id="locPrompt">{% trans "To change, select a marker on the map, or search for a new one." %}</span>
-            {% else %}
+            {% elif False %}
                 {% trans "Where are you working? " %}
                 <span id="locPrompt">{% trans "Select a marker on the map, or search for a new one." %}</span>
             {% endif %}
@@ -143,8 +143,8 @@
         $("#resources").hide();
 
         {% for loc in locations %}
-            {% if loc.latitude and loc.longitude %}
-                var locName = "{{ loc.name|safe }}";
+            {% if loc.lat and loc.lng %}
+                var locName = "{{ loc.title|safe }}";
                 var locAddress = "{{ loc.address }}";
                 var agents = [];
                 var agentString = ""
@@ -154,7 +154,7 @@
                 {% endfor %}
                 var end = agentString.lastIndexOf(",");
                 agentString = agentString.substring(0, end);
-                var latlong = [ {{ loc.latitude }}, {{ loc.longitude }}];
+                var latlong = [ {{ loc.lat }}, {{ loc.lng }}];
 
                 var content = "<h2>" + locName+ "</h2><p>" + locAddress + "</p>";
                 if (agentString){

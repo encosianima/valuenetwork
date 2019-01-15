@@ -10,7 +10,7 @@ from valuenetwork.valueaccounting.views import *
 def map(request):
     agent = get_agent(request)
     locations = UseFaircoin.objects.all()
-    nolocs = UseFaircoin.objects.filter(latitude=0.0)
+    nolocs = UseFaircoin.objects.filter(lat=0.0)
     latitude = settings.MAP_LATITUDE
     longitude = settings.MAP_LONGITUDE
     zoom = settings.MAP_ZOOM

@@ -9,17 +9,24 @@ from django.shortcuts import get_object_or_404
 
 from django.utils.translation import ugettext_lazy as _
 
-from valuenetwork.valueaccounting.models import Location
+#from valuenetwork.valueaccounting.models import Location
 
 class UseFaircoin(models.Model):
-    name = models.CharField(_('name'), max_length=128, unique=True)
+    title = models.CharField(_('title'), max_length=255, blank=True, null=True)
+    tagline = models.CharField(_('tagline'), max_length=255, blank=True, null=True)
     description = models.TextField(_('description'), blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True)
-    latitude = models.FloatField(default=0.0, blank=True, null=True)
-    longitude = models.FloatField(default=0.0, blank=True, null=True)
+    address = models.CharField(_('address'), max_length=255, blank=True, null=True)
+    hours = models.CharField(_('hours'), max_length=255, blank=True, null=True)
+    phone = models.CharField(_('phone'), max_length=128, blank=True, null=True)
+    website = models.CharField(_('website'), max_length=255, blank=True, null=True)
+    twitter = models.CharField(_('twitter'), max_length=255, blank=True, null=True)
+    faircoin_address = models.CharField(_('faircoin_address'), max_length=128, unique=True, blank=True, null=True)
+    lat = models.FloatField(_('Latitude'), default=0.0, blank=True, null=True)
+    lng = models.FloatField(_('Longitude'), default=0.0, blank=True, null=True)
+    image = models.CharField(_('image'), max_length=255, blank=True, null=True)
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('title',)
 
     def __unicode__(self):
-        return self.name
+        return self.title
