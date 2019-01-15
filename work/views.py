@@ -1698,6 +1698,8 @@ def check_duplicate_agents(request, agent):
     if user_agent in agent.managers() or user_agent == agent or request.user.is_staff:
       if ags:
         copis = None
+        aamem = AgentAssociationType.objects.get(name="Member")
+        aapar = AgentAssociationType.objects.get(name="Participant")
         for ag in ags:
             copis = EconomicAgent.objects.filter(name=ag.is_associate.name)
             if len(copis) > 1:
@@ -1732,6 +1734,18 @@ def check_duplicate_agents(request, agent):
                     cases = ' and '.join(cases)
                     messages.warning(request, _("WARNING: The Email '<b>{0}</b>' is set for various agents: ").format(co.email)+cases, extra_tags='safe')
             '''
+
+            if agent.project.shares_type(): # if project has shares, participants should become members
+                #print "Project has shares, convert participants to members"
+                aass = AgentAssociation.objects.filter(has_associate=agent, is_associate=ag.is_associate)
+                for aas in aass:
+                    if aas.association_type == aapar:
+                        aas.association_type = aamem
+                        aas.save()
+                        loger.info(_("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
+                        messages.warning(request, _("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
+                    else:
+                        pass #print 'Other association type: '+str(aas)
 
         if copis: #len(copis) > 1:
             return copis
