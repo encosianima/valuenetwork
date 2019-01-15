@@ -146,6 +146,7 @@
             {% if loc.lat and loc.lng %}
                 var locName = "{{ loc.title|safe }}";
                 var locAddress = "{{ loc.address }}";
+                var locWeb = {% if loc.website %}"<br><a href='{{ loc.website }}' target='_blank'>{{ loc.website }}</a>"; {% else %} ""; {% endif %}
                 var agents = [];
                 var agentString = ""
                 {% for agnt in loc.agents %}
@@ -156,7 +157,7 @@
                 agentString = agentString.substring(0, end);
                 var latlong = [ {{ loc.lat }}, {{ loc.lng }}];
 
-                var content = "<h2>" + locName+ "</h2><p>" + locAddress + "</p>";
+                var content = "<h2>" + locName+ "</h2><p>" + locAddress + locWeb + "</p>";
                 if (agentString){
                     content += "Working here: " + agentString;
                 }
