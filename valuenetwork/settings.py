@@ -216,6 +216,7 @@ INSTALLED_APPS = [
     #'valuenetwork.api.types',
 
     'faircoin',
+    'maps',
 
     # general
     'general',
