@@ -1747,10 +1747,15 @@ def check_duplicate_agents(request, agent):
                         loger.info(_("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
                         messages.info(request, _("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
                 if ag.association_type == aasel:
-                    ag.association_type = aamem
+                    if agent.project.shares_type():
+                        ag.association_type = aamem
+                        loger.info(_("- Changed 'selfemployed' for 'member' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
+                        messages.info(request, _("- Changed 'selfemployed' for 'member' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
+                    else:
+                        ag.association_type = aapar
+                        loger.info(_("- Changed 'selfemployed' for 'participant' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
+                        messages.info(request, _("- Changed 'selfemployed' for 'participant' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
                     ag.save()
-                    loger.info(_("- Changed 'selfemployed' for 'member' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
-                    messages.info(request, _("- Changed 'selfemployed' for 'member' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
 
                 aas = AgentAssociation.objects.filter(is_associate=ag.is_associate, has_associate=agent, association_type=ag.association_type )
                 if len(aas) > 1:
