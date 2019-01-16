@@ -724,7 +724,7 @@ def migrate_fdc_shares(request, jr):
         if not jr.state == mem.state:
             print "- FdC update state of jn_req: "+str(jr)
             loger.info("- FdC update state of jn_req: "+str(jr))
-            messages.warning("- FdC update state of jn_req: "+str(jr))
+            messages.warning(request, "- FdC update state of jn_req: "+str(jr))
             jr.state = mem.state
             jr.save()
 
