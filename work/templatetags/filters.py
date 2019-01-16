@@ -21,7 +21,9 @@ def shares_related_project(shares, project):
         for sh in shares:
             if sh.resource_type == acc:
                 total += sh.price_per_unit
-            if hasattr(sh.resource_type, 'ocp_artwork_type') and sh.resource_type.ocp_artwork_type == acc.ocp_artwork_type.rel_nonmaterial_type:
-                total += sh.quantity
+
+            if hasattr(sh.resource_type, 'ocp_artwork_type'):
+                if sh.resource_type.ocp_artwork_type == acc.ocp_artwork_type.rel_nonmaterial_type:
+                    total += sh.quantity
         return int(total)
     return False

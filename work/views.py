@@ -1764,6 +1764,7 @@ def check_duplicate_agents(request, agent):
                                 messages.info(request, "- Deleted a duplicate relation! "+str(ag))
                             else:
                                 print "Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa)
+                                loger.warning("Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa))
 
         if copis: #len(copis) > 1:
             return copis
