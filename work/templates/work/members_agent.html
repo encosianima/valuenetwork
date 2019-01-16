@@ -986,7 +986,7 @@
                               {% endif %}
                             {% endfor %}
                             {% if assoc.association_type.association_behavior == "member" or assoc.association_type.association_behavior == "manager" %}
-                              {% if request.user.is_superuser %}
+                              {% if agent.project.shares_type %}
                                 {% with assoc.is_associate.owned_shares|shares_related_project:agent.project as oldshares %}
                                   {% if oldshares %}
                                       &nbsp; <span class="error">OldShares: {{ oldshares }}</span>
