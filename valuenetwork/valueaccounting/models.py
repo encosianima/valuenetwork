@@ -2216,7 +2216,6 @@ class AgentAssociation(models.Model):
 
     @property #ValueFlows
     def join_request_date(self):
-        import pdb; pdb.set_trace()
         from work.models import JoinRequest, Project
         proj = Project.objects.filter(agent=self.has_associate)
         if proj:
