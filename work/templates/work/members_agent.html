@@ -945,7 +945,10 @@
                     {% for assoc in has_associations %}
                         {% ifchanged assoc.association_type and assoc.state %}</div>
                             <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.inverse_label }} {% trans "candidates" %}{% else %}
-                                {{ assoc.association_type.inverse_label }}{% endif %}: <span class="showhide smaller small" style="font-size:0.9em" id="sh-assoc_{{ assoc.association_type }}_{{ assoc.state }}" >{% trans "(SHOW)" %}</span> </h4> <div class="list" id="list-assoc_{{ assoc.association_type }}_{{ assoc.state }}">
+                                {{ assoc.association_type.inverse_label }}{% endif %}:
+                                <span class="showhide smaller small" style="font-size:0.9em" id="sh-assoc_{{ assoc.association_type.identifier|cut:" " }}_{{ assoc.state }}" >{% trans "(SHOW)" %}</span>
+                            </h4>
+                            <div class="list" id="list-assoc_{{ assoc.association_type.identifier|cut:" " }}_{{ assoc.state }}">
                         {% endifchanged %}
 
                         {% if user_agent in agent.managers and not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
@@ -1116,12 +1119,21 @@
 
     $(document).ready(function(){
 
-        $(".list").hide();
+        $(".list").each(function(){
+            if($(this).find('li').length > 10){
+                $(this).hide();
+            } else {
+                //alert($(this).prev('.showhide').html());
+                $(this).prev('h4').find('.showhide').text('{% trans "(HIDE)" %}');
+                //$(this).text($(this).text() == {% trans '(HIDE)' %} ? {% trans '(SHOW)' %} : {% trans '(HIDE)' %});
+                //$(this).hide();
+            };
+        });
         $(".showhide").click(function(event){
           var id = event.target.id;
           var listId = '#list-' + id.split('-')[1];
           $(listId).slideToggle(200);
-          $(this).text($(this).text() == {% trans '(HIDE)' %} ? {% trans '(SHOW)' %} : {% trans '(HIDE)' %});
+          $(this).text($(this).text() == "{% trans '(HIDE)' %}" ? "{% trans '(SHOW)' %}" : "{% trans '(HIDE)' %}");
         });
 
         /*var ObjChosSingle = {
