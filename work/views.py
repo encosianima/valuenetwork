@@ -724,7 +724,7 @@ def migrate_fdc_shares(request, jr):
         if not jr.state == mem.state:
             print "- FdC update state of jn_req: "+str(jr)
             loger.info("- FdC update state of jn_req: "+str(jr))
-            messages.warning(request, "- FdC update state of jn_req: "+str(jr))
+            #messages.warning(request, "- FdC update state of jn_req: "+str(jr))
             jr.state = mem.state
             jr.save()
 
@@ -1751,6 +1751,19 @@ def check_duplicate_agents(request, agent):
                     ag.save()
                     loger.info(_("- Changed 'selfemployed' for 'member' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
                     messages.info(request, _("- Changed 'selfemployed' for 'member' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
+
+                aas = AgentAssociation.objects.filter(is_associate=ag.is_associate, has_associate=agent, association_type=ag.association_type )
+                if len(aas) > 1:
+                    #print "More than one AgentAssociation? "+str(aas)
+                    for aa in aas:
+                        if not aa == ag:
+                            if not aa.state == 'active':
+                                aa.delete()
+                                print "- Deleted a duplicate relation! "+str(ag)
+                                loger.info("- Deleted a duplicate relation! "+str(ag))
+                                messages.info(request, "- Deleted a duplicate relation! "+str(ag))
+                            else:
+                                print "Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa)
 
         if copis: #len(copis) > 1:
             return copis
