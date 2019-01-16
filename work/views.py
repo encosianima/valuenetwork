@@ -572,7 +572,7 @@ def membership_discussion(request, membership_request_id):
                 print "Already existent join request!! "+str(jr)
                 loger.info("Already existent join request!! "+str(jr))
                 #return project_feedback(request, agent_id=fdc.id, join_request_id=jr.id)
-                migrate_fdc_shares(request, jr)
+                #migrate_fdc_shares(request, jr)
                 return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jr.pk)))
 
         form_entry = fdc.project.fobi_form()
@@ -712,8 +712,10 @@ def migrate_fdc_shares(request, jr):
         raise ValidationError("More than one or none projects with fobi_slug 'freedom-coop'")
     shacct = fdc.project.shares_account_type()
     mems = jr.agent.membership_requests.all()
-    if not len(mems) == 1:
+    if len(mems) > 1:
         raise ValidationError("More than one membership request to migrate?! agent:"+str(jr.agent))
+    elif not mems:
+        pass
     else:
         mem = mems[0]
         if not mem.state == 'accepted':
@@ -722,6 +724,7 @@ def migrate_fdc_shares(request, jr):
         if not jr.state == mem.state:
             print "- FdC update state of jn_req: "+str(jr)
             loger.info("- FdC update state of jn_req: "+str(jr))
+            messages.warning("- FdC update state of jn_req: "+str(jr))
             jr.state = mem.state
             jr.save()
 
@@ -1700,6 +1703,7 @@ def check_duplicate_agents(request, agent):
         copis = None
         aamem = AgentAssociationType.objects.get(name="Member")
         aapar = AgentAssociationType.objects.get(name="Participant")
+        aasel = AgentAssociationType.objects.get(name="Self Employed Member")
         for ag in ags:
             copis = EconomicAgent.objects.filter(name=ag.is_associate.name)
             if len(copis) > 1:
@@ -1735,17 +1739,18 @@ def check_duplicate_agents(request, agent):
                     messages.warning(request, _("WARNING: The Email '<b>{0}</b>' is set for various agents: ").format(co.email)+cases, extra_tags='safe')
             '''
 
-            if hasattr(agent, 'project') and agent.project.shares_type(): # if project has shares, participants should become members
-                #print "Project has shares, convert participants to members"
-                aass = AgentAssociation.objects.filter(has_associate=agent, is_associate=ag.is_associate)
-                for aas in aass:
-                    if aas.association_type == aapar:
-                        aas.association_type = aamem
-                        aas.save()
+            if hasattr(agent, 'project'):
+                if agent.project.shares_type(): # if project has shares, participants should become members
+                    if ag.association_type == aapar:
+                        ag.association_type = aamem
+                        ag.save()
                         loger.info(_("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
                         messages.info(request, _("- Changed 'participant' for 'member' because the {0} project has shares, for agent {1} (status: {2})").format(agent, ag.is_associate, ag.state))
-                    else:
-                        pass #print 'Other association type: '+str(aas)
+                if ag.association_type == aasel:
+                    ag.association_type = aamem
+                    ag.save()
+                    loger.info(_("- Changed 'selfemployed' for 'member' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
+                    messages.info(request, _("- Changed 'selfemployed' for 'member' for agent {0} (status: {1})").format(ag.is_associate, ag.state))
 
         if copis: #len(copis) > 1:
             return copis
@@ -2894,6 +2899,8 @@ def project_feedback(request, agent_id, join_request_id):
         allowed = True
     if not allowed:
         return render(request, 'work/no_permission.html')
+
+    migrate_fdc_shares(request, jn_req)
 
     fobi_slug = project.fobi_slug
     fobi_headers = []
