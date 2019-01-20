@@ -553,6 +553,18 @@ class JoinRequest(models.Model):
             init["agent_type"] = agent_type
         return ProjectAgentCreateForm(initial=init, prefix=self.form_prefix())
 
+    def agent_relation(self):
+        if self.agent and self.project:
+            aas = self.agent.is_associate_of.filter(has_associate=self.project.agent)
+            if len(aas) == 1:
+                return aas[0]
+            else:
+                for aa in aas:
+                    if aa.association_type.association_behavior == 'manager':
+                        return aa
+
+                return 'Error'
+
     def fobi_items_keys(self):
         fobi_headers = []
         fobi_keys = []
@@ -638,7 +650,7 @@ class JoinRequest(models.Model):
                     if not answer.has_key('key'):
                         raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
             if not answer.has_key('key') or not answer.has_key('val'):
-                raise ValidationError("can't find the payment_option key! answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
+                pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
         return answer
 
     def payment_url(self):
