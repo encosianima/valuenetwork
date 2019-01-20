@@ -103,6 +103,10 @@ class MembershipRequest(models.Model):
     def __unicode__(self):
         return self.name
 
+    def fdc(self):
+        return EconomicAgent.objects.freedom_coop()
+
+
 
 JOINING_STYLE_CHOICES = (
     ('moderated', _('moderated')),
