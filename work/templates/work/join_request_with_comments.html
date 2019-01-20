@@ -138,7 +138,15 @@ a.more-link {
             {% if request.user.is_superuser %}
               <tr>
                 <th><em>(debug)</em></th>
-                <td><em>req.id: {{ req.id }} &nbsp; unit:<b>{{ req.payment_unit }}</b>&nbsp; unit_rt:<b>{{ req.payment_unit_rt }}</b>&nbsp; is_currency:<b>{{ req.payment_unit_rt.ocp_artwork_type.is_currency }}</b>&nbsp; AT: <b>{{ req.payment_account_type }}</b>&nbsp; Total Shares: <b>{{ req.total_shares }}</b>&nbsp; Payment Amount: <b>{{ req.payment_amount }}</b>&nbsp; ShareUnit: <b>{{ req.payment_account_type.unit_of_price }}</b></em> </td>
+                <td><em>req.id: {{ req.id }} &nbsp; unit:<b>{{ req.payment_unit }}</b>&nbsp;
+                    unit_rt:<b>{{ req.payment_unit_rt }}</b>&nbsp;
+                    is_currency:<b>{{ req.payment_unit_rt.ocp_artwork_type.is_currency }}</b>&nbsp;
+                    AT: <b>{{ req.payment_account_type }}</b>&nbsp;
+                    Total Shares: <b>{{ req.total_shares }}</b>&nbsp;
+                    Payment Amount: <b>{{ req.payment_amount }}</b>&nbsp;
+                    ShareUnit: <b>{{ req.payment_account_type.unit_of_price }}</b>&nbsp;
+                    AgentAssociation: <b>{{ req.agent_relation.association_type }} ({{ req.agent_relation.state }})</b>
+                </em></td>
               </tr>
             {% endif %}
             <tr>

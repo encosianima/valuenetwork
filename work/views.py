@@ -721,25 +721,39 @@ def migrate_fdc_shares(request, jr):
         if not mem.state == 'accepted':
             print "FdC membership still not accepted! "+str(mem)
             loger.info("FdC membership still not accepted! "+str(mem))
-        if not jr.state == mem.state:
-            print "- FdC update state of jn_req: "+str(jr)
+        if False and not jr.state == mem.state:
+            print "- FdC update state of jn_req: "+str(mem.state)
             loger.info("- FdC update state of jn_req: "+str(jr))
             #messages.warning(request, "- FdC update state of jn_req: "+str(jr))
             jr.state = mem.state
             jr.save()
 
-    agrel = jr.agent.is_associate_of.filter(has_associate=jr.project.agent)
-    if len(agrel) == 1:
-        agrel = agrel[0]
+    aamem = AgentAssociationType.objects.get(name="Member")
+    agrel = None
+    agrels = jr.agent.is_associate_of.filter(has_associate=jr.project.agent).exclude(association_type__association_behavior='manager')
+    if len(agrels) == 1:
+        agrel = agrels[0]
         if agrel.state == 'active' and not jr.state == 'accepted':
-            agrel.state = 'candidate'
+            agrel.state = 'potential'
             agrel.save()
             print "WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel)
             loger.info("WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel))
             messages.warning(request, "Converted the agent relation to 'candidate' because the join request is not accepted yet.")
+        elif agrel.state == 'candidate':
+            agrel.state = 'potential'
+            agrel.save()
+            print "Changed 'candidate' for 'potential' state of the agent relation: "+str(agrel)
+        if not agrel.association_type == aamem:
+            print "WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr)
+            loger.info("WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
+            messages.warning(request, "WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
+            agrel.association_type = aamem
+            agrel.save()
     else:
-        print "FdC migrating agent has no one relation with FdC?? "+str(agrel)+" jr:"+str(jr)
-        loger.info("FdC migrating agent has no one relation with FdC?? "+str(agrel)+" jr:"+str(jr))
+        print "FdC migrating agent has no one relation with FdC?? "+str(agrels)+" jr:"+str(jr)
+        loger.info("FdC migrating agent has no one relation with FdC?? "+str(agrels)+" jr:"+str(jr))
+        messages.error(request, "FdC migrating agent has no one relation with FdC?? "+str(agrels)) #+" jr:"+str(jr))
+
     fdcshrt = EconomicResourceType.objects.membership_share()
     shs = []
     arrs = jr.agent.resource_relationships()
@@ -760,20 +774,31 @@ def migrate_fdc_shares(request, jr):
             for sh in shs:
                 for ar in arrs:
                     if ar.resource == sh:
+                        account.created_date = sh.created_date
+                        account.save()
                         ar.delete()
                         sh.delete()
                         loger.info("FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
                         messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
 
         else:
-            print "FdC migrating agent has no old owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
-            loger.info("FdC migrating agent has no old owned shares: "+str(jr.agent)+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price))
+            print "FdC migrating agent has no old owned shares: "+str(jr.agent)+' jr.state:'+str(jr.state) #share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
+            loger.info("FdC migrating agent has no old owned shares: "+str(jr.agent)+' jr.state:'+str(jr.state)) #+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price))
             if jr.state == 'accepted' and not account.price_per_unit:
                 jr.state = 'new'
                 jr.save()
                 print "WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr)
                 loger.info("WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr))
-                messages.warning(request, "Converted the request state to 'new' because the member has no shares yet.")
+                messages.warning(request, "Converted the join request state to 'new' because the member has no shares yet.")
+
+                if agrel.state == 'active' or not agrel.association_type == aamem:
+                    agrel.state = 'potential'
+                    agrel.association_type = aamem
+                    agrel.save()
+                    print "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel)
+                    loger.info("- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
+                    messages.warning(request, "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
+
     else:
         print str(shacct)+' not in res: '+str(res)
         loger.info("Can't migrate FdC shares before user has shares account! "+str(jr.agent))
@@ -847,9 +872,9 @@ def run_fdc_scripts(request, agent):
                         else:
                             print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state)
                             loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
-                            messages.error("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
+                            messages.error(request, "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                     else: # missing shares
-                        if rel.state == 'candidate':
+                        if rel.state == 'candidate' or rel.state == 'potential':
                             agas, created = AgentAssociation.objects.get_or_create(
                                 is_associate=ag,
                                 has_associate=fdc,
@@ -872,7 +897,7 @@ def run_fdc_scripts(request, agent):
                                         is_associate=ag,
                                         has_associate=fdc,
                                         association_type=aamem,
-                                        state='candidate'
+                                        state='potential'
                                     )
                                     if created:
                                         print "- created new candidate AgentAssociation (no shares): "+str(agas)
@@ -930,7 +955,7 @@ def run_fdc_scripts(request, agent):
                                 is_associate=ag,
                                 has_associate=fdc,
                                 association_type=aamem,
-                                state='candidate'
+                                state='potential'
                             )
                             if created:
                                 print "- Created new association as FdC candidate (no shares found): "+str(agas)
@@ -948,7 +973,7 @@ def run_fdc_scripts(request, agent):
                                 is_associate=ag,
                                 has_associate=fdc,
                                 association_type=aamem,
-                                state='candidate'
+                                state='potential'
                             )
                             if created:
                                 print "- Created new association as FdC candidate: "+str(agas)
@@ -957,7 +982,7 @@ def run_fdc_scripts(request, agent):
                 else:
                     print "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair"
                     loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
-                    messages.warning("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
+                    messages.warning(request, "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
 
 
         else: # is found in candidates or participants
@@ -1696,6 +1721,7 @@ def create_user_accounts(request, agent, project=None):
 
 
 def check_duplicate_agents(request, agent):
+    repair_duplicate_agents(request, agent)
     ags = agent.all_has_associates()
     user_agent = request.user.agent.agent
     if user_agent in agent.managers() or user_agent == agent or request.user.is_staff:
@@ -1718,7 +1744,7 @@ def check_duplicate_agents(request, agent):
                             usrs = ' (=user)'
                     else:
                         usrs = ''
-                    cases.append('<b><a href="'+reverse('members_agent', args={co.id})+'">'+co.nick+'</a></b>'+str(usrs))
+                    cases.append('<b><a href="'+reverse('members_agent', args={co.id})+'">'+co.nick+'</a></b>'+str(usrs)+" ("+str(co.agent_type)+")")
                 cases = ' and '.join(cases)
                 messages.error(request, _("WARNING: The Name '<b>{0}</b>' is set for various agents: ").format(co.name)+cases, extra_tags='safe')
 
@@ -1775,6 +1801,70 @@ def check_duplicate_agents(request, agent):
             return copis
     return None
 
+
+def repair_duplicate_agents(request, agent):
+    if request.user.is_superuser:
+      copis = EconomicAgent.objects.filter(name=agent.name).order_by('id')
+      if len(copis) > 1:
+        cases = []
+        usrs = ''
+        mem = 0
+        main = None
+        out = "<table><tr>"
+        for co in copis:
+            users = co.users.all()
+            if users and request.user.is_superuser:
+                if len(users) > 1 or not str(users[0].user) == str(co.nick):
+                    usrs = ' (user'+('s!' if len(users)>1 else '')+': '+(', '.join([str(us.user) for us in users]))+')'
+                else:
+                    usrs = ' (=user)'
+            else:
+                usrs = ' (no user)'
+            tps = []
+            obs = 0
+            props = []
+            for att in dir(co):
+              if hasattr(co, att):
+                met = getattr(co, att)
+                txt = str(met)
+                if True or 'valueaccounting' in txt or 'work' in txt:
+                  try:
+                    res = met.all()
+                    if len(res): #len(txt) > 0 and not txt == '>': # and not str(met) in tps:
+                        its = []
+                        for rs in res:
+                            its.append(str(rs.id))
+                        its = ', '.join(its)
+                        tps.append('- <em>'+att+'</em>: '+str(len(res))+' - ids('+str([str(rs.id) for rs in res])+')') #+str(txt)+' Res:')
+                        obs += len(res)
+                  except:
+                    if not att[0] == '_' and len(txt) > 1:
+                      pass #tps.append(att+': '+str(txt))
+            tps = '<br>'.join(tps)
+            for pro in co.__dict__:
+                fld = getattr(co, pro)
+                if not fld == None and not fld == '':
+                    props.append('<em>'+pro+'</em>: &nbsp;<b>'+str(fld)+'</b>')
+            pros = '<br>'.join(props)
+            if obs > mem:
+                mem = obs
+                main = co
+            cases.append('<td style="padding-right:2em; vertical-align:top;"><b><a href="'
+                         +reverse('members_agent', args={co.id})+'">'+co.nick+'</a> id:'+str(co.id)+'</b>'
+                         +str(usrs)+" ("+str(co.agent_type)+")"+' objects: <b>'+str(obs)+'</b><br>'+str(tps)+'<br><br>'
+                         +str(pros)+'</td>')
+        actions = ""
+        if main:
+            actions = "</tr><tr><td><b>main is "+str(main.nick)+"?</b> "
+            for co in copis:
+                if not co == main:
+                    pass #actions += "merge all of "+str(co.nick)+" to main? "
+            actions += "</td>"
+        cases = ''.join(cases)
+        cases = out+cases+actions+'</tr></table>'
+        messages.error(request, _("WARNING: The Name '<b>{0}</b>' is set for various agents: ").format(co.name)+cases, extra_tags='safe')
+      else:
+        pass #messages.info(request, _("No duplicates!"))
 
 
 
@@ -2236,10 +2326,10 @@ def joinaproject_request_internal(request, agent_id = False):
                     stage = CALLBACK_FORM_VALID_AFTER_FORM_HANDLERS
                     )
 
-                #messages.info(
-                #    request,
-                #    _("Form {0} was submitted successfully.").format(form_entry.name)
-                #)
+                messages.info(
+                    request,
+                    _("Form {0} was submitted successfully.").format(form_entry.name)
+                )
 
                 field_name_to_label_map, cleaned_data = get_processed_form_data(
                     fobi_form,
