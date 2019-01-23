@@ -818,7 +818,9 @@ def run_fdc_scripts(request, agent):
     acctyp = fdc.project.shares_account_type()
     oldshr = EconomicResourceType.objects.membership_share()
     if not acctyp:
-        raise ValidationError("The FdC project still has not a shares_account_type ?")
+        messages.error(request, "The FdC project still has not a shares_account_type ?")
+        #raise ValidationError("The FdC project still has not a shares_account_type ?")
+        return
     # fix fdc memberships associations
     agids = MembershipRequest.objects.filter(agent__isnull=False).values_list('agent')
     ags = EconomicAgent.objects.filter(pk__in=agids)
