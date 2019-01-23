@@ -702,13 +702,13 @@ class JoinRequest(models.Model):
                     if not unit == unitFc:
                         try:
                             ratio = UnitRatio.objects.get(in_unit=unitFc.gen_unit, out_unit=unit.gen_unit).rate
-                            price = self.project.shares_type().price_per_unit/ratio
+                            price = self.project.shares_type().price_per_unit*ratio
                         except:
                             print "No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed..."
                             loger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
                             try:
                                 ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=unitFc.gen_unit).rate
-                                price = self.project.shares_type().price_per_unit*ratio
+                                price = self.project.shares_type().price_per_unit/ratio
                             except:
                                 print "No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting..."
                                 loger.info("No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting...")

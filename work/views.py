@@ -963,7 +963,7 @@ def run_fdc_scripts(request, agent):
                                 state='potential'
                             )
                             if created:
-                                print "- Created new association as FdC candidate (no shares found): "+str(agas)
+                                #print "- Created new association as FdC candidate (no shares found): "+str(agas)
                                 loger.info("- Created new association as FdC candidate (no shares found): "+str(agas))
                                 messages.info(request, "- Created new association as FdC candidate (no shares found): "+str(agas))
                             req.state = 'new'
