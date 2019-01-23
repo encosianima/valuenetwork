@@ -710,6 +710,9 @@ def migrate_fdc_shares(request, jr):
         fdc = fdc[0].agent
     else:
         raise ValidationError("More than one or none projects with fobi_slug 'freedom-coop'")
+    if not fdc == jr.project.agent:
+        #loger.warning("skip migrate, is not a FdC joinrequest")
+        return
     shacct = fdc.project.shares_account_type()
     mems = jr.agent.membership_requests.all()
     if len(mems) > 1:
@@ -815,7 +818,9 @@ def run_fdc_scripts(request, agent):
     acctyp = fdc.project.shares_account_type()
     oldshr = EconomicResourceType.objects.membership_share()
     if not acctyp:
-        raise ValidationError("The FdC project still has not a shares_account_type ?")
+        messages.error(request, "The FdC project still has not a shares_account_type ?")
+        #raise ValidationError("The FdC project still has not a shares_account_type ?")
+        return
     # fix fdc memberships associations
     agids = MembershipRequest.objects.filter(agent__isnull=False).values_list('agent')
     ags = EconomicAgent.objects.filter(pk__in=agids)
