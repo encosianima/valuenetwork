@@ -51,6 +51,7 @@ def manage_faircoin_account(request, resource_id):
     share_price = False
     number_of_shares = False
     can_pay = False
+    candidate_membership = None
     wallet = faircoin_utils.is_connected()
     if wallet:
         is_wallet_address = faircoin_utils.is_mine(resource.faircoin_address.address)
@@ -72,16 +73,20 @@ def manage_faircoin_account(request, resource_id):
             wallet = False
             if resource.is_address_requested(): is_wallet_address = True
 
-    candidate_membership = resource.owner().candidate_membership()
-    if candidate_membership:
+    project = None
+    for req in resource.owner().project_join_requests.all():
+      candidate_membership = resource.owner().candidate_membership(req.project.agent)
+      if candidate_membership:
+        obj = req.payment_option()
         faircoin_account = resource.owner().faircoin_resource()
-        if faircoin_account and wallet:
-            share = EconomicResourceType.objects.membership_share()
+        if faircoin_account and wallet and obj['key'] == 'faircoin' and req.project.shares_account_type():
+            share = req.project.shares_type() #EconomicResourceType.objects.membership_share()
             share_price = share.price_per_unit
-            number_of_shares = resource.owner().number_of_shares()
+            number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
             share_price = share_price * number_of_shares
+            project = req.project
             payment_due = True
-            if resource.owner().owns_resource_of_type(share):
+            if resource.owner().owns_resource_of_type(req.project.shares_account_type()) and share_price == 0:
                 payment_due = False
             if confirmed_balance and confirmed_balance != "Not accessible now":
                 can_pay = confirmed_balance >= share_price
@@ -101,6 +106,7 @@ def manage_faircoin_account(request, resource_id):
         "share_price": share_price,
         "number_of_shares": number_of_shares,
         "can_pay": can_pay,
+        "project": project,
         "help": get_help("faircoin account"),
     })
 
