@@ -725,9 +725,13 @@ class JoinRequest(models.Model):
                             balance = fairrs.faircoin_address.balance()
                             if balance != None:
                                 if balance < amount:
-                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)d fairs. You can send them to your account %(ac)s and then pay the shares") % {'f':(confirmed_balance - amount)*-1, 'ac':addr})
+                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)d fairs.
+                                                      You can send them to your account %(ac)s and then pay the shares") %
+                                                      {'f':(balance - amount)*-1, 'ac':'</b> '+addr+' <b>'})
                                 else:
-                                    txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))+"</b> <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                                    txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))+"</b>
+                                                    <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"'
+                                                    class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
                             else:
                                 txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
                           else:
