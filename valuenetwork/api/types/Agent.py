@@ -71,7 +71,8 @@ class Agent(graphene.Interface):
 
     agent_commitments = graphene.List(lambda: types.Commitment,
                                       latest_number_of_days=graphene.Int(),
-                                      page=graphene.Int())
+                                      page=graphene.Int(),
+                                      sort_desc=graphene.Boolean())
 
     search_agent_commitments = graphene.List(lambda: types.Commitment,
                                               search_string=graphene.String(),
@@ -277,6 +278,7 @@ class Agent(graphene.Interface):
     def resolve_agent_commitments(self, args, context, info):
         agent = _load_identified_agent(self)
         page = args.get('page', None)
+        sort_desc = args.get('sort_desc', False)
         if agent:
             days = args.get('latest_number_of_days', 0)
             if days > 0:
@@ -285,6 +287,8 @@ class Agent(graphene.Interface):
             else:
                 commits = agent.involved_in_commitments()
             commits = commits.exclude(event_type__name="Give").exclude(event_type__name="Receive")
+            if sort_desc:
+                commits = commits.order_by('-due_date')
             if page:
                 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
                 paginator = Paginator(commits, 25)
