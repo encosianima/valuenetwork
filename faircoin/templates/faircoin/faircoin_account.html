@@ -55,6 +55,13 @@
     margin: 2px;
 }
 
+.table-transparent th {
+    background: none;
+    text-align: right;
+    padding: 4px 8px;
+    width: 40%;
+}
+
 </style>
 
 {% endblock %}
@@ -234,15 +241,15 @@
 
 	        </div>
 
-	        <div id="coins" class="span6 info">
+	        <div id="coins" class="span6 miniform">
 
                 {% if payment_due %}
                     <div class="share-explanation">
                         <h3>{% trans "Get your membership shares:"  %}</h3>
                         <p>{% trans "You've requested to initially contribute buying" %} <b>{{ number_of_shares }}
                         {% if number_of_shares == 1 %}{% trans "Share" %}{% else %}{% trans "Shares" %}{% endif %}</b>
-                        {% trans "in the Freedom Coop's membership form. This means"  %} <b>{{ share_price }} ƒ</b> {% trans "(faircoins)." %}
-                        {% trans "As soon as you have this amount here in your Faircoin account at OCP, you'll see below the <b>button to pay your shares</b>, click on it and you'll become a full member of Freedom Coop." %}
+                        {% trans "in the" %} {{ project.agent.name }}{% trans "'s membership form. This means"  %} <b>{{ share_price }} ƒ</b> {% trans "(faircoins)." %}
+                        {% trans "As soon as you have this amount here in your Faircoin account at OCP, you'll see below the <b>button to pay your shares</b>, click on it and you'll become a full member of" %} {{ project.agent.name }}.
 
                         {% if can_pay %}
                             <form
@@ -269,6 +276,9 @@
                 {% endif %}
 
                 {% if send_coins_form %}
+                    <h3>
+                        {% trans "Send Faircoins:" %}
+                    </h3>
                     <form id="sendCoinsForm" method="POST" action={% if payment_due %}"#" class="disabled" style="color:#888;" {% else %}"{% url "transfer_faircoins" resource_id=resource.id %}" {% endif %}>
                         {% if payment_due %}
                           {{ send_coins_form|as_bootstrap }}
@@ -281,24 +291,28 @@
                           <em>{% trans "(sorry, the wallet is not available now, try later)" %}</em>
                         {% else %}
                           {% csrf_token %}
-                      <div class="span6 resource">
-                        <table class="table table-bordered" >
+
+                        <table class="table-transparent" >
                           {% for field in send_coins_form  %}
                             <tr>
-                              <th style="text-align:left;">{{ field.label_tag }}</th>
+                              <th>{{ field.label_tag }}</th>
                               <td>{{ field }}</td>
                             <tr>
                           {% endfor %}
-                        </table>
-                      </div>
                           {% if not confirmed_balance == "Not accessible now" %}
-                              <br/>
-                              <span><input id="id_send_all" type="checkbox" name="send_all" style="float:left;"/></span>
-                              <span style="float:left;">{% trans "Send all funds" %}</span>
-                              <span><button class="btn btn-primary" style="float:right;" name="sendCoins" value="coins" onclick="clicked(event)" id="id_send_button">{% trans "Send" %}</button></span>
+                            <tr>
+                              <th><label>{% trans "Send all funds" %}</label></th>
+                              <td><input id="id_send_all" type="checkbox" name="send_all" style="float:left;"/></td>
+                            </tr>
+                            <tr><td colspan=2 >
+                                <button class="btn btn-primary" style="float:right;" name="sendCoins" value="coins" onclick="clicked(event)" id="id_send_button">{% trans "Send" %}</button></td>
+                            </tr>
                           {% else %}
+                            <tr><td clospan=2 >
                               <button class="btn btn-danger disabled" disabled><b>{% trans "Not available now" %}</b></button>
+                            </td></tr>
                           {% endif %}
+                        </table>
                         {% endif %}
                     </form>
                 {% endif %}
