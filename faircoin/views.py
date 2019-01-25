@@ -9,6 +9,7 @@ from django.forms import ValidationError
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
+from django.contrib import messages
 
 from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent, EconomicResourceType, Help
 from valuenetwork.valueaccounting.forms import EconomicResourceForm
@@ -79,17 +80,21 @@ def manage_faircoin_account(request, resource_id):
       if candidate_membership:
         obj = req.payment_option()
         faircoin_account = resource.owner().faircoin_resource()
-        if faircoin_account and wallet and obj['key'] == 'faircoin' and req.project.shares_account_type():
+        shacct = req.project.shares_account_type()
+        if faircoin_account and wallet and obj and obj['key'] == 'faircoin' and shacct:
             share = req.project.shares_type() #EconomicResourceType.objects.membership_share()
             share_price = share.price_per_unit
             number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
             share_price = share_price * number_of_shares
             project = req.project
             payment_due = True
-            if resource.owner().owns_resource_of_type(req.project.shares_account_type()) and share_price == 0:
+            if resource.owner().owns_resource_of_type(shacct) and share_price == 0:
                 payment_due = False
             if confirmed_balance and confirmed_balance != "Not accessible now":
                 can_pay = confirmed_balance >= share_price
+            break
+        elif request.user.is_superuser:
+            messages.warning(request, "pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
 
     return render(request, "faircoin/faircoin_account.html", {
         "resource": resource,

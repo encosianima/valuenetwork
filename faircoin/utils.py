@@ -55,6 +55,11 @@ def network_fee():
     """
     return 1000000
 
+def estimate_fee(address_origin, address_end, amount):
+    format_dict = [address_origin, address_end, amount]
+    response = send_command('estimate_fee', format_dict)
+    return response
+
 # A mock function for tests in valueaccounting app.
 def send_fake_faircoins(address_origin, address_end, amount):
     tx = str(time.time())
