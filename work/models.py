@@ -7,6 +7,7 @@ from django.contrib.sites.models import Site
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 
+from decimal import Decimal
 from django.utils.translation import ugettext_lazy as _
 
 from easy_thumbnails.fields import ThumbnailerImageField
@@ -724,15 +725,17 @@ class JoinRequest(models.Model):
                           if is_wallet_address:
                             balance = fairrs.faircoin_address.balance()
                             if balance != None:
-
+                                fee = faircoin_utils.estimate_fee(addr, self.project.agent.faircoin_address(), amount)
                                 if balance < amount:
-                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)d fairs.
-                                                      You can send them to your account %(ac)s and then pay the shares") %
-                                                      {'f':(balance - amount)*-1, 'ac':'</b> '+addr+' <b>'})
+                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)s fairs."
+                                                      +" You can send them to your account %(ac)s and then pay the shares") %
+                                                      {'f':str(Decimal(amount - balance)), 'ac':'</b> '+addr+' <b>'})
                                 else:
-                                    txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))+"</b>
-                                                    <a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))+"'
-                                                    class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                                    txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))
+                                    +"</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
+                                    +"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                                if request.user.is_superuser:
+                                    txt += " (fee:"+str(fee)+')'
                             else:
                                 txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
                           else:
@@ -2548,7 +2551,7 @@ def create_unit_types(**kwargs):
     fairacc_rt.unit_of_use = ocp_fair
     fairacc_rt.unit_of_value = ocp_fair
     #fairacc_rt.value_per_unit = 1
-    fairacc_rt.value_per_unit_of_use = 1 #decimal.Decimal('1.00')
+    fairacc_rt.value_per_unit_of_use = 1 #Decimal('1.00')
     #fairacc_rt.price_per_unit = 1
     #fairacc_rt.unit_of_price = ocp_fair
     fairacc_rt.substitutable = True
