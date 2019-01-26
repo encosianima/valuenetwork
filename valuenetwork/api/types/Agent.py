@@ -73,12 +73,14 @@ class Agent(graphene.Interface):
                                       #latest_number_of_days=graphene.Int(),
                                       is_finished=graphene.Boolean(),
                                       page=graphene.Int(),
+                                      also_search_children=graphene.Boolean(),
                                       sort_desc=graphene.Boolean())
 
     search_agent_commitments = graphene.List(lambda: types.Commitment,
                                               search_string=graphene.String(),
                                               is_finished=graphene.Boolean(),
                                               page=graphene.Int(),
+                                              also_search_children=graphene.Boolean(),
                                               sort_desc=graphene.Boolean())
 
     agent_relationships = graphene.List(AgentRelationship,
@@ -283,20 +285,22 @@ class Agent(graphene.Interface):
         page = args.get('page', None)
         finished = args.get('is_finished', None)
         sort_desc = args.get('sort_desc', False)
+        also_search_children=args.get(also_search_children, False)
         if agent:
             #days = args.get('latest_number_of_days', 0)
             #if days > 0:
             #    commits = agent.involved_in_commitments().filter(
             #        commitment_date__gte=(datetime.date.today() - datetime.timedelta(days=days)))
             #else:
-            commits = agent.involved_in_commitments()
-            commits = commits.exclude(event_type__name="Give").exclude(event_type__name="Receive")
+            #commits = agent.involved_in_commitments()
+            #commits = commits.exclude(event_type__name="Give").exclude(event_type__name="Receive")
             #if finished == True:
             #    commits = commits.filter(finished=True)
             #elif finished == False:
             #    commits = commits.filter(finished=False)
-            if sort_desc:
-                commits = commits.order_by('-due_date')
+            #if sort_desc:
+            #    commits = commits.order_by('-due_date')
+            commits = agent.agent_commitments(finished=finished, sort_desc=sort_desc, also_search_children=also_search_children)
             if page:
                 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
                 paginator = Paginator(commits, 25)
@@ -317,10 +321,23 @@ class Agent(graphene.Interface):
         finished = args.get('is_finished', None)
         search_string = args.get('search_string', "")
         sort_desc = args.get('sort_desc', False)
+        also_search_children=args.get(also_search_children, False)
         if search_string == "":
             raise ValidationError("A search string is required.")
         if agent:
-            commits = agent.search_commitments(search_string=search_string, finished=finished)
+            commits = agent.search_commitments(search_string=search_string, finished=finished, sort_desc=sort_desc, also_search_children=also_search_children)
+            if page:
+                from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+                paginator = Paginator(commits, 25)
+                try:
+                    commits = paginator.page(page)
+                except PageNotAnInteger:
+                    # If page is not an integer, deliver first page.
+                    commits = paginator.page(1)
+                except EmptyPage:
+                    # If page is out of range (e.g. 9999), deliver last page of results.
+                    commits = paginator.page(paginator.num_pages)
+            return commits
         return None
 
     def resolve_agent_relationships(self, args, context, info):
