@@ -927,8 +927,16 @@ class EconomicAgent(models.Model):
     def finished_commitments(self):
         return [p for p in self.involved_in_commitments() if p.finished==True]
 
+    #bob do the next 2 methods, thanks !!!!! <3 <3 <3
+    # they should both work for: 
+    #    finished=True,False,None(include both)
+    #    also_search_children, self explanatory and has code in the current search
+    #    sort descending choice (commits.order_by('-due_date')  should work i think)
+    def agent_commitments(self, finished=None, also_search_children=False, sort_desc=False):
+        return None
+
     # primitive search
-    def search_commitments(self, search_string, finished=None, also_search_children=True):
+    def search_commitments(self, search_string, finished=None, also_search_children=False, sort_desc=False):
         if also_search_children:
             agents = self.with_all_sub_agents() #includes self
         else: #not tested
