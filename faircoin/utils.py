@@ -147,3 +147,30 @@ def get_unused_addresses():
 
 def get_address_index(address):
     return send_command('get_address_index', [address])
+
+
+
+
+def share_price_in_fairs(jn_req):
+    from valuenetwork.valueaccounting.models import Unit
+    from general.models import UnitRatio
+    unitFc = Unit.objects.get(abbrev='fair')
+    unit = jn_req.project.shares_type().unit_of_price
+    if not unit == unitFc:
+        try:
+            ratio = UnitRatio.objects.get(in_unit=unitFc.gen_unit, out_unit=unit.gen_unit).rate
+            price = jn_req.project.shares_type().price_per_unit*ratio
+        except:
+            #print "No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed..."
+            #logger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
+            try:
+                ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=unitFc.gen_unit).rate
+                price = jn_req.project.shares_type().price_per_unit/ratio
+            except:
+                print "No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting..."
+                logger.info("No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting...")
+                raise ValidationError("Can't find the UnitRatio to convert the price to faircoin from "+str(unit))
+        amount = price
+    else:
+        amount = jn_req.project.shares_type().price_per_unit
+    return amount
