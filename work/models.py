@@ -698,25 +698,9 @@ class JoinRequest(models.Model):
                   if self.project.agent.need_faircoins():
                     addr = self.agent.faircoin_address()
                     wallet = faircoin_utils.is_connected()
-                    unitFc = Unit.objects.get(abbrev='fair')
-                    unit = self.project.shares_type().unit_of_price
-                    if not unit == unitFc:
-                        try:
-                            ratio = UnitRatio.objects.get(in_unit=unitFc.gen_unit, out_unit=unit.gen_unit).rate
-                            price = self.project.shares_type().price_per_unit*ratio
-                        except:
-                            print "No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed..."
-                            loger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
-                            try:
-                                ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=unitFc.gen_unit).rate
-                                price = self.project.shares_type().price_per_unit/ratio
-                            except:
-                                print "No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting..."
-                                loger.info("No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting...")
-                                raise ValidationError("Can't find the UnitRatio to convert the price to faircoin from "+str(unit))
-                        amount = self.pending_shares()*price
-                    else:
-                        amount = self.pending_shares()*self.project.shares_type().price_per_unit
+                    price = faircoin_utils.share_price_in_fairs(self)
+                    amount = self.pending_shares()*price
+
                     txt = ''
                     if fairrs:
                       if addr:
@@ -725,7 +709,6 @@ class JoinRequest(models.Model):
                           if is_wallet_address:
                             balance = fairrs.faircoin_address.balance()
                             if balance != None:
-                                fee = faircoin_utils.estimate_fee(addr, self.project.agent.faircoin_address(), amount)
                                 if balance < amount:
                                     txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)s fairs."
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
@@ -734,8 +717,6 @@ class JoinRequest(models.Model):
                                     txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))
                                     +"</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
                                     +"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
-                                if request.user.is_superuser:
-                                    txt += " (fee:"+str(fee)+')'
                             else:
                                 txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
                           else:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from decimal import Decimal
-import json
+import json, logging
 
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404
@@ -19,6 +19,8 @@ from faircoin.forms import SendFairCoinsForm
 from faircoin.decorators import confirm_password
 
 FAIRCOIN_DIVISOR = Decimal("100000000.00")
+
+logger = logging.getLogger('ocp')
 
 def get_agent(request):
     agent = None
@@ -76,14 +78,14 @@ def manage_faircoin_account(request, resource_id):
 
     project = None
     for req in resource.owner().project_join_requests.all():
-      candidate_membership = resource.owner().candidate_membership(req.project.agent)
-      if candidate_membership:
+      #candidate_membership = resource.owner().candidate_membership(req.project.agent)
+      if req.pending_shares(): #candidate_membership:
         obj = req.payment_option()
         faircoin_account = resource.owner().faircoin_resource()
         shacct = req.project.shares_account_type()
         if faircoin_account and wallet and obj and obj['key'] == 'faircoin' and shacct:
             share = req.project.shares_type() #EconomicResourceType.objects.membership_share()
-            share_price = share.price_per_unit
+            share_price = faircoin_utils.share_price_in_fairs(req)
             number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
             share_price = share_price * number_of_shares
             project = req.project
@@ -94,6 +96,7 @@ def manage_faircoin_account(request, resource_id):
                 can_pay = confirmed_balance >= share_price
             break
         elif request.user.is_superuser:
+            logger.warning("pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
             messages.warning(request, "pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
 
     return render(request, "faircoin/faircoin_account.html", {
