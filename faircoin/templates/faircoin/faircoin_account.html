@@ -248,8 +248,8 @@
                         <h3>{% trans "Get your membership shares:"  %}</h3>
                         <p>{% trans "You've requested to buy" %} <b>{{ number_of_shares }}
                         {% if number_of_shares == 1 %}{% trans "Share" %}{% else %}{% trans "Shares" %}{% endif %}</b>
-                        {% trans "in the" %} {{ project.agent.name }}{% trans "'s membership form. This means"  %} <b>{{ share_price }} ƒ</b> {% trans "(faircoins)." %}
-                        {% trans "As soon as you have this amount here in your Faircoin account at OCP, you'll see below the <b>button to pay your shares</b>, click on it and you'll become a full member of" %} {{ project.agent.name }}.
+                        {% trans "in the" %} {{ project.agent.name }} {% trans "membership" %} <a href="{% url 'project_feedback' agent_id=resource.owner.id join_request_id=jn_req.id %}">{% trans "request" %}</a>. {% trans "This means"  %} <b>{{ share_price }} ƒ</b> {% trans "(faircoins)." %}
+                        <!-- {% trans "As soon as you have this amount here in your Faircoin account at OCP, you'll see below the <b>button to pay your shares</b>, click on it and you'll become a full member of" %} {{ project.agent.name }}. -->
 
                         {% if can_pay %}
                             <form
@@ -258,6 +258,7 @@
                                 action="{% url "share_payment" agent_id=agent.id %}"
                                 method="POST" >
                                 {% csrf_token %}
+                                <input type="hidden" name="join_request" value="{{ jn_req.id }}">
                                 <button style="display: inline;"  class="btn btn-primary" title="Pay for shares" >
                                     {% trans "Pay your shares with" %} {{ share_price }} ƒ
                                 </button>

@@ -567,8 +567,8 @@ class JoinRequest(models.Model):
                 for aa in aas:
                     if aa.association_type.association_behavior == 'manager':
                         return aa
-
                 return 'Error'
+        return None
 
     def fobi_items_keys(self):
         fobi_headers = []
@@ -714,9 +714,9 @@ class JoinRequest(models.Model):
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
                                                       {'f':str(Decimal(amount - balance)), 'ac':'</b> '+addr+' <b>'})
                                 else:
-                                    txt = '<b>'+str(_("Your actual balance is enough. You can pay the shares now!"))
-                                    +"</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
-                                    +"' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                                    txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
+                                    txt += "</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
+                                    txt += "' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
                             else:
                                 txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
                           else:

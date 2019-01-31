@@ -77,6 +77,7 @@ def manage_faircoin_account(request, resource_id):
             if resource.is_address_requested(): is_wallet_address = True
 
     project = None
+    jn_req = None
     for req in resource.owner().project_join_requests.all():
       #candidate_membership = resource.owner().candidate_membership(req.project.agent)
       if req.pending_shares(): #candidate_membership:
@@ -89,6 +90,7 @@ def manage_faircoin_account(request, resource_id):
             number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
             share_price = share_price * number_of_shares
             project = req.project
+            jn_req = req
             payment_due = True
             if resource.owner().owns_resource_of_type(shacct) and share_price == 0:
                 payment_due = False
@@ -115,6 +117,7 @@ def manage_faircoin_account(request, resource_id):
         "number_of_shares": number_of_shares,
         "can_pay": can_pay,
         "project": project,
+        "jn_req": jn_req,
         "help": get_help("faircoin account"),
     })
 

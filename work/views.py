@@ -324,21 +324,38 @@ def share_payment(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agent_account = agent.faircoin_resource()
     balance = agent_account.digital_currency_balance()
-    candidate_membership = agent.candidate_membership()
-    share = EconomicResourceType.objects.membership_share()
-    share_price = share.price_per_unit
-    number_of_shares = agent.number_of_shares()
-    share_price = share_price * number_of_shares
-    network_fee = faircoin_utils.network_fee()
-
-    if share_price <= balance and network_fee:
-        pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
-        pay_to_agent = EconomicAgent.objects.get(nick=pay_to_id)
+    pro_agent = None
+    req = None
+    if request.method == "POST":
+        try:
+            req_id = request.POST.get('join_request')
+            req = JoinRequest.objects.get(id=req_id)
+            pro_agent = req.project #EconomicAgent.objects.get(id=cont_id)
+            #loger.warning("Found the context agent of the share's payment: "+str(cont_id))
+            #return True
+        except:
+            loger.warning("Can't find the context agent of the share's payment!")
+            return False
+    if pro_agent and req:
+      candidate_membership = agent.candidate_membership(pro_agent)
+      share = pro_agent.project.shares_type() #EconomicResourceType.objects.membership_share()
+      share_price = faircoin_utils.share_price_in_fairs(req)
+      number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
+      share_price = share_price * number_of_shares
+      network_fee = faircoin_utils.network_fee()
+      cand_shacc = req.agent.owned_shares_accounts(pro_agent.shares_account_type())
+      if not cand_shacc:
+            raise ValidationError("Can't find the candidate share's account of type: "+str(pro_agent.shares_account_type()))
+      if share_price <= balance and network_fee:
+        #pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
+        pay_to_agent = pro_agent #EconomicAgent.objects.get(nick=pay_to_id)
         pay_to_account = pay_to_agent.faircoin_resource()
         quantity = Decimal(share_price)
         address_origin = agent_account.faircoin_address.address
         address_end = pay_to_account.faircoin_address.address
-        xt = ExchangeType.objects.membership_share_exchange_type()
+        xt = req.exchange_type() #ExchangeType.objects.membership_share_exchange_type()
+        if not xt:
+            raise ValidationError("Can't find the exchange_type related the jn_req! "+str(req))
         tts = xt.transfer_types.all()
         tt_share = tts.get(name__contains="Share")
         tt_fee = tts.get(name__contains="Fee")
@@ -348,8 +365,10 @@ def share_payment(request, agent_id):
         et_give = EventType.objects.get(name="Give")
         et_receive = EventType.objects.get(name="Receive")
         date = datetime.date.today()
-        fc = EconomicAgent.objects.freedom_coop()
+        #fc = EconomicAgent.objects.freedom_coop()
 
+        if not tt_fee or not tt_share:
+            raise ValidationError("Can't find some transfer types! ")
         exchange = Exchange(
             exchange_type=xt,
             use_case=xt.use_case,
@@ -373,6 +392,7 @@ def share_payment(request, agent_id):
             name="Transfer Membership",
             )
         transfer_membership.save()
+
 
         state =  "new"
         resource = agent_account
@@ -399,7 +419,6 @@ def share_payment(request, agent_id):
         fairtx.save()
 
 
-
         event = EconomicEvent(
             event_type = et_receive,
             event_date = date,
@@ -422,23 +441,18 @@ def share_payment(request, agent_id):
         )
         fairtx.save()
 
+        # update shares in account
         quantity = Decimal(number_of_shares)
-        resource = EconomicResource(
-            resource_type=share,
-            quantity=quantity,
-            identifier=" ".join([from_agent.name, share.name]),
-            )
-        resource.save()
+        cand_shacc.price_per_unit += quantity
+        cand_shacc.save()
+        resource = cand_shacc
 
-        owner_role = AgentResourceRoleType.objects.owner_role()
+        req.exchange = exchange
+        req.state = 'active'
+        req.save()
 
-        arr = AgentResourceRole(
-            agent=from_agent,
-            resource=resource,
-            role=owner_role,
-            is_contact=True,
-            )
-        arr.save()
+
+        # transfered shares events
 
         event = EconomicEvent(
             event_type = et_give,
@@ -466,20 +480,20 @@ def share_payment(request, agent_id):
             )
         event.save()
 
-        aa = agent.candidate_association()
-
+        # update relation
+        aa = req.agent_relation() #agent.candidate_association()
         if aa:
-            if aa.has_associate == pay_to_agent:
-                aa.delete()
-
-        association_type = AgentAssociationType.objects.get(name="Member")
-        fc_aa = AgentAssociation(
-            is_associate=agent,
-            has_associate=fc,
-            association_type=association_type,
-            state="active",
-            )
-        fc_aa.save()
+            association_type = AgentAssociationType.objects.get(name="Member")
+            if aa.association_type == association_type:
+                if aa.state == 'potential':
+                    aa.state = 'active'
+                    aa.save()
+                else:
+                    raise ValidationError("The relation is not 'potential'? "+str(aa))
+            else:
+                raise ValidationError("The relation type is not 'Member'? "+str(aa))
+        else:
+            raise ValidationError("Can't find the agent relation!")
 
     elif network_fee is None:
         messages.error(request,

@@ -1755,9 +1755,11 @@ class EconomicAgent(models.Model):
                 shares.append(rs)
         return shares
 
-    def owned_shares_accounts(self):
+    def owned_shares_accounts(self, res_type=None):
         shares = []
         for rs in self.owned_resources():
+            if res_type and rs.resource_type == res_type:
+                return rs
             if rs.resource_type in EconomicResourceType.objects.share_accounts_types():
                 shares.append(rs)
         return shares
@@ -5307,7 +5309,7 @@ class ExchangeTypeManager(models.Manager):
     def membership_share_exchange_type(self):
         try:
             xt = ExchangeType.objects.get(name='Membership Contribution')
-        except EconomicAgent.DoesNotExist:
+        except ExchangeType.DoesNotExist:
             raise ValidationError("Membership Contribution does not exist by that name")
         return xt
 
