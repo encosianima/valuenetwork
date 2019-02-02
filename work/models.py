@@ -1091,6 +1091,7 @@ class JoinRequest(models.Model):
         if not amount == amount2:
             print "Repair amount! "+str(amount)+" -> "+str(amount2)
             loger.info("Repair amount! "+str(amount)+" -> "+str(amount2))
+            raise ValidationError("Can't deal yet with partial payments...")
             amount = amount2
 
         if status:

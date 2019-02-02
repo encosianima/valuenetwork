@@ -149,6 +149,10 @@ def get_address_index(address):
     return send_command('get_address_index', [address])
 
 
+def faircoin_rt():
+    from valuenetwork.valueaccounting.models import EconomicResourceType
+    fc = EconomicResourceType.objects.get(name='FairCoin')
+    return fc
 
 
 def share_price_in_fairs(jn_req):

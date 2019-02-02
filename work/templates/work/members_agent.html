@@ -361,7 +361,7 @@
                             </form>
                         </div>
                       </div>
-                      {% if agent.photo %}
+                      {% if agent.photo and photo_size %}
                         <img src="{% thumbnail agent.photo photo_size %}" />
                       {% elif agent.photo_url %}
                         <img src="{{ agent.photo_url }}" width="300" />
@@ -963,7 +963,7 @@
                                         {% trans "Migrate the membership!" %} {{ ncom }}
                                     </a>
                                   {% endif %}
-                                {% elif id and request.user.is_superuser %}
+                                {% elif id and request.user.is_superuser and agent.nick == "Freedom Coop" %}
                                     &nbsp;
                                     (<a href="{% url 'membership_discussion' membership_request_id=id %}">old</a>)
                                 {% endif %}
