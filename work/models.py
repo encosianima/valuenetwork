@@ -695,13 +695,14 @@ class JoinRequest(models.Model):
             if obj and obj['html']:
                 if payopt['key'] == 'faircoin':
                   balance = 0
+                  txt = ''
+                  amount = None
                   if self.project.agent.need_faircoins():
                     addr = self.agent.faircoin_address()
                     wallet = faircoin_utils.is_connected()
                     price = faircoin_utils.share_price_in_fairs(self)
                     amount = self.pending_shares()*price
 
-                    txt = ''
                     if fairrs:
                       if addr:
                         if wallet:
@@ -727,9 +728,14 @@ class JoinRequest(models.Model):
                         txt = str(_("No faircoin address?"))
                     else:
                       txt = str(_("This agent don't have an OCP Faircoin Account yet."))
-                  if not balance:
-                    txt = "<span class='error'>"+txt+"</span>"
-                  return obj['html']+"<br>Amount to pay: <b> "+str(amount)+" ƒ</b><br>"+txt
+
+                    if not balance or not amount:
+                      txt = "<span class='error'>"+txt+"</span>"
+                    return obj['html']+"<br>Amount to pay: <b> "+str(amount)+" ƒ</b><br>"+txt
+
+                  else:
+                    # don't need internal faircoin
+                    return obj['html']
                 else:
                     return obj['html']
             else:
@@ -1016,14 +1022,15 @@ class JoinRequest(models.Model):
                 context_agent=pro,
                 start_date=dt,
                 use_case=et.use_case,
+                supplier=pro,
+                customer=ag,
             )
             if created:
-                if ag:
-                    ex.created_by = ag.user().user
-                ex.created_date = dt
-                #ex.name = str(ex)
-            elif ag:
-                ex.changed_by = ag.user().user
+                print "- created Exchange: "+str(ex)
+                loger.info("- created Exchange: "+str(ex))
+            if ag:
+                ex.created_by = ag.user().user
+            ex.created_date = dt
 
             if notes:
                 ex.notes += notes
@@ -1078,6 +1085,14 @@ class JoinRequest(models.Model):
         amount = self.payment_amount()
         unit = self.payment_unit()
         unit_rt = self.payment_unit_rt()
+        shtype = self.project.shares_type()
+        shunit = shtype.unit_of_price
+        amount2 = shtype.price_per_unit * self.pending_shares()
+        if not amount == amount2:
+            print "Repair amount! "+str(amount)+" -> "+str(amount2)
+            loger.info("Repair amount! "+str(amount)+" -> "+str(amount2))
+            amount = amount2
+
         if status:
             if self.agent:
                 if not self.exchange:
@@ -1104,7 +1119,7 @@ class JoinRequest(models.Model):
                     raise ValidationError("Can't get a transfer type related shares in the exchange: "+str(ex))
 
                 if xfer_pay:
-                    xfer_pay.notes += str(datetime.date.today())+' '+str(self.payment_gateway())+': '+status
+                    xfer_pay.notes += str(datetime.date.today())+' '+str(self.payment_gateway())+': '+status+'. '
                     xfer_pay.save()
 
                 if amount and xfer_pay:
@@ -1115,10 +1130,16 @@ class JoinRequest(models.Model):
                     if len(coms):
                         # if has various commitments? TODO
                         commit_pay = coms[0]
-                        if coms[1]:
+                        if len(coms) > 1 and coms[1]:
                           commit_pay2 = coms[1]
                         if not commit_pay2:
                           commit_pay2 = commit_pay
+
+                    amountpay = amount
+                    if not shunit == unit: # and unit.abbr == 'fair':
+                        from work.utils import convert_price
+                        amountpay = convert_price(amount, shunit, unit)
+
 
                     if status == 'complete' or status == 'published':
 
@@ -1127,16 +1148,16 @@ class JoinRequest(models.Model):
                         else:
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
-                                #event_date = datetime.date.today(),
+                                event_date = datetime.date.today(),
                                 resource_type = unit_rt,
                                 #resource=event_res,
                                 transfer = xfer_pay,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = amount,
+                                quantity = amountpay,
                                 unit_of_quantity = unit,
-                                value = amount,
-                                unit_of_value = unit,
+                                #value = amount,
+                                #unit_of_value = account_type.unit_of_price,
                                 from_agent = self.agent,
                                 to_agent = self.project.agent,
                                 is_contribution = xfer_pay.transfer_type.is_contribution,
@@ -1144,10 +1165,13 @@ class JoinRequest(models.Model):
                                 event_reference = gateref,
                                 created_by = self.agent.user().user,
                                 commitment = commit_pay,
+                                exchange = ex,
                             )
-                            #evt.save()
+                            if created:
+                                print " created Event: "+str(evt)
+                                loger.info(" created Event: "+str(evt))
 
-                            evt2, created = EconomicEvent.objects.get_or_create(
+                            '''evt2, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_receive,
                                 event_date = datetime.date.today(),
                                 resource_type = unit_rt,
@@ -1155,10 +1179,10 @@ class JoinRequest(models.Model):
                                 transfer = xfer_pay,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = amount,
+                                quantity = amountpay,
                                 unit_of_quantity = unit,
-                                value = amount,
-                                unit_of_value = unit,
+                                #value = amountpay,
+                                #unit_of_value = unit,
                                 from_agent = self.agent,
                                 to_agent = self.project.agent,
                                 is_contribution = xfer_pay.transfer_type.is_contribution,
@@ -1167,10 +1191,49 @@ class JoinRequest(models.Model):
                                 created_by = self.agent.user().user,
                                 commitment = commit_pay2,
                             )
-                            #evt2.save()
+                            if created:
+                                print " created Event: "+str(evt2)
+                                loger.info(" created Event: "+str(evt2))'''
+
+                        if xfer_share:
+                            evts = xfer_share.events.all()
+                            coms = xfer_share.commitments.all()
+                            commit_share = None
+                            commit_share2 = None
+                            if len(coms):
+                                # if has various commitments? TODO
+                                commit_share = coms[0]
+                                if len(coms) > 1 and coms[1]:
+                                  commit_share2 = coms[1]
+                                if not commit_share2:
+                                  commit_share2 = commit_share
 
                         # create commitments for shares
-                        sh_com, created = Commitment.objects.get_or_create(
+                        if not commit_share:
+                            commit_share, created = Commitment.objects.get_or_create(
+                                event_type = et_give,
+                                commitment_date = datetime.date.today(),
+                                due_date = datetime.date.today() + datetime.timedelta(days=4), # TODO custom process delaytime by project
+                                resource_type = shtype, #account_type,
+                                exchange = ex,
+                                transfer = xfer_share,
+                                exchange_stage = ex.exchange_type,
+                                context_agent = self.project.agent,
+                                quantity = amount,
+                                unit_of_quantity = account_type.unit_of_price,
+                                #value = amountpay,
+                                #unit_of_value = unit, #account_type.unit_of_price,
+                                from_agent = self.project.agent,
+                                to_agent = self.agent,
+                                #description = description,
+                                created_by = self.agent.user().user,
+                            )
+                            if created:
+                                print "- created Commitment: "+str(commit_share)
+                                loger.info("- created Commitment: "+str(commit_share))
+
+
+                        '''sh_com, created = Commitment.objects.get_or_create(
                             event_type = et_give,
                             commitment_date = datetime.date.today(),
                             due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
@@ -1188,6 +1251,9 @@ class JoinRequest(models.Model):
                             #description = description,
                             created_by = self.agent.user().user,
                         )
+                        if created:
+                            print "- created Commitment: "+str(sh_com)
+                            loger.info("- created Commitment: "+str(sh_com))
 
                         sh_com2, created = Commitment.objects.get_or_create(
                             event_type = et_receive,
@@ -1207,37 +1273,53 @@ class JoinRequest(models.Model):
                             #description = description,
                             created_by = self.agent.user().user,
                         )
+                        if created:
+                            print "- created Commitment: "+str(sh_com2)
+                            loger.info("- created Commitment: "+str(sh_com2))'''
+
                         # create share events
-                        """if not evts:
+                        if not evts:
+
+                            sh_evt, created = EconomicEvent.objects.get_or_create(
+                                event_type = et_give,
+                                event_date = datetime.date.today(),
+                                resource_type = shtype, #account_type,
+                                #resource=event_res,
+                                transfer = xfer_share,
+                                exchange_stage = ex.exchange_type,
+                                context_agent = self.project.agent,
+                                quantity = amount,
+                                unit_of_quantity = account_type.unit_of_price,
+                                #value = amountpay,
+                                #unit_of_value = unit, #account_type.unit_of_price,
+                                from_agent = self.project.agent,
+                                to_agent = self.agent,
+                                is_contribution = xfer_share.transfer_type.is_contribution,
+                                is_to_distribute = xfer_share.transfer_type.is_to_distribute,
+                                #event_reference = gateref,
+                                created_by = self.agent.user().user,
+                                commitment = commit_share,
+                                exchange = ex,
+                            )
+                            if created:
+                                print "- created Event: "+str(sh_evt)
+                                loger.info("- created Event: "+str(sh_evt))
+
                             # transfer shares
-                            user_rts = list(set([arr.resource.resource_type for arr in req.agent.resource_relationships()]))
+                            user_rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
                             for rt in user_rts:
                                 if rt == account_type: # match the account type to update the value
-                                    rss = list(set([arr.resource for arr in req.agent.resource_relationships()]))
+                                    rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
                                     for rs in rss:
                                         if rs.resource_type == rt:
                                             rs.price_per_unit += amount # update the price_per_unit with payment amount
                                             rs.save()
-                        sh_evt, created = EconomicEvent.objects.get_or_create(
-                            event_type = et_give,
-                            event_date = datetime.date.today(),
-                            resource_type = account_type,
-                            #resource=event_res,
-                            transfer = xfer_share,
-                            exchange_stage = ex.exchange_type,
-                            context_agent = project.agent,
-                            quantity = 1,
-                            unit_of_quantity = account_type.unit,
-                            value = amount,
-                            unit_of_value = account_type.unit_of_price,
-                            from_agent = project.agent,
-                            to_agent = req.agent,
-                            is_contribution = False, #xfer_pay.transfer_type.is_contribution,
-                            is_to_distribute = False, #xfer_pay.transfer_type.is_to_distribute,
-                            #event_reference = gateref,
-                            created_by = req.agent.user().user,
-                        )
-                        sh_evt2, created = EconomicEvent.objects.get_or_create(
+                                            print "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs)
+                                            loger.info("Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
+                                            #messages.info(request, "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
+
+
+                        """sh_evt2, created = EconomicEvent.objects.get_or_create(
                             event_type = et_receive,
                             event_date = datetime.date.today(),
                             resource_type = account_type,
@@ -1260,6 +1342,7 @@ class JoinRequest(models.Model):
                         return True
 
                     elif status == 'pending':
+
                         if not commit_pay:
                             commit_pay, created = Commitment.objects.get_or_create(
                                 event_type = et_give,
@@ -1270,16 +1353,19 @@ class JoinRequest(models.Model):
                                 transfer = xfer_pay,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = amount,
+                                quantity = amountpay,
                                 unit_of_quantity = unit,
-                                value = amount,
-                                unit_of_value = unit,
+                                #value = amount,
+                                #unit_of_value = account_type.unit_of_price,
                                 from_agent = self.agent,
                                 to_agent = self.project.agent,
                                 #description = description,
                                 created_by = self.agent.user().user,
                             )
-                        if not commit_pay2:
+                            if created:
+                                print "- created Commitment: "+str(commit_pay)
+                                loger.info("- created Commitment: "+str(commit_pay))
+                        '''if not commit_pay2:
                             commit_pay2, created = Commitment.objects.get_or_create(
                                 event_type = et_receive,
                                 commitment_date = datetime.date.today(),
@@ -1289,15 +1375,18 @@ class JoinRequest(models.Model):
                                 transfer = xfer_pay,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = amount,
+                                quantity = amountpay,
                                 unit_of_quantity = unit,
-                                value = amount,
-                                unit_of_value = unit,
+                                #value = amountpay,
+                                #unit_of_value = unit,
                                 from_agent = self.agent,
                                 to_agent = self.project.agent,
                                 #description = description,
                                 created_by = self.agent.user().user,
                             )
+                            if created:
+                                print "- created Commitment: "+str(commit_pay2)
+                                loger.info("- created Commitment: "+str(commit_pay2))'''
 
                         if xfer_share:
                             evts = xfer_share.events.all()
@@ -1307,50 +1396,56 @@ class JoinRequest(models.Model):
                             if len(coms):
                                 # if has various commitments? TODO
                                 commit_share = coms[0]
-                                if coms[1]:
+                                if len(coms) > 1 and coms[1]:
                                   commit_share2 = coms[1]
                                 if not commit_share2:
                                   commit_share2 = commit_share
 
                             # create commitments for shares
-                            """if not commit_share:
+                            if not commit_share:
                                 commit_share, created = Commitment.objects.get_or_create(
                                     event_type = et_give,
                                     commitment_date = datetime.date.today(),
-                                    due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
-                                    resource_type = account_type,
+                                    due_date = datetime.date.today() + datetime.timedelta(days=4), # TODO custom process delaytime by project
+                                    resource_type = shtype, #account_type,
                                     exchange = ex,
                                     transfer = xfer_share,
                                     exchange_stage = ex.exchange_type,
                                     context_agent = self.project.agent,
                                     quantity = amount,
-                                    unit_of_quantity = account_type.unit,
-                                    value = amount,
-                                    unit_of_value = account_type.unit_of_price,
+                                    unit_of_quantity = account_type.unit_of_price,
+                                    #value = amountpay,
+                                    #unit_of_value = unit,
                                     from_agent = self.project.agent,
                                     to_agent = self.agent,
                                     #description = description,
                                     created_by = self.agent.user().user,
                                 )
-                            if not commit_share2:
+                                if created:
+                                    print "- created Commitment: "+str(commit_share)
+                                    loger.info("- created Commitment: "+str(commit_share))
+                            '''if not commit_share2:
                                 commit_share2, created = Commitment.objects.get_or_create(
                                     event_type = et_receive,
                                     commitment_date = datetime.date.today(),
-                                    due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
-                                    resource_type = account_type,
+                                    due_date = datetime.date.today() + datetime.timedelta(days=4), # TODO custom process delaytime by project
+                                    resource_type = shtype, #account_type,
                                     exchange = ex,
                                     transfer = xfer_share,
                                     exchange_stage = ex.exchange_type,
                                     context_agent = self.project.agent,
                                     quantity = amount,
-                                    unit_of_quantity = account_type.unit,
-                                    value = amount,
-                                    unit_of_value = account_type.unit_of_price,
+                                    unit_of_quantity = account_type.unit_of_price,
+                                    #value = amount,
+                                    #unit_of_value = account_type.unit_of_price,
                                     from_agent = self.project.agent,
                                     to_agent = self.agent,
                                     #description = description,
                                     created_by = self.agent.user().user,
-                                )"""
+                                )
+                                if created:
+                                    print "- created Commitment: "+str(commit_share2)
+                                    loger.info("- created Commitment: "+str(commit_share2))'''
 
                         return True
 
