@@ -8914,13 +8914,16 @@ class Exchange(models.Model):
         for slot in slots:
             slot.xfers = []
             slot.total = 0
+            slot.total_unit = None
             for transfer in transfers:
                 if transfer.transfer_type == slot:
                     slot.xfers.append(transfer)
                     if transfer.actual_value():
                         slot.total += transfer.actual_value()
+                        slot.total_unit = transfer.unit_of_value()
                     elif transfer.actual_quantity():
                         slot.total += transfer.actual_quantity()
+                        slot.total_unit = transfer.unit_of_quantity()
             if slot.is_incoming(self, context_agent): #is_reciprocal:
                 slot.default_from_agent = default_to_agent
                 slot.default_to_agent = context_agent #default_from_agent
@@ -9674,7 +9677,7 @@ class Transfer(models.Model):
 
     def status(self):
         if self.exchange.exchange_type.use_case.identifier == 'intrnl_xfer':
-            need_evts = 2
+            need_evts = 1 #2
         else:
             need_evts = 1
         status = '??'
@@ -9692,6 +9695,7 @@ class Transfer(models.Model):
             status = 'pending' #str([ev.id for ev in events])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
         else:
           status = 'empty'
+        #import pdb; pdb.set_trace()
         return status
 
 

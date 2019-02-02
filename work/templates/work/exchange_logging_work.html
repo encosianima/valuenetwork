@@ -208,12 +208,12 @@ h3.trtheading {
                       {% trans "Payment gateway" %}: <b>{{ exchange.join_request.payment_gateway }}</b>
                     </p>
                 {% endif %}
-                <p><span class="total-top">{% trans "Total transfer value" %}: {{ total_t }} </span></p>
+                <p><span class="total-top">{% trans "Total transfer value" %}: {{ total_t }} {% if total_t %}{{ total_t_unit }}{% endif %}</span></p>
                 <p>
-                  <span class="total-top">{% trans "Total reciprocal transfer value" %}: {{ total_rect }} </span>
+                  <span class="total-top">{% trans "Total reciprocal transfer value" %}: {{ total_rect }} {% if total_rect %}{{ total_rect_unit }}{% endif %}</span>
                 </p>
             </div>
-            {% if not exchange.join_request.agent == request.user.agent.agent %}
+            {% if not exchange.join_request.agent == request.user.agent.agent and logger %}
             <form class="validateMe miniform" id="exchangeForm" method="POST" action="" style="padding-bottom:13px;">
                 {% csrf_token %}
                 {{ exchange_form|as_bootstrap }}
@@ -262,7 +262,7 @@ h3.trtheading {
                                 {% endif %}
 
                             </h3>
-                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }} {% if request.user.is_superuser and slot.is_share %} &nbsp; &nbsp; Share: <em><b>{{ slot.is_share.name }}</b></em> {% endif %}</p>
+                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }} {% if slot.total %}{{ slot.total_unit }}{% endif %} {% if request.user.is_superuser and slot.is_share %} &nbsp; &nbsp; Share: <em><b>{{ slot.is_share.name }}</b></em> {% endif %}</p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
@@ -770,7 +770,7 @@ h3.trtheading {
                                     {% endif %}
                                 {% endif %}
                             </h3>
-                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }} {% if request.user.is_superuser and slot.is_share %} &nbsp; &nbsp; Share: <em><b>{{ slot.is_share.name }}</b></em> {% endif %}</p>
+                            <p style="total">Status: <span class="{{ slot.status }}">{{ slot.status|title }}</span> &nbsp; &nbsp; Total: {{ slot.total }} {% if slot.total %}{{ slot.total_unit }}{% endif %} {% if request.user.is_superuser and slot.is_share %} &nbsp; &nbsp; Share: <em><b>{{ slot.is_share.name }}</b></em> {% endif %}</p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
                                   <div class="modal hide fade" id="addTransferModal{{ slot.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer{{ slot.id }}" aria-hidden="true">
@@ -1254,7 +1254,7 @@ h3.trtheading {
             </div>
             {% endif %}
 
-            {% if not exchange.join_request.agent == request.user.agent.agent %}
+            {% if not exchange.join_request.agent == request.user.agent.agent and exchange.join_request.project.agent.need_tasks %}
             <div class="log-section infobox2">
                 <h3 style="margin-bottom: 4px;" >
                     {% trans "Work" %}
@@ -1398,7 +1398,7 @@ h3.trtheading {
 
       //$(".chzn-results").menu();
 
-		  $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+      $('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
 
       $('#work-info').popover();
       $('#xfer-info').popover();
