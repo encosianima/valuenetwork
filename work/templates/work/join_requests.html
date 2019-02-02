@@ -123,7 +123,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                   {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
                                   {% else %}
                                     {% if request.user.is_superuser and not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
-                                      <!-- <form
+                                      <form
                                           class="action-form"
                                           id="status-form{{ req.id }}"
                                           action="{% url "update_share_payment" join_request_id=req.id %}"
@@ -131,7 +131,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                         {% csrf_token %}
                                         <input type="hidden" name="status" value="pending">
                                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                                      </form> -->
+                                      </form>
                                       <span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
                                     {% endif %}
                                     {% if request.user.is_superuser %}

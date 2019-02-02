@@ -103,7 +103,7 @@
 
                                 {% if resource.resource_type.is_virtual_account and fil.name == "price_per_unit" %}
                                   <label>{% trans "Account Value" %}:</label>
-                                  {% if request.user.agent.agent in resource.resource_type.context_agent.managers %}
+                                  {% if request.user.is_superuser and request.user.agent.agent in resource.resource_type.context_agent.managers %}
                                     {% if resource.resource_type.unit_of_price.gen_unit %}
                                       {% if resource.resource_type.unit_of_price.gen_unit.unit_type.ocp_artwork_types %}
                                         {% if resource.resource_type.unit_of_price.gen_unit.unit_type.ocp_artwork_types.first.is_share %}
