@@ -1,5 +1,9 @@
 from work.models import Ocp_Skill_Type, Ocp_Artwork_Type
-from general.models import Artwork_Type, Job
+from general.models import Artwork_Type, Job, UnitRatio
+
+from django.forms import ValidationError
+import logging
+logger = logging.getLogger("ocp")
 
 def get_rt_from_ocp_rt(gen_rt):
     rt = None
@@ -76,7 +80,29 @@ def set_user_notification_by_type(user, notification_type="work_new_account", se
     return sett
 
 
-
+def convert_price(amount, shunit, unit):
+    if amount and shunit and unit:
+        if not shunit == unit:
+            try:
+                ratio = UnitRatio.objects.get(in_unit=shunit.gen_unit, out_unit=unit.gen_unit).rate
+                price = amount/ratio
+            except:
+                print "No UnitRatio with in_unit '"+str(shunit.gen_unit)+"' and out_unit: "+str(unit.gen_unit)+". Trying reversed..."
+                #logger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
+                try:
+                    ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=shunit.gen_unit).rate
+                    price = amount*ratio
+                except:
+                    print "No UnitRatio with out_unit '"+str(shunit.gen_unit)+"' and in_unit: "+str(unit.gen_unit)+". Aborting..."
+                    logger.info("No UnitRatio with out_unit '"+str(shunit.gen_unit)+"' and in_unit: "+str(unit.gen_unit)+". Aborting...")
+                    raise ValidationError("Can't find the UnitRatio to convert the price to "+str(unit.gen_unit)+" from "+str(shunit))
+            amount = round(price, 4)
+        else:
+            print "Skip convert price, same unit: "+str(unit)
+        return amount
+    else:
+        raise ValidationError("Convert_price without amount, unit1 or unit2 ??")
+        return False
 
 """
 def init_resource_types():

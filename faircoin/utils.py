@@ -149,6 +149,10 @@ def get_address_index(address):
     return send_command('get_address_index', [address])
 
 
+def faircoin_rt():
+    from valuenetwork.valueaccounting.models import EconomicResourceType
+    fc = EconomicResourceType.objects.get(name='FairCoin')
+    return fc
 
 
 def share_price_in_fairs(jn_req):
@@ -170,7 +174,7 @@ def share_price_in_fairs(jn_req):
                 print "No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting..."
                 logger.info("No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting...")
                 raise ValidationError("Can't find the UnitRatio to convert the price to faircoin from "+str(unit))
-        amount = price
+        amount = round(price, 4)
     else:
         amount = jn_req.project.shares_type().price_per_unit
     return amount

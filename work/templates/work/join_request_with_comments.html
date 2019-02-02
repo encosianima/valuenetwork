@@ -13,6 +13,11 @@
 
 <style>
 
+form.action-form {
+    display: inline-block;
+    margin: 0;
+}
+
 .description {
     margin-top: 0;
     margin-bottom: 0;
@@ -209,7 +214,32 @@ a.more-link {
               <tr><th>{% trans "Shares Pending" %}:</th>
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
                   {% if req.exchange %}
-                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b>
+                    &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b>
+                    {% if user_agent in req.project.agent.managers %} &nbsp; &nbsp;
+                        <form
+                              class="action-form"
+                              id="status-form{{ req.id }}"
+                              action="{% url "update_share_payment" join_request_id=req.id %}"
+                              method="POST" >
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="complete">
+                            <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                            <span class="help-text" style="font-size:0.8em">{% trans "(This will set the payment as done and transfer the shares)" %}</span>
+                        </form>
+                    {% endif %}
+                  {% else %}
+                    {% if user_agent in req.project.agent.managers %} &nbsp; &nbsp;
+                        <form
+                              class="action-form"
+                              id="status-form{{ req.id }}"
+                              action="{% url "update_share_payment" join_request_id=req.id %}"
+                              method="POST" >
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="pending">
+                            <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                        </form>
+                        <span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
+                    {% endif %}
                   {% endif %}
                   {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
                     {% if req.payment_url %}
@@ -241,6 +271,20 @@ a.more-link {
               <tr><th>{% trans "Total owned Shares" %}:</th>
                   <td>
                       <b>{{ req.total_shares }}</b>
+                      {% if not req.pending_shares and not req.check_user_pass and not req.state == "accepted" %}
+                          {% if not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
+                              {% if request.user.agent.agent in req.project.agent.managers %} &nbsp; &nbsp;
+                                  <form
+                                      class="action-form"
+                                      id="accept-form{{ req.id }}"
+                                      action="{% url "accept_request" join_request_id=req.id %}"
+                                      method="POST" >
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Accept Member" %}' />
+                                  </form>
+                              {% endif %}
+                          {% endif %}
+                      {% endif %}
                   </td>
               </tr>
             {% endif %}

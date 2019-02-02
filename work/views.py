@@ -324,32 +324,60 @@ def share_payment(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agent_account = agent.faircoin_resource()
     balance = agent_account.digital_currency_balance()
-    candidate_membership = agent.candidate_membership()
-    share = EconomicResourceType.objects.membership_share()
-    share_price = share.price_per_unit
-    number_of_shares = agent.number_of_shares()
-    share_price = share_price * number_of_shares
-    network_fee = faircoin_utils.network_fee()
-
-    if share_price <= balance and network_fee:
-        pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
-        pay_to_agent = EconomicAgent.objects.get(nick=pay_to_id)
+    pro_agent = None
+    req = None
+    if request.method == "POST":
+        try:
+            req_id = request.POST.get('join_request')
+            req = JoinRequest.objects.get(id=req_id)
+            pro_agent = req.project #EconomicAgent.objects.get(id=cont_id)
+            #loger.warning("Found the context agent of the share's payment: "+str(cont_id))
+            #return True
+        except:
+            loger.warning("Can't find the context agent of the share's payment!")
+            return False
+    if pro_agent and req:
+      candidate_membership = agent.candidate_membership(pro_agent)
+      share = pro_agent.project.shares_type() #EconomicResourceType.objects.membership_share()
+      share_price = faircoin_utils.share_price_in_fairs(req)
+      number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
+      share_price = share_price * number_of_shares
+      network_fee = faircoin_utils.network_fee()
+      fair_rt = faircoin_utils.faircoin_rt()
+      cand_shacc = req.agent.owned_shares_accounts(pro_agent.shares_account_type())
+      if not cand_shacc:
+            raise ValidationError("Can't find the candidate share's account of type: "+str(pro_agent.shares_account_type()))
+      if share_price <= balance and network_fee:
+        #pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
+        pay_to_agent = pro_agent #EconomicAgent.objects.get(nick=pay_to_id)
         pay_to_account = pay_to_agent.faircoin_resource()
         quantity = Decimal(share_price)
         address_origin = agent_account.faircoin_address.address
         address_end = pay_to_account.faircoin_address.address
-        xt = ExchangeType.objects.membership_share_exchange_type()
-        tts = xt.transfer_types.all()
-        tt_share = tts.get(name__contains="Share")
-        tt_fee = tts.get(name__contains="Fee")
+        xt = req.exchange_type() #ExchangeType.objects.membership_share_exchange_type()
+        if not xt:
+            raise ValidationError("Can't find the exchange_type related the jn_req! "+str(req))
+
+        #tts = xt.transfer_types.all()
+        #tt_share = tts.get(name__contains="Share")
+        #tt_fee = tts.get(name__contains="Fee")
         from_agent = agent
         to_resource = pay_to_account
         to_agent = pay_to_agent
-        et_give = EventType.objects.get(name="Give")
-        et_receive = EventType.objects.get(name="Receive")
+        #et_give = EventType.objects.get(name="Give")
+        #et_receive = EventType.objects.get(name="Receive")
         date = datetime.date.today()
-        fc = EconomicAgent.objects.freedom_coop()
+        #fc = EconomicAgent.objects.freedom_coop()
 
+        exchange = req.exchange
+        if not exchange:
+            raise ValidationError("Can't find the exchange related the shares payment!")
+        evts = exchange.events()
+        if evts:
+            raise ValidationError("The exchange already has events? "+str(evts))
+
+        '''if not tt_fee or not tt_share:
+            raise ValidationError("Can't find some transfer types! ")
         exchange = Exchange(
             exchange_type=xt,
             use_case=xt.use_case,
@@ -372,11 +400,35 @@ def share_payment(request, agent_id):
             transfer_date=date,
             name="Transfer Membership",
             )
-        transfer_membership.save()
+        transfer_membership.save()'''
+
 
         state =  "new"
+
+        updated = req.update_payment_status('complete', address_end)
+        if not updated:
+            raise ValidationError("Error updating the payment status.")
+        evts = exchange.events()
+        for ev in evts:
+            if ev.resource_type == req.payment_unit_rt() and ev.resource_type == fair_rt:
+                fairtx = FaircoinTransaction(
+                    event = ev,
+                    tx_state = state,
+                    to_address = address_end,
+                    amount = quantity,
+                    minus_fee = True,
+                )
+                fairtx.save()
+                print "- created FaircoinTransaction: "+str(fairtx)
+                loger.info("- created FaircoinTransaction: "+str(fairtx))
+                if not ev.event_reference == address_end:
+                    ev.event_reference = address_end
+                    ev.save()
+                break
+
+
         resource = agent_account
-        event = EconomicEvent(
+        '''event = EconomicEvent(
             event_type = et_give,
             event_date = date,
             from_agent=from_agent,
@@ -389,6 +441,7 @@ def share_payment(request, agent_id):
             created_by=request.user,
             )
         event.save()
+
         fairtx = FaircoinTransaction(
             event = event,
             tx_state = state,
@@ -397,7 +450,6 @@ def share_payment(request, agent_id):
             minus_fee = True,
         )
         fairtx.save()
-
 
 
         event = EconomicEvent(
@@ -422,23 +474,18 @@ def share_payment(request, agent_id):
         )
         fairtx.save()
 
+        # update shares in account
         quantity = Decimal(number_of_shares)
-        resource = EconomicResource(
-            resource_type=share,
-            quantity=quantity,
-            identifier=" ".join([from_agent.name, share.name]),
-            )
-        resource.save()
+        cand_shacc.price_per_unit += quantity
+        cand_shacc.save()
+        resource = cand_shacc
 
-        owner_role = AgentResourceRoleType.objects.owner_role()
+        req.exchange = exchange
+        req.state = 'active'
+        req.save()
 
-        arr = AgentResourceRole(
-            agent=from_agent,
-            resource=resource,
-            role=owner_role,
-            is_contact=True,
-            )
-        arr.save()
+
+        # transfered shares events
 
         event = EconomicEvent(
             event_type = et_give,
@@ -466,27 +513,27 @@ def share_payment(request, agent_id):
             )
         event.save()
 
-        aa = agent.candidate_association()
-
+        # update relation
+        aa = req.agent_relation() #agent.candidate_association()
         if aa:
-            if aa.has_associate == pay_to_agent:
-                aa.delete()
-
-        association_type = AgentAssociationType.objects.get(name="Member")
-        fc_aa = AgentAssociation(
-            is_associate=agent,
-            has_associate=fc,
-            association_type=association_type,
-            state="active",
-            )
-        fc_aa.save()
+            association_type = AgentAssociationType.objects.get(name="Member")
+            if aa.association_type == association_type:
+                if aa.state == 'potential':
+                    aa.state = 'active'
+                    aa.save()
+                else:
+                    raise ValidationError("The relation is not 'potential'? "+str(aa))
+            else:
+                raise ValidationError("The relation type is not 'Member'? "+str(aa))
+        else:
+            raise ValidationError("Can't find the agent relation!")'''
 
     elif network_fee is None:
         messages.error(request,
             'Sorry, payment with faircoin is not available now. Try later.')
 
-    return HttpResponseRedirect('/%s/'
-        % ('work/home'))
+    return redirect('project_feedback', agent_id=req.agent.id, join_request_id=req.id) #HttpResponseRedirect('/%s/'
+        #% ('work/home'))
 
 
 def membership_request(request):
@@ -2582,7 +2629,11 @@ def project_update_payment_status(request, project_slug=None):
                 if not unit == punit:
                     raise ValidationError("The unit in the post is not the same as in the join_request!! "+str(unit)+" != "+str(punit))
 
-            req.update_payment_status(status, gateref)
+            done = req.update_payment_status(status, gateref)
+            if done:
+                return redirect('project_feedback', agent_id=req.project.agent.id, join_request_id=req.id)
+            else:
+                raise ValidationError("Unkown error updating the status of the payment")
 
         else:
             raise ValidationError("Can't find a false join request: "+str(req))
@@ -2792,16 +2843,30 @@ def accept_request(request, join_request_id):
     mbr_req.save()
 
     # modify relation to active
-    association_type = AgentAssociationType.objects.get(identifier="participant")
-    try:
-      association, created = AgentAssociation.objects.get_or_create(is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=association_type)
-      association.state = "active"
-      association.save()
-    except:
-      pass
+    aas = AgentAssociation.objects.filter(is_associate=mbr_req.agent, has_associate=mbr_req.project.agent)
+    association = None
+    if mbr_req.project.shares_type():
+        association_type = AgentAssociationType.objects.get(identifier="member")
+        if len(aas) == 1 and not aas[0].association_type == association_type and not aas[0].association_type.identifier == 'manager':
+            association = aas[0]
+            association.association_type = association_type
+            association.save()
+            loger.warning("Changed the association_type from 'participant' to 'member' because the project involves shares.")
+            messages.warning(request, "Changed the association_type from 'participant' to 'member' because the project involves shares.")
+    else:
+        association_type = AgentAssociationType.objects.get(identifier="participant")
+    if not association:
+        association, created = AgentAssociation.objects.get_or_create(
+            is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=association_type)
+        if created:
+            print "- created AgentAssociation: "+str(association)
+            loger.info("- created AgentAssociation: "+str(association))
+    association.state = "active"
+    association.save()
+    messages.info(request, "- modified AgentAssociation to active: "+str(association))
 
     return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
+        % ('work/project-feedback', mbr_req.project.agent.id, join_request_id))
 
 @login_required
 def update_share_payment(request, join_request_id):
@@ -2819,7 +2884,7 @@ def update_share_payment(request, join_request_id):
         notes = request.POST.get("notes")
         next = request.POST.get("next")
         if not next:
-            next = "join_requests"
+            next = "project_feedback"
         if status:
             jn_req.update_payment_status(status, gateref, notes)
         else:
@@ -2827,7 +2892,7 @@ def update_share_payment(request, join_request_id):
     else:
         raise ValidationError("The request has no POST data!")
 
-    return redirect(next, agent_id=jn_req.project.agent.id) #'/%s/%s/%s/'
+    return redirect(next, agent_id=jn_req.project.agent.id, join_request_id=jn_req.id) #'/%s/%s/%s/'
         #% ('work/agent', jn_req.project.agent.id, 'join-requests'))
 
 
@@ -4567,7 +4632,9 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
 
         slots = []
         total_t = 0
+        total_t_unit = None
         total_rect = 0
+        total_rect_unit = None
         work_events = exchange.work_events()
         slots = exchange.slots_with_detail(context_agent)
 
@@ -4576,16 +4643,20 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                 #pass
                 total_rect = total_rect + slot.total
                 slot.is_income = True
+                total_rect_unit = slot.total_unit
             elif slot.is_incoming(exchange, context_agent) == False:
                 total_t = total_t + slot.total
                 slot.is_income = False
+                total_t_unit = slot.total_unit
                 #pass
             elif slot.is_reciprocal:
                 total_rect = total_rect + slot.total
                 slot.is_income = True
+                total_rect_unit = slot.total_unit
             else:
                 total_t = total_t + slot.total
                 slot.is_income = False
+                total_t_unit = slot.total_unit
 
         if agent:
             if request.user == exchange.created_by or context_agent in agent.managed_projects() or context_agent == agent:
@@ -4681,7 +4752,9 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
         "work_events": work_events,
         "add_work_form": add_work_form,
         "total_t": total_t,
+        "total_t_unit": total_t_unit,
         "total_rect": total_rect,
+        "total_rect_unit": total_rect_unit,
         "help": get_help("exchange"),
         #"add_type": add_new_type_mkp(),
     })
@@ -5641,6 +5714,7 @@ def create_project_shares(request, agent_id):
 
     user_agent = get_agent(request)
     if not user_agent or not request.user.is_superuser or not project.fobi_slug: # or not project.share_types()
+        loger.warning("No project fobi slug? "+str(project)+" or not user_agent")
         return render(request, 'work/no_permission.html')
 
     # Project Shares
@@ -6001,13 +6075,13 @@ def create_shares_exchange_types(request, agent_id):
         ttpay = ttpays[0]
     else:
         ttpay, created = TransferType.objects.get_or_create(
-            name="Payment of the Project shares",
+            name="Give the payment of the Project shares",
             exchange_type=etsh
         )
         if created:
-            print "- created TransferType: 'Payment of the Project shares'"
-            loger.info("- created TransferType: 'Payment of the Project shares'")
-    ttpay.name = "Payment of the Project shares"
+            print "- created TransferType: 'Give the payment of the Project shares'"
+            loger.info("- created TransferType: 'Give the payment of the Project shares'")
+    ttpay.name = "Give the payment of the Project shares"
     ttpay.exchange_type = etsh
     ttpay.sequence = 1
     ttpay.give_agent_is_context = False
@@ -6150,12 +6224,12 @@ def create_shares_exchange_types(request, agent_id):
             ttpay = ttpays[0]
         else:
             ttpay, created = TransferType.objects.get_or_create(
-                name="Payment of the "+str(project.agent.name)+" shares",
+                name="Give the payment of the "+str(project.agent.name)+" shares",
                 exchange_type=extyp)
             if created:
-                print "- created TransferType: 'Payment of the "+str(project.agent.name)+" shares'"
-                loger.info("- created TransferType: 'Payment of the "+str(project.agent.name)+" shares'")
-        ttpay.name = "Payment of the "+str(project.agent.name)+" shares"
+                print "- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares'"
+                loger.info("- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares'")
+        ttpay.name = "Give the payment of the "+str(project.agent.name)+" shares"
         ttpay.exchange_type = extyp
         ttpay.sequence = 1
         ttpay.give_agent_is_context = True
@@ -6216,6 +6290,7 @@ def create_shares_exchange_types(request, agent_id):
         if created:
             print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
             loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
+
 
 
         curfacet = Facet.objects.get(name="Currency")
@@ -6349,15 +6424,15 @@ def create_shares_exchange_types(request, agent_id):
                 ttpay = ttpays[0]
             else:
                 ttpay, created = TransferType.objects.get_or_create(
-                    name="Payment of the Non-material ("+slug+")",
+                    name="Give the payment of the Non-material ("+slug+")",
                     exchange_type=etfiat_non
                     #give_agent_is_context=True,
                 )
                 if created:
-                    print "- created TransferType: 'Payment of the Non-material ("+slug+")'"
-                    loger.info("- created TransferType: 'Payment of the Non-material ("+slug+")'")
+                    print "- created TransferType: 'Give the payment of the Non-material ("+slug+")'"
+                    loger.info("- created TransferType: 'Give the payment of the Non-material ("+slug+")'")
 
-            ttpay.name = "Payment of the Non-material ("+slug+")"
+            ttpay.name = "Give the payment of the Non-material ("+slug+")"
             ttpay.exchange_type = etfiat_non
             ttpay.sequence = 1
             ttpay.give_agent_is_context = False
@@ -6480,13 +6555,13 @@ def create_shares_exchange_types(request, agent_id):
                 ttfiat = ttfiats[0]
             else:
                 ttfiat, created = TransferType.objects.get_or_create(
-                    name="Payment of the Shares ("+slug+")",
+                    name="Give the payment of the Shares ("+slug+")",
                     exchange_type=etfiat_shr,
                 )
                 if created:
-                    print "- created TransferType: 'Payment of the Shares ("+slug+")'"
-                    loger.info("- created TransferType: 'Payment of the Shares ("+slug+")'")
-            ttfiat.name = "Payment of the Shares ("+slug+")"
+                    print "- created TransferType: 'Give the payment of the Shares ("+slug+")'"
+                    loger.info("- created TransferType: 'Give the payment of the Shares ("+slug+")'")
+            ttfiat.name = "Give the payment of the Shares ("+slug+")"
             ttfiat.sequence = 1
             ttfiat.exchange_type = etfiat_shr
             ttfiat.give_agent_is_context = False
@@ -6591,9 +6666,9 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 ttpay.pk = None
                 ttpay.id = None
-                print "- created TransferType: 'Payment of the "+str(project.agent.name)+" shares ("+slug+")'"
-                loger.info("- created TransferType: 'Payment of the "+str(project.agent.name)+" shares ("+slug+")'")
-            ttpay.name = "Payment of the "+str(project.agent.name)+" shares ("+slug+")"
+                print "- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares ("+slug+")'"
+                loger.info("- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares ("+slug+")'")
+            ttpay.name = "Give the payment of the "+str(project.agent.name)+" shares ("+slug+")"
             ttpay.exchange_type = fiat_et
             ttpay.sequence = 1
             ttpay.give_agent_is_context = False
