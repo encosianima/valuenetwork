@@ -778,6 +778,17 @@ class EconomicAgent(models.Model):
             answer = True
         return answer
 
+    def owned_resource_of_type(self, resource_type):
+        answer = None
+        arrs = self.agent_resource_roles.filter(
+            role__is_owner=True,
+            resource__resource_type=resource_type)
+        if arrs:
+            if len(arrs) > 1:
+                loger.warning(str(self)+" has more than one owned_resource_of_type "+str(resource_type))
+            answer = arrs[0].resource
+        return answer
+
     def my_user(self):
         users = self.users.all()
         if users:
@@ -8607,6 +8618,7 @@ class TransferType(models.Model):
 
     def is_incoming(self, exchange, context_agent):
         transfers = exchange.transfers.all()
+        mem = None
         if transfers:
           for tx in transfers:
             if tx.transfer_type == self:
@@ -8614,6 +8626,12 @@ class TransferType(models.Model):
                 return True
               elif tx.from_agent() == context_agent:
                 return False
+            else:
+                mem = tx
+          if mem: # and mem.transfer_type.is_income: #ing(exchange, context_agent): #is_reciprocal:
+            return False
+          else: #if mem:
+            return True
         else:
             return self.is_reciprocal
 
@@ -8985,11 +9003,15 @@ class Exchange(models.Model):
         status = '??'
         arr = []
         trans = self.transfers.all()
+        tts = self.exchange_type.transfer_types.all()
         for tr in trans:
           if 'pending' in tr.status() or 'empty' in tr.status():
             arr.append(tr)
         if len(arr) < 1 and trans: #len(self.transfers.all()):
-          status = trans[0].status() #arr[0] #'complete'
+            if len(tts) > len(trans):
+                status = 'pending'
+            else:
+                status = trans[0].status() #arr[0] #'complete'
         elif arr:
           status = arr[0].status()
         else:
@@ -9681,8 +9703,8 @@ class Transfer(models.Model):
         else:
             need_evts = 1
         status = '??'
-        comits = self.commitments.filter(transfer=self)
-        events = self.events.filter(transfer=self)
+        comits = self.commitments.all() #filter(transfer=self)
+        events = self.events.all() #filter(transfer=self)
         if len(comits):
           if len(events) < len(comits) or not len(events) >= need_evts:
             status = 'pending' #str([ev.id for ev in events])+' '+str([co.id for co in comits])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
