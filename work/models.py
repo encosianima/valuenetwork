@@ -720,7 +720,7 @@ class JoinRequest(models.Model):
                                 if balance < amount:
                                     txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)s fairs."
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
-                                                      {'f':str(Decimal(amount - balance)), 'ac':'</b> '+addr+' <b>'})
+                                                      {'f':str(round(Decimal(amount - balance), 8)), 'ac':'</b> '+addr+' <b>'})
                                 else:
                                     txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
                                     txt += "</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
@@ -738,7 +738,7 @@ class JoinRequest(models.Model):
 
                     if not balance or not amount:
                       txt = "<span class='error'>"+txt+"</span>"
-                    return obj['html']+"<br>Amount to pay: <b> "+str(round(amount, 6))+" ƒ</b><br>"+txt
+                    return obj['html']+"<br>Amount to pay: <b> "+str(round(amount, 8))+" ƒ</b><br>"+txt
 
                   else:
                     # don't need internal faircoin

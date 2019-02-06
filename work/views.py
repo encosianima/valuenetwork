@@ -1055,6 +1055,7 @@ def run_fdc_scripts(request, agent):
     if not agent.name == "Freedom Coop":
         raise ValidationError("This is only intended for Freedom Coop agent migration")
     fdc = agent
+    if not hasattr(fdc, 'project'): return
     acctyp = fdc.project.shares_account_type()
     shrtyp = fdc.project.shares_type()
     oldshr = EconomicResourceType.objects.membership_share()
