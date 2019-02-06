@@ -296,7 +296,7 @@ a.more-link {
                                 {% csrf_token %}
                                 <input type="hidden" name="status" value="complete">
                                 <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                                <span class="help-text" style="font-size:0.8em">{% trans "(This will set the payment as done and transfer the shares)" %}</span>
+                                <span class="help-text" style="font-size:0.8em">{% trans "(This will only set the shares as transfered)" %}</span>
                             </form>
                         {% endif %}
                       {% elif not req.pending_shares %}

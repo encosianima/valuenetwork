@@ -1110,12 +1110,18 @@ class JoinRequest(models.Model):
         shtype = self.project.shares_type()
         shunit = shtype.unit_of_price
         amount2 = shtype.price_per_unit * self.pending_shares()
+
+        amountpay = amount2
+        if not shunit == unit and amount2: #unit.abbr == 'fair':
+            from work.utils import convert_price
+            amountpay = convert_price(amount2, shunit, unit)
+
         if amount2 and status == 'pending':
-          if not amount == amount2:
-            print "Repair amount! "+str(amount)+" -> "+str(amount2)
-            loger.info("Repair amount! "+str(amount)+" -> "+str(amount2))
-            raise ValidationError("Can't deal yet with partial payments... "+status)
-            amount = amount2
+          if not amount == amountpay:
+            print "Repair amount! "+str(amount)+" -> "+str(amount2)+" -> "+str(amountpay)
+            loger.info("Repair amount! "+str(amount)+" -> "+str(amount2)+" -> "+str(amountpay))
+            #raise ValidationError("Can't deal yet with partial payments... "+str(amount)+" <> "+str(amount2)+" amountpay:"+str(amountpay))
+            #amount = amountpay
         elif not amount2 and status == 'complete':
             print "No pending shares but something is missing, recheck! "+str(self)
 
@@ -1138,6 +1144,7 @@ class JoinRequest(models.Model):
                 tts = ex.exchange_type.transfer_types.all()
                 if len(xfers) < len(tts):
                     print "WARNING, some transfers are missing! repair? "
+                    loger.warning("WARNING, some transfers are missing! repair? ")
                     return
 
                 xfer_pay = None
@@ -1167,12 +1174,6 @@ class JoinRequest(models.Model):
                           commit_pay2 = coms[1]
                         if not commit_pay2:
                           commit_pay2 = commit_pay
-
-                    amountpay = amount
-                    if not shunit == unit: # and unit.abbr == 'fair':
-                        from work.utils import convert_price
-                        amountpay = convert_price(amount, shunit, unit)
-
 
                     if status == 'complete' or status == 'published':
 
@@ -1361,7 +1362,7 @@ class JoinRequest(models.Model):
                                             rs.save()
                                             print "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs)
                                             loger.info("Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
-                                            messages.info(request, "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
+                                            #messages.info(request, "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
                           else: # not pending_shares and not share events
                             date = agshac.created_date
                             print "No pending shares and no events related shares. Repair! total_shares:"+str(self.total_shares())+" date:"+str(date)

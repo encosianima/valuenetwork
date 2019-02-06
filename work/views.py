@@ -337,7 +337,7 @@ def share_payment(request, agent_id):
             loger.warning("Can't find the context agent of the share's payment!")
             return False
     if pro_agent and req:
-      candidate_membership = agent.candidate_membership(pro_agent)
+      #candidate_membership = agent.candidate_membership(pro_agent)
       share = pro_agent.project.shares_type() #EconomicResourceType.objects.membership_share()
       share_price = faircoin_utils.share_price_in_fairs(req)
       number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
@@ -527,6 +527,10 @@ def share_payment(request, agent_id):
                 raise ValidationError("The relation type is not 'Member'? "+str(aa))
         else:
             raise ValidationError("Can't find the agent relation!")'''
+
+      else:
+          loger.error("No enough funds or no network_fee")
+          messages.error(request, "No enough funds or no network_fee")
 
     elif network_fee is None:
         messages.error(request,
@@ -799,10 +803,21 @@ def migrate_fdc_shares(request, jr):
             messages.warning(request, "WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
             agrel.association_type = aamem
             agrel.save()
+    elif not agrels:
+        agrel, created = AgentAssociation.objects.get_or_create(
+            has_associate = jr.project.agent,
+            is_associate = jr.agent,
+            state = 'potential',
+            association_type = aamem)
+        if created:
+            print "- created missing AgentAssociation: "+str(agrel)
+            loger.info("- created missing AgentAssociation: "+str(agrel))
+            messages.info(request, "- created missing AgentAssociation: "+str(agrel))
     else:
-        print "FdC migrating agent has no one relation with FdC?? "+str(agrels)+" jr:"+str(jr)
-        loger.info("FdC migrating agent has no one relation with FdC?? "+str(agrels)+" jr:"+str(jr))
-        messages.error(request, "FdC migrating agent has no one relation with FdC?? "+str(agrels)) #+" jr:"+str(jr))
+        #agrels = jr.agent.is_associate_of.all() #filter(has_associate=jr.project.agent)
+        print "FdC migrating agent has more than one relation with FdC?? "+str(agrels)+" jr:"+str(jr)
+        loger.info("FdC migrating agent has more than one relation with FdC?? "+str(agrels)+" jr:"+str(jr))
+        messages.error(request, "FdC migrating agent has more than one relation with FdC?? "+str(agrels)) #+" jr:"+str(jr))
 
     fdcshrt = EconomicResourceType.objects.membership_share()
     shs = []
@@ -960,6 +975,10 @@ def migrate_fdc_shares(request, jr):
                         if not evt.exchange:
                             print "- add exchange to event? "+str(evt)+" ex:"+str(tx.exchange)
                             loger.info("- add exchange to event? "+str(evt)+" ex:"+str(tx.exchange))
+                        if not evt.to_agent == fdc:
+                            print "- change event to_agent to FdC! "+str(evt.to_agent)
+                            loger.info("- change event to_agent to FdC! "+str(evt.to_agent))
+                            #evt.to_agent = fdc
                         evt.exchange = ex
                         evt.exchange_stage = et
                         evt.context_agent = fdc
@@ -977,8 +996,35 @@ def migrate_fdc_shares(request, jr):
                 print "- Found transfer from FdC: "+str(tx)
                 loger.info("- Found transfer from FdC: "+str(tx))
               elif tx.to_agent() == fdc.parent():
-                print "Found exchange related to FdC parent! "+str(tx)
+                evs = tx.events.all()
+                cms = tx.commitments.all()
+                print "Found exchange related to FdC parent! "+str(tx)+" ca:"+str(tx.context_agent)+" evts:"+str(len(evs))+" coms:"+str(len(cms))
                 loger.info("Found exchange related to FdC parent! "+str(tx))
+                for ev in evs:
+                    if ev.to_agent == fdc.parent():
+                        print "- found event related fdc parent! change to_agent to fdc... "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address)
+                        loger.info("- found event related fdc parent! change to_agent to fdc... "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address))
+                        messages.info(request, "- found event related fdc parent! change to_agent to fdc... "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address))
+                        ev.to_agent = fdc
+                        ev.save()
+                    if ev.from_agent == fdc.parent():
+                        print "- found event related fdc parent! change from_agent to fdc... "+str(ev)
+                        loger.info("- found event related fdc parent! change from_agent to fdc... SKIP! "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address))
+                        ev.from_agent = fdc
+                        #ev.save()
+                for cm in cms:
+                    if cm.to_agent == fdc.parent():
+                        print "- found commitment related fdc parent! change to_agent to fdc... "+str(cm)
+                        loger.info("- found commitment related fdc parent! change to_agent to fdc... "+str(cm))
+                        messages.info(request, "- found commitment related fdc parent! change to_agent to fdc... "+str(cm))
+                        cm.to_agent = fdc
+                        cm.save()
+                    if cm.from_agent == fdc.parent():
+                        print "- found commitment related fdc parent! change from_agent to fdc... SKIP! "+str(cm)
+                        loger.info("- found commitment related fdc parent! change from_agent to fdc... SKIP! "+str(cm))
+                        cm.from_agent = fdc
+                        #cm.save()
+                return
               elif tx.from_agent() == fdc.parent():
                 print "Found exchange related from FdC parent! "+str(tx)
                 loger.info("Found exchange related from FdC parent! "+str(tx))
@@ -1128,17 +1174,17 @@ def run_fdc_scripts(request, agent):
                                 print "- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel)
                                 loger.info("- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel))
                                 messages.info(request, "- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel))
-                                if not fdc in relags:
-                                    agas, created = AgentAssociation.objects.get_or_create(
-                                        is_associate=ag,
-                                        has_associate=fdc,
-                                        association_type=aamem,
-                                        state='potential'
-                                    )
-                                    if created:
-                                        print "- created new candidate AgentAssociation (no shares): "+str(agas)
-                                        loger.info("- created new candidate AgentAssociation (no shares): "+str(agas))
-                                        messages.info(request, "- created new candidate AgentAssociation (no shares): "+str(agas))
+                            if not fdc in relags:
+                                agas, created = AgentAssociation.objects.get_or_create(
+                                    is_associate=ag,
+                                    has_associate=fdc,
+                                    association_type=aamem,
+                                    state='potential'
+                                )
+                                if created:
+                                    print "- created new candidate AgentAssociation (no shares): "+str(agas)
+                                    loger.info("- created new candidate AgentAssociation (no shares): "+str(agas))
+                                    messages.info(request, "- created new candidate AgentAssociation (no shares): "+str(agas))
                         else:
                             print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state)
                             loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state))
@@ -1172,7 +1218,7 @@ def run_fdc_scripts(request, agent):
                 else:
                     raise ValidationError("IMPOSSIBLE! FdC is related this agent? "+str(ag))
             else: # No relation with FdC or its parent
-                #pass #print "- Not found agent "+str(ag)+" in participants or candidates of FdC (but has membership request: "+str(ag.membership_requests.all().values_list('name', 'state'))+"), found: "+str(ag.is_associate_of.all())
+                print "- Not found agent "+str(ag)+" in participants or candidates of FdC (but has membership request: "+str(ag.membership_requests.all().values_list('name', 'state'))+"), found: "+str(ag.is_associate_of.all())
                 ress = list(rel.resource.resource_type for rel in ag.agent_resource_roles.all())
                 if not acctyp in ress and not oldshr in ress:
                     #print "- Not found "+str(acctyp)+" nor any old "+str(oldshr)+" in the agent resources" #: "+str(ress)

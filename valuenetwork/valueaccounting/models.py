@@ -9013,7 +9013,7 @@ class Exchange(models.Model):
             else:
                 status = trans[0].status() #arr[0] #'complete'
         elif arr:
-          status = arr[0].status()
+          status = 'pending' #arr[0].status()
         else:
           status = 'empty'
         return status

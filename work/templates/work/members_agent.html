@@ -980,6 +980,7 @@
                                     <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
                                         <b>{% trans "Feedback" %}</b> {{ ncom }}
                                     </a>
+                                    {% if req.exchange %}&nbsp; <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span> {% endif %}
                                     {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% endif %}
                                 {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}

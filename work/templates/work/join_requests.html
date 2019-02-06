@@ -121,7 +121,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                       <br />
                                   {% endif %}
                                   {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
-                                  {% else %}
+                                  {% elif req.pending_shares %}
                                     {% if request.user.is_superuser and not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
                                       <form
                                           class="action-form"
