@@ -570,6 +570,13 @@ class JoinRequest(models.Model):
                 return 'Error'
         return None
 
+    def agent_shares_account(self):
+        agshac = None
+        shrtyp = self.payment_account_type()
+        if self.agent and shrtyp:
+            agshac = self.agent.owned_resource_of_type(shrtyp)
+        return agshac
+
     def fobi_items_keys(self):
         fobi_headers = []
         fobi_keys = []
@@ -701,7 +708,7 @@ class JoinRequest(models.Model):
                     addr = self.agent.faircoin_address()
                     wallet = faircoin_utils.is_connected()
                     price = faircoin_utils.share_price_in_fairs(self)
-                    amount = self.pending_shares()*price
+                    amount = Decimal(self.pending_shares() * price)
 
                     if fairrs:
                       if addr:
@@ -731,7 +738,7 @@ class JoinRequest(models.Model):
 
                     if not balance or not amount:
                       txt = "<span class='error'>"+txt+"</span>"
-                    return obj['html']+"<br>Amount to pay: <b> "+str(amount)+" ƒ</b><br>"+txt
+                    return obj['html']+"<br>Amount to pay: <b> "+str(round(amount, 6))+" ƒ</b><br>"+txt
 
                   else:
                     # don't need internal faircoin
@@ -1009,7 +1016,7 @@ class JoinRequest(models.Model):
         return et
 
 
-    def create_exchange(self, notes=None):
+    def create_exchange(self, notes=None, exchange=None):
         ex = None
         et = self.exchange_type()
         pro = self.project.agent
@@ -1017,22 +1024,35 @@ class JoinRequest(models.Model):
         ag = self.agent
 
         if et and pro and dt:
-            ex, created = Exchange.objects.get_or_create(
-                exchange_type=et,
-                context_agent=pro,
-                start_date=dt,
-                use_case=et.use_case,
-                supplier=pro,
-                customer=ag,
-            )
-            if created:
-                print "- created Exchange: "+str(ex)
-                loger.info("- created Exchange: "+str(ex))
-            if ag:
-                ex.created_by = ag.user().user
-            ex.created_date = dt
+            if exchange:
+                ex = exchange
+            elif self.exchange:
+                ex = self.exchange
+            else:
+                ex, created = Exchange.objects.get_or_create(
+                    exchange_type=et,
+                    context_agent=pro,
+                    start_date=dt,
+                    use_case=et.use_case,
+                    supplier=pro,
+                    customer=ag,
+                )
+                if created:
+                    print "- created Exchange: "+str(ex)
+                    loger.info("- created Exchange: "+str(ex))
+                if ag:
+                    ex.created_by = ag.user().user
+            if not ex.start_date == dt:
+                print "- Edited exchange start_date: "+str(ex.start_date)+" -> "+str(dt)
+                #ex.start_date = dt
+            if not ex.created_date == dt:
+                print "- Edited exchange created_date: "+str(ex.created_date)+" -> "+str(dt)
+                #ex.created_date = dt
+            ex.supplier = pro
+            ex.customer = ag
 
-            if notes:
+
+            if notes and not notes in ex.notes:
                 ex.notes += notes
 
             ex.save()
@@ -1067,9 +1087,11 @@ class JoinRequest(models.Model):
                             transfer_type = tt,
                             exchange = ex,
                             context_agent = pro,
-                            transfer_date = datetime.date.today(),
+                            transfer_date = dt, #atetime.date.today(),
                         )
                         if created:
+                            print "- created Transfer: "+str(xfer)
+                            loger.info("- created Transfer: "+str(xfer))
                             if ag:
                                 xfer.created_by = ag.user().user
                         elif ag:
@@ -1088,14 +1110,25 @@ class JoinRequest(models.Model):
         shtype = self.project.shares_type()
         shunit = shtype.unit_of_price
         amount2 = shtype.price_per_unit * self.pending_shares()
-        if not amount == amount2:
-            print "Repair amount! "+str(amount)+" -> "+str(amount2)
-            loger.info("Repair amount! "+str(amount)+" -> "+str(amount2))
-            raise ValidationError("Can't deal yet with partial payments...")
-            amount = amount2
+
+        amountpay = amount2
+        if not shunit == unit and amount2: #unit.abbr == 'fair':
+            from work.utils import convert_price
+            amountpay = convert_price(amount2, shunit, unit)
+
+        if amount2 and status == 'pending':
+          if not amount == amountpay:
+            print "Repair amount! "+str(amount)+" -> "+str(amount2)+" -> "+str(amountpay)
+            loger.info("Repair amount! "+str(amount)+" -> "+str(amount2)+" -> "+str(amountpay))
+            #raise ValidationError("Can't deal yet with partial payments... "+str(amount)+" <> "+str(amount2)+" amountpay:"+str(amountpay))
+            #amount = amountpay
+        elif not amount2 and status == 'complete':
+            print "No pending shares but something is missing, recheck! "+str(self)
 
         if status:
             if self.agent:
+                agshac = self.agent_shares_account()
+
                 if not self.exchange:
                     ex = self.create_exchange(notes)
                     #raise ValidationError("The exchange has been created? "+str(ex))
@@ -1108,6 +1141,12 @@ class JoinRequest(models.Model):
                 et_receive = EventType.objects.get(name="Receive")
 
                 xfers = ex.transfers.all()
+                tts = ex.exchange_type.transfer_types.all()
+                if len(xfers) < len(tts):
+                    print "WARNING, some transfers are missing! repair? "
+                    loger.warning("WARNING, some transfers are missing! repair? ")
+                    return
+
                 xfer_pay = None
                 xfer_share = None
                 try:
@@ -1136,16 +1175,17 @@ class JoinRequest(models.Model):
                         if not commit_pay2:
                           commit_pay2 = commit_pay
 
-                    amountpay = amount
-                    if not shunit == unit: # and unit.abbr == 'fair':
-                        from work.utils import convert_price
-                        amountpay = convert_price(amount, shunit, unit)
-
-
                     if status == 'complete' or status == 'published':
 
                         if len(evts):
-                            raise ValidationError("The payment transfer already has events! "+str(evts))
+                            print ("The payment transfer already has events! "+str(len(evts)))
+                            loger.warning("The payment transfer already has events! "+str(len(evts)))
+                            for evt in evts:
+                                if evt.event_type == et_give:
+                                    print "...repair event? qty:"+str(evt.quantity)+" tx:"+str(evt.transfer.name)+" rt:"+str(evt.resource_type)+" ca:"+str(evt.context_agent)+" from:"+str(evt.from_agent)+" to:"+str(evt.to_agent)
+                                    print "...amountpay:"+str(amountpay)+" unitofqty:"+str(evt.unit_of_quantity)+" fairtx:"+str(evt.faircoin_transaction.id)+" rs:"+str(evt.resource)
+
+                            #return
                         else:
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
@@ -1172,7 +1212,8 @@ class JoinRequest(models.Model):
                                 print " created Event: "+str(evt)
                                 loger.info(" created Event: "+str(evt))
 
-                            '''evt2, created = EconomicEvent.objects.get_or_create(
+                            '''
+                            evt2, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_receive,
                                 event_date = datetime.date.today(),
                                 resource_type = unit_rt,
@@ -1208,9 +1249,12 @@ class JoinRequest(models.Model):
                                   commit_share2 = coms[1]
                                 if not commit_share2:
                                   commit_share2 = commit_share
+                        else:
+                            print "ERROR: Can't find xfer_share!! "+str(self)
+                            loger.error("ERROR: Can't find xfer_share!! "+str(self))
 
                         # create commitments for shares
-                        if not commit_share:
+                        if not commit_share and self.pending_shares():
                             commit_share, created = Commitment.objects.get_or_create(
                                 event_type = et_give,
                                 commitment_date = datetime.date.today(),
@@ -1280,16 +1324,16 @@ class JoinRequest(models.Model):
 
                         # create share events
                         if not evts:
-
+                          if self.pending_shares():
                             sh_evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
                                 event_date = datetime.date.today(),
                                 resource_type = shtype, #account_type,
-                                #resource=event_res,
+                                resource=agshac,
                                 transfer = xfer_share,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = amount,
+                                quantity = self.pending_shares(),
                                 unit_of_quantity = account_type.unit_of_price,
                                 #value = amountpay,
                                 #unit_of_value = unit, #account_type.unit_of_price,
@@ -1313,11 +1357,44 @@ class JoinRequest(models.Model):
                                     rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
                                     for rs in rss:
                                         if rs.resource_type == rt:
+                                            rs.notes += "Added "+str(amount)+" on "+str(datetime.date.today())+". "
                                             rs.price_per_unit += amount # update the price_per_unit with payment amount
                                             rs.save()
                                             print "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs)
                                             loger.info("Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
                                             #messages.info(request, "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
+                          else: # not pending_shares and not share events
+                            date = agshac.created_date
+                            print "No pending shares and no events related shares. Repair! total_shares:"+str(self.total_shares())+" date:"+str(date)
+                            sh_evt, created = EconomicEvent.objects.get_or_create(
+                                event_type = et_give,
+                                event_date = date,
+                                resource_type = shtype, #account_type,
+                                resource = agshac,
+                                transfer = xfer_share,
+                                exchange_stage = ex.exchange_type,
+                                context_agent = self.project.agent,
+                                quantity = self.total_shares(),
+                                unit_of_quantity = account_type.unit_of_price,
+                                #value = amountpay,
+                                #unit_of_value = unit, #account_type.unit_of_price,
+                                from_agent = self.project.agent,
+                                to_agent = self.agent,
+                                is_contribution = xfer_share.transfer_type.is_contribution,
+                                is_to_distribute = xfer_share.transfer_type.is_to_distribute,
+                                #event_reference = gateref,
+                                created_by = self.agent.user().user,
+                                commitment = commit_share,
+                                exchange = ex,
+                            )
+                            if created:
+                                print "- created missing shares Event: "+str(sh_evt)
+                                loger.info("- created missing shares Event: "+str(sh_evt))
+
+                        else:
+                            print "Found shares Events!! "+str(len(evts))
+                            loger.warning("Found shares Events!! "+str(len(evts)))
+
 
 
                         """sh_evt2, created = EconomicEvent.objects.get_or_create(
@@ -1403,7 +1480,7 @@ class JoinRequest(models.Model):
                                   commit_share2 = commit_share
 
                             # create commitments for shares
-                            if not commit_share:
+                            '''if not commit_share:
                                 commit_share, created = Commitment.objects.get_or_create(
                                     event_type = et_give,
                                     commitment_date = datetime.date.today(),
@@ -1425,7 +1502,7 @@ class JoinRequest(models.Model):
                                 if created:
                                     print "- created Commitment: "+str(commit_share)
                                     loger.info("- created Commitment: "+str(commit_share))
-                            '''if not commit_share2:
+                            if not commit_share2:
                                 commit_share2, created = Commitment.objects.get_or_create(
                                     event_type = et_receive,
                                     commitment_date = datetime.date.today(),

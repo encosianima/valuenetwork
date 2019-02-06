@@ -200,7 +200,7 @@ h3.trtheading {
                 {% endif %}
                 {% if exchange.join_request %}
                     <p>
-                        {% trans "Exchange related the" %} <a href="{% url "project_feedback" agent_id=exchange.join_request.project.agent.id join_request_id=exchange.join_request.id %}" style="font-weight:bold;">{% trans "Join Request" %}</a> {% if context_agent == exchange.join_request.project.agent %} {% trans "from" %}: </p><p><a href="{% url "members_agent" agent_id=exchange.join_request.agent.id %}"  style="font-weight:bold; font-size:1.1em;">{{ exchange.join_request.agent.name }}</a>{% else %} {% trans "to" %}: </p><p><a href="{% url "members_agent" agent_id=exchange.join_request.project.agent.id %}" style="font-weight:bold; font-size:1.1em;">{{ exchange.join_request.project.agent.name }}</a>{% endif %}
+                        {% trans "Exchange related the" %} <a href="{% url "project_feedback" agent_id=exchange.join_request.project.agent.id join_request_id=exchange.join_request.id %}" style="font-weight:bold;">{% trans "Join Request" %}</a> ({{ exchange.join_request.state }}) {% if context_agent == exchange.join_request.project.agent %} {% trans "from" %}: </p><p><a href="{% url "members_agent" agent_id=exchange.join_request.agent.id %}"  style="font-weight:bold; font-size:1.1em;">{{ exchange.join_request.agent.name }}</a>{% else %} {% trans "to" %}: </p><p><a href="{% url "members_agent" agent_id=exchange.join_request.project.agent.id %}" style="font-weight:bold; font-size:1.1em;">{{ exchange.join_request.project.agent.name }}</a>{% endif %}
                     </p>
                 {% endif %}
                 {% if exchange.join_request.payment_gateway %}
@@ -212,6 +212,14 @@ h3.trtheading {
                 <p>
                   <span class="total-top">{% trans "Total reciprocal transfer value" %}: {{ total_rect }} {% if total_rect %}{{ total_rect_unit }}{% endif %}</span>
                 </p>
+                {% if request.user.is_superuser %}
+                  <p>
+                    logger: {{ logger }}
+                  </p>
+                  <p>
+                    notes: {{ exchange.notes }}
+                  </p>
+                {% endif %}
             </div>
             {% if not exchange.join_request.agent == request.user.agent.agent and logger %}
             <form class="validateMe miniform" id="exchangeForm" method="POST" action="" style="padding-bottom:13px;">
@@ -477,7 +485,7 @@ h3.trtheading {
                                                     </form>
                                                 </div>
                                             </div>
-                                            {% if not xfer.events.all %}
+                                            {% if not xfer.events.all and not exchange.join_request %}
                                                 <form
                                                     style="display: inline;"
                                                     class="delete-form"
@@ -636,7 +644,7 @@ h3.trtheading {
                                                             </form>
                                                         </div>
                                                     </div>
-                                                    {% if not slot.is_currency %}
+                                                    {% if not slot.is_currency and not exchange.join_request %}
                                                       <form
                                                         style="display: inline;"
                                                         class="delete-form"
@@ -718,7 +726,7 @@ h3.trtheading {
                                                     </form>
                                                 </div>
                                             </div>
-                                            {% if not slot.is_currency %}
+                                            {% if not slot.is_currency and not exchange.join_request %}
                                               <form
                                                 style="display: inline;"
                                                 class="delete-form"
@@ -1143,7 +1151,7 @@ h3.trtheading {
                                                             </form>
                                                         </div>
                                                     </div>
-                                                    {% if not slot.is_currency %}
+                                                    {% if not slot.is_currency and not exchange.join_request %}
                                                       <form
                                                         style="display: inline;"
                                                         class="delete-form"
@@ -1224,7 +1232,7 @@ h3.trtheading {
                                                     </form>
                                                 </div>
                                             </div>
-                                            {% if not slot.is_currency %}
+                                            {% if not slot.is_currency and not exchange.join_request %}
                                               <form
                                                 style="display: inline;"
                                                 class="delete-form"

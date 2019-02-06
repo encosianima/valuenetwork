@@ -35,13 +35,13 @@ span.pending, span.complete, span.empty {
     /*border: solid 2px firebrick;
     background-color: oldlace;
     margin-bottom: 12px;
-    padding-left: 1em;*/
+    padding-left: 1em;
+  padding-top: 16px;*/
   padding-bottom: 16px;
-  padding-top: 16px;
   max-width: 323px;
-  float: left;
-  /*width: 295px;*/
-  margin-right: 13px;
+  float: right;
+  width: 310px;
+  margin-left: 16px;
 }
 .totals table {
   position: relative;
@@ -310,12 +310,12 @@ hr {
               {% endif %}
             </div>
         </legend>
-        <div class="span12">
-          {% if request.user.agent.agent in context_agent.managers or request.user.is_staff %}
-            <div class="totals infobox"><h3>
+        <!-- <div class="span12"> -->
+          {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent %}
+            <div class="span3 totals infobox"><h3>
               {% trans "Totals:" %}
               </h3>
-              {% if not exchanges %}
+              {% if not exchanges_by_type %}
                 <p>
                   {% trans "There are no exchanges to count..." %}
                 </p>
@@ -369,7 +369,7 @@ hr {
 
             </div>
           {% endif %}
-          {% if request.user.agent.agent in context_agent.managers or request.user.is_staff %}
+          {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent and request.user.is_superuser %}
           <div id="new_exchange" class="miniform span8">
             <form id="exchangeForm" style="margin:0;" method="POST" action="">
                 <h3 style="display:inline-block;">{% trans "Create a new Exchange" %}:</h3> &nbsp;
@@ -707,18 +707,18 @@ hr {
 
           {% endif %}
 
-      </div>
+      <!-- </div> -->
       <div class="span8">
       {% if exchanges_by_type %}
         <h3>
-          {% trans "List of Exchanges" %}{% if not user.is_staff and not request.user.agent.agent in context_agent.managers %}
+          {% trans "List of Exchanges" %}{% if not user.is_staff and not request.user.agent.agent in context_agent.managers and not request.user.agent.agent == context_agent %}
             <span>({% trans "related to you" %})</span>
             {% endif %}: &nbsp;<span style="font-size:80%" class="small">({% trans "showing" %} {{ exchanges.count }} of {{ exchanges_by_type.count }})</span>
         </h3>
         <ul class="xlist">
         {% for x in exchanges %}
           {% if True or x in exchanges %}
-            {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent is context_agent %}
+            {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent %}
                     <li><span class="{{ x.status }}">&#9679;</span>
                         <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"><b>{{ x.list_name|safe }}</b></a> {% if user.is_superuser %}<em>(ca: {{ x.context_agent }}, etca: {{ x.exchange_type.context_agent }}, date: {{ x.start_date }})</em>{% endif %}
                         {% if user.is_staff and not x.join_request %}{% trans "created by" %} {{ x.created_by }} {% endif %}
