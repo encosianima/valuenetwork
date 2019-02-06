@@ -98,8 +98,8 @@ def manage_faircoin_account(request, resource_id):
                 can_pay = confirmed_balance >= share_price
             break
         elif request.user.is_superuser:
-            logger.warning("pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
-            messages.warning(request, "pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
+            logger.warning("(debug) pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
+            messages.warning(request, "(debug) pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
 
     return render(request, "faircoin/faircoin_account.html", {
         "resource": resource,

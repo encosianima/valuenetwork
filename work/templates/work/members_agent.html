@@ -545,7 +545,7 @@
                                         compact: <b>{{ agent.project.compact_name }}</b><br>
                                         abbrev: <b>{{ agent.project.abbrev_name }}</b></span>
                                     {% endif %}
-                                    {% if not agent.project.share_types %}<br><br>
+                                    {% if not agent.project.share_types or request.user.is_superuser %}<br><br>
                                       <b><a href="{% url "create_project_shares" agent_id=agent.id %}">Create Project Shares</a></b>
                                     {% endif %}
                                 {% endwith %}
@@ -985,6 +985,9 @@
                                 {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                               {% endif %}
                             {% endfor %}
+                            {% if not assoc.is_associate.joinaproject_requests and not assoc.state == 'active' %}
+                               &nbsp;<b class="error">error</b>
+                            {% endif %}
                             {% if assoc.association_type.association_behavior == "member" or assoc.association_type.association_behavior == "manager" %}
                               {% if agent.project.shares_type %}
                                 {% with assoc.is_associate.owned_shares|shares_related_project:agent.project as oldshares %}
