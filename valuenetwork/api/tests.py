@@ -2261,7 +2261,7 @@ query($token: String) {
   viewer(token: $token) {
     agent(id:39) {
       name
-      agentPlans (isFinished: false) {
+      agentPlans (isFinished: false, sortDesc: true) {
         id
         name
         due

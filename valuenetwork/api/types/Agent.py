@@ -56,7 +56,8 @@ class Agent(graphene.Interface):
     agent_plans = graphene.List(lambda: types.Plan,
                                 is_finished=graphene.Boolean(),
                                 year=graphene.Int(),
-                                month=graphene.Int())
+                                month=graphene.Int(),
+                                sort_desc=graphene.Boolean())
 
     search_agent_plans = graphene.List(lambda: types.Plan,
                                               search_string=graphene.String(),
@@ -230,6 +231,7 @@ class Agent(graphene.Interface):
             finished = args.get('is_finished', None)
             year = args.get('year', None)
             month = args.get('month', None)
+            sort_desc = args.get('sort_desc', False)
             if finished != None:
                 if not finished:
                     plans = agent.unfinished_plans()
@@ -243,6 +245,8 @@ class Agent(graphene.Interface):
                     if plan.worked_in_month(year=year, month=month):
                         dated_plans.append(plan)
                 plans = dated_plans
+            if sort_desc:
+                plans.sort(lambda x, y: cmp(y.created_date, x.created_date))
             return plans
         return None
 
