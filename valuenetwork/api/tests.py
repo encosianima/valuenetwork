@@ -1201,6 +1201,42 @@ query($token: String) {
   }
 }
 
+query ($token: String) {
+  viewer(token: $token) {
+    agent(id: 106) {
+      name
+      searchAgentCommitments(searchString: "Fruit", finished: false, sortDesc: true, alsoSearchChildren: true) {
+        id
+        note
+        receiver {
+          name
+        }
+        scope {
+          name
+        }
+        committedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+      agentCommitments(finished: true, sortDesc: true, alsoSearchChildren: true) {
+        id
+        receiver {
+          name
+        }
+        committedQuantity {
+          numericValue
+          unit {
+            name
+          }
+        }
+      }
+    }
+  }
+}
+
 query($token: String) {
   viewer(token: $token) {
     organizationTypes {
@@ -2225,7 +2261,7 @@ query($token: String) {
   viewer(token: $token) {
     agent(id:39) {
       name
-      agentPlans (isFinished: false) {
+      agentPlans (isFinished: false, sortDesc: true) {
         id
         name
         due

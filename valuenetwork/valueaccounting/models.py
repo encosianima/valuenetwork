@@ -941,11 +941,10 @@ class EconomicAgent(models.Model):
     def finished_commitments(self):
         return [p for p in self.involved_in_commitments() if p.finished==True]
 
-    # primitive search
-    def search_commitments(self, search_string, finished=None, also_search_children=True):
+    def agent_commitments(self, finished=None, also_search_children=False, sort_desc=False):
         if also_search_children:
             agents = self.with_all_sub_agents() #includes self
-        else: #not tested
+        else:
             agents = []
             agents.append(self)
         commits = []
@@ -956,6 +955,13 @@ class EconomicAgent(models.Model):
                 commits.extend(list(agent.active_commitments()))
             else:
                 commits.extend(list(agent.involved_in_commitments()))
+        if sort_desc:
+            commits.sort(lambda x, y: cmp(y.due_date, x.due_date))
+        return commits
+
+    # primitive search
+    def search_commitments(self, search_string, finished=None, also_search_children=False, sort_desc=False):
+        commits = self.agent_commitments(finished, also_search_children, sort_desc)
         answer = []
         strings = search_string.lower().split(" ")
         for com in commits:
@@ -963,7 +969,8 @@ class EconomicAgent(models.Model):
                 if com.description:
                     if string in com.description.lower():
                         answer.append(com)
-        return list(set(answer))
+                        break
+        return answer
 
     def user(self):
         users = self.users.filter(user__is_active=True)
