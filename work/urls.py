@@ -147,7 +147,7 @@ urlpatterns = [
         name="add_transfer_commitment_work"),
     url(r'^change-transfer-commitments-work/(?P<transfer_id>\d+)/$', work.views.change_transfer_commitments_work,
         name="change_transfer_commitments_work"),
-    url(r'^delete-transfer-commitments/(?P<transfer_id>\d+)/$', work.views.delete_transfer_commitments,
+    url(r'^delete-transfer-commitments/(?P<transfer_id>\d+)/(?P<commitment_id>\d+)/$', work.views.delete_transfer_commitments,
         name="delete_transfer_commitments"),
     url(r'^transfer-from-commitment/(?P<transfer_id>\d+)/$', work.views.transfer_from_commitment,
         name="transfer_from_commitment"),

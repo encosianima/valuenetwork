@@ -765,6 +765,7 @@ def migrate_fdc_shares(request, jr):
         #loger.warning("skip migrate, is not a FdC joinrequest")
         return
     shacct = fdc.project.shares_account_type()
+    shrtyp = fdc.project.shares_type()
     mems = jr.agent.membership_requests.all()
     if len(mems) > 1:
         raise ValidationError("More than one membership request to migrate?! agent:"+str(jr.agent))
@@ -907,26 +908,98 @@ def migrate_fdc_shares(request, jr):
     exs = Exchange.objects.exchanges_by_type(jr.agent)
     exmem = None
     for ex in exs:
+      if ex.exchange_type == et:
         txs = ex.transfers.all()
         coms = ex.xfer_commitments()
+        evnz = ex.xfer_events()
         txts = ex.exchange_type.transfer_types.all()
-        #print "Found exchange: "+str(ex)+" ca: "+str(ex.context_agent)+" coms: "+str(coms)
-        for txt in txts:
-          txt.found = None
+        print "-Found exchange: "+str(ex.id)+": "+str(ex)+" ca: "+str(ex.context_agent)+" coms: "+str(len(coms))+" evnz:"+str(len(evnz))
+        txpay = None
+        txshr = None
+        for txtp in txts:
           for tx in txs:
-            if tx.transfer_type == txt:
-              txt.found = tx
+            if tx.transfer_type == txtp:
+              if txtp == paytt:
+                txpay = tx
+              if txtp == shrtt:
+                txshr = tx
+        for txtp in txts:
+          txtp.found = None
+          for tx in txs:
+            if tx.transfer_type == txtp:
+              txtp.found = tx
               if tx.to_agent() == fdc: #and tx.from_agent():
-                print
+                print "------------------"
                 if exmem and ex.exchange_type == exmem.exchange_type:
-                    print "DUPLICATE exchanges? "+str(ex.id)+" <> "+str(exmem.id) #mem.events.all())
-                    #return
+                    print "DUPLICATE exchanges? "+str(ex.id)+": txs:"+str(len(ex.transfers.all()))+": cms:"+str(len(ex.commitments.all()))+": evs:"+str(len(ex.events.all()))+" <> "+str(exmem.id)+": txs:"+str(len(exmem.transfers.all()))+": cms:"+str(len(exmem.commitments.all()))+": evs:"+str(len(exmem.events.all()))
+                    loger.info("DUPLICATE exchanges? "+str(ex.id)+" <> "+str(exmem.id))
+                    memcms = exmem.commitments.all()
+                    memevs = exmem.events.all()
+                    memtxs = exmem.transfers.all()
+                    jrmem = None
+                    jrex = None
+                    if hasattr(exmem, 'join_request'):
+                        jrmem = exmem.join_request
+                    if hasattr(ex, 'join_request'):
+                        jrex = ex.join_request
+
+
+                    for tf in ex.transfers.all():
+                        if not tf in memtxs:
+                            print "- Found transfer related a duplicate exchange, merge to the same unique exchange of this type! "+str(tx)
+                            loger.info("Found transfer related a duplicate exchange, merge to the same unique exchange of this type! "+str(tx))
+                            for mtx in memtxs:
+                                coms = mtx.commitments.all()
+                                evts = mtx.events.all()
+                                if mtx.transfer_type == tf.transfer_type:
+                                    koms = tf.commitments.all()
+                                    evns = tf.events.all()
+                                    print "-- Found same transfer_type: "+str(tf.transfer_type)+" - id:"+str(tf.id)+" in mtx:"+str(mtx.id)+" coms:"+str(len(koms))+" evns:"+str(len(evns))
+                                    loger.info("-- Found same transfer_type: "+str(tf.transfer_type)+" - id:"+str(tf.id)+" in mtx:"+str(mtx.id)+" coms:"+str(len(koms))+" evns:"+str(len(evns)))
+                                    if koms:
+                                        print "--- Merge comment to the transfer of the duplicate exchange? TODO coms: "+str(koms)
+                                        loger.info("--- Merge comment to the transfer of the duplicate exchange? TODO coms: "+str(koms))
+                                    if evns:
+                                        for ev in evns:
+                                          if not ev in evts:
+                                            print "--- tx ca:"+str(tf.context_agent)+" txdate:"+str(tf.transfer_date)+" crdate:"+str(tf.created_date) #+" notes:"+str(tf.notes)
+                                            print "--- mtx ca:"+str(mtx.context_agent)+" txdate:"+str(mtx.transfer_date)+" crdate:"+str(mtx.created_date) #+" notes:"+str(mtx.notes)
+                                            print "--- ev ca:"+str(ev.context_agent)+" qty:"+str(ev.quantity)+" u:"+str(ev.unit_of_quantity)+" rs:"+str(ev.resource)
+                                            for e in evts:
+                                                print "---- mtx.ev: "+str(e.id)+" ca:"+str(e.context_agent)+" qty:"+str(e.quantity)+" u:"+str(e.unit_of_quantity)+" rs:"+str(e.resource)
+                                            print "--- Merged event to the transfer of the duplicated exchange! evid:"+str(ev.id)+" txid:"+str(tf.id)+" exid:"+str(ex.id)+" --> txid:"+str(mtx.id)+" exid:"+str(exmem.id)+" evs:"+str(len(memevs))
+                                            loger.info("--- Merged event to the transfer of the duplicated exchange! evid:"+str(ev.id)+" txid:"+str(tf.id)+" exid:"+str(ex.id)+" --> txid:"+str(mtx.id)+" exid:"+str(exmem.id)+" evs:"+str(len(memevs)))
+                                            if not jr.exchange == exmem:
+                                                print "WARN: Not changed the join_request to the other exchange! SKIP."
+                                                loger.info("WARN: Not changed the join_request to the other exchange! SKIP.")
+                                                continue
+                                            mtx.notes = "merged events on "+str(tf.created_date)+" from exchange id:"+str(ex.id)+" and transfer id:"+str(ev.transfer.id)
+                                            ev.transfer = mtx
+                                            ev.exchange = exmem
+                                            ev.context_agent = jr.project.agent
+                                            ev.save()
+                                            mtx.save()
+                                            #tf.delete()
+                                    else:
+                                        print "-- Can't find events for this transfer: "+str(tf)
+                                        loger.info("-- Can't find events for this transfer: "+str(tf))
+
+                    if not jrmem and jrex:
+                        jrex.exchange = exmem
+                        jrex.save()
+                        print "- Updated join_request exchange from id:"+str(ex.id)+" to id:"+str(exmem.id)
+                        loger.info("- Updated join_request exchange from id:"+str(ex.id)+" to id:"+str(exmem.id))
+
+                    return
+
                 elif not exmem:
                     exmem = ex
-                print "-Found exchange: "+str(ex)+" tx-qty:"+str(tx.quantity())+" ca:"+str(ex.context_agent)+" txs:"+str(len(txs))+" coms:"+str(len(coms))+" evts:"+str(len(tx.events.all()))
+
+                print "- Found exchange: "+str(ex.id)+": "+str(ex)+" tx-qty:"+str(tx.actual_quantity())+" ca:"+str(ex.context_agent)+" txs:"+str(len(txs))+" coms:"+str(len(coms))+" evts:"+str(len(tx.events.all()))
+
                 if not ex.exchange_type == et:
-                    print "- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" ("+str(et.context_agent)+")"
-                    loger.warning("- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" ("+str(et.context_agent)+")")
+                    print "- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" (ca:"+str(et.context_agent)+")"
+                    loger.warning("- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" (ca:"+str(et.context_agent)+")")
                     ex.exchange_type = et
                     ex.save()
                     messages.warning(request, "- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" for the exchange: "+str(ex))
@@ -956,16 +1029,21 @@ def migrate_fdc_shares(request, jr):
                 for tt in ex.transfers.all():
                     if not tt.transfer_type == paytt and not tt.transfer_type == shrtt:
                         if not tt.events.all() and not tt.commitments.all():
-                            print "- delete tt: "+str(tt)
-                            loger.warning("- delete tt: "+str(tt))
-                            messages.warning(request, "- delete tt: "+str(tt))
+                            print "- delete empty transfer: "+str(tt.id)
+                            loger.warning("- delete empty transfer: "+str(tt.id))
+                            messages.warning(request, "- delete empty transfer: "+str(tt))
                             tt.delete()
                         else:
                             print "WARNING: Not deleted Transfer because has events or shares!! "+str(tt)
                             loger.error("WARNING: Not deleted Transfer because has events or shares!! "+str(tt))
 
                 for evt in tx.events.all():
-                    #print "Evt: action:"+str(evt.action)+" unit:"+str(evt.unit())+" fairtx:"+str(evt.faircoin_transaction.id)+" state:"+str(evt.faircoin_transaction.tx_state)+" hash:"+str(evt.faircoin_transaction.tx_hash)
+                    fairtx = None
+                    if hasattr(evt, 'faircoin_transaction') and evt.faircoin_transaction:
+                        fairtx = evt.faircoin_transaction.id
+                        print "Careful! this event is related a fair_tx:"+str(fairtx)
+                        loger.info("Careful! this event is related a fair_tx:"+str(fairtx))
+                    #print "Evt: action:"+str(evt.action)+" unit:"+str(evt.unit())+" fairtx:"+str(fairtx)+" state:"+str(fairtx.tx_state)+" hash:"+str(fairtx.tx_hash)
                     if evt.event_type: # == et_give:
                         if not evt.resource_type == unit_rt:
                             print "- change resource_type? "+str(evt.resource_type)+" -> "+str(unit_rt)+" et:"+str(evt.exchange_stage)
@@ -979,22 +1057,66 @@ def migrate_fdc_shares(request, jr):
                             print "- change event to_agent to FdC! "+str(evt.to_agent)
                             loger.info("- change event to_agent to FdC! "+str(evt.to_agent))
                             #evt.to_agent = fdc
+                        sh_unit = evt.resource_type.ocp_artwork_type.general_unit_type.unit_set.first().ocp_unit
                         evt.exchange = ex
                         evt.exchange_stage = et
                         evt.context_agent = fdc
-                        evt.resource_type = unit_rt
-                        evt.unit_of_quantity = unit
+                        if tx.transfer_type == paytt:
+                            if not evt.resource_type == unit_rt:
+                                print "-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(unit_rt)
+                                loger.info("-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(unit_rt))
+                            if not evt.unit_of_quantity == unit:
+                                print "-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(unit)
+                                loger.info("-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(unit))
+                            evt.resource_type = unit_rt
+                            evt.unit_of_quantity = unit
+                        elif tx.transfer_type == shrtt and sh_unit:
+                            if not evt.resource_type == shrtyp:
+                                print "-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(shrtyp)
+                                loger.info("-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(shrtyp))
+                            if not evt.unit_of_quantity == sh_unit:
+                                print "-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(sh_unit)
+                                loger.info("-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(sh_unit))
+                            evt.resource_type = shrtyp
+                            evt.unit_of_quantity = sh_unit
+                        else:
+                            raise ValidationError("Transfer with an unknown transfer_type: "+str(tx.transfer_type)+" or nor sh_unit:"+str(sh_unit))
                         evt.save()
                 comms = tx.commitments.all()
                 if not comms:
                     pass #print "The Transfer has no commitments! "+str(tx)
                 else:
-                    print "The Transfer has commitments?? "+str(tx)
-                    loger.warning("The Transfer has commitments?? "+str(tx))
+                    print "The Transfer has commitments?? txid:"+str(tx.id)+" coms: "+str(comms)
+                    loger.warning("The Transfer has commitments?? txid:"+str(tx.id)+" coms: "+str(comms))
 
               elif tx.from_agent() == fdc:
-                print "- Found transfer from FdC: "+str(tx)
-                loger.info("- Found transfer from FdC: "+str(tx))
+                print " - Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share())
+                loger.info("- Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
+                #messages.info(request, "- Found transfer FROM FdC: "+str(tx)+" tx_typ:"+str(tx.transfer_type)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
+
+                for com in tx.commitments.all():
+                    print "TODO -- com: "+str(com)
+                    loger.info("TODO -- com: "+str(com))
+                for evt in tx.events.all():
+                    rel_rt = evt.resource.resource_type.ocp_artwork_type.rel_nonmaterial_type
+                    if rel_rt:
+                        rel_rt = rel_rt.resource_type
+                        #print "--- rel_rt:"+str(rel_rt)
+                        if not rel_rt == evt.resource_type:
+                            print " - CHANGED the resource_type of the event "+str(evt.id)+" from '"+str(evt.resource_type)+"' to '"+str(rel_rt)+"'"
+                            loger.info(" - CHANGE resource_type of the event "+str(evt.id)+" from '"+str(evt.resource_type)+"' to '"+str(rel_rt)+"'")
+                            messages.info(request, " - CHANGE resource_type of the event "+str(evt.id)+" from '"+str(evt.resource_type)+"' to '"+str(rel_rt)+"'")
+                            evt.resource_type = rel_rt
+                            evt.save()
+                        if not tx.transfer_type == shrtt and rel_rt and txshr:
+                            print " -- CHANGED the event transfer from '"+str(tx)+"' to '"+str(txshr)+"', evt:"+str(evt.id)
+                            loger.info(" -- CHANGED the event transfer from '"+str(tx)+"' to '"+str(txshr)+"', evt:"+str(evt.id))
+                            messages.info(request, " -- CHANGED the event transfer from '"+str(tx)+"' to '"+str(txshr)+"', evt:"+str(evt.id))
+                            evt.transfer = txshr
+                            evt.save()
+                    #print "-- evt: "+str(evt.id)+" - "+str(evt)+" rt:"+str(evt.resource_type)+" rs_rt:"+str(evt.resource.resource_type)+" rel_rt:"+str(rel_rt)+" txshr:"+str(txshr.id)+" txpay:"+str(txpay.id)
+
+
               elif tx.to_agent() == fdc.parent():
                 evs = tx.events.all()
                 cms = tx.commitments.all()
@@ -1033,19 +1155,39 @@ def migrate_fdc_shares(request, jr):
             else:
                 pass #print "Other tt: "+str(tt)
 
-          if not txt.found and et == ex.exchange_type:
-            print "WARN: Missing transfer! "+str(txt)+' pending:'+str(jr.pending_shares())+", Recreate exchange!"
-            loger.warning("WARN: Missing transfer! "+str(txt)+' pending:'+str(jr.pending_shares())+", Recreate exchange!")
-            messages.warning(request, "WARN: Missing transfer! "+str(txt)+' pending:'+str(jr.pending_shares())+", Recreate exchange!")
+          if not txtp.found and et == ex.exchange_type:
+            print "WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange! et:"+str(et)
+            loger.warning("WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange!")
+            messages.warning(request, "WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange!")
             note = 'repaired: '+str(datetime.date.today())+'. '
             ex = jr.create_exchange(note, ex)
 
     if exmem:
         if not jr.pending_shares():
-            print "Update payment status! "+str(exmem)
-            jr.update_payment_status('complete')
+            pass #print "Update payment status! exid:"+str(exmem.id)
+            #jr.update_payment_status('complete')
         else:
             pass
+
+    exs2 = Exchange.objects.filter(exchange_type=et, events__isnull=True)
+    print
+    print "exs2: "+str(len(exs2))
+    for ex in exs2:
+        kms = ex.commitments.all()
+        if not kms:
+            jr2 = None
+            if hasattr(ex, 'join_request') and ex.join_request:
+                jr2 = ex.join_request
+            if not jr2:
+                print "- delete empty exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent) #+" JR:"+str(jr2)
+                loger.info("- delete empty exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2))
+                messages.info(request, "- delete empty exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2))
+                for tr in ex.transfers.all():
+                    print "-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes)
+                    loger.info("-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
+                    messages.info(request, "-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
+                    tr.delete()
+                ex.delete()
 
     return
 
@@ -5474,10 +5616,15 @@ def change_transfer_commitments_work(request, transfer_id):
 
 
 @login_required
-def delete_transfer_commitments(request, transfer_id):
+def delete_transfer_commitments(request, transfer_id, commitment_id=None):
     transfer = get_object_or_404(Transfer, pk=transfer_id)
     exchange = transfer.exchange
     if request.method == "POST":
+      if commitment_id:
+        comm = get_object_or_404(Commitment, pk=commitment_id)
+        if comm and comm.is_deletable():
+            comm.delete()
+      else:
         for commit in transfer.commitments.all():
             if commit.is_deletable():
                 commit.delete()
