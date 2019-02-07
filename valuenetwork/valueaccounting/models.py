@@ -9703,8 +9703,14 @@ class Transfer(models.Model):
         else:
             need_evts = 1
         status = '??'
-        comits = self.commitments.all() #filter(transfer=self)
-        events = self.events.all() #filter(transfer=self)
+        comits = self.commitments.all_give() #filter(transfer=self)
+        events = self.events.all_give() #filter(transfer=self)
+        for com in comits:
+            for ev in com.fulfillment_events.all():
+                if not ev in events:
+                    print " append ev:"+str(ev)
+                    loger.info(" append ev:"+str(ev))
+                    events.append(ev)
         if len(comits):
           if len(events) < len(comits) or not len(events) >= need_evts:
             status = 'pending' #str([ev.id for ev in events])+' '+str([co.id for co in comits])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
@@ -9950,9 +9956,13 @@ class Transfer(models.Model):
         return Decimal("0.0")
 
     def actual_quantity(self):
-        events = self.events.all()
+        events = self.events.all_give()
         if events:
-            return events[0].quantity
+            qty = Decimal("0.0")
+            for ev in events:
+                if ev.quantity:
+                    qty += ev.quantity
+            return qty
         return Decimal("0.0")
 
     def unit_of_quantity(self):
@@ -9976,9 +9986,13 @@ class Transfer(models.Model):
         return None
 
     def actual_value(self):
-        events = self.events.all()
+        events = self.events.all_give()
         if events:
-            return events[0].value
+            val = Decimal("0.0")
+            for ev in events:
+                if ev.value:
+                    val += ev.value
+            return val
         return Decimal("0.0")
 
     def unit_of_value(self):
@@ -10358,6 +10372,10 @@ class CommitmentManager(models.Manager):
                     req.purchase_quantity = qtb
                     answer.append(req)
         return answer
+
+    def all_give(self):
+        et_give = EventType.objects.get(name="Give")
+        return self.filter(event_type=et_give)
 
 
 class Commitment(models.Model):
@@ -12285,6 +12303,26 @@ class EconomicEventManager(models.Manager):
 
     def contributions(self):
         return EconomicEvent.objects.filter(is_contribution=True)
+
+    def all_give(self):
+        et_give = EventType.objects.get(name="Give")
+        return self.filter(event_type=et_give)
+
+    def related_agent(self, agent=None):
+        evs = []
+        if agent:
+            tos = self.filter(to_agent=agent)
+            if tos:
+                evs.append(tos)
+            fms = self.filter(from_agent=agent)
+            if fms:
+                evs.append(fms)
+            cns = self.filter(context_agent=agent)
+            if cns:
+                evs.append(cns)
+        return evs
+
+
 
 """TX_STATE_CHOICES = (
     ('new', _('New')),

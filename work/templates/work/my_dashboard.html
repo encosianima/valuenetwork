@@ -269,7 +269,12 @@ th, td {
         {% for req in agent.joinaproject_requests %}
           <li><h4><a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">
             {% trans "Feedback with" %} {{ req.project.agent.name }}</a>
-          </h4></li>
+          </h4><span class="normal">
+              {% if not req.state == "accepted" %}({{ req.state }}) {% endif %}
+            {% get_comment_count for req as comment_count %}
+            {% if comment_count %}
+              &nbsp; {{ comment_count }} {% trans "comment" %}{% if comment_count > 1 %}s {% endif %}
+            {% endif %}</span></li>
         {% endfor %}
         </ul>
       </div>
@@ -284,7 +289,7 @@ th, td {
   {% endif %}
 
     {% with request.user.agent.agent.membership_request as mreq %}
-    {% if mreq %}
+    {% if False and mreq %}
     <div id="home-membership" class="home-block" >
       <h3>
             <a href="{% url 'membership_discussion' membership_request_id=mreq.id %}">{% trans "Membership" %}</a>

@@ -1112,9 +1112,11 @@ class JoinRequest(models.Model):
         amount2 = shtype.price_per_unit * self.pending_shares()
 
         amountpay = amount2
+        from work.utils import convert_price
         if not shunit == unit and amount2: #unit.abbr == 'fair':
-            from work.utils import convert_price
             amountpay = convert_price(amount2, shunit, unit)
+        if not amountpay:
+            amountpay = convert_price(amount, shunit, unit)
 
         if amount2 and status == 'pending':
           if not amount == amountpay:
@@ -1182,11 +1184,19 @@ class JoinRequest(models.Model):
                             loger.warning("The payment transfer already has events! "+str(len(evts)))
                             for evt in evts:
                                 if evt.event_type == et_give:
+                                    fairtx = None
+                                    if hasattr(evt, 'faircoin_transaction') and evt.faircoin_transaction:
+                                        fairtx = evt.faircoin_transaction.id
                                     print "...repair event? qty:"+str(evt.quantity)+" tx:"+str(evt.transfer.name)+" rt:"+str(evt.resource_type)+" ca:"+str(evt.context_agent)+" from:"+str(evt.from_agent)+" to:"+str(evt.to_agent)
-                                    print "...amountpay:"+str(amountpay)+" unitofqty:"+str(evt.unit_of_quantity)+" fairtx:"+str(evt.faircoin_transaction.id)+" rs:"+str(evt.resource)
+                                    print "...amountpay:"+str(amountpay)+" unitofqty:"+str(evt.unit_of_quantity)+" fairtx:"+str(fairtx)+" rs:"+str(evt.resource)
+                                    if not evt.quantity and amountpay and not fairtx and evt.transfer == xfer_pay:
+                                        print "CHANGED evt:"+str(evt.id)+" qty:0 to "+str(amountpay)
+                                        loger.info("CHANGED evt:"+str(evt.id)+" qty:0 to "+str(amountpay))
+                                        evt.quantity = amountpay
+                                        evt.save()
 
                             #return
-                        else:
+                        elif amountpay:
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
                                 event_date = datetime.date.today(),
@@ -1392,8 +1402,11 @@ class JoinRequest(models.Model):
                                 loger.info("- created missing shares Event: "+str(sh_evt))
 
                         else:
-                            print "Found shares Events!! "+str(len(evts))
-                            loger.warning("Found shares Events!! "+str(len(evts)))
+                            print "The shares transfer already has Events!! "+str(len(evts))
+                            loger.warning("The shares transfer already has Events!! "+str(len(evts)))
+                            for ev in evts:
+                                rt_u = ev.resource_type.ocp_artwork_type.general_unit_type.unit_set.first().ocp_unit
+                                print "...repair shr_evt? "+str(ev.id)+" qty:"+str(ev.quantity)+" u:"+str(ev.unit_of_quantity)+" / val:"+str(ev.value)+" u:"+str(ev.unit_of_value)+" rt:"+str(ev.resource_type)+" rt_u:"+str(rt_u)+" from:"+str(ev.from_agent)+" to:"+str(ev.to_agent)
 
 
 
@@ -2567,6 +2580,7 @@ def create_unit_types(**kwargs):
         print "- created a main ocp Unit: 'FairCoin'!"
     ocp_fair.abbrev = 'fair'
     ocp_fair.unit_type = 'value'
+    ocp_fair.symbol = "ƒ"
     ocp_fair.save()
 
     gen_curr_typ, created = Ocp_Unit_Type.objects.get_or_create(
