@@ -738,7 +738,7 @@ class JoinRequest(models.Model):
                     wallet = faircoin_utils.is_connected()
                     price = faircoin_utils.share_price_in_fairs(self)
                     amount = Decimal(self.pending_shares() * price)
-                    amopend = self.payment_pending_amount()
+                    amopend = Decimal(self.payment_pending_amount())
 
                     if fairrs:
                       if addr:
