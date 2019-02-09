@@ -36,6 +36,13 @@ class FaircoinAddress(models.Model):
                     pass
         return None
 
+    def is_mine(self):
+        is_wallet_address = False
+        wallet = faircoin_utils.is_connected()
+        if wallet:
+            is_wallet_address = faircoin_utils.is_mine(self.address)
+        return is_wallet_address
+
 
 TX_STATE_CHOICES = (
     ('new', _('New')),
@@ -60,3 +67,11 @@ class FaircoinTransaction(models.Model):
             return True
         else:
             return False
+
+    def chain_link(self):
+        if self.tx_hash:
+            if self.is_old_blockchain():
+                return "https://chain.fair-coin.org/tx/"+str(self.tx_hash)
+            else:
+                return "https://chain.fair.to/transaction?transaction="+str(self.tx_hash)
+
