@@ -197,7 +197,19 @@ class Project(models.Model):
         st = None
         at = self.shares_account_type()
         if at:
-            st = at.ocp_artwork_type.rel_nonmaterial_type.resource_type
+            if hasattr(at, 'ocp_artwork_type') and at.ocp_artwork_type:
+                if hasattr(at.ocp_artwork_type, 'rel_nonmaterial_type') and at.ocp_artwork_type.rel_nonmaterial_type:
+                    if hasattr(at.ocp_artwork_type.rel_nonmaterial_type, 'resource_type') and at.ocp_artwork_type.rel_nonmaterial_type.resource_type:
+                        st = at.ocp_artwork_type.rel_nonmaterial_type.resource_type
+                    else:
+                        print "ERROR: The at.ocp_artwork_type.rel_nonmaterial_type: "+str(at.ocp_artwork_type.rel_nonmaterial_type)+" has no 'resource_type' !"
+                        loger.error("ERROR: The at.ocp_artwork_type.rel_nonmaterial_type: "+str(at.ocp_artwork_type.rel_nonmaterial_type)+" has no 'resource_type' !")
+                else:
+                    print "ERROR: The at.ocp_artwork_type: "+str(at.ocp_artwork_type)+" has no 'rel_nonmaterial_type' !"
+                    loger.error("ERROR: The at.ocp_artwork_type: "+str(at.ocp_artwork_type)+" has no 'rel_nonmaterial_type' !")
+            else:
+                print "ERROR: The at: "+str(at)+" has no 'ocp_artwork_type' !"
+                loger.error("ERROR: The at: "+str(at)+" has no 'ocp_artwork_type' !")
         return st
 
     def share_types(self):
@@ -750,7 +762,7 @@ class JoinRequest(models.Model):
                                 if balance < amopend:
                                     txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br>"
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
-                                                      {'f':"<span class='error'>"+str(round(Decimal(amopend - balance), 8))+" ƒ</span>", 'ac':'</b> '+addr+' <b>'})
+                                                      {'f':"<span class='error'>"+str(round(Decimal(amopend - balance), 8))+" fair</span>", 'ac':'</b> '+addr+' <b>'})
                                 else:
                                     txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
                                     txt += "</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
