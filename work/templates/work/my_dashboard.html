@@ -267,7 +267,7 @@ th, td {
         </h3>
         <ul>
         {% for req in agent.joinaproject_requests %}
-          <li><h4><a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">
+          <li><h4><a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
             {% trans "Feedback with" %} {{ req.project.agent.name }}</a>
           </h4><span class="normal">
               {% if not req.state == "accepted" %}({{ req.state }}) {% endif %}

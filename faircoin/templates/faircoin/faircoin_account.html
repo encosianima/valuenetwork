@@ -267,7 +267,7 @@
                                 </button>
                             </form>
                           {% else %}
-                            <br/><b class="error">{% trans "The project faircoin address is not of this wallet?" %}</b>
+                            <br/><b class="error">{% trans "The project's faircoin address is not of this wallet?" %}</b>
                           {% endif %}
                         {% else %}
                             <br/>
@@ -280,6 +280,9 @@
                             {% endblocktrans %}
                             {% endwith %}
                             </em></b></p>
+                            {% if not project.agent.faircoin_resource.faircoin_address.is_mine %}
+                                <p><b class="error">{% trans "The project's faircoin address is not of this wallet?" %}</b></p>
+                            {% endif %}
                         {% endif %}
                     </div>
                 {% endif %}

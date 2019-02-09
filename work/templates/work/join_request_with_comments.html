@@ -131,11 +131,11 @@ a.more-link {
                   <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
               {% endif %}
             {% else %}
-              {% if jn_req.agent.is_active_freedom_coop_member %}
-                <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{% trans "View Project" %}</a>
+              <!-- {% if jn_req.agent.is_active_freedom_coop_member %}
+                <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">{% trans "View Project" %}</a>
               {% endif %}
-              <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a>
-              {% if user_agent.faircoin_resource %}
+              <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a> -->
+              {% if user_agent.faircoin_resource and jn_req.project.agent.need_faircoins %}
                 <a class="indent" href="{% url "manage_faircoin_account" resource_id=user_agent.faircoin_resource.id %}"
                           title="{% trans 'Your personal faircoin wallet in OCP' %}"
                           >{% trans 'Faircoin Account' %}</a>

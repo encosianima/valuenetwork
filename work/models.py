@@ -763,7 +763,7 @@ class JoinRequest(models.Model):
                                     txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br>"
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
                                                       {'f':"<span class='error'>"+str(round(Decimal(amopend - balance), 8))+" fair</span>", 'ac':'</b> '+addr+' <b>'})
-                                else:
+                                elif amopend:
                                     txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
                                     txt += "</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
                                     txt += "' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
@@ -3056,6 +3056,20 @@ def create_unit_types(**kwargs):
         cash.resource_type = cash_rt
         cash.general_unit_type = gen_euro_typ
         cash.save()
+
+    # Check UnitRatio eur-fair
+    urs = UnitRatio.objects.filter(in_unit=fair, out_unit=euro)
+    if not urs:
+        urs = UnitRatio.objects.filter(in_unit=euro, out_unit=fair)
+    if not urs:
+        ur, c = UnitRatio.objects.get_or_create(
+            in_unit=fair,
+            out_unit=euro,
+            rate=Decimal('1.2')
+        )
+        if c:
+            print "- created UnitRatio: "+str(ur)
+            #loger.info("- created UnitRatio: "+str(ur))
 
 
 

@@ -1728,7 +1728,7 @@ def members_agent(request, agent_id):
         init = {"username": agent.nick,}
         user_form = UserCreationForm(initial=init)
     has_associations = agent.all_has_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
-    is_associated_with = agent.all_is_associates()
+    is_associated_with = agent.all_is_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
     assn_form = AssociationForm(agent=agent)
 
     headings = []
@@ -2381,9 +2381,9 @@ def project_login(request, form_slug = False):
 
                 elif len(req) == 1:
                     if req[0].pending_shares() and req[0].payment_url():
-                        return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                        return HttpResponseRedirect(reverse('project_feedback', args=(agent.id, req[0].pk)))
                     elif req[0].check_user_pass():
-                        return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                        return HttpResponseRedirect(reverse('project_feedback', args=(agent.id, req[0].pk)))
                     else:
                         pass #raise ValidationError("This agent has only one request to this project but something is wrong "+str(req[0].check_user_pass()))
 
