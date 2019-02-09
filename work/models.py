@@ -2663,11 +2663,11 @@ def create_unit_types(**kwargs):
     if not shrfv:
         shrfv, created = FacetValue.objects.get_or_create(
             facet=curfacet,
-            value="CoopShares")
+            value="Project Shares")
         if created:
-            print "- created FacetValue: 'CoopShares'"
+            print "- created FacetValue: 'Project Shares'"
     shrfv.facet = curfacet
-    shrfv.value = "CoopShares"
+    shrfv.value = "Project Shares"
     shrfv.save()
 
     nonfacet, created = Facet.objects.get_or_create(

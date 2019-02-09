@@ -6241,6 +6241,19 @@ def create_project_shares(request, agent_id):
     share_rt.context_agent = project.agent
     share_rt.save()
 
+    shrfv = FacetValue.objects.get(value="Project Shares")
+    for fv in share_rt.facets.all():
+        if not fv.facet_value == shrfv:
+            print "- delete: "+str(fv)
+            loger.info("- delete: "+str(fv))
+            fv.delete()
+    share_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=share_rt,
+        facet_value=shrfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+
+
     #  Ocp_Artwork_Type
     if acc_typ:
         artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share").exclude(id=acc_typ.ocp_artwork_type.id)
