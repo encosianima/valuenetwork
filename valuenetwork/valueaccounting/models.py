@@ -8910,6 +8910,21 @@ class Exchange(models.Model):
         #    answer = False
         return answer
 
+    def txpay(self):
+        ttpay = self.ttpay()
+        txpay = None
+        for tx in self.transfers.all():
+            if tx.transfer_type == ttpay:
+                txpay = tx
+        return txpay
+
+    def ttpay(self):
+        ttpay = None
+        for tt in self.exchange_type.transfer_types.all():
+            if tt.is_currency:
+                ttpay = tt
+        return ttpay
+
     def slots_with_detail(self, context_agent=None):
         slots = self.exchange_type.transfer_types.all()
         slots = list(slots)
@@ -9723,6 +9738,13 @@ class Transfer(models.Model):
             status = 'pending' #str([ev.id for ev in events])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
         else:
           status = 'empty'
+        if hasattr(self.exchange, 'join_request') and self.exchange.join_request:
+          if not self.transfer_type.is_share():
+            if self.exchange.join_request.payment_pending_amount():
+                status = 'pending'
+          else:
+            if self.exchange.join_request.pending_shares() and status == 'complete':
+                status = 'pending'
         #import pdb; pdb.set_trace()
         return status
 
@@ -10499,6 +10521,28 @@ class Commitment(models.Model):
                 resource_name,
                 self.due_date.strftime('%Y-%m-%d'),
         ])
+
+    def show_name(self, agent=None, forced=False):
+        name = self.__unicode__()
+        newname = name
+        if agent:
+            gives = self.from_agent == agent
+            takes = self.to_agent == agent
+            x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
+            for action in x_actions:
+                opposite = action.opposite()
+                if opposite:
+                    if action.clas and opposite.clas:
+                        newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                    if name == newname:
+                        newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                    if gives or forced:
+                        if action.clas == 'buy' or action.clas == 'receive':
+                            name = newname
+                    if takes or forced:
+                        if action.clas == 'sell' or action.clas == 'give':
+                            name = newname
+        return name
 
     @property #ValueFlows
     def action(self):
@@ -12434,6 +12478,30 @@ class EconomicEvent(models.Model):
             resource_string,
         ])
 
+    def show_name(self, agent=None, forced=False):
+        name = self.__unicode__()
+        newname = name
+        if agent:
+            gives = self.from_agent == agent
+            takes = self.to_agent == agent
+            x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
+            for action in x_actions:
+                opposite = action.opposite()
+                if opposite:
+                    if action.clas and opposite.clas:
+                        newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                    if name == newname:
+                        newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                    if gives or forced:
+                        if action.clas == 'buy' or action.clas == 'receive':
+                            name = newname
+                    if takes or forced:
+                        if action.clas == 'sell' or action.clas == 'give':
+                            name = newname
+        return name
+
+
+
     @property #ValueFlows
     def action(self):
         return self.event_type.action
@@ -13586,6 +13654,8 @@ class EconomicEvent(models.Model):
             return self.commitment.order_item
         else:
             return self.process.order_item()
+
+
 
 #obsolete
 class DistributionValueEquation(models.Model):
