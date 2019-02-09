@@ -263,7 +263,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="join_request" value="{{ jn_req.id }}">
                                 <button style="display: inline;"  class="btn btn-primary" title="Pay for shares" >
-                                    {% trans "Pay your shares with" %} {{ share_price }} ƒ
+                                    {% trans "Pay your shares with" %} {{ jn_req.payment_pending_amount }} ƒ
                                 </button>
                             </form>
                           {% else %}
@@ -272,11 +272,13 @@
                         {% else %}
                             <br/>
                             <p><em><b>
+                            {% with jn_req.payment_pending_amount as pending_amount %}
                             {% blocktrans %}
                                 Your FairCoin account balance of {{ confirmed_balance }} ƒ
-                                is too low to pay {{ share_price }} ƒ now.
-                                If you transfer enough Faircoins into your account, you'll see here the button to pay your shares.
+                                is too low to pay {{ share_price }} ƒ now.<br>
+                                If you transfer <span class="error">{{ pending_amount }} ƒ</span> into your account, you'll see here the button to pay your shares.
                             {% endblocktrans %}
+                            {% endwith %}
                             </em></b></p>
                         {% endif %}
                     </div>

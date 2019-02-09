@@ -342,6 +342,12 @@ def share_payment(request, agent_id):
       share_price = faircoin_utils.share_price_in_fairs(req)
       number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
       share_price = share_price * number_of_shares
+      pend_amount = req.payment_pending_amount()
+      if not share_price == pend_amount:
+        print "Switch share_price:"+str(share_price)+" to pending_amount:"+str(pend_amount)+" for req:"+str(req)
+        loger.warning("Switch share_price:"+str(share_price)+" to pending_amount:"+str(pend_amount)+" for req:"+str(req))
+        share_price = pend_amount
+
       network_fee = faircoin_utils.network_fee()
       fair_rt = faircoin_utils.faircoin_rt()
       cand_shacc = req.agent_shares_account()
