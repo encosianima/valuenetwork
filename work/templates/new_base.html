@@ -77,7 +77,7 @@
                         {% if request.user.agent.agent.joinaproject_requests|length == 1 %}
                             {% with request.user.agent.agent.joinaproject_requests|first as req %}
                                 <li id="join-project">
-                                     <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">{% trans "Joining Process" %}</a>
+                                     <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}">{% trans "Joining Process" %}</a>
                                 </li>
                             {% endwith %}
                         {% else %}
@@ -88,7 +88,7 @@
                                 {% if req.project %}
 
                                   <li class="joinaproject" >
-                                    <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"
+                                    <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}"
                                       title="{% trans 'Your join-a-project process' %}"
                                       >{{ req.project.agent.name }} {% trans 'Feedback' %}</a>
                                   </li>
@@ -314,7 +314,7 @@
                       {% if request.user.agent.agent.joinaproject_requests|length == 1 %}
                         {% with request.user.agent.agent.joinaproject_requests|first as req %}
                           <li id="feedback" >
-                            <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"
+                            <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}"
                                   title="{% trans 'Feedback page with' %} {{ req.project.agent.name }}" >{% trans "Feedback" %}</a>
                           </li>
                         {% endwith %}
@@ -334,7 +334,7 @@
                           {% for req in request.user.agent.agent.joinaproject_requests %}
                             {% if req.project %}
                               <li class="joinaproject" >
-                                <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"
+                                <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}"
                                   title="{% trans 'Your join-a-project process' %}"
                                   >{{ req.project.agent.name }} {% trans 'Feedback' %}</a>
                               </li>

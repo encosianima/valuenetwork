@@ -131,11 +131,11 @@ a.more-link {
                   <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
               {% endif %}
             {% else %}
-              {% if jn_req.agent.is_active_freedom_coop_member %}
-                <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{% trans "View Project" %}</a>
+              <!-- {% if jn_req.agent.is_active_freedom_coop_member %}
+                <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">{% trans "View Project" %}</a>
               {% endif %}
-              <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a>
-              {% if user_agent.faircoin_resource %}
+              <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a> -->
+              {% if user_agent.faircoin_resource and jn_req.project.agent.need_faircoins %}
                 <a class="indent" href="{% url "manage_faircoin_account" resource_id=user_agent.faircoin_resource.id %}"
                           title="{% trans 'Your personal faircoin wallet in OCP' %}"
                           >{% trans 'Faircoin Account' %}</a>
@@ -248,7 +248,7 @@ a.more-link {
               <tr><th>{% trans "Shares Pending" %}:</th>
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
                   {% if req.exchange %}
-                    &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
+                    &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
                     {% if user_agent in req.project.agent.managers and not req.project.agent.need_faircoins %} &nbsp; &nbsp;
                         <form
                               class="action-form"

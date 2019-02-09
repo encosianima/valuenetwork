@@ -104,7 +104,10 @@
        {% for req in agent.project_join_requests.all %}
           {% if req.state == 'new' %}
             <h4 style="line-height:1.7em;">
-              {% trans "You're joining:" %} <a href="{% url "members_agent" agent_id=req.project.agent.id %}" >{{ req.project.agent.name }}</a> &nbsp; <span style="font-size: 0.9em; font-weight: normal;">({% trans "see the" %} <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">{% trans "Feedback page" %}</a>)</span>
+              {% trans "You're joining:" %} <a href="{% url "members_agent" agent_id=req.project.agent.id %}" >{{ req.project.agent.name }}</a> &nbsp;
+                <span style="font-size: 0.9em; font-weight: normal;">({% trans "see the" %}
+                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">{% trans "Feedback page" %}</a>)
+                </span>
             </h4>
           {% endif %}
        {% endfor %}
@@ -261,7 +264,7 @@
                       {% if not proj in request.user.agent.agent.related_contexts and proj in request.user.agent.agent.joinaproject_requests_projects %}
                         {% for req in request.user.agent.agent.joinaproject_requests %}
                           {% if req.project == proj %}
-                        - <a href="{% url 'project_feedback' agent_id=proj.agent.id join_request_id=req.id %}">{% trans "Joining Process Feedback" %}</a>
+                        - <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}">{% trans "Joining Process Feedback" %}</a>
                           {% endif %}
                         {% endfor %}
                       {% endif %}

@@ -763,7 +763,7 @@ class JoinRequest(models.Model):
                                     txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br>"
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
                                                       {'f':"<span class='error'>"+str(round(Decimal(amopend - balance), 8))+" fair</span>", 'ac':'</b> '+addr+' <b>'})
-                                else:
+                                elif amopend:
                                     txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
                                     txt += "</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
                                     txt += "' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
@@ -1198,6 +1198,8 @@ class JoinRequest(models.Model):
         unit_rt = self.payment_unit_rt()
         shtype = self.project.shares_type()
         shunit = shtype.unit_of_price
+        if not shunit:
+            raise ValidationError("Can't find the unit_of_price of the project share type: "+str(shtype))
         amount2 = shtype.price_per_unit * self.pending_shares()
 
         amountpay = amount2
@@ -2631,11 +2633,42 @@ def create_unit_types(**kwargs):
     curfacet.description = "This facet is to group types of currencies, so a resource type can act as a currency of certain type if wears any of this values"
     curfacet.save()
 
-    shrfv, created = FacetValue.objects.get_or_create(
-        facet=curfacet,
-        value="Project Shares")
-    if created:
-        print "- created FacetValue: 'Project Shares'"
+
+    shrfvs = FacetValue.objects.filter(value='Project Shares')
+    fv_shs = FacetValue.objects.filter(value='CoopShares')
+    shrfv = None
+    if fv_shs and shrfvs:
+        fv_sh = fv_shs[0]
+        rtfvs = ResourceTypeFacetValue.objects.filter(facet_value=fv_sh)
+        shrfv = shrfvs[0]
+        rtfvs2 = ResourceTypeFacetValue.objects.filter(facet_value=shrfv)
+        if not rtfvs and rtfvs2: # CoopShares is not used
+            print "- Deleted FacetValue: "+str(fv_sh)
+            loger.info("- Deleted FacetValue: "+str(fv_sh))
+            fv_sh.delete()
+        elif not rtfvs2 and rtfvs: # Project Shares is not used
+            shrfv = fv_sh
+        elif rtfvs and rtfvs2:
+            raise ValidationError("Both FacetValues has related resource_types!? "+str(fv_sh)+" <-> "+str(shrfv))
+        else:
+            print "- Deleted FacetValue: "+str(shrfv)
+            loger.info("- Deleted FacetValue: "+str(shrfv))
+            shrfv.delete()
+            shrfv = fv_sh
+    elif fv_shs and not shrfvs:
+        shrfv = fv_shs[0]
+    elif not fv_shs and shrfvs:
+        shrfv = shrfvs[0]
+
+    if not shrfv:
+        shrfv, created = FacetValue.objects.get_or_create(
+            facet=curfacet,
+            value="Project Shares")
+        if created:
+            print "- created FacetValue: 'Project Shares'"
+    shrfv.facet = curfacet
+    shrfv.value = "Project Shares"
+    shrfv.save()
 
     nonfacet, created = Facet.objects.get_or_create(
         name="Non-material",
@@ -3024,6 +3057,20 @@ def create_unit_types(**kwargs):
         cash.general_unit_type = gen_euro_typ
         cash.save()
 
+    # Check UnitRatio eur-fair
+    urs = UnitRatio.objects.filter(in_unit=fair, out_unit=euro)
+    if not urs:
+        urs = UnitRatio.objects.filter(in_unit=euro, out_unit=fair)
+    if not urs:
+        ur, c = UnitRatio.objects.get_or_create(
+            in_unit=fair,
+            out_unit=euro,
+            rate=Decimal('1.2')
+        )
+        if c:
+            print "- created UnitRatio: "+str(ur)
+            #loger.info("- created UnitRatio: "+str(ur))
+
 
 
     # Cryptos Bitcoin
@@ -3148,33 +3195,6 @@ def create_unit_types(**kwargs):
     artw_sh.resource_type = None
     artw_sh.general_unit_type = gen_share_typ
     artw_sh.save()
-
-    fa_curr, created = Facet.objects.get_or_create(
-        name='Currency'
-    )
-    if created:
-        print "- created Facet: Currency"
-    fa_curr.clas = "Currency_Type"
-    fa_curr.save()
-
-    fv_shs = FacetValue.objects.filter(value='Shares')
-    if fv_shs:
-        fv_sh = fv_shs[0]
-    else:
-        fv_shs = FacetValue.objects.filter(value='CoopShares')
-        if fv_shs:
-            fv_sh = fv_shs[0]
-        else:
-            fv_sh, created = FacetValue.objects.get_or_create(
-                value='CoopShares',
-                facet=fa_curr
-            )
-            if created:
-                print "- created FacetValue: CoopShares"
-    fv_sh.value = 'CoopShares'
-    fv_sh.facet = fa_curr
-    fv_sh.save()
-
 
 
 

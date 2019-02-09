@@ -901,17 +901,36 @@
               <h4 class="hdg"> {{ agent.name }} {% trans "is associated with" %}: </h4>{% if user_agent.is_superuser %}<!-- debug:managed_projects: {% for pro in agent.managed_projects %}{{ pro.name}} ({{ pro.id }}), {% endfor %} -->{% endif %}
               <ul>
                 {% for assoc in is_associated_with  %}
-                    {% ifchanged assoc.association_type %}
-                        <h4> {{ assoc.association_type.label }}: </h4>
+                    {% ifchanged assoc.association_type and assoc.state %}
+                       <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.label|cut:" of" }} {% trans "candidate of" %}{% else %}
+                                {{ assoc.association_type.label }}{% endif %}: </h4>
                     {% endifchanged %}
                     <li><a href="{% url "members_agent" agent_id=assoc.has_associate.id %}">{{ assoc.has_associate.name }}</a>
-                        {% if assoc.state == "potential" %} ({{ assoc.get_state_display }}) {% endif %}
+                        {% if not assoc.state == "active" and not assoc.has_associate.project %} ({{ assoc.get_state_display }}) {% endif %}
+                        {% for req in assoc.has_associate.project.join_requests.all|reqs_related_agent:agent %}
+                            {% if req.id %}
+                                {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %} &nbsp;
+                                {% get_comment_count for req as ncom  %}
+                                {% if req.project.agent == agent or req.agent == agent %}
+                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
+                                        <b>{% trans "Feedback" %}</b> {{ ncom }}
+                                    </a>
+                                {% else %}
+                                {% endif %}
+                                {% if req.exchange %}&nbsp; <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span> {% endif %}
+                                {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
+                                {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if not assoc.is_associate.joinaproject_requests and not assoc.state == 'active' %}
+                           &nbsp;<b class="error">error</b>
+                        {% endif %}
                     </li>
                 {% endfor %}
               </ul>
               {% if has_associations %}
                   <h4 class="hdg">{{ agent.name }} {% trans "has these associates" %}: &nbsp; &nbsp;
-                  {% if user_agent in agent.managers or user_agent.is_staff %}
+                  {% if user_agent in agent.managers or user_agent == agent or user_agent.is_staff %}
                       {% if agent.is_context %}
                         <a href="#agentAssnForm" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Edit member relations" %}</a>
                         <div class="modal hide fade" id="agentAssnForm" tabindex="-1" role="dialog" aria-labelledby="assn-label" aria-hidden="true">
@@ -951,7 +970,8 @@
                             <div class="list" id="list-assoc_{{ assoc.association_type.identifier|cut:" " }}_{{ assoc.state }}">
                         {% endifchanged %}
 
-                        {% if user_agent in agent.managers and not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
+                        {% if user_agent in agent.managers or user_agent == agent %}
+                          {% if not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
                             {% with assoc.is_associate.membership_request_id as id %}
                                 {% if id and not agent.project in assoc.is_associate.joinaproject_requests_projects %}
@@ -972,17 +992,17 @@
                                 {% endif %}
                             {% endwith %}
                             {% for req in assoc.is_associate.joinaproject_requests|reqs_related_agent:agent %}
-                              {% if req.project.agent == agent %}
-                                {% if req.id %}
-                                    {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
-                                    &nbsp;
-                                    {% get_comment_count for req as ncom  %}
+                              {% if req.id %}
+                                {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %} &nbsp;
+                                {% get_comment_count for req as ncom  %}
+                                {% if req.project.agent == agent or req.agent == agent %}
                                     <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
                                         <b>{% trans "Feedback" %}</b> {{ ncom }}
                                     </a>
-                                    {% if req.exchange %}&nbsp; <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span> {% endif %}
-                                    {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
+                                {% else %}
                                 {% endif %}
+                                {% if req.exchange %}&nbsp; <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span> {% endif %}
+                                {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                               {% endif %}
                             {% endfor %}
@@ -1006,8 +1026,25 @@
                               {% endif %}
                             {% endif %}
                           </li>
+                          {% endif %}
                         {% elif not assoc.state == "inactive" and not assoc.is_associate in agent.declined_agents %}
-                          <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a> {% if assoc.state == "inactive" %}{% trans "(inactive)" %}{% endif %}</li>
+                          <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
+                              {% for req in assoc.is_associate.joinaproject_requests|reqs_related_agent:agent %}
+                                {% if req.agent == user_agent %}
+                                  {% if req.id %}
+                                    {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
+                                    &nbsp;
+                                    {% get_comment_count for req as ncom  %}
+                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
+                                        <b>{% trans "Feedback" %}</b> {{ ncom }}
+                                    </a>
+                                    {% if req.exchange %}&nbsp; <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span> {% endif %}
+                                    {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
+                                  {% endif %}
+                                  {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
+                                {% endif %}
+                              {% endfor %}
+                          </li>
                         {% endif %}
 
 
@@ -1079,9 +1116,10 @@
         {% if user_agent.req %}
             {% if user_agent.req.state == 'declined' %}
               <p>{% trans "Sorry, you've tried to join this project but your request was <b>declined</b> for any reason. See the thread at" %}:
-              <b><a href="{% url 'project_feedback' agent_id=agent.id join_request_id=user_agent.req.id %}">{% trans "Your Declined Joining Feedback" %}</a></b> </p>
+              <b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}">{% trans "Your Declined Joining Feedback" %}</a></b> </p>
             {% else %}
-              <p>{% trans "This project has a moderated access workflow, and you've requested access to join in. To keep track of the joining process go to" %}: <b><a href="{% url 'project_feedback' agent_id=agent.id join_request_id=user_agent.req.id %}">{% trans "Your Joining Feedback" %}</a></b></p>
+              <p>{% trans "This project has a moderated access workflow, and you've requested access to join in. To keep track of the joining process go to" %}:
+                  <b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}">{% trans "Your Joining Feedback" %}</a></b></p>
             {% endif %}
         {% else %}
           <p>{% trans "This project has a moderated access workflow. Please fill the following form to request access, and then you will have a special feedback page to comunicate with the project coordinators" %}:</p>

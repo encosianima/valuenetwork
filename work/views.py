@@ -1728,7 +1728,7 @@ def members_agent(request, agent_id):
         init = {"username": agent.nick,}
         user_form = UserCreationForm(initial=init)
     has_associations = agent.all_has_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
-    is_associated_with = agent.all_is_associates()
+    is_associated_with = agent.all_is_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
     assn_form = AssociationForm(agent=agent)
 
     headings = []
@@ -2381,9 +2381,9 @@ def project_login(request, form_slug = False):
 
                 elif len(req) == 1:
                     if req[0].pending_shares() and req[0].payment_url():
-                        return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                        return HttpResponseRedirect(reverse('project_feedback', args=(agent.id, req[0].pk)))
                     elif req[0].check_user_pass():
-                        return HttpResponseRedirect(reverse('project_feedback', args=(project.agent.id, req[0].pk)))
+                        return HttpResponseRedirect(reverse('project_feedback', args=(agent.id, req[0].pk)))
                     else:
                         pass #raise ValidationError("This agent has only one request to this project but something is wrong "+str(req[0].check_user_pass()))
 
@@ -6236,8 +6236,23 @@ def create_project_shares(request, agent_id):
     share_rt.unit = ocp_each
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
+    #share_rt.price_per_unit = 1 # TODO allow coords to choose share price and unit in a form
+    #share_rt.unit_of_price = ocp_euro
     share_rt.context_agent = project.agent
     share_rt.save()
+
+    shrfv = FacetValue.objects.get(value="Project Shares")
+    for fv in share_rt.facets.all():
+        if not fv.facet_value == shrfv:
+            print "- delete: "+str(fv)
+            loger.info("- delete: "+str(fv))
+            fv.delete()
+    share_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=share_rt,
+        facet_value=shrfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+
 
     #  Ocp_Artwork_Type
     if acc_typ:

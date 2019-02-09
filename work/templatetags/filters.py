@@ -7,8 +7,12 @@ def reqs_related_agent(jn_reqs, agent):
     if jn_reqs and agent:
         reqs = []
         for req in jn_reqs:
-            if req.project.agent == agent:
+            if hasattr(agent, 'project') and req.project.agent == agent:
                 reqs.append(req)
+                print "found project related join_request! "+str(req)
+            elif req.agent == agent:
+                reqs.append(req)
+                print "found agent related join_request! "+str(req)
         return reqs
     else:
         return jn_reqs
