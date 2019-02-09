@@ -81,6 +81,9 @@ def set_user_notification_by_type(user, notification_type="work_new_account", se
 
 
 def convert_price(amount, shunit, unit):
+    if not amount: raise ValidationError("Convert_price without amount? unit1:"+str(shunit)+" unit2:"+str(unit))
+    if not shunit: raise ValidationError("Convert_price without unit1? amount:"+str(amount)+" unit2:"+str(unit))
+    if not amount: raise ValidationError("Convert_price without unit2? amount:"+str(amount)+" unit1:"+str(shunit))
     if amount and shunit and unit:
         if not shunit == unit:
             try:

@@ -6236,6 +6236,8 @@ def create_project_shares(request, agent_id):
     share_rt.unit = ocp_each
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
+    #share_rt.price_per_unit = 1 # TODO allow coords to choose share price and unit in a form
+    #share_rt.unit_of_price = ocp_euro
     share_rt.context_agent = project.agent
     share_rt.save()
 
