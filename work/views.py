@@ -344,7 +344,7 @@ def share_payment(request, agent_id):
       share_price = share_price * number_of_shares
       network_fee = faircoin_utils.network_fee()
       fair_rt = faircoin_utils.faircoin_rt()
-      cand_shacc = req.agent.owned_shares_accounts(pro_agent.shares_account_type())
+      cand_shacc = req.agent_shares_account()
       if not cand_shacc:
             raise ValidationError("Can't find the candidate share's account of type: "+str(pro_agent.shares_account_type()))
       if share_price <= balance and network_fee:
@@ -1471,7 +1471,7 @@ def run_fdc_scripts(request, agent):
     tot_mem = MembershipRequest.objects.all()
     tot_jrq = JoinRequest.objects.filter(project=fdc.project)
     pend = len(tot_mem) - len(tot_jrq)
-    if pend:
+    if pend and request.user.agent.agent in fdc.managers():
         messages.error(request, "Membership Requests pending to MIGRATE to the new generic JoinRequest system: <b>"+str(pend)+"</b>", extra_tags='safe')
 
 
@@ -1849,7 +1849,7 @@ def members_agent(request, agent_id):
 
     dups = check_duplicate_agents(request, agent)
 
-    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
+    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email and request.user.agent.agent in agent.managers():
         messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
 
     return render(request, "work/members_agent.html", {
@@ -3466,7 +3466,10 @@ def project_feedback(request, agent_id, join_request_id):
     user_agent = get_agent(request)
     agent = get_object_or_404(EconomicAgent, pk=agent_id)
     jn_req = get_object_or_404(JoinRequest, pk=join_request_id)
-    project = agent.project
+    if not hasattr(agent, 'project'):
+        project = jn_req.project
+    else:
+        project = agent.project
     allowed = False
     if user_agent and jn_req and project == jn_req.project:
       if user_agent.is_staff() or user_agent in agent.managers():
@@ -4484,6 +4487,14 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
     if not request.method == "POST":
 
         exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent, exchanges_by_type)
+        if exchanges_by_type:
+            while not exchanges:
+                start = start - datetime.timedelta(days=365)
+                exchanges = Exchange.objects.exchanges_by_date_and_context(start, end, agent, exchanges_by_type)
+                if exchanges:
+                    init = {"start_date": start, "end_date": end}
+                    dt_selection_form = DateSelectionForm(initial=init, data=request.POST or None)
+                    break
 
         nav_form = ExchangeNavForm(agent=agent, exchanges=exchanges_by_type, data=request.POST or None)
 
@@ -4777,7 +4788,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
     fairunit = None
 
-    for x in exchanges:
+    '''for x in exchanges:
         x.list_name = x.show_name(agent)
         flip = False
         if not str(x) == x.list_name:
@@ -4786,6 +4797,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         x.transfer_list = list(x.transfers.all())
         for transfer in x.transfer_list:
             transfer.list_name = transfer.show_name(agent, flip) # "2nd arg is 'forced'
+    '''
 
     for x in exchanges_by_type:
 
@@ -5014,7 +5026,9 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
 
     elif exchange_id != "0": #existing exchange
         exchange = get_object_or_404(Exchange, id=exchange_id)
-        exchange.list_name = exchange.show_name(context_agent)
+
+        if not exchange.context_agent == context_agent and not context_agent in exchange.related_agents():
+            raise ValidationError("NOT VALID URL! please "+str(request.user.agent.agent)+" don't touch the urls manually...")
 
         if request.method == "POST":
             exchange_form = ExchangeContextForm(instance=exchange, data=request.POST)
@@ -5131,6 +5145,7 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                 slot.add_commit_form = ContextTransferCommitmentForm(initial=commit_init, prefix="ACM" + str(slot.id), context_agent=context_agent, transfer_type=slot)
 
                 slot.add_ext_agent = ContextExternalAgent() #initial=None, prefix="AGN"+str(slot.id))#, context_agent=context_agent)
+
 
 
 
