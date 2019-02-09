@@ -4,8 +4,12 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 {% load comments %}
+{% load filters %}
 
-{% block head_title %}{{ agent.nick }} {% trans "join request of" %} {% if jn_req.agent %}{{ jn_req.agent.name }}{% else %}{{ jn_req.name }}{% endif %}{% endblock %}
+{% block head_title %}
+    {% if jn_req.agent %}{{ jn_req.agent.name }}{% else %}{{ jn_req.name }}{% endif %}
+    {% trans "join request to" %} {{ jn_req.project.agent.nick }}
+{% endblock %}
 
 {% block extra_head %}
 
@@ -85,35 +89,44 @@ a.more-link {
         {% include "_messages.html" %}
     <div>
         <legend>
-          {% if user_agent in agent.managers or user_agent == agent %}
-            <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a> >
-            {% if agent.project.fobi_slug and agent.project.join_requests %}
-              <a class="indent" href="{% url 'join_requests' agent_id=agent.id %}">{% trans "Join Requests" %}</a> >
+          {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
+            <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">{{ jn_req.project.agent.name }}</a> >
+            {% if jn_req.project.fobi_slug and jn_req.project.join_requests %}
+              <a class="indent" href="{% url 'join_requests' agent_id=jn_req.project.agent.id %}">{% trans "Join Requests" %}</a> >
             {% endif %}
             {{ jn_req.agent.name }}
           {% else %}
             {% if jn_req.agent %}<a class="indent" href="{% url 'members_agent' agent_id=jn_req.agent.id %}">{{ jn_req.agent.name }}</a> > {% endif %}
-            {% trans "Feedback with" %} <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>
+            {% trans "Feedback with" %} <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">{{ jn_req.project.agent.name }}</a>
           {% endif %}
-           &nbsp; <span style="font-weight:normal; font-size:80%;">
+           &nbsp; &nbsp;
+          <span style="font-weight:normal; font-size:90%;">
           {% if jn_req.agent %}
-            ({% if jn_req.state == 'new' %}{% trans "pending" %}{% else %}{{ jn_req.state }}{% endif %})
+            {% if jn_req.project.shares_type %}{% trans "Membership" %}{% else %}{% trans "Join" %}{% endif %} request:
+              <b>{% if jn_req.state == 'new' %}{% trans "Pending" %}{% else %}{{ jn_req.state|title }}{% endif %}</b>
           {% else %}
             <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span>
           {% endif %}
-          {% if jn_req.duplicated %}
-            &nbsp; <span class="error">{% trans "DUPLICATED!" %} <form
-                                          style="display:inline;"
-                                          id="delete-form{{ jn_req.id }}"
-                                          action="{% url "delete_request" join_request_id=jn_req.id %}"
-                                          method="POST" >
-                                        {% csrf_token %}
-                                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete this" %}' />
-                                    </form> {% trans "or see the other" %} <a href="{% url 'project_feedback' agent_id=jn_req.project.agent.id join_request_id=jn_req.duplicated.id %}">{% trans "join request" %}</a></span>
+
+          {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
+            {% if jn_req.duplicated %} &nbsp;
+              <span class="error">{% trans "DUPLICATED!" %}
+                <form
+                        style="display:inline;"
+                        id="delete-form{{ jn_req.id }}"
+                        action="{% url "delete_request" join_request_id=jn_req.id %}"
+                        method="POST" >
+                        {% csrf_token %}
+                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete this" %}' />
+                </form> {% trans "or see the other" %}
+                <a href="{% url 'project_feedback' agent_id=jn_req.project.agent.id join_request_id=jn_req.duplicated.id %}">
+                    {% trans "join request" %}</a>
+              </span>
+            {% endif %}
           {% endif %}
           </span>
           <div class="subnav">
-            {% if user_agent in agent.managers or user_agent == agent %}
+            {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
               {% if user_agent.need_projects %}
                   <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
               {% endif %}
@@ -204,7 +217,28 @@ a.more-link {
               {% for obj in req.items_data %}
                 <tr class="fobi">
                   <th>{{ obj.key }}:</th>
-                  <td class='edit' id='{{ obj.ky }}' typ='{{ obj.typ }}' {% if obj.opts %}data='{{ obj.opts }}' {% elif obj.val %}data="{{ obj.val }}" {% endif %}>{% if obj.val %}{% if obj.typ == 'select_multiple' %}{% for v in obj.val %}{{ v }}{% if v == obj.val|last %}{% else %}, {% endif %}{% endfor %}{% else %}{{ obj.val|linebreaks }}{% endif %}{% else %}{% endif %}</td>
+                  {% if user_agent in req.project.agent.managers or user_agent == req.project.agent %}
+                    <td class='edit'
+                      id='{{ obj.ky }}'
+                      typ='{{ obj.typ }}'
+                      {% if obj.opts %}data='{{ obj.opts }}'
+                      {% elif obj.val %}data="{{ obj.val }}"
+                      {% endif %}>
+                  {% else %}
+                    <td>
+                  {% endif %}
+                    {% if obj.val %}
+                      {% if obj.typ == 'select_multiple' %}
+                        {% for v in obj.val %}
+                          {{ v }}
+                          {% if v == obj.val|last %}{% else %}, {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        {{ obj.val|linebreaks }}
+                      {% endif %}
+                    {% else %}
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
             {% else %}
@@ -286,8 +320,9 @@ a.more-link {
                           {% endif %}
                       {% endif %}
                       {% if req.exchange and not req.pending_shares %}
-                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
-                        {% if user_agent in req.project.agent.managers and not req.project.agent.need_faircoins %} &nbsp; &nbsp;
+                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange|show_name:user_agent|safe }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
+                        {% if user_agent in req.project.agent.managers or user_agent == req.project.agent %}
+                          {% if not req.project.agent.need_faircoins and not req.exchange.status == 'complete' %} &nbsp; &nbsp;
                             <form
                                   class="action-form"
                                   id="status-form{{ req.id }}"
@@ -298,6 +333,7 @@ a.more-link {
                                 <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
                                 <span class="help-text" style="font-size:0.8em">{% trans "(This will only set the shares as transfered)" %}</span>
                             </form>
+                          {% endif %}
                         {% endif %}
                       {% elif not req.pending_shares %}
                         {% if user_agent in req.project.agent.managers and req.exchange_type %} &nbsp; &nbsp;
@@ -341,10 +377,13 @@ a.more-link {
 
     <div id="member-request-comments">
       <legend>
-        {% if request.user.agent.agent in agent.managers %}
+        {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
           {% trans "Talk with " %} {% if jn_req.agent %}<a class="indent" href="{% url 'members_agent' agent_id=jn_req.agent.id %}">{{ jn_req.agent.name }}</a> ({{ jn_req.agent.nick }}) {% else %} {{ jn_req.name }} ¿? {% endif %}
         {% else %}
-          {% trans "Talk with coordinators of " %} <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>  ({{ agent.nick }})
+          {% trans "Talk with coordinators of " %}
+          <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">
+              {{ jn_req.project.agent.name }}</a>  {% if not jn_req.project.agent.nick == jn_req.project.agent.name %}
+              ({{ jn_req.project.agent.nick }}) {% endif %}
         {% endif %}
       </legend>
 
@@ -419,7 +458,7 @@ a.more-link {
         });
       });*/
 
-      {% if user_agent in agent.managers or user_agent == agent or request.user.is_superuser %}
+      {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent or request.user.is_superuser %}
         $('.fobi td[typ="text"]').add('.fobi td[typ="integer"]').each(function(){
             $(this).editable(
                 function(value, settings) {

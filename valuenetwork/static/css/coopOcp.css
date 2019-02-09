@@ -96,13 +96,22 @@ span.pending {
   color: #f27003;
   font-weight: bold;
 }
+b.pending, em.pending {
+  color: #f27003;
+}
 span.complete {
   color: #3b4;
   font-weight: bold;
 }
+b.complete, em.complete {
+  color: #3b4;
+}
 span.empty {
   color: #b34;
   font-weight: bold;
+}
+b.empty, em.empty {
+  color: #b34;
 }
 
 .link-normal {

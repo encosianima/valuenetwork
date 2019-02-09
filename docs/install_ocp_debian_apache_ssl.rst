@@ -23,7 +23,7 @@ Be carefull if you already have an electrum-fair wallet installed with the same 
     cd [installation dir]
     git clone https://github.com/FreedomCoop/valuenetwork.git
     cd valuenetwork
-    cp faircoin/daemon/daemon_service.sample /faircoin/daemon/daemon_service
+    cp faircoin/daemon/daemon_service.sample faircoin/daemon/daemon_service
     chmod a+x faircoin/daemon/daemon_service
     cp faircoin/daemon/daemon.py.sample faircoin/daemon/daemon.py
     chmod a+x faircoin/daemon/daemon.py
@@ -50,7 +50,7 @@ For ocp instances in production, better to move daemon_service to */etc/init.d/*
 
 - Install ocp python dependencies: ::
 
-    pip install -r requirements.txt --trusted-host dist.pinaxproject.com
+    pip install -U -r requirements.txt --trusted-host dist.pinaxproject.com
     pip install --no-deps easy_thumbnails
     pip install Image
 

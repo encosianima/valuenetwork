@@ -27,3 +27,7 @@ def shares_related_project(shares, project):
                     total += sh.quantity
         return int(total)
     return False
+
+@register.filter
+def show_name(obj, agent):
+    return obj.show_name(agent)

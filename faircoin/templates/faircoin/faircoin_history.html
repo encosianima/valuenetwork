@@ -78,6 +78,9 @@
                     <th>{% trans "Tx State" %}</th>
                     <th>{% trans "Chain" %}</th>
                 {% endif %}
+                {% if request.user.is_superuser %}
+                  <th>{% trans "Exchange" %}</th>
+                {% endif %}
             </thead>
             <tbody>
                 {% for event in events %}
@@ -116,6 +119,11 @@
                                 {% endif %}
                             {% endif %}
                         </td>
+                        {% endif %}
+                        {% if request.user.is_superuser %}
+                          <td>{% if event.exchange %}<a href="{% url "exchange_logging_work" context_agent_id=resource.owner.id exchange_type_id=0 exchange_id=event.exchange.id %}">{% trans "exchange" %}</a>
+                              {% endif %}
+                          </td>
                         {% endif %}
                     </tr>
                 {% endfor %}

@@ -665,6 +665,35 @@ class JoinRequest(models.Model):
                 pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
         return answer
 
+    def share_price(self):
+        shrtyp = self.project.shares_type()
+        price = shrtyp.price_per_unit
+        unit = shrtyp.unit_of_price
+        requnit = self.payment_unit()
+        amount = price
+        if not requnit == unit and price:
+            from work.utils import convert_price
+            amount = convert_price(price, unit, requnit)
+        if not amount == price:
+            pass #print "Changed the price!"
+        return amount
+
+    def show_share_price(self):
+        unit = self.payment_unit()
+        txt = str(self.share_price())+" "
+        if unit.symbol:
+            txt += unit.symbol
+        else:
+            txt += unit.abbrev
+        return txt
+
+    def total_price(self):
+        return round(Decimal(self.payment_amount() * self.share_price()), 8)
+
+    def show_total_price(self):
+        txt = str(self.payment_amount() * self.share_price())+' '+self.show_payment_unit()
+        return txt
+
     def payment_url(self):
         payopt = self.payment_option()
         obj = None
@@ -738,7 +767,18 @@ class JoinRequest(models.Model):
 
                     if not balance or not amount:
                       txt = "<span class='error'>"+txt+"</span>"
-                    return obj['html']+"<br>Amount to pay: <b> "+str(round(amount, 8))+" ƒ</b><br>"+txt
+
+                    amtopay = "<br>Amount to pay: <b> "+str(round(amount, 8))+" ƒ "
+                    amispay = self.payment_payed_amount()
+                    amopend = self.payment_pending_amount()
+                    if amispay > 0:
+                      if amopend:
+                        amtopay += "- "+str(amispay)+" ƒ payed = "+str(round(amopend, 8))+' ƒ pending'
+                      else:
+                        amtopay += " (payed "+str(amispay)+" ƒ)"
+                    amtopay += "</b>"
+                    return obj['html']+str(amtopay)+"<br>"+txt
+
 
                   else:
                     # don't need internal faircoin
@@ -753,7 +793,7 @@ class JoinRequest(models.Model):
             loger.info("No settings obj gateways or no payment option:, paypot: "+str(payopt))
         return False
 
-    def payment_amount(self):
+    def payment_amount(self): # TODO rename to payment_shares
         amount = 0
         shat = self.project.shares_account_type()
         if self.project.is_moderated() and self.fobi_data and shat:
@@ -782,6 +822,35 @@ class JoinRequest(models.Model):
                             break
                     #import pdb; pdb.set_trace()
         return amount
+
+    def payment_payed_amount(self):
+        if hasattr(self, 'exchange'):
+            return self.exchange.txpay().actual_quantity()
+        else:
+            return 0
+
+    def payment_pending_amount(self):
+        shares = self.payment_amount()
+        unit = self.payment_unit()
+        unit_rt = self.payment_unit_rt()
+        shtype = self.project.shares_type()
+        shunit = shtype.unit_of_price
+        amount2 = shtype.price_per_unit * self.pending_shares()
+        amountpay = amount2
+        from work.utils import convert_price
+        if not shunit == unit and amount2: #unit.abbr == 'fair':
+            amountpay = convert_price(amount2, shunit, unit)
+        #if not amountpay:
+        #    amountpay = convert_price(shares, shunit, unit)
+
+        amispay = self.payment_payed_amount()
+        pendamo = amountpay
+        if amispay > 0 and amountpay:
+            pendamo = Decimal(amountpay) - amispay
+        if pendamo < 0:
+            pendamo = 0
+        return round(pendamo, 8)
+
 
     def payment_account_type(self):
         account_type = None
@@ -918,6 +987,15 @@ class JoinRequest(models.Model):
 
     def payment_total_with_fees(self):
         return self.pending_shares() + self.payment_fees()
+
+    def show_payment_unit(self):
+        unit = self.payment_unit()
+        txt = 'error'
+        if unit.symbol:
+            txt = unit.symbol
+        else:
+            txt = unit.abbrev
+        return txt
 
     def payment_unit(self):
         payopt = self.payment_option()

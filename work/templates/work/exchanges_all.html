@@ -4,6 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 {% load mptt_tags %}
+{% load filters %}
 
 {% block head_title %}{% trans "Exchanges" %}{% endblock %}
 
@@ -311,8 +312,9 @@ hr {
             </div>
         </legend>
         <!-- <div class="span12"> -->
+        <div class="span4" style="float:right; margin-left:1em;">
           {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent %}
-            <div class="span3 totals infobox"><h3>
+            <div class="totals infobox"><h3>
               {% trans "Totals:" %}
               </h3>
               {% if not exchanges_by_type %}
@@ -369,8 +371,71 @@ hr {
 
             </div>
           {% endif %}
+
+
+          <div class="filter miniform">
+            {% comment %}
+            {% if exchanges %}
+                <div>
+                    <a href=" {% url "exchange_events_csv" %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+                </div>
+            {% endif %}
+            {% endcomment %}
+            <h3>{% trans "Filter the List" %}</h3>
+            <form id="filter-form" action="." method="POST">
+	            {% csrf_token %}
+                <div id="div_id_start_date" class="control-group" style="display: inline;" >
+                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
+                        {% trans "Start date " %}
+                    </label>
+                    <div class="controls" style="display: inline;" >
+                        {{ dt_selection_form.start_date }}
+                    </div>
+                </div>
+                <div id="div_id_end_date" class="control-group" >
+                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
+                        {% trans "End date  " %}
+                    </label>
+                    <div class="controls" style="display: inline;" >
+                        {{ dt_selection_form.end_date }}
+                    </div>
+                </div>
+	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
+                <p class="title"> {% trans "Filter by Type" %} </p>
+
+                {% for x in exchanges_by_type %}
+                  {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent in x.related_agents %}
+                    {% with x.exchange_type as et %}
+                      {% with et.ocp_record_type.get_ancestors|slice:"5:6"|first as useca %}
+                        {% ifchanged useca %}
+                          <h5>{{ useca.name }}</h5>
+                        {% endifchanged %}
+                      {% endwith %}
+                      {% ifchanged et.ocp_record_type and et.ocp_record_type.name %}
+                        <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {% if not et.ocp_record_type %}{{ et }} (!){% else %}{{ et.ocp_record_type.name }}{% endif %}</p>
+                      {% endifchanged %}
+                    {% endwith %}
+                  {% endif %}
+
+                {% endfor %}
+{% comment %}
+                {% if references %}
+	            <p class="title"> {% trans "Accounting Reference" %} </p>
+	            {% for ar in references %}
+	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
+	            {% endfor %}
+	            {% endif %}
+{% endcomment %}
+	            <input type="hidden" id="categories" name="categories" value=" {{ selected_values }} " />
+	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
+            </form>
+          </div>
+
+
+        </div>
+        <div class="span8" style="margin-left:0;">
           {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent and request.user.is_superuser %}
-          <div id="new_exchange" class="miniform span8">
+          <div id="new_exchange" class="miniform">
             <form id="exchangeForm" style="margin:0;" method="POST" action="">
                 <h3 style="display:inline-block;">{% trans "Create a new Exchange" %}:</h3> &nbsp;
 
@@ -708,7 +773,7 @@ hr {
           {% endif %}
 
       <!-- </div> -->
-      <div class="span8">
+      <div class="" style="">
       {% if exchanges_by_type %}
         <h3>
           {% trans "List of Exchanges" %}{% if not user.is_staff and not request.user.agent.agent in context_agent.managers and not request.user.agent.agent == context_agent %}
@@ -720,15 +785,15 @@ hr {
           {% if True or x in exchanges %}
             {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent %}
                     <li><span class="{{ x.status }}">&#9679;</span>
-                        <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"><b>{{ x.list_name|safe }}</b></a> {% if user.is_superuser %}<em>(ca: {{ x.context_agent }}, etca: {{ x.exchange_type.context_agent }}, date: {{ x.start_date }})</em>{% endif %}
+                        <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"><b>{{ x|show_name:context_agent|safe }}</b></a> {% if user.is_superuser %}<em>(ca: {{ x.context_agent }}, etca: {{ x.exchange_type.context_agent }}, date: {{ x.start_date }})</em>{% endif %}
                         {% if user.is_staff and not x.join_request %}{% trans "created by" %} {{ x.created_by }} {% endif %}
                         {% if x.join_request %} &nbsp;{% trans "related this" %}
                             {% if context_agent == x.join_request.project.agent %}
-                                <a href="{% url "project_feedback" agent_id=x.join_request.project.agent.id join_request_id=x.join_request.id %}" style="font-weight:bold;">{% trans "Membership Request" %}</a>
+                                <a href="{% url "project_feedback" agent_id=context_agent.id join_request_id=x.join_request.id %}" style="font-weight:bold;">{% trans "Membership Request" %}</a>
                                 {% trans "from" %} <a href="{% url "members_agent" agent_id=x.join_request.agent.id %}" style="font-weight:bold;">
                                 {{ x.join_request.agent.name }}</a>
                             {% else %}
-                                <a href="{% url "project_feedback" agent_id=x.join_request.project.agent.id join_request_id=x.join_request.id %}" style="font-weight:bold;">{% trans "Membership Request" %}</a>
+                                <a href="{% url "project_feedback" agent_id=context_agent.id join_request_id=x.join_request.id %}" style="font-weight:bold;">{% trans "Membership Request" %}</a>
                                 {% trans "to join" %} <a href="{% url "members_agent" agent_id=x.join_request.project.agent.id %}" style="font-weight:bold;">{{ x.join_request.project.agent.name }}</a>
                             {% endif %}
                         {% endif %}
@@ -748,12 +813,13 @@ hr {
                             {% endif %}
                         {% endif %}
                     </li>
-                    {% if x.transfer_list %}
+                    {% if x.transfers.all %}
                         <ul class="tlist">
-                            {% for transfer in x.transfer_list %}
-                                <li><span class="{{ transfer.status }}">&#9679;</span> {{ transfer.list_name|safe }} </li>
+                            {% for transfer in x.transfers.all %}
+                                <li><span class="{{ transfer.status }}">&#9679;</span> {{ transfer|show_name:context_agent|safe }} </li>
                             {% endfor %}
                         </ul>
+                    {% else %} empty
                     {% endif %}
                     {% if x.work_events %}
                         <ul class="wlist">
@@ -768,64 +834,7 @@ hr {
 		</ul>
       {% endif %}
       </div>
-      <div class="span3 filter miniform">
-{% comment %}
-            {% if exchanges %}
-                <div>
-                    <a href=" {% url "exchange_events_csv" %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
-                </div>
-            {% endif %}
-{% endcomment %}
-            <h3>{% trans "Filter the List" %}</h3>
-            <form id="filter-form" action="." method="POST">
-	            {% csrf_token %}
-                <div id="div_id_start_date" class="control-group" style="display: inline;" >
-                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
-                        {% trans "Start date " %}
-                    </label>
-                    <div class="controls" style="display: inline;" >
-                        {{ dt_selection_form.start_date }}
-                    </div>
-                </div>
-                <div id="div_id_end_date" class="control-group" >
-                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
-                        {% trans "End date  " %}
-                    </label>
-                    <div class="controls" style="display: inline;" >
-                        {{ dt_selection_form.end_date }}
-                    </div>
-                </div>
-	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
-                <p class="title"> {% trans "Filter by Type" %} </p>
-
-                {% for x in exchanges_by_type %}
-                  {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent in x.related_agents %}
-                    {% with x.exchange_type as et %}
-                      {% with et.ocp_record_type.get_ancestors|slice:"5:6"|first as useca %}
-                        {% ifchanged useca %}
-                          <h5>{{ useca.name }}</h5>
-                        {% endifchanged %}
-                      {% endwith %}
-                      {% ifchanged et.ocp_record_type and et.ocp_record_type.name %}
-                        <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {% if not et.ocp_record_type %}{{ et }} (!){% else %}{{ et.ocp_record_type.name }}{% endif %}</p>
-                      {% endifchanged %}
-                    {% endwith %}
-                  {% endif %}
-
-                {% endfor %}
-{% comment %}
-                {% if references %}
-	            <p class="title"> {% trans "Accounting Reference" %} </p>
-	            {% for ar in references %}
-	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
-	            {% endfor %}
-	            {% endif %}
-{% endcomment %}
-	            <input type="hidden" id="categories" name="categories" value=" {{ selected_values }} " />
-	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
-            </form>
       </div>
-
     </div>
 {% endblock %}
 

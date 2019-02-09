@@ -323,7 +323,7 @@
 		                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans "Feedback" %} <b class="caret"></b></a>
 		                    <ul class="subnav dropdown-menu" id="feedback-menu">
                           {% with request.user.agent.agent.membership_request.fdc as fdc %}
-                            {% if request.user.agent.agent.membership_request.id and not fdc in request.user.agent.agent.joinaproject_requests_projects %}
+                            {% if request.user.agent.agent.membership_request.id and not fdc.project in request.user.agent.agent.joinaproject_requests_projects %}
                               <li id="membership" >
                                 <a href="{% url 'membership_discussion' membership_request_id=request.user.agent.agent.membership_request.id %}"
                                   title="{% trans 'Your membership process' %}"
