@@ -738,6 +738,7 @@ class JoinRequest(models.Model):
                     wallet = faircoin_utils.is_connected()
                     price = faircoin_utils.share_price_in_fairs(self)
                     amount = Decimal(self.pending_shares() * price)
+                    amopend = self.payment_pending_amount()
 
                     if fairrs:
                       if addr:
@@ -746,10 +747,10 @@ class JoinRequest(models.Model):
                           if is_wallet_address:
                             balance = fairrs.faircoin_address.balance()
                             if balance != None:
-                                if balance < amount:
-                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing %(f)s fairs."
+                                if balance < amopend:
+                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br>"
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
-                                                      {'f':str(round(Decimal(amount - balance), 8)), 'ac':'</b> '+addr+' <b>'})
+                                                      {'f':"<span class='error'>"+str(round(Decimal(amopend - balance), 8))+" ƒ</span>", 'ac':'</b> '+addr+' <b>'})
                                 else:
                                     txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
                                     txt += "</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
@@ -770,7 +771,6 @@ class JoinRequest(models.Model):
 
                     amtopay = "<br>Amount to pay: <b> "+str(round(amount, 8))+" ƒ "
                     amispay = self.payment_payed_amount()
-                    amopend = self.payment_pending_amount()
                     if amispay > 0:
                       if amopend:
                         amtopay += "- "+str(amispay)+" ƒ payed = "+str(round(amopend, 8))+' ƒ pending'
@@ -778,7 +778,6 @@ class JoinRequest(models.Model):
                         amtopay += " (payed "+str(amispay)+" ƒ)"
                     amtopay += "</b>"
                     return obj['html']+str(amtopay)+"<br>"+txt
-
 
                   else:
                     # don't need internal faircoin
