@@ -1001,7 +1001,9 @@ def migrate_fdc_shares(request, jr):
                 elif not exmem:
                     exmem = ex
 
-                print "- Found exchange: "+str(ex.id)+": "+str(ex)+" tx-qty:"+str(tx.actual_quantity())+" ca:"+str(ex.context_agent)+" txs:"+str(len(txs))+" coms:"+str(len(coms))+" evts:"+str(len(tx.events.all()))
+                print "- Found exchange: "+str(ex.id)+": "+str(ex)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" ca:"+str(ex.context_agent)+" txs:"+str(len(txs))+" coms:"+str(len(coms))+" evts:"+str(len(tx.events.all()))
+                loger.info("- Found exchange: "+str(ex.id)+": "+str(ex)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" ca:"+str(ex.context_agent)+" txs:"+str(len(txs))+" coms:"+str(len(coms))+" evts:"+str(len(tx.events.all())))
+
 
                 if not ex.exchange_type == et:
                     print "- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" (ca:"+str(et.context_agent)+")"
@@ -1047,8 +1049,8 @@ def migrate_fdc_shares(request, jr):
                     fairtx = None
                     if hasattr(evt, 'faircoin_transaction') and evt.faircoin_transaction:
                         fairtx = evt.faircoin_transaction.id
-                        print "Careful! this event is related a fair_tx:"+str(fairtx)
-                        loger.info("Careful! this event is related a fair_tx:"+str(fairtx))
+                        #print "Careful! this event:"+str(evt.id)+" is related a fair_tx:"+str(fairtx)
+                        #loger.info("Careful! this event:"+str(evt.id)+" is related a fair_tx:"+str(fairtx))
                     #print "Evt: action:"+str(evt.action)+" unit:"+str(evt.unit())+" fairtx:"+str(fairtx)+" state:"+str(fairtx.tx_state)+" hash:"+str(fairtx.tx_hash)
                     if evt.event_type: # == et_give:
                         if not evt.resource_type == unit_rt:

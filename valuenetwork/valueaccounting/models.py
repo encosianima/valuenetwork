@@ -9990,11 +9990,15 @@ class Transfer(models.Model):
     def unit_of_quantity(self):
         events = self.events.all()
         if events:
-            return events[0].unit_of_quantity
+            for ev in events:
+                if ev.unit_of_quantity:
+                    return ev.unit_of_quantity
         else:
             commits = self.commitments.all()
             if commits:
-                return commits[0].unit_of_quantity
+                for com in commits:
+                    if com.unit_of_quantity:
+                        return com.unit_of_quantity
         return None
 
     def value(self):
@@ -10020,11 +10024,15 @@ class Transfer(models.Model):
     def unit_of_value(self):
         events = self.events.all()
         if events:
-            return events[0].unit_of_value
+          for ev in events:
+            if ev.unit_of_value:
+                return ev.unit_of_value
         else:
             commits = self.commitments.all()
             if commits:
-                return commits[0].unit_of_value
+                for com in commits:
+                    if com.unit_of_value:
+                        return com.unit_of_value
         return None
 
     def from_agent(self):
