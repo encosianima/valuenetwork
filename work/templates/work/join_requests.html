@@ -112,15 +112,23 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                     <span class="error">{% trans "Not Valid yet!" %}</span>&nbsp;
                                 {% elif project.share_types and req.fobi_data %}
                                   {% if req.agent %}
-                                      {% trans "Shares:" %}
+                                      {{ req.payment_amount }} {% trans "Shares:" %}
                                       {% if req.pending_shares %}
-                                          <span class="error">{% trans "Pending" %}</span>
+                                        {% if req.total_shares %}
+                                          <span class="complete">{{ req.total_shares }}</span>&nbsp;+&nbsp;<span class="error">{{ req.pending_shares }}</span>
+                                        {% else %}
+                                          <span class="error">{{ req.total_shares }}</span>
+                                        {% endif %}
                                       {% elif req.fobi_data %}
+                                        {% if not req.total_shares == req.payment_amount %}
                                           <span class="complete">{{ req.total_shares }}</span>
+                                        {% else %}
+                                          <em class="complete"></em>
+                                        {% endif %}
                                       {% endif %}
                                       <br />
                                   {% endif %}
-                                  {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="btn btn-mini btn-info" >Exchange</a>
+                                  {% if req.exchange %} <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="{{ req.exchange.status }}" >{{ req.exchange.status|title }}</a>
                                   {% elif req.pending_shares %}
                                     {% if request.user.is_superuser and not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
                                       <form
@@ -246,9 +254,9 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                         action="{% url "confirm_request" join_request_id=req.id %}"
                                         method="POST" >
                                         {% csrf_token %}
-                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Confirm Email" %}' /> <span class="help-text">{% trans "sends random pass and auto-creates user+agent, OR" %}</span>
+                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Confirm Email" %}' /> <span class="help-text">{% trans "sends random pass and creates user+agent" %}</span>
                                     </form>
-                                    <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account (manual)" %}</a>
+                                    <!-- <a href="#create-agent{{ req.id }}" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create OCP Account (manual)" %}</a>
                                     <div class="modal hide fade" id="create-agent{{ req.id }}" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -265,7 +273,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                                 </div>
                                             </form>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <form
                                         class="action-form"
@@ -302,7 +310,9 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                           {% endif %}
                       </td>
                       <td>{% if req.agent %} <a href="{% url "members_agent" agent_id=req.agent.id %}"><b><em>{{ req.agent.username }}</em></b></a> {% elif req.requested_username %} {{ req.requested_username }} {% else %} ?? {% endif %}</td>
-                      <td>{% if req.agent %} {{ req.agent.agent_type }} {% else %} {{ req.type_of_user }} {% endif %}</td>
+                      <td>{% if req.agent %} {{ req.agent.agent_type }}
+                              {% if not req.agent.agent_type|lower == req.type_of_user %}({{ req.type_of_user }}){% endif %}
+                          {% else %} {{ req.type_of_user }} {% endif %}</td>
 
                       <td>{% if req.email_address %}
                               <a href="mailto:{{ req.email_address }}">{{ req.email_address }}</a>
