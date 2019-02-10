@@ -1129,8 +1129,10 @@ class JoinRequest(models.Model):
                 if created:
                     print "- created Exchange: "+str(ex)
                     loger.info("- created Exchange: "+str(ex))
-                if ag:
+                if ag and ag.user() and ag.user().user:
                     ex.created_by = ag.user().user
+                #else:
+                #    ex.created_by =
             if not ex.start_date == dt:
                 print "- Edited exchange start_date: "+str(ex.start_date)+" -> "+str(dt)
                 #ex.start_date = dt
@@ -1779,7 +1781,7 @@ class JoinRequest(models.Model):
             elif reqs:
                 return False
             else:
-                raise ValidationError("This join_request is wrong! req:"+str(self)+" ag:"+str(self.agent))
+                raise ValidationError("This join_request is wrong! req:"+str(self)+" id:"+str(self.id)+" ag:"+str(self.agent)+" pro:"+str(self.project))
         else:
             reqs = JoinRequest.objects.filter(project=self.project, requested_username=self.requested_username)
             if len(reqs) > 1:
@@ -1789,7 +1791,7 @@ class JoinRequest(models.Model):
             elif reqs:
                 return False
             else:
-                raise ValidationError("This join_request is wrong! req:"+str(self))
+                raise ValidationError("This join_request is wrong! req:"+str(self)+" id:"+str(self.id)+" pro:"+str(self.project))
 
 
 class NewFeature(models.Model):

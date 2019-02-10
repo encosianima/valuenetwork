@@ -917,7 +917,8 @@
                                     </a>
                                 {% else %}
                                 {% endif %}
-                                {% if req.exchange %}&nbsp; <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span> {% endif %}
+                                {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
+                                                               class="{{ req.exchange.status }}">{{ req.exchange.status }}</a> {% endif %}
                                 {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                             {% endif %}
@@ -1001,7 +1002,8 @@
                                     </a>
                                 {% else %}
                                 {% endif %}
-                                {% if req.exchange %}&nbsp; <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span> {% endif %}
+                                {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
+                                                               class="{{ req.exchange.status }}">{{ req.exchange.status }}</a> {% endif %}
                                 {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                               {% endif %}
@@ -1038,7 +1040,8 @@
                                     <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
                                         <b>{% trans "Feedback" %}</b> {{ ncom }}
                                     </a>
-                                    {% if req.exchange %}&nbsp; <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span> {% endif %}
+                                    {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
+                                                                   class="{{ req.exchange.status }}">{{ req.exchange.status }}</a> {% endif %}
                                     {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                   {% endif %}
                                   {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
