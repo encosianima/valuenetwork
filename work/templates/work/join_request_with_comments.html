@@ -337,7 +337,7 @@ a.more-link {
                                 {% csrf_token %}
                                 <input type="hidden" name="status" value="complete">
                                 <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                                <span class="help-text" style="font-size:0.8em">{% trans "(This will only set the shares as transfered)" %}</span>
+                                <br/><span class="help-text" style="font-size:0.8em">{% trans "(This will only set the shares as transfered)" %}</span>
                             </form>
                           {% endif %}
                         {% endif %}
@@ -351,8 +351,8 @@ a.more-link {
                                 {% csrf_token %}
                                 <input type="hidden" name="status" value="pending">
                                 <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                                <br/><span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
                             </form>
-                            <span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
                         {% endif %}
                       {% endif %}
                   </td>

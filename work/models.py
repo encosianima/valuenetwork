@@ -1120,9 +1120,17 @@ class JoinRequest(models.Model):
             else:
                 exs = Exchange.objects.exchanges_by_type(ag)
                 ex = None
+                oldet = None
+                old_fdc_ets = ExchangeType.objects.filter(name='Membership Contribution')
+                if old_fdc_ets:
+                    oldet = old_fdc_ets[0]
                 for e in exs:
                     if e.exchange_type == et:
                         ex = e
+                        break
+                    if oldet and e.exchange_type == oldet and self.project.fobi_slug == 'freedom-coop':
+                        ex = e
+                        loger.info("- FOUND old fdc et, use that exchange: "+str(ex))
                         break
                 if ex:
                     print "- found old Exchange!! "+str(ex)
@@ -1142,13 +1150,17 @@ class JoinRequest(models.Model):
 
                 if ag and ag.user() and ag.user().user:
                     ex.created_by = ag.user().user
-                #else:
-                #    ex.created_by =
+            if not ex.exchange_type == et:
+                print "- Edited exchange exchange_type: "+str(ex.exchange_type)+" -> "+str(et)
+                loger.info("- Edited exchange exchange_type: "+str(ex.exchange_type)+" -> "+str(et))
+                ex.exchange_type = et
             if not ex.start_date == dt:
                 print "- Edited exchange start_date: "+str(ex.start_date)+" -> "+str(dt)
+                loger.info("- Edited exchange start_date: "+str(ex.start_date)+" -> "+str(dt))
                 #ex.start_date = dt
             if not ex.created_date == dt:
                 print "- Edited exchange created_date: "+str(ex.created_date)+" -> "+str(dt)
+                loger.info("- Edited exchange created_date: "+str(ex.created_date)+" -> "+str(dt))
                 #ex.created_date = dt
             ex.supplier = pro
             ex.customer = ag
@@ -1305,6 +1317,10 @@ class JoinRequest(models.Model):
 
                             #return
                         elif amountpay:
+                            if unit.abbrev == 'fair' and self.project.agent.need_faircoins():
+                                print "The agent uses internal faircoins, so don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent)
+                                loger.info("The agent uses internal faircoins, so don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent))
+                                return
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
                                 event_date = datetime.date.today(),

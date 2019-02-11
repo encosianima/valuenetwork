@@ -1149,7 +1149,7 @@ def migrate_fdc_shares(request, jr):
 
               elif tx.from_agent() == fdc:
                 print " - Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share())
-                loger.info("- Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
+                loger.info("- Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
                 #messages.info(request, "- Found transfer FROM FdC: "+str(tx)+" tx_typ:"+str(tx.transfer_type)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
 
                 for com in tx.commitments.all():
@@ -1209,13 +1209,23 @@ def migrate_fdc_shares(request, jr):
                 print "Found exchange related from FdC parent! "+str(tx)
                 loger.info("Found exchange related from FdC parent! "+str(tx))
               else:
-                print "Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(tx.commitments.all()))+" evts:"+str(len(tx.events.all()))
-                loger.debug("Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(tx.commitments.all()))+" evts:"+str(len(tx.events.all())))
+                print "Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(tx.commitments.all()))+" evts:"+str(len(tx.events.all()))
+                loger.debug("Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(tx.commitments.all()))+" evts:"+str(len(tx.events.all())))
                 if tx.context_agent == fdc:
                     if tx.transfer_type == shrtt:
                         if jr.total_shares():
                             print "- FOUND tx related shares without to-from related fdc, but the agent has shares! Add event? tx:"+str(tx.id)+" jr:"+str(jr.id)+" shares:"+str(jr.total_shares())
                             loger.info("- FOUND tx related shares without to-from related fdc, but the agent has shares! Add event? tx:"+str(tx.id)+" jr:"+str(jr.id)+" shares:"+str(jr.total_shares()))
+                            evs = EconomicEvent.objects.filter(to_agent=jr.agent, from_agent=fdc)
+                            if evs:
+                              for ev in evs:
+                                print "- - found event:"+str(ev.id)+" "+str(ev)
+                                loger.debug("- - found event:"+str(ev.id)+" "+str(ev))
+                                continue
+                            else:
+                                print "Call update_payment_status complete to repair the missing share event... jr:"+str(jr.id)
+                                loger.info("Call update_payment_status complete to repair the missing share event... jr:"+str(jr.id))
+                                #jr.update_payment_status('complete')
                         else:
                             print "- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id)
                             loger.info("- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id))
