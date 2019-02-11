@@ -922,8 +922,8 @@ def migrate_fdc_shares(request, jr):
         coms = ex.xfer_commitments()
         evnz = ex.xfer_events()
         txtps = ex.exchange_type.transfer_types.all()
-        print "-Found exchange: "+str(ex.id)+": "+str(ex)+" ca: "+str(ex.context_agent)+" coms: "+str(len(coms))+" evnz:"+str(len(evnz))
-        loger.debug("-Found exchange: "+str(ex.id)+": "+str(ex)+" ca: "+str(ex.context_agent)+" coms: "+str(len(coms))+" evnz:"+str(len(evnz)))
+        #print "-Found exchange: "+str(ex.id)+": "+str(ex)+" ca: "+str(ex.context_agent)+" coms: "+str(len(coms))+" evnz:"+str(len(evnz))+" paytt:"+str(paytt.id)+" shrtt:"+str(shrtt.id)
+        #loger.debug("-Found exchange: "+str(ex.id)+": "+str(ex)+" ca: "+str(ex.context_agent)+" coms: "+str(len(coms))+" evnz:"+str(len(evnz))+" paytt:"+str(paytt.id)+" shrtt:"+str(shrtt.id))
         txpay = None
         txshr = None
         for txtp in txtps:
@@ -1013,8 +1013,9 @@ def migrate_fdc_shares(request, jr):
                 elif not exmem:
                     exmem = ex
 
-                print "- Found exchange: "+str(ex.id)+": "+str(ex)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" ca:"+str(ex.context_agent)+" txs:"+str(len(txs))+" coms:"+str(len(coms))+" evts:"+str(len(tx.events.all()))
-                loger.info("- Found exchange: "+str(ex.id)+": "+str(ex)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" ca:"+str(ex.context_agent)+" txs:"+str(len(txs))+" coms:"+str(len(coms))+" evts:"+str(len(tx.events.all())))
+
+                print "- Found exchange: "+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" tx-ca:"+str(tx.context_agent)+" tx-coms:"+str(len(tx.commitments.all()))+" tx-evts:"+str(len(tx.events.all()))
+                loger.info("- Found exchange: "+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" tx-ca:"+str(tx.context_agent)+" tx-coms:"+str(len(tx.commitments.all()))+" tx-evts:"+str(len(tx.events.all())))
 
 
                 if not ex.exchange_type == et:
@@ -1103,9 +1104,9 @@ def migrate_fdc_shares(request, jr):
                             print "-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id)
                             loger.error("-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id))
                         else:
-                            print "- the event has not fairtx, is shares? id:"+str(evt.id)+" "+str(evt)
-                            loger.info("- the event has not fairtx, is shares? id:"+str(evt.id)+" "+str(evt))
-                            #pass
+                            #print "- the event has fairtx! id:"+str(evt.id)+" "+str(evt)
+                            #loger.info("- the event has fairtx! id:"+str(evt.id)+" "+str(evt))
+                            pass
                         if not sh_unit and not fairtx:
                             print "x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt)
                             loger.error("x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
@@ -1208,8 +1209,16 @@ def migrate_fdc_shares(request, jr):
                 print "Found exchange related from FdC parent! "+str(tx)
                 loger.info("Found exchange related from FdC parent! "+str(tx))
               else:
-                print "Another tx? "+str(tx)
-                loger.debug("Another tx? "+str(tx))
+                print "Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(tx.commitments.all()))+" evts:"+str(len(tx.events.all()))
+                loger.debug("Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(tx.commitments.all()))+" evts:"+str(len(tx.events.all())))
+                if tx.context_agent == fdc:
+                    if tx.transfer_type == shrtt:
+                        if jr.total_shares():
+                            print "- FOUND tx related shares without to-from related fdc, but the agent has shares! Add event? tx:"+str(tx.id)+" jr:"+str(jr.id)+" shares:"+str(jr.total_shares())
+                            loger.info("- FOUND tx related shares without to-from related fdc, but the agent has shares! Add event? tx:"+str(tx.id)+" jr:"+str(jr.id)+" shares:"+str(jr.total_shares()))
+                        else:
+                            print "- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id)
+                            loger.info("- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id))
             else:
                 pass #print "Other tt: "+str(tt)
 
