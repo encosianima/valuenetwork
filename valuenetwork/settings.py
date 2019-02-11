@@ -230,7 +230,7 @@ REST_FRAMEWORK = {
 
 # valueaccounting settings
 # Set this with your specific data in local_settings.py
-MAIN_ORGANIZATION = "FreedomCoop"
+MAIN_ORGANIZATION = "Freedom Coop"
 USE_WORK_NOW = True
 SUBSTITUTABLE_DEFAULT = True
 MAP_LATITUDE = 45.5601062
@@ -348,7 +348,7 @@ CORS_ALLOW_CREDENTIALS = True
 BROADCAST_FAIRCOINS_LOCK_WAIT_TIMEOUT = None
 
 #id of the group to send payments to
-SEND_MEMBERSHIP_PAYMENT_TO = "FC MembershipRequest"
+SEND_MEMBERSHIP_PAYMENT_TO = "Freedom Coop"
 
 import re
 IGNORABLE_404_URLS = (
