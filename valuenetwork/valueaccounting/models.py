@@ -10533,6 +10533,13 @@ class Commitment(models.Model):
         if agent:
             gives = self.from_agent == agent
             takes = self.to_agent == agent
+            if not self.exchange:
+                if not self.transfer.exchange:
+                    return "error showing name: not self.exchange?"
+                else:
+                    loger.warning("The Commitment has no exchange but its transfer has, FIXING!")
+                    self.exchange = self.transfer.exchange
+                    self.save()
             x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
             for action in x_actions:
                 opposite = action.opposite()
@@ -12489,6 +12496,13 @@ class EconomicEvent(models.Model):
         if agent:
             gives = self.from_agent == agent
             takes = self.to_agent == agent
+            if not self.exchange:
+                if not self.transfer.exchange:
+                    return "error showing name: not self.exchange?"
+                else:
+                    loger.warning("The Event has no exchange but its transfer has it, FIXING!")
+                    self.exchange = self.transfer.exchange
+                    self.save()
             x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
             for action in x_actions:
                 opposite = action.opposite()
