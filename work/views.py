@@ -841,15 +841,18 @@ def migrate_fdc_shares(request, jr):
             #print shs
             account.price_per_unit = len(shs)
             account.save()
-            loger.info("FdC shares had been migrated to the new system for agent "+str(jr.agent))
+            loger.info("FdC shares had been migrated to the new system for agent "+str(jr.agent)+" shs:"+str(shs))
             messages.warning(request, "FdC shares had been migrated to the new system for agent "+str(jr.agent))
             for sh in shs:
                 for ar in arrs:
                     if ar.resource == sh:
                         account.created_date = sh.created_date
                         account.save()
-                        ar.delete()
-                        sh.delete()
+                        if sh.is_deletable():
+                            ar.delete()
+                            sh.delete()
+                        else:
+                            loger.info("WARN! The old Share can't be deleted? "+str(sh))
                         loger.info("FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
                         messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
 
@@ -863,13 +866,13 @@ def migrate_fdc_shares(request, jr):
                 loger.info("WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr))
                 messages.warning(request, "Converted the join request state to 'new' because the member has no shares yet.")
 
-            if agrel.state == 'active' or not agrel.association_type == aamem:
-                agrel.state = 'potential'
-                agrel.association_type = aamem
-                agrel.save()
-                print "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel)
-                loger.info("- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
-                messages.warning(request, "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
+                if agrel.state == 'active' or not agrel.association_type == aamem:
+                    agrel.state = 'potential'
+                    agrel.association_type = aamem
+                    agrel.save()
+                    print "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel)
+                    loger.info("- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
+                    messages.warning(request, "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
 
     else:
         print str(shacct)+' not in res: '+str(res)
@@ -934,8 +937,10 @@ def migrate_fdc_shares(request, jr):
             print "--Not found txpay:"+str(txpay)+" txshr:"+str(txshr)+" SKIP!"
             loger.debug("--Not found txpay:"+str(txpay)+" txshr:"+str(txshr)+" SKIP!")
             continue
-        print "- - found txpay:"+str(txpay)+" txshr:"+str(txshr)
-        loger.debug("- - found txpay:"+str(txpay)+" txshr:"+str(txshr))
+        elif not txpay or not txshr:
+            print "- - found just one tx? (will rebuild) txpay:"+str(txpay)+" txshr:"+str(txshr)
+            loger.debug("- - found just one tx? (will rebuild) txpay:"+str(txpay)+" txshr:"+str(txshr))
+
         for txtp in txtps:
           txtp.found = None
           for tx in txs:
@@ -1047,7 +1052,8 @@ def migrate_fdc_shares(request, jr):
                             print "- delete empty transfer: "+str(tt.id)
                             loger.warning("- delete empty transfer: "+str(tt.id))
                             messages.warning(request, "- delete empty transfer: "+str(tt))
-                            tt.delete()
+                            if tt.is_deletable():
+                                tt.delete()
                         else:
                             print "WARNING: Not deleted Transfer because has events or shares!! "+str(tt)
                             loger.error("WARNING: Not deleted Transfer because has events or shares!! "+str(tt))
@@ -1073,7 +1079,8 @@ def migrate_fdc_shares(request, jr):
                             loger.info("- change event to_agent to FdC! "+str(evt.to_agent))
                             #evt.to_agent = fdc
                         sh_unit = None
-                        if evt.resource_type.ocp_artwork_type:
+                        if not fairtx:
+                          if evt.resource_type.ocp_artwork_type:
                             if evt.resource_type.ocp_artwork_type.general_unit_type:
                                 genut = evt.resource_type.ocp_artwork_type.general_unit_type
                                 ocput = Ocp_Unit_Type.objects.get(id=genut.id)
@@ -1092,9 +1099,11 @@ def migrate_fdc_shares(request, jr):
                             else:
                                 print "-- Error: The event resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(evt.resource_type.ocp_artwork_type)+" for event:"+str(evt.id)
                                 loger.error("-- Error: The event resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(evt.resource_type.ocp_artwork_type)+" for event:"+str(evt.id))
-                        else:
+                          else:
                             print "-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id)
                             loger.error("-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id))
+                        else:
+                            pass
                         if not sh_unit and not fairtx:
                             print "x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt)
                             loger.error("x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
@@ -1232,8 +1241,10 @@ def migrate_fdc_shares(request, jr):
                     print "-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes)
                     loger.info("-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
                     messages.info(request, "-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
-                    tr.delete()
-                ex.delete()
+                    if tr.is_deletable():
+                        tr.delete()
+                if ex.is_deletable():
+                    ex.delete()
 
     return
 
@@ -6576,8 +6587,8 @@ def create_shares_exchange_types(request, agent_id):
 
     for fv in ttpay.facet_values.all():
         if not fv.facet_value == fvmoney:
-            print "- delete: "+str(fv)
-            loger.info("- delete: "+str(fv))
+            print "- delete fv: "+str(fv)
+            loger.info("- delete fv: "+str(fv))
             fv.delete()
     ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttpay,
@@ -6759,8 +6770,8 @@ def create_shares_exchange_types(request, agent_id):
         ###  TransferTypeFacetValue  ->  receive  ->  share
         for fv in ttshr.facet_values.all():
             if not fv.facet_value == shrfv:
-                print "- delete: "+str(fv)
-                loger.info("- delete: "+str(fv))
+                print "- delete fv: "+str(fv)
+                loger.info("- delete fv: "+str(fv))
                 fv.delete()
         ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttshr,
@@ -6813,8 +6824,14 @@ def create_shares_exchange_types(request, agent_id):
             if etfiats:
                 etfiat = etfiats[0]
                 for tt in etfiat.transfer_types.all():
-                    tt.delete()
-                etfiat.delete()
+                    print "- delete tt? "+str(tt)
+                    loger.info("- delete tt? "+str(tt))
+                    if tt.is_deletable():
+                        tt.delete()
+                print "- delete etfiat? "+str(etfiat)
+                loger.info("- delete etfiat? "+str(etfiat))
+                if etfiat.is_deletable():
+                    etfiat.delete()
 
             #  Ocp_Record_Type  branch
             parent_rectyps = Ocp_Record_Type.objects.filter(clas=slug+"_economy")
@@ -6926,8 +6943,8 @@ def create_shares_exchange_types(request, agent_id):
             ###  TransferTypeFacetValue  ->  pay  ->  gatefv
             for fv in ttpay.facet_values.all():
                 if not fv.facet_value == gatefv:
-                    print "- delete: "+str(fv)
-                    loger.info("- delete: "+str(fv))
+                    print "- delete fv: "+str(fv)
+                    loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
@@ -7055,8 +7072,8 @@ def create_shares_exchange_types(request, agent_id):
             ###  TransferTypeFacetValue  ->  pay  ->  gatefv
             for fv in ttfiat.facet_values.all():
                 if not fv.facet_value == gatefv:
-                    print "- delete: "+str(fv)
-                    loger.info("- delete: "+str(fv))
+                    print "- delete fv: "+str(fv)
+                    loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttfiat,
@@ -7096,8 +7113,8 @@ def create_shares_exchange_types(request, agent_id):
             ###  TransferTypeFacetValue  ->  receive  ->  shares
             for fv in ttshr.facet_values.all():
                 if not fv.facet_value == shrfv:
-                    print "- delete: "+str(fv)
-                    loger.info("- delete: "+str(fv))
+                    print "- delete fv: "+str(fv)
+                    loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
@@ -7161,8 +7178,8 @@ def create_shares_exchange_types(request, agent_id):
 
             for fv in ttpay.facet_values.all():
                 if not fv.facet_value == gatefv:
-                    print "- delete: "+str(fv)
-                    loger.info("- delete: "+str(fv))
+                    print "- delete fv: "+str(fv)
+                    loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
@@ -7197,8 +7214,8 @@ def create_shares_exchange_types(request, agent_id):
 
             for fv in ttshr.facet_values.all():
                 if not fv.facet_value == shrfv:
-                    print "- delete: "+str(fv)
-                    loger.info("- delete: "+str(fv))
+                    print "- delete fv: "+str(fv)
+                    loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
