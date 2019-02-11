@@ -836,7 +836,11 @@ class JoinRequest(models.Model):
 
     def payment_payed_amount(self):
         if hasattr(self, 'exchange'):
-            return self.exchange.txpay().actual_quantity()
+            txpay = self.exchange.txpay()
+            if txpay:
+                return txpay.actual_quantity()
+            else:
+                return 0
         else:
             return 0
 
@@ -1167,6 +1171,10 @@ class JoinRequest(models.Model):
             if not ex.use_case == et.use_case:
                 print "- CHANGE exchange USE_CASE ? from "+str(ex.use_case)+" to "+str(et.use_case)
                 loger.info("- CHANGE exchange USE_CASE ? from "+str(ex.use_case)+" to "+str(et.use_case))
+            if ex.name:
+                if not ex.name == et.name:
+                    print "- exchange with a custom name! REPAIRED to et.name, for ex:"+str(ex.name)
+                    ex.name = et.name
             ex.use_case = et.use_case
             ex.context_agent = pro
 
@@ -1214,7 +1222,17 @@ class JoinRequest(models.Model):
                                 xfer.created_by = ag.user().user
                         elif ag and ag.user() and ag.user().user:
                             xfer.edited_by = ag.user().user
-                        xfer.save()
+                    if not xfer.name == xfer_name:
+                        print "- fix tx name! "+str(xfer.name)+" -> "+str(xfer_name)
+                        loger.info("- fix tx name! "+str(xfer.name)+" -> "+str(xfer_name))
+                        xfer.name = xfer_name
+                    coms = xfer.commitments.all()
+                    evts = xfer.events.all()
+                    if coms or evts:
+                        print "WARN! - the tx has coms:"+str(coms)+" or has evts:"+str(evts)
+                        loger.info("WARN! - the tx has coms:"+str(coms)+" or has evts:"+str(evts))
+
+                    xfer.save()
 
         return ex
 
@@ -1278,7 +1296,7 @@ class JoinRequest(models.Model):
                 try:
                     xfer_share = xfers.get(transfer_type__inherit_types=True) #exchange_type__ocp_record_type__ocpRecordType_ocp_artwork_type__resource_type__isnull=False)
                 except:
-                    raise ValidationError("Can't get a transfer type related shares in the exchange: "+str(ex))
+                    raise ValidationError("Can't get a transfer type related shares in the exchange: "+str(ex)+" xfers:"+str(xfers))
 
                 if xfer_pay:
                     xfer_pay.notes += str(datetime.date.today())+' '+str(self.payment_gateway())+': '+status+'. '
