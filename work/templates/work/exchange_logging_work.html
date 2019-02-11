@@ -492,7 +492,7 @@ h3.trtheading {
                                       {% for comm in xfer.commitments.all_give %}
                                         <div class="comm"><span class="{% if comm.fulfillment_events.all %}complete{% else %}pending{% endif %}">&#9679;</span>
                                         <span class="event-label">{% trans "Commitment" %}: </span>
-                                        {{ comm|show_name:context_agent|safe }}
+                                        {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ comm.id }}){% endif %}
                                         {% if logger or comm.created_by == request.user or comm.to_agent == request.user.agent.agent or comm.to_agent in request.user.agent.agent.managed_projects %}
                                           {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
                                             {% if not comm.to_agent %}
@@ -667,7 +667,7 @@ h3.trtheading {
                                         {% if comm.fulfillment_events.all %}
                                           {% for evt in comm.fulfillment_events.all_give %}
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>
-                                                {{ evt|show_name:context_agent|safe }}
+                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ evt.id }}){% endif %}
                                                 {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
                                                 {% if logger or evt.created_by == request.user or evt.to_agent == request.user.agent.agent or evt.to_agent in request.user.agent.agent.managed_projects %}
                                                   {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
@@ -760,7 +760,7 @@ h3.trtheading {
                                       {% for evt in xfer.events.all_give %}
                                         <div class="evt"><span class="complete">&#9679;</span>
                                         <span class="event-label">{% trans "Transfer" %}:</span>
-                                        {{ evt|show_name:context_agent|safe }}
+                                        {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ evt.id }}){% endif %}
                                         {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
                                         {% if logger or evt.created_by == request.user or evt.to_agent == request.user.agent.agent or evt.to_agent in request.user.agent.agent.managed_projects %}
                                           {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
@@ -1037,7 +1037,7 @@ h3.trtheading {
                                       {% for comm in xfer.commitments.all_give %}
                                         <div class="comm"><span class="{% if comm.fulfillment_events.all %}complete{% else %}pending{% endif %}">&#9679;</span>
                                         <span class="event-label">{% trans "Commitment" %}: </span>
-                                        {{ comm|show_name:context_agent|safe }}
+                                        {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ comm.id }}){% endif %}
                                         {% if logger or comm.created_by == request.user or comm.from_agent == request.user.agent.agent or comm.from_agent in request.user.agent.agent.managed_projects %}
                                           {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
                                             {% if not comm.from_agent %}
@@ -1211,7 +1211,7 @@ h3.trtheading {
                                         {% if comm.fulfillment_events.all %}
                                           {% for evt in comm.fulfillment_events.all_give %}
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>
-                                                {{ evt|show_name:context_agent|safe }}
+                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ evt.id }}){% endif %}
                                                 {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
                                                 {% if logger or evt.created_by == request.user or evt.from_agent == request.user.agent.agent or evt.from_agent in request.user.agent.agent.managed_projects %}
                                                   {% if not exchange.join_request %}
@@ -1304,7 +1304,7 @@ h3.trtheading {
                                       {% for evt in xfer.events.all_give %}
                                         <div class="evt"><span class="complete">&#9679;</span>
                                         <span class="event-label">{% trans "Transfer" %}: </span>
-                                        {{ evt|show_name:context_agent|safe }}
+                                        {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ evt.id }}){% endif %}
                                         {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
                                         {% if logger or evt.created_by == request.user or evt.from_agent == request.user.agent.agent or evt.from_agent in request.user.agent.agent.managed_projects  %}
                                           {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}

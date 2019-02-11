@@ -1103,7 +1103,9 @@ def migrate_fdc_shares(request, jr):
                             print "-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id)
                             loger.error("-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id))
                         else:
-                            pass
+                            print "- the event has not fairtx, is shares? id:"+str(evt.id)+" "+str(evt)
+                            loger.info("- the event has not fairtx, is shares? id:"+str(evt.id)+" "+str(evt))
+                            #pass
                         if not sh_unit and not fairtx:
                             print "x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt)
                             loger.error("x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
@@ -1206,7 +1208,8 @@ def migrate_fdc_shares(request, jr):
                 print "Found exchange related from FdC parent! "+str(tx)
                 loger.info("Found exchange related from FdC parent! "+str(tx))
               else:
-                pass #print "Another tx? "+str(tx)
+                print "Another tx? "+str(tx)
+                loger.debug("Another tx? "+str(tx))
             else:
                 pass #print "Other tt: "+str(tt)
 
