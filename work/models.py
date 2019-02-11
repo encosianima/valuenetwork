@@ -1118,17 +1118,28 @@ class JoinRequest(models.Model):
             elif self.exchange:
                 ex = self.exchange
             else:
-                ex, created = Exchange.objects.get_or_create(
-                    exchange_type=et,
-                    context_agent=pro,
-                    start_date=dt,
-                    use_case=et.use_case,
-                    supplier=pro,
-                    customer=ag,
-                )
-                if created:
-                    print "- created Exchange: "+str(ex)
-                    loger.info("- created Exchange: "+str(ex))
+                exs = Exchange.objects.exchanges_by_type(ag)
+                ex = None
+                for e in exs:
+                    if e.exchange_type == et:
+                        ex = e
+                        break
+                if ex:
+                    print "- found old Exchange!! "+str(ex)
+                    loger.info("- found old Exchange!! "+str(ex))
+                else:
+                    ex, created = Exchange.objects.get_or_create(
+                        exchange_type=et,
+                        context_agent=pro,
+                        start_date=dt,
+                        use_case=et.use_case,
+                        supplier=pro,
+                        customer=ag,
+                    )
+                    if created:
+                        print "- created Exchange: "+str(ex)
+                        loger.info("- created Exchange: "+str(ex))
+
                 if ag and ag.user() and ag.user().user:
                     ex.created_by = ag.user().user
                 #else:
@@ -1141,7 +1152,11 @@ class JoinRequest(models.Model):
                 #ex.created_date = dt
             ex.supplier = pro
             ex.customer = ag
-
+            if not ex.use_case == et.use_case:
+                print "- CHANGE exchange USE_CASE ? from "+str(ex.use_case)+" to "+str(et.use_case)
+                loger.info("- CHANGE exchange USE_CASE ? from "+str(ex.use_case)+" to "+str(et.use_case))
+            ex.use_case = et.use_case
+            ex.context_agent = pro
 
             if notes and not notes in ex.notes:
                 ex.notes += notes
@@ -1183,9 +1198,9 @@ class JoinRequest(models.Model):
                         if created:
                             print "- created Transfer: "+str(xfer)
                             loger.info("- created Transfer: "+str(xfer))
-                            if ag:
+                            if ag and ag.user() and ag.user().user:
                                 xfer.created_by = ag.user().user
-                        elif ag:
+                        elif ag and ag.user() and ag.user().user:
                             xfer.edited_by = ag.user().user
                         xfer.save()
 
