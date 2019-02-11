@@ -863,13 +863,13 @@ def migrate_fdc_shares(request, jr):
                 loger.info("WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr))
                 messages.warning(request, "Converted the join request state to 'new' because the member has no shares yet.")
 
-                if agrel.state == 'active' or not agrel.association_type == aamem:
-                    agrel.state = 'potential'
-                    agrel.association_type = aamem
-                    agrel.save()
-                    print "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel)
-                    loger.info("- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
-                    messages.warning(request, "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
+            if agrel.state == 'active' or not agrel.association_type == aamem:
+                agrel.state = 'potential'
+                agrel.association_type = aamem
+                agrel.save()
+                print "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel)
+                loger.info("- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
+                messages.warning(request, "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
 
     else:
         print str(shacct)+' not in res: '+str(res)
@@ -914,22 +914,29 @@ def migrate_fdc_shares(request, jr):
     exs = Exchange.objects.exchanges_by_type(jr.agent)
     exmem = None
     for ex in exs:
-      if ex.exchange_type == et:
+      #if ex.exchange_type == et:
         txs = ex.transfers.all()
         coms = ex.xfer_commitments()
         evnz = ex.xfer_events()
-        txts = ex.exchange_type.transfer_types.all()
+        txtps = ex.exchange_type.transfer_types.all()
         print "-Found exchange: "+str(ex.id)+": "+str(ex)+" ca: "+str(ex.context_agent)+" coms: "+str(len(coms))+" evnz:"+str(len(evnz))
+        loger.debug("-Found exchange: "+str(ex.id)+": "+str(ex)+" ca: "+str(ex.context_agent)+" coms: "+str(len(coms))+" evnz:"+str(len(evnz)))
         txpay = None
         txshr = None
-        for txtp in txts:
+        for txtp in txtps:
           for tx in txs:
             if tx.transfer_type == txtp:
               if txtp == paytt:
                 txpay = tx
               if txtp == shrtt:
                 txshr = tx
-        for txtp in txts:
+        if not txpay or not txshr:
+            print "--Not found txpay:"+str(txpay)+" txshr:"+str(txshr)+" SKIP!"
+            loger.debug("--Not found txpay:"+str(txpay)+" txshr:"+str(txshr)+" SKIP!")
+            continue
+        print "- - found txpay:"+str(txpay)+" txshr:"+str(txshr)
+        loger.debug("- - found txpay:"+str(txpay)+" txshr:"+str(txshr))
+        for txtp in txtps:
           txtp.found = None
           for tx in txs:
             if tx.transfer_type == txtp:
@@ -1065,7 +1072,33 @@ def migrate_fdc_shares(request, jr):
                             print "- change event to_agent to FdC! "+str(evt.to_agent)
                             loger.info("- change event to_agent to FdC! "+str(evt.to_agent))
                             #evt.to_agent = fdc
-                        sh_unit = evt.resource_type.ocp_artwork_type.general_unit_type.unit_set.first().ocp_unit
+                        sh_unit = None
+                        if evt.resource_type.ocp_artwork_type:
+                            if evt.resource_type.ocp_artwork_type.general_unit_type:
+                                genut = evt.resource_type.ocp_artwork_type.general_unit_type
+                                ocput = Ocp_Unit_Type.objects.get(id=genut.id)
+                                if ocput:
+                                    us = ocput.units()
+                                    print "-- Found shr unit_type: "+str(ocput)+" units:"+str(us)
+                                    loger.debug("-- Found shr unit_type: "+str(ocput)+" units:"+str(us))
+                                    if us:
+                                        sh_unit = us[0]
+                                    else:
+                                        print "-- Error: Can't find units for the unit_type: "+str(ocput)+" for event:"+str(evt.id)
+                                        loger.error("-- Error: Can't find units for the unit_type: "+str(ocput)+" for event:"+str(evt.id))
+                                else:
+                                    print "-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for event:"+str(evt.id)
+                                    loger.error("-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for event:"+str(evt.id))
+                            else:
+                                print "-- Error: The event resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(evt.resource_type.ocp_artwork_type)+" for event:"+str(evt.id)
+                                loger.error("-- Error: The event resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(evt.resource_type.ocp_artwork_type)+" for event:"+str(evt.id))
+                        else:
+                            print "-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id)
+                            loger.error("-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id))
+                        if not sh_unit:
+                            print "x Not found share unit in the event id:"+str(evt.id)+" "+str(evt)
+                            loger.error("x Not found share unit in the event id:"+str(evt.id)+" "+str(evt))
+                            #continue
                         evt.exchange = ex
                         evt.exchange_stage = et
                         evt.context_agent = fdc
