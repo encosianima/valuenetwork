@@ -95,4 +95,4 @@ def comment_notification(sender, comment=None, **kwargs):
 from django_comments.models import Comment
 from django_comments.signals import comment_was_posted#, comment_will_be_posted
 comment_was_posted.connect(comment_notification, sender=Comment)
-logger.debug("Connect comment_was_posted signal with Comment sender")
+#logger.debug("Connect comment_was_posted signal with Comment sender")
