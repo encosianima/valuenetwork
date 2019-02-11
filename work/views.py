@@ -930,7 +930,7 @@ def migrate_fdc_shares(request, jr):
                 txpay = tx
               if txtp == shrtt:
                 txshr = tx
-        if not txpay or not txshr:
+        if not txpay and not txshr:
             print "--Not found txpay:"+str(txpay)+" txshr:"+str(txshr)+" SKIP!"
             loger.debug("--Not found txpay:"+str(txpay)+" txshr:"+str(txshr)+" SKIP!")
             continue
@@ -1095,10 +1095,15 @@ def migrate_fdc_shares(request, jr):
                         else:
                             print "-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id)
                             loger.error("-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id))
-                        if not sh_unit:
-                            print "x Not found share unit in the event id:"+str(evt.id)+" "+str(evt)
-                            loger.error("x Not found share unit in the event id:"+str(evt.id)+" "+str(evt))
-                            #continue
+                        if not sh_unit and not fairtx:
+                            print "x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt)
+                            loger.error("x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
+                            continue
+                        if not unit_rt:
+                            print "x Not found unit_rt in the event, SKIP! id:"+str(evt.id)+" "+str(evt)
+                            loger.error("x Not found unit_rt in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
+                            continue
+
                         evt.exchange = ex
                         evt.exchange_stage = et
                         evt.context_agent = fdc
