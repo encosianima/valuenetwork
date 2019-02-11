@@ -20,6 +20,7 @@
 form.action-form {
     display: inline-block;
     margin: 0;
+    float: right;
 }
 
 .description {
@@ -47,9 +48,9 @@ form.action-form {
 .agents li {
     margin-left: 3em;
 }
-.btn {
+/*.btn {
     margin-left: 0.5em;
-}
+}*/
 .modal {
     width: 600px;
 }
@@ -187,9 +188,14 @@ a.more-link {
                 <th>{% trans "Email" %}:</th>
                 <td>{% if req.email_address %} {{ req.email_address }} {% else %} {{ req.agent.email }} {% endif %}
                     {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span>
-                      {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em> <a class="btn btn-primary" href="{% url "work_account_password" %}" style="display:inline; position:relative; top:-1px;" >Change Password</a>
+                      {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em>
+                        &nbsp; <a class="btn btn-primary" href="{% url "work_account_password" %}"
+                           style="display:inline; position:relative; top:-1px;" >Change Password</a>
                       {% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>
-                        {% if user_agent is req.project.agent or user_agent in req.project.agent.managers %} {% if not messages %}<a id="resend" class="btn btn-primary btn-mini" href="{% url "resend_candidate_credentials" joinrequest_id=req.id %}" style="display:inline; position:relative; top:-1px;" >Resend Password</a> {% endif %}
+                        {% if user_agent is req.project.agent or user_agent in req.project.agent.managers %} {% if not messages %}
+                          &nbsp; <a id="resend" class="btn btn-primary btn-mini"
+                             href="{% url "resend_candidate_credentials" joinrequest_id=req.id %}"
+                             style="display:inline; position:relative; top:-1px;" >Resend Password</a> {% endif %}
                         {% endif %}
                       {% endif %}
                     {% endif %}
@@ -258,7 +264,7 @@ a.more-link {
                             {% csrf_token %}
                             <input type="hidden" name="status" value="complete">
                             <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                            <span class="help-text" style="font-size:0.8em">{% trans "(This will set the payment as done and transfer the shares)" %}</span>
+                            <br/><span class="help-text" style="font-size:0.8em">{% trans "(This will set the payment as done and transfer the shares)" %}</span>
                         </form>
                     {% endif %}
                   {% else %}
@@ -271,8 +277,8 @@ a.more-link {
                             {% csrf_token %}
                             <input type="hidden" name="status" value="pending">
                             <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                            <br/><span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
                         </form>
-                        <span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
                     {% endif %}
                   {% endif %}
                   {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
@@ -292,7 +298,7 @@ a.more-link {
                             <input type="submit" value="{% if req.payment_html %}{{ req.payment_html }}{% else %}{% trans "Pay your Shares" %}{% endif %}" class="btn btn-primary" />
                         </form> <!-- <a href="{% url 'payment_url' paymode=req.payment_option.key join_request_id=req.id %}" target="ocp_pay" class="btn btn-primary">{% if req.payment_html %}{{ req.payment_html }}{% else %}{% trans "Pay your Shares" %}{% endif %}</a> -->
                     {% elif req.payment_html %}
-                        <br /> {{ req.payment_html|safe }}
+                        <div id="payment_html">{{ req.payment_html|safe }}</div>
                     {% else %}
                         <span class="error">{% trans "ERROR: request without a payment option!" %}</span>
                     {% endif %}

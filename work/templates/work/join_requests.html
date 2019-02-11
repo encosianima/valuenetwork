@@ -128,19 +128,24 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                       {% endif %}
                                       <br />
                                   {% endif %}
-                                  {% if req.exchange %} <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}" class="{{ req.exchange.status }}" >{{ req.exchange.status|title }}</a>
+                                  {% if req.exchange %}
+                                      <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
+                                         class="{{ req.exchange.status }}" >{{ req.exchange.status|title }}</a>
                                   {% elif req.pending_shares %}
-                                    {% if request.user.is_superuser and not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
-                                      <form
-                                          class="action-form"
-                                          id="status-form{{ req.id }}"
-                                          action="{% url "update_share_payment" join_request_id=req.id %}"
-                                          method="POST" >
-                                        {% csrf_token %}
-                                        <input type="hidden" name="status" value="pending">
-                                        <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                                      </form>
-                                      <span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
+                                    {% if not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
+                                      {% if request.user.agent.agent in req.project.agent.managers or request.user.agent.agent == req.project.agent %}
+                                          <form
+                                              class="action-form"
+                                              id="status-form{{ req.id }}"
+                                              action="{% url "update_share_payment" join_request_id=req.id %}"
+                                              method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="pending">
+                                            <input type="submit" class="btn btn-mini btn-primary" name="submit"
+                                                   value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                                          </form>
+                                      {% if request.user.is_superuser %}<span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>{% endif %}
+                                      {% endif %}
                                     {% endif %}
                                     {% if request.user.is_superuser %}
                                        <!-- <span class="help-text" style="font-size:0.8em">ET: {{ req.exchange_type }}
