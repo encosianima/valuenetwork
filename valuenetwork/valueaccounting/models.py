@@ -740,10 +740,7 @@ class EconomicAgent(models.Model):
     def candidate_association(self, project_agent=None):
         aas = self.is_associate_of.all()
         if not project_agent:
-            try:
-                project_agent = EconomicAgent.objects.get(nick=settings.SEND_MEMBERSHIP_PAYMENT_TO)
-            except:
-                pass
+            raise ValidationError("Bad use, missing project agent! "+str(self))
         if aas:
             for aa in aas:
                 #import pdb; pdb.set_trace() #aa = aas[0]
