@@ -1238,8 +1238,24 @@ class JoinRequest(models.Model):
                     if not xf.transfer_type in tts:
                         coms = xf.commitments.all()
                         evts = xf.events.all()
-                        print "-WARNIN the transfer tt is not known to this ex? "+str(xf.transfer_type)+" coms:"+str(coms)+" evts:"+str(evts)
-                        loger.info("-WARNIN the transfer tt is not known to this ex? "+str(xf.transfer_type)+" coms:"+str(coms)+" evts:"+str(evts))
+                        # FdC migration
+                        if xf.transfer_type.name == "Receive Membership Fee":
+                            print "- Switch old xf.tt to paytt, xf:"+str(xf)
+                            loger.info("- Switch old xf.tt to paytt, xf:"+str(xf))
+                            paytt = tts.get(name__icontains="payment")
+                            xf.transfer_type = paytt
+                            xf.save()
+                            continue
+                        elif "Share" in xf.transfer_type.name:
+                            print "- Switch old xf.tt to shrtt, xf:"+str(xf)
+                            loger.info("- Switch old xf.tt to shrtt, xf:"+str(xf))
+                            shrtt = tts.get(name__icontains="share")
+                            xf.transfer_type = shrtt
+                            xf.save()
+                            continue
+                        else:
+                            print "-WARNIN the transfer tt is not known to this ex? "+str(xf.transfer_type)+" coms:"+str(coms)+" evts:"+str(evts)
+                            loger.info("-WARNIN the transfer tt is not known to this ex? "+str(xf.transfer_type)+" coms:"+str(coms)+" evts:"+str(evts))
                         if not evts and not coms:
                             print "- delete empty transfer: "+str(xf)
                             loger.info("- delete empty transfer: "+str(xf))
@@ -1252,6 +1268,7 @@ class JoinRequest(models.Model):
                             for ev in evts:
                                 print "- found event:"+str(ev.id)+" "+str(ev)+" to:"+str(ev.to_agent)+" from:"+str(ev.from_agent)+" ca:"+str(ev.context_agent)+" rs:"+str(ev.resource)+" rt:"+str(ev.resource_type)+" fairtx:"+str(ev.faircoin_transaction)
                                 loger.info("- found event:"+str(ev.id)+" "+str(ev)+" to:"+str(ev.to_agent)+" from:"+str(ev.from_agent)+" ca:"+str(ev.context_agent)+" rs:"+str(ev.resource)+" rt:"+str(ev.resource_type)+" fairtx:"+str(ev.faircoin_transaction))
+
         return ex
 
 

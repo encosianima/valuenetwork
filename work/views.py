@@ -938,10 +938,10 @@ def migrate_fdc_shares(request, jr):
                 print "-Error! no txpay nor txshr but same et, recreate exchange? "+str(ex)
                 loger.info("-Error! no txpay nor txshr but same et, recreate exchange? "+str(ex))
                 note = 'repaired: '+str(datetime.date.today())+'. '
-                jr.create_exchange(note, ex)
+                #jr.create_exchange(note, ex)
             else:
-                print "--Not found txpay with paytt:"+str(paytt)+" nor txshr with shrtt:"+str(shrtt)+" SKIP! ex:"+str(ex)
-                loger.debug("--Not found txpay with paytt:"+str(paytt)+" nor txshr with shrtt:"+str(shrtt)+" SKIP! ex:"+str(ex))
+                print "--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex)
+                loger.debug("--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex))
                 continue
         elif not txpay or not txshr:
             print "- - found just one tx? (will rebuild) txpay:"+str(txpay)+" txshr:"+str(txshr)
