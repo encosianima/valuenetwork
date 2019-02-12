@@ -1233,7 +1233,25 @@ class JoinRequest(models.Model):
                         loger.info("WARN! - the tx has coms:"+str(coms)+" or has evts:"+str(evts))
 
                     xfer.save()
-
+            elif xfers:
+                for xf in xfers:
+                    if not xf.transfer_type in tts:
+                        coms = xf.commitments.all()
+                        evts = xf.events.all()
+                        print "-WARNIN the transfer tt is not known to this ex? "+str(xf.transfer_type)+" coms:"+str(coms)+" evts:"+str(evts)
+                        loger.info("-WARNIN the transfer tt is not known to this ex? "+str(xf.transfer_type)+" coms:"+str(coms)+" evts:"+str(evts))
+                        if not evts and not coms:
+                            print "- delete empty transfer: "+str(xf)
+                            loger.info("- delete empty transfer: "+str(xf))
+                            if xf.is_deletable():
+                                xf.delete()
+                        elif coms:
+                            print "- the transfer has commitments!! TODO "+str(xf)
+                            loger.info("- the transfer has commitments!! TODO "+str(xf))
+                        elif evts:
+                            for ev in evts:
+                                print "- found event:"+str(ev.id)+" "+str(ev)+" to:"+str(ev.to_agent)+" from:"+str(ev.from_agent)+" ca:"+str(ev.context_agent)+" rs:"+str(ev.resource)+" rt:"+str(ev.resource_type)+" fairtx:"+str(ev.faircoin_transaction)
+                                loger.info("- found event:"+str(ev.id)+" "+str(ev)+" to:"+str(ev.to_agent)+" from:"+str(ev.from_agent)+" ca:"+str(ev.context_agent)+" rs:"+str(ev.resource)+" rt:"+str(ev.resource_type)+" fairtx:"+str(ev.faircoin_transaction))
         return ex
 
 

@@ -1215,8 +1215,10 @@ def migrate_fdc_shares(request, jr):
                 print "Found exchange related from FdC parent! "+str(tx)
                 loger.info("Found exchange related from FdC parent! "+str(tx))
               else:
-                print "Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(tx.commitments.all()))+" evts:"+str(len(tx.events.all()))
-                loger.debug("Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(tx.commitments.all()))+" evts:"+str(len(tx.events.all())))
+                txcoms = tx.commitments.all()
+                txevts = tx.events.all()
+                print "Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(txcoms))+" evts:"+str(len(txevts))
+                loger.debug("Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(txcoms))+" evts:"+str(len(txevts)))
                 if tx.context_agent == fdc:
                     if tx.transfer_type == shrtt:
                         if jr.total_shares():
@@ -1235,6 +1237,26 @@ def migrate_fdc_shares(request, jr):
                         else:
                             print "- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id)
                             loger.info("- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id))
+                    elif tx.transfer_type == paytt:
+                        if not txcoms and not txevts:
+                            exevts = tx.exchange.xfer_events()
+                            print "- empty paytt tx:"+str(tx.id)+" "+str(tx)+" ex.evts:"+str(len(exevts))
+                            loger.info("- empty paytt tx:"+str(tx.id)+" "+str(tx)+" ex.evts:"+str(len(exevts)))
+                            for exev in exevts:
+                                print "- - found event:"+str(exev.id)+" "+str(exev)+" tx:"+str(exev.transfer.id)+" fairtx:"+str(exev.faircoin_transaction)
+                                loger.info("- - found event:"+str(exev.id)+" "+str(exev)+" tx:"+str(exev.transfer.id)+" fairtx:"+str(exev.faircoin_transaction))
+                                if exev.faircoin_transaction and not exev.transfer == tx:
+                                    print "- - CHANGED exev.transfer? "+str(exev.transfer)+" -> "+str(exev.transfer.transfer_type.name)+" tt:"+str(exev.transfer.transfer_type.id)
+                                    loger.info("- - CHANGED exev.transfer? "+str(exev.transfer)+" -> "+str(exev.transfer.transfer_type.name)+" tt:"+str(exev.transfer.transfer_type.id))
+                                    exev.transfer.transfer_type = paytt
+                                    exev.transfer.name = paytt.name
+                                    exev.transfer.save()
+                                    if tx.is_deletable():
+                                        print "- - DELETED tx:"+str(tx.id)+" "+str(tx)
+                                        loger.info("- - DELETED tx:"+str(tx.id)+" "+str(tx))
+                                        tx.delete()
+
+
             else:
                 pass #print "Other tt: "+str(tt)
 
