@@ -835,7 +835,7 @@ class JoinRequest(models.Model):
         return amount
 
     def payment_payed_amount(self):
-        if hasattr(self, 'exchange'):
+        if hasattr(self, 'exchange') and self.exchange:
             txpay = self.exchange.txpay()
             if txpay:
                 return txpay.actual_quantity()
@@ -1199,10 +1199,10 @@ class JoinRequest(models.Model):
             xfers = ex.transfers.all()
             if len(xfers) < len(tts):
                 for tt in tts:
+                    xfer_name = tt.name
                     try:
                         xfer = xfers.get(transfer_type=tt)
                     except:
-                        xfer_name = tt.name
                         #if tt.is_reciprocal:
                         #    xfer_name = xfer_name + " from " + from_agent.nick
                         #else:
@@ -1229,8 +1229,8 @@ class JoinRequest(models.Model):
                     coms = xfer.commitments.all()
                     evts = xfer.events.all()
                     if coms or evts:
-                        print "WARN! - the tx has coms:"+str(coms)+" or has evts:"+str(evts)
-                        loger.info("WARN! - the tx has coms:"+str(coms)+" or has evts:"+str(evts))
+                        print "WARN! - the tx has coms:"+str(len(coms))+" or has evts:"+str(len(evts))
+                        loger.info("WARN! - the tx:"+str(xfer.id)+" has coms:"+str(len(coms))+" or has evts:"+str(len(evts)))
 
                     xfer.save()
             elif xfers:
@@ -1548,7 +1548,11 @@ class JoinRequest(models.Model):
                                     rss = list(set([arr.resource for arr in self.agent.resource_relationships()]))
                                     for rs in rss:
                                         if rs.resource_type == rt:
-                                            rs.notes += "Added "+str(amount)+" on "+str(datetime.date.today())+". "
+                                            note = "Added "+str(amount)+" on "+str(datetime.date.today())+". "
+                                            if rs.notes:
+                                                rs.notes += note
+                                            else:
+                                                rs.notes = note
                                             rs.price_per_unit += amount # update the price_per_unit with payment amount
                                             rs.save()
                                             print "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs)

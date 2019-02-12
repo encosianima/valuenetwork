@@ -205,24 +205,25 @@ h3.trtheading {
                 {% with exchange.join_request as req %}
                 {% if req %}
                     <p>
-                        {% trans "Exchange related the" %}
+                        {% trans "Related request" %}:
                         {% if context_agent == req.agent %}
                             <a href="{% url "project_feedback" agent_id=req.agent.id join_request_id=req.id %}"
-                               style="font-weight:bold;">
+                               style="font-weight:bold; font-size:1.2em;">
                         {% else %}
                             <a href="{% url "project_feedback" agent_id=req.project.agent.id join_request_id=req.id %}"
-                               style="font-weight:bold;">
+                               style="font-weight:bold; font-size:1.2em;">
                         {% endif %}
-                            {% trans "Join Request" %}</a>
+                            {% trans "Feedback" %}</a>
                         ({{ req.state }})
-                        {% if context_agent == req.project.agent %} {% trans "from" %}:
-                            </p>
-                            <p><a href="{% url "members_agent" agent_id=req.agent.id %}"
-                                  style="font-weight:bold; font-size:1.1em;">{{ req.agent.name }}</a>
-                        {% else %} {% trans "to" %}: </p>
-                            <p><a href="{% url "members_agent" agent_id=req.project.agent.id %}"
-                                  style="font-weight:bold; font-size:1.1em;">{{ req.project.agent.name }}</a>
-                        {% endif %}
+                    </p>
+                    <p>
+                    {% if context_agent == req.project.agent %} {% trans "From" %}:
+                        <a href="{% url "members_agent" agent_id=req.agent.id %}"
+                           style="font-weight:bold; font-size:1.2em;">{{ req.agent.name }}</a>
+                    {% else %} {% trans "To" %}:
+                        <a href="{% url "members_agent" agent_id=req.project.agent.id %}"
+                           style="font-weight:bold; font-size:1.2em;">{{ req.project.agent.name }}</a>
+                    {% endif %}
                     </p>
                     {% if req.payment_gateway %}
                         <p>

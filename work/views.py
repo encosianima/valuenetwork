@@ -839,7 +839,10 @@ def migrate_fdc_shares(request, jr):
     if account:
         if len(shs) > 0:
             #print shs
-            account.price_per_unit = len(shs)
+            tot = 0
+            for sh in shs:
+                tot += sh.quantity
+            account.price_per_unit = tot
             account.save()
             loger.info("FdC shares had been migrated to the new system for agent "+str(jr.agent)+" shs:"+str(shs))
             messages.warning(request, "FdC shares had been migrated to the new system for agent "+str(jr.agent))
@@ -848,11 +851,12 @@ def migrate_fdc_shares(request, jr):
                     if ar.resource == sh:
                         account.created_date = sh.created_date
                         account.save()
+                        sh.quantity = 0
                         if sh.is_deletable():
                             ar.delete()
                             sh.delete()
                         else:
-                            loger.info("WARN! The old Share can't be deleted? "+str(sh))
+                            loger.info("WARN! The old Share can't be deleted? sh.__dict__: "+str(sh.__dict__))
                         loger.info("FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
                         messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
 
@@ -937,7 +941,7 @@ def migrate_fdc_shares(request, jr):
             if ex.exchange_type == et:
                 print "-Error! no txpay nor txshr but same et, recreate exchange? "+str(ex)
                 loger.info("-Error! no txpay nor txshr but same et, recreate exchange? "+str(ex))
-                note = 'repaired: '+str(datetime.date.today())+'. '
+                note = 'repaired '+str(datetime.date.today())+'. '
                 #jr.create_exchange(note, ex)
             else:
                 print "--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex)
@@ -1157,11 +1161,26 @@ def migrate_fdc_shares(request, jr):
                 print " - Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share())
                 loger.info("- Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
                 #messages.info(request, "- Found transfer FROM FdC: "+str(tx)+" tx_typ:"+str(tx.transfer_type)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
+                txevs = tx.events.all()
+                txcms = tx.commitments.all()
+                if txcms:
+                  for com in txcms:
+                    comevs = com.events.all()
+                    #print "TODO -- com: "+str(com)+" comevs:"+str(comevs)
+                    #loger.info("TODO -- com: "+str(com)+" comevs:"+str(comevs))
+                    if comevs:
+                      for ev in comevs:
+                        if not ev in evnz:
+                            print "- - BAD event, missing connection to exchange. Repair! id:"+str(ev.id)+" "+str(ev)
+                            loger.warning("- - BAD event, missing connection to exchange. Repair! id:"+str(ev.id)+" "+str(ev))
+                            ev.exchange = ex
+                            ev.save()
+                    else:
+                        print "- - TODO com: "+str(com)+" without events, com_id:"+str(com.id)
+                        loger.info("- - TODO com: "+str(com)+", without events, com_id:"+str(com.id))
 
-                for com in tx.commitments.all():
-                    print "TODO -- com: "+str(com)
-                    loger.info("TODO -- com: "+str(com))
-                for evt in tx.events.all():
+                else:
+                  for evt in txevs:
                     rel_rt = evt.resource.resource_type.ocp_artwork_type.rel_nonmaterial_type
                     if rel_rt:
                         rel_rt = rel_rt.resource_type
@@ -1233,7 +1252,7 @@ def migrate_fdc_shares(request, jr):
                             else:
                                 print "Call update_payment_status complete to repair the missing share event... jr:"+str(jr.id)
                                 loger.info("Call update_payment_status complete to repair the missing share event... jr:"+str(jr.id))
-                                #jr.update_payment_status('complete')
+                                jr.update_payment_status('complete')
                         else:
                             print "- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id)
                             loger.info("- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id))
@@ -1264,7 +1283,7 @@ def migrate_fdc_shares(request, jr):
             print "WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange! et:"+str(et)
             loger.warning("WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange!")
             messages.warning(request, "WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange!")
-            note = 'repaired: '+str(datetime.date.today())+'. '
+            note = 'repaired '+str(datetime.date.today())+'. '
             ex = jr.create_exchange(note, ex)
 
     if exmem:
@@ -3367,7 +3386,7 @@ def accept_request(request, join_request_id):
             loger.info("- created AgentAssociation: "+str(association))
     association.state = "active"
     association.save()
-    messages.info(request, "- modified AgentAssociation to active: "+str(association))
+    messages.info(request, "Modified agent association to 'active': "+str(association))
 
     return HttpResponseRedirect('/%s/%s/%s/'
         % ('work/project-feedback', mbr_req.project.agent.id, join_request_id))
