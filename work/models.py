@@ -1249,9 +1249,13 @@ class JoinRequest(models.Model):
                         elif "Share" in xf.transfer_type.name:
                             print "- Switch old xf.tt to shrtt, xf:"+str(xf)
                             loger.info("- Switch old xf.tt to shrtt, xf:"+str(xf))
-                            shrtt = tts.get(name__icontains="share")
-                            xf.transfer_type = shrtt
-                            xf.save()
+                            paytt = tts.get(name__icontains="payment")
+                            for tt in tts:
+                                if not tt == paytt: # must be shares tt
+                                    shrtt = tt
+                                    xf.transfer_type = shrtt
+                                    xf.save()
+                                    break
                             continue
                         else:
                             print "-WARNIN the transfer tt is not known to this ex? "+str(xf.transfer_type)+" coms:"+str(coms)+" evts:"+str(evts)
