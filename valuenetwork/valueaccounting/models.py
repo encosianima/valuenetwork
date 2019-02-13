@@ -1621,6 +1621,13 @@ class EconomicAgent(models.Model):
             agents.append(assoc.has_associate)
         return agents
 
+    def is_member_of_agent(self, agent_id):
+        memberships = self.is_member_of()
+        for mem in memberships:
+            if mem.id == agent_id:
+                return True
+        return False
+
     #  bum2
     def managers(self): #returns a list or None
         agent_ids = self.has_associates.filter(association_type__association_behavior="manager").filter(state="active").values_list('is_associate')

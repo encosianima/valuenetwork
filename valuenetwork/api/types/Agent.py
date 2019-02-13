@@ -96,6 +96,8 @@ class Agent(graphene.Interface):
                                         role_id=graphene.Int(),
                                         category=AgentRelationshipCategory())
 
+    is_member_of = graphene.Boolean(agent_id=graphene.Int())
+
     agent_roles = graphene.List(AgentRelationshipRole)
 
     agent_recipes = graphene.List(lambda: types.ResourceClassification)
@@ -399,6 +401,13 @@ class Agent(graphene.Interface):
             else:
                 return assocs
         return None
+
+    def resolve_is_member_of(self, args, *rargs):
+        agent = _load_identified_agent(self)
+        group_agent_id = args.get('agent_id')
+        if agent and group_agent_id:
+            return agent.is_member_of_agent(agent_id=group_agent_id)
+        return False
 
     def resolve_agent_roles(self, args, context, info):
         agent = _load_identified_agent(self)

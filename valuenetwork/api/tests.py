@@ -2271,6 +2271,15 @@ query($token: String) {
   }
 }
 
+query ($token: String) {
+  viewer(token: $token) {
+    agent(id: 6) {
+      name
+      isMemberOf(agentId: 39) 
+    }
+  }
+}
+
 query($token: String) {
   viewer(token: $token) {
     agent(id:26) {
