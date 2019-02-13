@@ -11,6 +11,8 @@ from decimal import Decimal
 
 FAIRCOIN_DIVISOR = Decimal("100000000.00")
 
+WALLET = faircoin_utils.is_connected()
+
 class FaircoinAddress(models.Model):
     resource = models.OneToOneField(EconomicResource, on_delete=models.CASCADE,
         verbose_name=_('resource'), related_name='faircoin_address')
@@ -38,8 +40,7 @@ class FaircoinAddress(models.Model):
 
     def is_mine(self):
         is_wallet_address = False
-        wallet = faircoin_utils.is_connected()
-        if wallet:
+        if WALLET:
             is_wallet_address = faircoin_utils.is_mine(self.address)
         return is_wallet_address
 
@@ -47,7 +48,9 @@ class FaircoinAddress(models.Model):
         return self.resource.owner()
 
     def to_fairtxs(self):
-        tos = FaircoinTransaction.objects.filter(to_address=self.address)
+        tos = []
+        if self.address:
+            tos = FaircoinTransaction.objects.filter(to_address=self.address)
         return tos
 
     def from_fairtxs(self):

@@ -56,12 +56,19 @@
         <p>
             {% trans "State of the wallet" %}:
               {% if wallet %}
-                  Connected
+                  <b>Connected</b>
               {% else %}
                   <span class="error"><b>{% trans "Not available now" %}</b></span>
               {% endif %}
-              <br>fairtxs: {{ txs|length }} &nbsp; addresses: {{ adrs|length }} &nbsp; end_adresses: {{ ends|length }}
+        </p>
+        <p>
+            FairTxs: <b>{{ txs|length }}</b> &nbsp; Addresses: <b>{{ adrs|length }}</b>
+            &nbsp; Mines: <b class="{% if mines|length < adrs|length %}error{% else %}complete{% endif %}">{{ mines|length }}</b>
+            &nbsp; End_addresses: <b>{{ ends|length }}</b>
 
+        </p>
+        <p>
+            &nbsp;
         </p>
         <h3>
             Addresses:
@@ -81,9 +88,9 @@
                     <td>{{ ad.address }}</td>
                     <td class="{% if ad.mine %}complete{% else %}error{% endif %}">{{ ad.mine }}</td>
                     <td>{{ ad.resource.id }}</td>
-                    <td>{{ ad.owner }}</td>
-                    <td>{% for tx in ad.to_fairtxs %}{{ tx.id }}{% if not tx.tx_state == 'confirmed' %} ({{ tx.tx_state|slice:"5" }}){% endif %}, {% endfor %}</td>
-                    <td>{% for tx in ad.from_fairtxs %}{{ tx.id }}{% if not tx.tx_state == 'confirmed' %} ({{ tx.tx_state|slice:"5" }}){% endif %}, {% endfor %}</td>
+                    <td>{{ ad.owner.id }}: {{ ad.owner }}</td>
+                    <td>{{ ad.to_txs }}</td>
+                    <td>{{ ad.from_txs }}</td>
                   </tr>
                 {% endfor %}
             </tbody>
@@ -171,7 +178,7 @@
     $("#listable, #listable2").DataTable({
         stateSave: true,
         autoWidth: true,
-        order: [[1, 'desc']],
+        order: [[2, 'desc']],
         dom: 'rfltBip', //'B<"clear">lfrtip',
         buttons: [
             'colvis',
