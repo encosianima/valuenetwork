@@ -289,7 +289,7 @@ def watch_fair_accounts(request):
         ad.to_txs = []
         for tx in ad.to_fairtxs():
             #print "tx to add..."
-            st = str(tx.id)
+            st = str(tx.event.id)
             if not tx.tx_state == 'confirmed':
                 st += ' ('+str(tx.tx_state)+')'
             ad.to_txs.append(st)
@@ -298,7 +298,7 @@ def watch_fair_accounts(request):
         ad.from_txs = []
         for tx in ad.from_fairtxs():
             #print "tx from add..."
-            st = str(tx.id)
+            st = str(tx.event.id)
             if not tx.tx_state == 'confirmed':
                 st += ' ('+str(tx.tx_state)+')'
             ad.from_txs.append(st)
