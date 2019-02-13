@@ -884,14 +884,15 @@ def migrate_fdc_shares(request, jr):
         messages.warning(request, "Can't migrate FdC shares before user has shares account! "+str(jr.agent))
 
     et = jr.exchange_type()
-    if et.context_agent and not et.context_agent == fdc:
+    if hasattr(et, 'context_agent'):
+      if et.context_agent and not et.context_agent == fdc:
         print "- Change exchange_type context agent to FdC! "+str(et.context_agent)
         loger.info("- Change exchange_type context agent to FdC! "+str(et.context_agent))
         et.context_agent = fdc
         et.save()
-    elif not et.context_agent:
-        print "- Add exchange_type context_agent to FdC! "+str(et.context_agent)
-        loger.info("- Add exchange_type context_agent to FdC! "+str(et.context_agent))
+    else:
+        print "- Add exchange_type context_agent to FdC! "+str(et) #.context_agent)
+        loger.info("- Add exchange_type context_agent to FdC! "+str(et)) #.context_agent))
         et.context_agent = fdc
         et.save()
     tts = et.transfer_types.all()
