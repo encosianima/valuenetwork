@@ -20,6 +20,8 @@ from faircoin.decorators import confirm_password
 
 FAIRCOIN_DIVISOR = Decimal("100000000.00")
 
+WALLET = faircoin_utils.is_connected()
+
 logger = logging.getLogger('ocp')
 
 def get_agent(request):
@@ -271,16 +273,45 @@ def watch_fair_accounts(request):
     ends = []
     for tx in txs:
         if tx.to_address not in ends:
+            #print "add end addr..."
             ends.append(tx.to_address)
-    wallet = faircoin_utils.is_connected()
 
+    mines = []
     for ad in adrs:
-        ad.mine = ad.is_mine()
+        #print "ad..."
+        if WALLET:
+            #print "-> "+str(ad)
+            ad.mine = ad.is_mine()
+            if ad.mine:
+                mines.append(ad)
+        else:
+            ad.mine = False
+        ad.to_txs = []
+        for tx in ad.to_fairtxs():
+            #print "tx to add..."
+            st = str(tx.id)
+            if not tx.tx_state == 'confirmed':
+                st += ' ('+str(tx.tx_state)+')'
+            ad.to_txs.append(st)
+        ad.to_txs = ', '.join(ad.to_txs)
+
+        ad.from_txs = []
+        for tx in ad.from_fairtxs():
+            #print "tx from add..."
+            st = str(tx.id)
+            if not tx.tx_state == 'confirmed':
+                st += ' ('+str(tx.tx_state)+')'
+            ad.from_txs.append(st)
+        ad.from_txs = ', '.join(ad.from_txs)
+
+    print "faircheck view ready..."
+    logger.info("faircheck view ready...")
 
     return render(request, "faircoin/faircoin_checking.html", {
             "user_agent": user_agent,
             "adrs": adrs,
+            "mines": mines,
             "txs": txs,
             "ends": ends,
-            "wallet": wallet,
+            "wallet": WALLET,
         })
