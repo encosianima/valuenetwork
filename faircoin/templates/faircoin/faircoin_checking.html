@@ -22,6 +22,13 @@
         border-radius: 0;
     }
 
+    .complete {
+        color: #3b4;
+    }
+    .pending {
+        color: #f27003;
+    }
+
 </style>
 
 {% endblock %}
@@ -72,7 +79,7 @@
                 {% for ad in adrs %}
                   <tr>
                     <td>{{ ad.address }}</td>
-                    <td class="{% if ad.is_mine %}complete{% else %}error{% endif %}">{{ ad.is_mine }}</td>
+                    <td class="{% if ad.mine %}complete{% else %}error{% endif %}">{{ ad.mine }}</td>
                     <td>{{ ad.resource.id }}</td>
                     <td>{{ ad.owner }}</td>
                     <td>{% for tx in ad.to_fairtxs %}{{ tx.id }}{% if not tx.tx_state == 'confirmed' %} ({{ tx.tx_state|slice:"5" }}){% endif %}, {% endfor %}</td>
@@ -110,10 +117,10 @@
                         <td>{{ tx.event.id }}</td>
                         <td>{{ tx.event.from_agent }}</td>
                         <td>{{ tx.event.from_agent.faircoin_address }}
-                        <td>{% for add in adrs %}{% if add.address == tx.event.from_agent.faircoin_address %}{{ add.is_mine }}{% endif %}{% endfor %}</td>
+                        <td>{% for add in adrs %}{% if add.address == tx.event.from_agent.faircoin_address %}{{ add.mine }}{% endif %}{% endfor %}</td>
                         <td>{{ tx.event.to_agent }}</td>
                         <td>{{ tx.to_address }}</td>
-                        <td>{% for add in adrs %}{% if add.address == tx.to_address %}{{ add.is_mine }}{% endif %}{% endfor %}</td>
+                        <td>{% for add in adrs %}{% if add.address == tx.to_address %}{{ add.mine }}{% endif %}{% endfor %}</td>
                         <td>{{ tx.tx_state }}</td>
                         <td>{{ tx.tx_hash }}</td>
                     </tr>

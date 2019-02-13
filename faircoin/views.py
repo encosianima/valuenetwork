@@ -274,6 +274,9 @@ def watch_fair_accounts(request):
             ends.append(tx.to_address)
     wallet = faircoin_utils.is_connected()
 
+    for ad in adrs:
+        ad.mine = ad.is_mine()
+
     return render(request, "faircoin/faircoin_checking.html", {
             "user_agent": user_agent,
             "adrs": adrs,
