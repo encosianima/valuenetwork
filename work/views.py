@@ -884,13 +884,18 @@ def migrate_fdc_shares(request, jr):
         messages.warning(request, "Can't migrate FdC shares before user has shares account! "+str(jr.agent))
 
     et = jr.exchange_type()
-    if hasattr(et, 'context_agent'):
-      if et.context_agent and not et.context_agent == fdc:
+    if not et:
+        print "Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent)
+        loger.info("Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent))
+        messages.warning(request, "Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent))
+        return
+
+    if et.context_agent and not et.context_agent == fdc:
         print "- Change exchange_type context agent to FdC! "+str(et.context_agent)
         loger.info("- Change exchange_type context agent to FdC! "+str(et.context_agent))
         et.context_agent = fdc
         et.save()
-    else:
+    elif not et.context_agent:
         print "- Add exchange_type context_agent to FdC! "+str(et) #.context_agent)
         loger.info("- Add exchange_type context_agent to FdC! "+str(et)) #.context_agent))
         et.context_agent = fdc
@@ -1298,19 +1303,20 @@ def migrate_fdc_shares(request, jr):
     print
     print "exs2: "+str(len(exs2))
     for ex in exs2:
-        kms = ex.commitments.all()
+        kms = ex.xfer_commitments()
+        evs = ex.xfer_events()
         if not kms:
             jr2 = None
             if hasattr(ex, 'join_request') and ex.join_request:
                 jr2 = ex.join_request
-            if not jr2:
-                print "- delete empty exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent) #+" JR:"+str(jr2)
-                loger.info("- delete empty exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2))
-                messages.info(request, "- delete empty exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2))
+            if not jr2 and not kms and not evs:
+                print "- delete empty Exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent) #+" JR:"+str(jr2)
+                loger.info("- delete empty Exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2))
+                messages.info(request, "- delete empty Exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2))
                 for tr in ex.transfers.all():
-                    print "-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes)
-                    loger.info("-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
-                    messages.info(request, "-- delete empty transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
+                    print "-- delete empty Transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes)
+                    loger.info("-- delete empty Transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
+                    messages.info(request, "-- delete empty Transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
                     if tr.is_deletable():
                         tr.delete()
                 if ex.is_deletable():
