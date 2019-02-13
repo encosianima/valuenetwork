@@ -43,6 +43,22 @@ class FaircoinAddress(models.Model):
             is_wallet_address = faircoin_utils.is_mine(self.address)
         return is_wallet_address
 
+    def owner(self):
+        return self.resource.owner()
+
+    def to_fairtxs(self):
+        tos = FaircoinTransaction.objects.filter(to_address=self.address)
+        return tos
+
+    def from_fairtxs(self):
+        ag = self.owner()
+        txs = []
+        if ag and ag.faircoin_address():
+            txs = FaircoinTransaction.objects.filter(event__from_agent=ag)
+        return txs
+
+
+
 
 TX_STATE_CHOICES = (
     ('new', _('New')),

@@ -7202,30 +7202,40 @@ def create_shares_exchange_types(request, agent_id):
 
             #   P R O J E C T    B U Y    S H A R E S
 
-            fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
-            if not fiat_ets:
-                fiat_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
-            if fiat_ets:
-                if len(fiat_ets) > 1:
+            slug_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
+            if not slug_ets:
+                slug_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
+
+            ## TODO delete when fully migrated
+            fdc_et = None
+            if not slug_ets:
+                if slug == 'fair' and project.fobi_slug == 'freedom-coop':
+                    fdc_et = ExchangeType.objects.membership_share_exchange_type()
+                    if fdc_et:
+                        slug_ets = [fdc_et]
+            ##
+
+            if slug_ets:
+                if len(slug_ets) > 1:
                     raise ValidationError("There's more than 1 ExchangeType named: '"+slug+"-buy "+str(project.compact_name())+" Share")
-                fiat_et = fiat_ets[0]
+                slug_et = slug_ets[0]
             else:
-                fiat_et, created = ExchangeType.objects.get_or_create(
+                slug_et, created = ExchangeType.objects.get_or_create(
                     name=slug+"-buy "+str(project.compact_name())+" Shares"
                 )
                 if created:
                     print "- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Shares'"
                     loger.info("- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Shares'")
-            fiat_et.name = slug+"-buy "+str(project.compact_name())+" Shares"
-            fiat_et.use_case = usecas
-            fiat_et.context_agent = project.agent
-            fiat_et.save()
+            slug_et.name = slug+"-buy "+str(project.compact_name())+" Shares"
+            slug_et.use_case = usecas
+            slug_et.context_agent = project.agent
+            slug_et.save()
 
             # TransferType  ->  pay
-            ttpays = TransferType.objects.filter(exchange_type=fiat_et, is_currency=True)
+            ttpays = TransferType.objects.filter(exchange_type=slug_et, is_currency=True)
             if ttpays:
                 if len(ttpays) > 1:
-                    raise ValidationError("There's more than 1 TransferType with is_currency for the ET : "+str(fiat_et))
+                    raise ValidationError("There's more than 1 TransferType with is_currency for the ET : "+str(slug_et))
                 ttpay = ttpays[0]
             else:
                 ttpay.pk = None
@@ -7233,7 +7243,7 @@ def create_shares_exchange_types(request, agent_id):
                 print "- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares ("+slug+")'"
                 loger.info("- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares ("+slug+")'")
             ttpay.name = "Give the payment of the "+str(project.agent.name)+" shares ("+slug+")"
-            ttpay.exchange_type = fiat_et
+            ttpay.exchange_type = slug_et
             ttpay.sequence = 1
             ttpay.give_agent_is_context = False
             ttpay.receive_agent_is_context = True
@@ -7258,10 +7268,12 @@ def create_shares_exchange_types(request, agent_id):
                 loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
 
             # TransferType  ->  receive  ->  share
-            ttshrs = TransferType.objects.filter(exchange_type=fiat_et, inherit_types=True)
+            ttshrs = TransferType.objects.filter(exchange_type=slug_et, inherit_types=True)
+            if not ttshrs:
+                ttshrs = TransferType.objects.filter(exchange_type=slug_et, is_currency=False)
             if ttshrs:
                 if len(ttshrs) > 1:
-                    raise ValidationError("There are more than 1 TransferType with inherit_types for the ET : "+str(fiat_et))
+                    raise ValidationError("There are more than 1 TransferType with inherit_types (or not is_currecy) for the ET : "+str(slug_et))
                 ttshr = ttshrs[0]
             else:
                 ttshr.pk = None
@@ -7269,7 +7281,7 @@ def create_shares_exchange_types(request, agent_id):
                 print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")"
                 loger.info("- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")")
             ttshr.name = "Receive the "+str(project.agent.name)+" shares"
-            ttshr.exchange_type = fiat_et
+            ttshr.exchange_type = slug_et
             ttshr.sequence = 2
             ttshr.give_agent_is_context = True
             ttshr.receive_agent_is_context = False
@@ -7294,12 +7306,12 @@ def create_shares_exchange_types(request, agent_id):
                 loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
 
-            tts = fiat_et.transfer_types.all()
+            tts = slug_et.transfer_types.all()
             if not len(tts) == 2:
-                raise ValidationError("WARNING: The ExchangeType '"+str(fiat_et)+"' don't has 2 TransferType's: "+str(tts))
+                raise ValidationError("WARNING: The ExchangeType '"+str(slug_et)+"' don't has 2 TransferType's: "+str(tts))
 
 
-            pro_shr_rectyps = Ocp_Record_Type.objects.filter(exchange_type=fiat_et)
+            pro_shr_rectyps = Ocp_Record_Type.objects.filter(exchange_type=slug_et)
             if not pro_shr_rectyps:
                 pro_shr_rectyps = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
             if not pro_shr_rectyps:
@@ -7319,7 +7331,7 @@ def create_shares_exchange_types(request, agent_id):
             pro_shr_rectyp.name = slug+"-buy "+str(project.compact_name())+" Shares"
             pro_shr_rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
             pro_shr_rectyp.parent = fiat_rectyp
-            pro_shr_rectyp.exchange_type = fiat_et
+            pro_shr_rectyp.exchange_type = slug_et
             pro_shr_rectyp.save()
 
 

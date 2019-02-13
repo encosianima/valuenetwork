@@ -99,9 +99,10 @@ small {
 }
 
 #new_exchange {
-  float: left;
-  /*margin-left: 13px;*/
-  max-width: 797px;
+  /*float: left;
+  margin-left: 13px;
+  max-width: 797px;*/
+  width: 100%;
   /*text-align: right;*/
 }
 
@@ -153,7 +154,7 @@ hr {
 }
 .miniform {
   margin-left: 0px;
-  float: left;
+  /*float: left;*/
 }
 #exchangeForm p {
   margin: 0 0 5px;
@@ -436,7 +437,7 @@ hr {
         <div class="span8" style="margin-left:0;">
           {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent and request.user.is_superuser %}
           <div id="new_exchange" class="miniform">
-            <form id="exchangeForm" style="margin:0;" method="POST" action="">
+            <form id="exchangeForm" style="margin:0; padding-bottom:11px;" method="POST" action="">
                 <h3 style="display:inline-block;">{% trans "Create a new Exchange" %}:</h3> &nbsp;
 
                 <br/>
