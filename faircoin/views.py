@@ -256,3 +256,28 @@ class ConfirmPasswordView(UpdateView):
 
     def get_success_url(self):
         return self.request.get_full_path()
+
+
+from faircoin.models import FaircoinAddress, FaircoinTransaction
+
+@login_required
+def watch_fair_accounts(request):
+    user_agent = get_agent(request)
+    if not request.user.is_superuser:
+        raise Http404
+
+    adrs = FaircoinAddress.objects.all()
+    txs = FaircoinTransaction.objects.all()
+    ends = []
+    for tx in txs:
+        if tx.to_address not in ends:
+            ends.append(tx.to_address)
+    wallet = faircoin_utils.is_connected()
+
+    return render(request, "faircoin/faircoin_checking.html", {
+            "user_agent": user_agent,
+            "adrs": adrs,
+            "txs": txs,
+            "ends": ends,
+            "wallet": wallet,
+        })
