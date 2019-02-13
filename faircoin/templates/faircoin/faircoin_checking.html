@@ -1,0 +1,208 @@
+{% extends "work_base.html" %}
+
+{% load i18n %}
+{% load staticfiles %}
+
+{% block head_title %}{% trans "Faircoin Checking" %} {% endblock %}
+
+{% block extra_head %}
+<style>
+
+    tr.even td
+    {
+        background-color:#f8faee;
+    }
+
+    /*th
+    {
+        background-color:#C8D6E8;
+    }*/
+
+    .table-bordered tr:last-child th {
+        border-radius: 0;
+    }
+
+</style>
+
+{% endblock %}
+
+{% block body_class %}faircoins{% endblock %}
+
+{% block body_base %}
+<div class="container">
+  {% include "_messages.html" %}
+  <div>
+        <legend>
+            {% if resource.owner %}
+              <a href="{% url 'members_agent' agent_id=resource.owner.id %}">{{ resource.owner.name }}</a> >
+            {% endif %}
+            {% if resource.id %}
+              <a class="indent" href="{% url "manage_faircoin_account" resource_id=resource.id %}">{% trans "FairCoin Account" %}</a> >
+            {% endif %}
+            {% trans "OCP Wallet" %}: &nbsp;&nbsp;
+
+            <div class="subnav">
+                <a class="indent" href="https://chain.fair.to/address?address={{ resource.faircoin_address.address }}" target="_blank" >{% trans "Blockchain" %}</a>
+            </div>
+        </legend>
+
+        <p>
+            {% trans "State of the wallet" %}:
+              {% if wallet %}
+                  Connected
+              {% else %}
+                  <span class="error"><b>{% trans "Not available now" %}</b></span>
+              {% endif %}
+              <br>fairtxs: {{ txs|length }} &nbsp; addresses: {{ adrs|length }} &nbsp; end_adresses: {{ ends|length }}
+
+        </p>
+        <h3>
+            Addresses:
+        </h3>
+        <table id='listable2' class="table table-bordered table-condensed">
+            <thead>
+                <th>Address</th>
+                <th>Is mine</th>
+                <th>Resource</th>
+                <th>Owner</th>
+                <th>To Fairtxs</th>
+                <th>From Fairtxs</th>
+            </thead>
+            <tbody>
+                {% for ad in adrs %}
+                  <tr>
+                    <td>{{ ad.address }}</td>
+                    <td class="{% if ad.is_mine %}complete{% else %}error{% endif %}">{{ ad.is_mine }}</td>
+                    <td>{{ ad.resource.id }}</td>
+                    <td>{{ ad.owner }}</td>
+                    <td>{% for tx in ad.to_fairtxs %}{{ tx.id }}{% if not tx.tx_state == 'confirmed' %} ({{ tx.tx_state|slice:"5" }}){% endif %}, {% endfor %}</td>
+                    <td>{% for tx in ad.from_fairtxs %}{{ tx.id }}{% if not tx.tx_state == 'confirmed' %} ({{ tx.tx_state|slice:"5" }}){% endif %}, {% endfor %}</td>
+                  </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p>
+            &nbsp;
+        </p>
+
+        <!--<h3>
+            FairTxs:
+        </h3>
+        <table id="listable" style="width: 100%;" class="table table-bordered table-hover table-condensed" >
+            <thead>
+                <th>{% trans "FairTx" %}</th>
+                <th>{% trans "Event" %}</th>
+                <th>{% trans "From" %}</th>
+                <th>{% trans "From address" %}</th>
+                <th>{% trans "Mine?" %}</th>
+                <th>{% trans "To" %}</th>
+                <th>{% trans "To address" %}</th>
+                <th>{% trans "Mine?" %}</th>
+                <th>{% trans "Tx State" %}</th>
+                <th>{% trans "Hash" %}</th>
+
+            </thead>
+            <tbody>
+                {% for tx in txs %}
+                    <tr class="{% cycle 'odd' 'even' %}">
+                        <td>{{ tx.id }}</td>
+                        <td>{{ tx.event.id }}</td>
+                        <td>{{ tx.event.from_agent }}</td>
+                        <td>{{ tx.event.from_agent.faircoin_address }}
+                        <td>{% for add in adrs %}{% if add.address == tx.event.from_agent.faircoin_address %}{{ add.is_mine }}{% endif %}{% endfor %}</td>
+                        <td>{{ tx.event.to_agent }}</td>
+                        <td>{{ tx.to_address }}</td>
+                        <td>{% for add in adrs %}{% if add.address == tx.to_address %}{{ add.is_mine }}{% endif %}{% endfor %}</td>
+                        <td>{{ tx.tx_state }}</td>
+                        <td>{{ tx.tx_hash }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table> -->
+
+    <!-- <div class="pagination">
+        <span class="step-links">
+            {% if txs.has_previous %}
+                <a href="?page={{ txs.previous_page_number }}">{% trans "previous" %}</a>
+            {% endif %}
+
+            <span class="current">
+                {% trans "Page" %} {{ txs.number }} {% trans "of" %} {{ txs.paginator.num_pages }}.
+            </span>
+
+            {% if txs.has_next %}
+                <a href="?page={{ txs.next_page_number }}">{% trans "next" %}</a>
+            {% endif %}
+        </span>
+    </div> -->
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="{% static "js/jquery.jeditable.mini.js" %}"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.css"/>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.js"></script>
+
+
+{% endblock %}
+
+
+{% block extra_body %}
+    {{ block.super }}
+<script type="text/javascript">
+
+  $(document).ready(function(){
+
+    $("#listable, #listable2").DataTable({
+        stateSave: true,
+        autoWidth: true,
+        order: [[1, 'desc']],
+        dom: 'rfltBip', //'B<"clear">lfrtip',
+        buttons: [
+            'colvis',
+            {
+                extend: 'pdf',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                extend: 'csv',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+        ],
+        "columnDefs": [
+            {
+                // The `data` parameter refers to the data for the cell (defined by the
+                // `data` option, which defaults to the column being worked with, in
+                // this case `data: 0`.
+                "render": function ( data, type, row ) {
+                    //arr = data.split(', ');
+                    //if (arr.length == 2){
+                    //    return arr[1]+', '+arr[0];
+                    //} else {
+                    //    return data +' ('+ row+')';
+                    //}
+                    return data
+                },
+                "targets": 1
+            }
+        ]
+    });
+
+
+  }); // end document.ready
+
+
+</script>
+{% endblock %}
