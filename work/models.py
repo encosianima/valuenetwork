@@ -480,6 +480,8 @@ from django_comments.models import Comment
 from general.models import UnitRatio
 from faircoin import utils as faircoin_utils
 
+WALLET = faircoin_utils.is_connected()
+
 USER_TYPE_CHOICES = (
     #('participant', _('project participant (no membership)')),
     ('individual', _('individual')),
@@ -747,7 +749,7 @@ class JoinRequest(models.Model):
                   amount = None
                   if self.project.agent.need_faircoins():
                     addr = self.agent.faircoin_address()
-                    wallet = faircoin_utils.is_connected()
+                    wallet = WALLET
                     price = faircoin_utils.share_price_in_fairs(self)
                     amount = Decimal(self.pending_shares() * price)
                     amopend = Decimal(self.payment_pending_amount())
@@ -2743,7 +2745,12 @@ def create_unit_types(**kwargs):
         elif not rtfvs2 and rtfvs: # Project Shares is not used
             shrfv = fv_sh
         elif rtfvs and rtfvs2:
-            raise ValidationError("Both FacetValues has related resource_types!? "+str(fv_sh)+" <-> "+str(shrfv))
+            for rtfv in rtfvs:
+                print "- changed ResourceTypeFacetValue fv from: "+str(rtfv.facet_value)+" to: "+str(shrfv)+" for rt: "+str(rtfv.resource_type)
+                loger.info("- changed ResourceTypeFacetValue fv from: "+str(rtfv.facet_value)+" to: "+str(shrfv)+" for rt: "+str(rtfv.resource_type))
+                rtfv.facet_value = shrfv
+                rtfv.save()
+            #raise ValidationError("Both FacetValues has related resource_types!? "+str(fv_sh)+" <-> "+str(shrfv))
         else:
             print "- Deleted FacetValue: "+str(shrfv)
             loger.info("- Deleted FacetValue: "+str(shrfv))
