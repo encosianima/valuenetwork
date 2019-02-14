@@ -467,10 +467,18 @@
                     {% endif %}
                   {% endif %}
 
-                  {% if agent.faircoin_address %}
+                  {% if agent.faircoin_resources %}
                         <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "FairCoin address" %}</th>
-                            <td>{{ agent.faircoin_address }} {% if user_agent in agent.managers or user_is_agent %}{% if agent.faircoin_resource.id %} &nbsp; <b><a href="{% url "manage_faircoin_account" resource_id=agent.faircoin_resource.id %}" class="btn btn-primary btn-mini">Manage</a></b>{% endif %}{% endif %}</td>
+                            <td>{% for fcr in agent.faircoin_resources %} {{ fcr.faircoin_address.address }}
+                                  {% if user_agent in agent.managers or user_is_agent %}
+                                    {% if fcr.id %} &nbsp; <b><a href="{% url "manage_faircoin_account" resource_id=fcr.id %}"
+                                                                 class="btn btn-primary btn-mini">Manage</a></b>
+                                    {% endif %}
+                                  {% endif %}
+                                  {% if not forloop.last %}<br/>{% endif %}
+                                {% endfor %}
+                            </td>
                         </tr>
                   {% endif %}
                   {% if agent.reputation %}

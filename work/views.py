@@ -4951,13 +4951,49 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
               if not uq and rt:
                 uq = rt.unit
 
+              toag = transfer.to_agent()
+              fromag = transfer.from_agent()
+
               if uq:
+                #print ". uq:"+str(uq)+" is_curr:"+str(uq.is_currency())
                 if not hasattr(uq, 'gen_unit'):
                   raise ValidationError("The unit has not gen_unit! "+str(uq))
                 for to in total_transfers:
+                  #print "ToTr: "+str(to)
                   if to['unit'] == uq.gen_unit.unit_type.id:
+                    #print ". . found ut in unit_of_quantity: "+str(uq.gen_unit.unit_type)+" toag:"+str(toag)+" fromag:"+str(fromag)
+                    nom = uq.gen_unit.unit_type.name
+                    #print ". . nom: "+str(nom)
+                    if not uq.gen_unit.unit_type.clas == 'each' and not uq.gen_unit.unit_type.clas == 'faircoin':
+                        print ". . found ut in unit_of_quantity: "+str(uq.gen_unit.unit_type)+" toag:"+str(toag)+" fromag:"+str(fromag)
+                        proj = comp = abbr = None
+                        if hasattr(agent, 'project') and agent.project:
+                            proj = agent.project
+                            #print ". . . found proj in agent: "+str(proj)
+                        elif toag:
+                            if hasattr(toag, 'project') and toag.project:
+                                proj = toag.project
+                                #print ". . . found proj in toag: "+str(proj)
+                        if fromag and not proj:
+                            if hasattr(fromag, 'project') and fromag.project:
+                                proj = fromag.project
+                                #print ". . . found proj in fromag: "+str(proj)
+                        if proj:
+                            comp = proj.compact_name()
+                            abbr = proj.abbrev_name()
 
-                    to['name'] = uq.gen_unit.unit_type.name
+                        if comp and abbr:
+                            nar = nom.split(' ')
+                            nar[:] = [abbr if n == comp else n for n in nar]
+                            nom2 = ' '.join(nar)
+                            #print ". . . . comp:"+str(comp)+" abbr:"+str(abbr)+" nom2:"+str(nom2)
+                            if not nom == nom2:
+                                nom = nom2
+                                print "- Changed unit name for the abbrev form of project's name: "+str(nom)
+                                loger.info("- Changed unit name for the abbrev form of project's name: "+str(nom))
+
+
+                    to['name'] = nom
                     to['clas'] = uq.gen_unit.unit_type.clas
 
                     if transfer.transfer_type.is_incoming(x, agent): #is_reciprocal:
@@ -4986,6 +5022,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                       #to['debug'] += str(x.id)+':'+str([str(ev.event_type.name)+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_receive_events()])+sign+' - '
 
                     if uq.gen_unit.unit_type.clas == 'each':
+                      #print "... found each in unit_of_quantity: "+str(uq)
                       #rt = transfer.resource_type()
                       rt.cur = False
                       if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
@@ -4998,7 +5035,32 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type)+sign+'-MISSING UNIT! '
                           for ttr in total_transfers:
                             if ttr['unit'] == rt.ocp_artwork_type.general_unit_type.id:
-                              ttr['name'] = rt.ocp_artwork_type.general_unit_type.name
+                              nom = rt.ocp_artwork_type.general_unit_type.name
+                              '''proj = comp = abbr = None
+                              if hasattr(agent, 'project') and agent.project:
+                                proj = agent.project
+                                print "... found proj in agent: "+str(proj)
+                              elif toag:
+                                if hasattr(toag, 'project') and toag.project:
+                                    proj = toag.project
+                                    print "... found proj in toag: "+str(proj)
+                              elif fromag:
+                                if hasattr(fromag, 'project') and fromag.project:
+                                    proj = fromag.project
+                                    print "... found proj in fromag: "+str(proj)
+                              if proj:
+                                comp = proj.compact_name()
+                                abbr = proj.abbrev_name()
+                              if comp and abbr:
+                                nar = nom.split(' ')
+                                nar[:] = [abbr if n == comp else n for n in nar]
+                                nom2 = ' '.join(nar)
+                                print ".... comp:"+str(comp)+" abbr:"+str(abbr)+" nom2:"+str(nom2)
+                                if not nom == nom2:
+                                    nom = nom2
+                                    print "- Changed unit name for the abbrev form of project't name: "+str(nom)'''
+
+                              ttr['name'] = nom
                               ttr['clas'] = rt.ocp_artwork_type.general_unit_type.clas
 
                               if transfer.events.all():
@@ -5031,9 +5093,11 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                     elif uq.gen_unit.unit_type.clas == 'euro':
                       to['balance'] = (to['income']*1) - (to['outgo']*1)
 
-                      to['debug'] += str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name for ev in transfer.events.all()])+sign+' - '
+                      #to['debug'] += str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name for ev in transfer.events.all()])+sign+' - '
                     else:
-                      to['debug'] += 'U:'+str(uq.gen_unit.unit_type.name)+sign
+                      to['balance'] = (to['income']*1) - (to['outgo']*1)
+                      if not uq.is_currency():
+                            to['debug'] += 'U:'+str(uq.gen_unit.unit_type.name)+sign
 
               else: # not uq
                 pass #raise ValidationError("the transfer has not unit of quantity! "+str(uq))
@@ -7280,7 +7344,7 @@ def create_shares_exchange_types(request, agent_id):
                 ttshrs = TransferType.objects.filter(exchange_type=slug_et, is_currency=False)
             if ttshrs:
                 if len(ttshrs) > 1:
-                    raise ValidationError("There are more than 1 TransferType with inherit_types (or not is_currecy) for the ET : "+str(slug_et))
+                    raise ValidationError("There are more than 1 TransferType with inherit_types (or not is_currency) for the ET : "+str(slug_et))
                 ttshr = ttshrs[0]
             else:
                 ttshr.pk = None

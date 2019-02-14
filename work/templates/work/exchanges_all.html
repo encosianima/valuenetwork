@@ -337,8 +337,8 @@ hr {
                       <b style="font-size:110%">{% trans "Balance:" %}</b>
                     </th>
                     {% if request.user.is_superuser %}
-                      <th>
-                         <!-- {% trans "(superusers debug)" %} -->
+                      <th style="background:none; text-align:left;">
+                         <!-- (debug:) -->
                       </th>
                     {% endif %}
                   </tr>
@@ -356,7 +356,7 @@ hr {
                             <td>{{ tt.outgo }}<br/>{% if tt.outcommit %}(-{{ tt.outcommit }}){% else %}&nbsp;{% endif %}</td>
                             <td><b>{{ tt.balance }}</b><br/>{% if tt.balnote %}¿{{ tt.balnote }}?{% else %}&nbsp;{% endif %}</td>
                             {% if request.user.is_superuser %}
-                              <td><small>{{ tt.debug }}</small></td>
+                              <td style="text-align:left;"><small>{{ tt.debug }}</small></td>
                             {% endif %}
                           </tr>
                       {% endif %}

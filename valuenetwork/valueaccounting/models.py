@@ -273,6 +273,17 @@ class Unit(models.Model):
     def __unicode__(self):
         return self.name
 
+    def is_currency(self):
+        if hasattr(self, 'gen_unit') and self.gen_unit:
+            ut = self.gen_unit.unit_type
+            ancs = ut.get_ancestors()
+            for an in ancs:
+                if an.clas == 'currency':
+                    return True
+        if self.unit_type == 'value':
+            return True
+        return False
+
 
 #todo: rethink?
 ACTIVITY_CHOICES = (
@@ -729,6 +740,17 @@ class EconomicAgent(models.Model):
             return candidates[0].resource
         else:
             return None
+
+    def faircoin_resources(self):
+        candidates = self.agent_resource_roles.filter(
+            role__is_owner=True,
+            resource__resource_type__behavior="dig_acct",
+            resource__faircoin_address__address__isnull=False)
+        if candidates:
+            return [can.resource for can in candidates]
+        else:
+            return []
+
 
     def candidate_membership(self, project_agent=None):
         aa = self.candidate_association(project_agent)
@@ -1431,6 +1453,7 @@ class EconomicAgent(models.Model):
           return False
 
     def used_units_ids(self, exs=None):
+        #print "..used_units_ids:"
         if not exs:
             exs = Exchange.objects.exchanges_by_type(self)
         uids = []
@@ -1455,6 +1478,7 @@ class EconomicAgent(models.Model):
               #pass #uids.append(rt.unit_of_value.ocp_unit_type.id)
             uq = tx.unit_of_quantity()
             if uq:
+              #print "....found uq: "+str(uq)
               if not hasattr(uq, 'gen_unit'):
                 raise ValidationError("The unit has not gen_unit! "+str(uq))
               else:
@@ -1480,7 +1504,10 @@ class EconomicAgent(models.Model):
                   else:
                       raise ValidationError("The resource type has not a related ocp_artwork_type! "+str(rt))
                 else:
-                    pass #raise ValidationError("The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.ocp_unit_type))
+                    #print "The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.gen_unit.unit_type.clas)
+                    if uq.gen_unit.unit_type.id not in uids and uq.is_currency(): #gen_unit.unit_type.clas == 'each':
+                        uids.append(uq.gen_unit.unit_type.id)
+                    #pass #raise ValidationError("The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.ocp_unit_type))
             else:
               rt = tx.resource_type()
               rtun = None
@@ -1493,6 +1520,10 @@ class EconomicAgent(models.Model):
                 else:
                   if not rtun.gen_unit.unit_type.id in uids:
                     uids.append(rtun.gen_unit.unit_type.id)
+              else:
+                print "....tx.resource_type has no unit? "+str(tx)
+        if not uids:
+            print ".... empty uids set? "+str(tx)
 
         return uids
 
@@ -10049,21 +10080,29 @@ class Transfer(models.Model):
     def from_agent(self):
         events = self.events.all()
         if events:
-            return events[0].from_agent
+            for ev in events:
+                if ev.from_agent:
+                    return ev.from_agent
         else:
             commits = self.commitments.all()
             if commits:
-                return commits[0].from_agent
+                for com in commits:
+                    if com.from_agent:
+                        return com.from_agent
         return None
 
     def to_agent(self):
         events = self.events.all()
         if events:
-            return events[0].to_agent
+            for ev in events:
+                if ev.to_agent:
+                    return ev.to_agent
         else:
             commits = self.commitments.all()
             if commits:
-                return commits[0].to_agent
+                for com in commits:
+                    if com.to_agent:
+                        return com.to_agent
         return None
 
     def resource_type(self):
