@@ -1504,9 +1504,20 @@ class EconomicAgent(models.Model):
             else:
               rt = tx.resource_type()
               rtun = None
+              if not rt:
+                shr = tx.transfer_type.is_share()
+                if shr:
+                    rt = shr.resource_type
+              if not rt:
+                if tx.transfer_type == ex.ttpay() and ex.join_request:
+                    #print "TX: "+str(ex.join_request.payment_unit())
+                    rt = ex.join_request.payment_unit_rt()
               if rt:
                 rtun = rt.unit
                 #rtut = rtun.unit_type
+              else:
+                print "....tx has no resource_type? tx:"+str(tx.id)+" "+str(tx)
+                loger.info("....tx has no resource_type? tx:"+str(tx.id)+" "+str(tx))
               if rtun:
                 if not hasattr(rtun, 'gen_unit'):
                   raise ValidationError("The resource_type unit has not gen_unit! "+str(rtun))
@@ -1514,9 +1525,11 @@ class EconomicAgent(models.Model):
                   if not rtun.gen_unit.unit_type.id in uids:
                     uids.append(rtun.gen_unit.unit_type.id)
               else:
-                print "....tx.resource_type has no unit? "+str(tx)
+                print "....tx.resource_type has no unit? rt:"+str(rt)
+                loger.info("....tx.resource_type has no unit? rt:"+str(rt))
         if not uids:
-            print ".... empty uids set? "+str(tx)
+            print ".... empty uids set? ag:"+str(self)+" exs:"+str(len(exs))
+            loger.info(".... empty uids set? ag:"+str(self)+" exs:"+str(len(exs)))
 
         return uids
 
@@ -5405,6 +5418,29 @@ class ExchangeType(models.Model):
     def transfer_types_creating(self):
         return self.transfer_types.filter(can_create_resource=True)
 
+    def show_name(self, agent):
+        name = self.name
+        if hasattr(self, 'ocp_record_type') and self.ocp_record_type:
+            nom = self.ocp_record_type.name
+            x_actions = self.ocp_record_type.x_actions()
+            for action in x_actions:
+                opposite = action.opposite()
+                if opposite:
+                    if action.clas and opposite.clas:
+                        newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
+                    if name == newname:
+                        newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
+                    #if gives or forced:
+                    #    if action.clas == 'buy' or action.clas == 'receive':
+                    #        name = newname
+                    #if takes or forced:
+                    #    if action.clas == 'sell' or action.clas == 'give':
+                    #        name = newname
+                    name = newname
+        arr = name.split(' ')
+        name = arr[0]
+        return name
+
 
 class GoodResourceManager(models.Manager):
     def get_queryset(self):
@@ -8646,22 +8682,64 @@ class TransferType(models.Model):
 
     def is_incoming(self, exchange, context_agent):
         transfers = exchange.transfers.all()
+        jn_req = None
+        ttpay = exchange.ttpay()
+        if hasattr(exchange, 'join_request') and exchange.join_request:
+            jn_req = exchange.join_request
         mem = None
+        self.is_income = None
+        #print "-tt.is_incoming... ex:"+str(exchange.id)+" tt:"+str(self.id)
         if transfers:
           for tx in transfers:
             if tx.transfer_type == self:
               if tx.to_agent() == context_agent:
+                #print "- found agent in tx.to ! tx:"+str(tx.id)+" ag:"+str(context_agent)
+                self.is_income = True
                 return True
               elif tx.from_agent() == context_agent:
+                #print "- found agent in tx.from ! tx:"+str(tx.id)+" ag:"+str(context_agent)
+                self.is_income = False
                 return False
-            else:
+              else:
+                if jn_req:
+                    if context_agent == jn_req.agent:
+                        if self == ttpay:
+                            self.is_income = False
+                            return False
+                        else:
+                            self.is_income = True
+                            return True
+                    elif context_agent == jn_req.project.agent:
+                        if self == ttpay:
+                            self.is_income = True
+                            return True
+                        else:
+                            self.is_income = False
+                            return False
+                    else:
+                        print "WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req)
+                        loger.info("WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req))
+                else:
+                    print "...not found to or from or jr, tx:"+str(tx)
+                    loger.info("...not found to or from or jr, tx:"+str(tx))
+            elif not mem:
+                #print "... set mem: "+str(tx.id)+" tt:"+str(tx.transfer_type.id)+" self:"+str(self.id)
                 mem = tx
-          if mem: # and mem.transfer_type.is_income: #ing(exchange, context_agent): #is_reciprocal:
-            return False
-          else: #if mem:
-            return True
+          #if mem:
+            #if not mem.is_income == None: # and mem.transfer_type.is_income: #ing(exchange, context_agent): #is_reciprocal:
+              #print "- found mem, return False? self:"+str(self.id)+" mem:"+str(mem.id)+" tt:"+str(mem.transfer_type.id) #+" inco:"+str(mem.transfer_type.is_income)
+
+              #return False
+          #else: #if mem:
+          #  print "- not found mem, return True ? self:"+str(self.id)
+            #return True
         else:
-            return self.is_reciprocal
+            print "WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id)
+            loger.info("WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id))
+
+        print "- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)
+        loger.info("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal))
+        return self.is_reciprocal
 
     def is_share(self):
         rel_typ = None
@@ -8956,6 +9034,7 @@ class Exchange(models.Model):
     def slots_with_detail(self, context_agent=None):
         slots = self.exchange_type.transfer_types.all()
         slots = list(slots)
+        memslot = None
         transfers = self.transfers.all()
         default_to_agent = None
         default_from_agent = None
@@ -8972,12 +9051,24 @@ class Exchange(models.Model):
                     default_from_agent = transfer.to_agent()
                 else:
                     default_from_agent = transfer.from_agent()
+        ttpay = self.ttpay()
+        jn_req = None
+        if hasattr(self, 'join_request') and self.join_request:
+            jn_req = self.join_request
+
         for slot in slots:
             slot.xfers = []
+            slot.agents_to = []
+            slot.agents_from = []
             slot.total = 0
             slot.total_unit = None
+            slot.total_com = 0
+            slot.total_com_unit = None
+            slot.rts = []
+            slot.hours = False
             for transfer in transfers:
                 if transfer.transfer_type == slot:
+                    rt = transfer.resource_type()
                     slot.xfers.append(transfer)
                     if transfer.actual_value():
                         slot.total += transfer.actual_value()
@@ -8985,14 +9076,139 @@ class Exchange(models.Model):
                     elif transfer.actual_quantity():
                         slot.total += transfer.actual_quantity()
                         slot.total_unit = transfer.unit_of_quantity()
-            if slot.is_incoming(self, context_agent): #is_reciprocal:
+                    if transfer.value():
+                        if slot.is_currency:
+                            slot.total_com += transfer.value()
+                            slot.total_com_unit = transfer.unit_of_value()
+                        else:
+                            print "-- found value "+str(transfer.value())+" "+str(transfer.unit_of_value())+" but not slot.is_currency, id:"+str(slot.id)+" "+str(slot)
+                    if transfer.quantity() and not slot.total_com_unit:
+                        slot.total_com += transfer.quantity()
+                        slot.total_com_unit = transfer.unit_of_quantity()
+                        if not slot.total_com_unit:
+                            if rt and not rt in slot.rts:
+                                slot.rts.append(rt)
+
+                    if slot.total_com_unit and str(slot.total_com_unit) == 'Each':
+                        slot.total_com_unit = ''
+                        if rt and not rt in slot.rts:
+                            slot.rts.append(rt)
+                    if slot.total_com_unit and str(slot.total_com_unit) == 'Hours':
+                        #slot.total_com_unit = ''
+                        slot.hours = True
+                        if rt and not rt in slot.rts:
+                            slot.rts.append(rt)
+
+
+                    to = transfer.to_agent()
+                    fro = transfer.from_agent()
+                    if not to and jn_req:
+                        if ttpay.name == slot.name:
+                            #to = jn_req.project.agent
+                            prt = jn_req.payment_unit_rt()
+                            if not prt == rt:
+                                print "x pay to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                rt = prt
+                            #slot.total_com = jn_req.total_price()
+                            #slot.total_com_unit = ''
+                        else:
+                            to = jn_req.agent
+                            prt = jn_req.project.shares_type()
+                            if not prt == rt:
+                                print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                rt = prt
+                            slot.total_com = jn_req.payment_amount()
+                            slot.total_com_unit = ''
+                    if not fro and jn_req:
+                        if ttpay.name == slot.name:
+                            fro = jn_req.agent
+                            prt = jn_req.payment_unit_rt()
+                            if not prt == rt:
+                                print "x pay from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                rt = prt
+                            #slot.total_com = jn_req.total_price()
+                            #slot.total_com_unit = ''
+                        else:
+                            fro = jn_req.project.agent
+                            prt = jn_req.project.shares_type()
+                            if not prt == rt:
+                                print "x shr from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                rt = prt
+                            slot.total_com = jn_req.payment_amount()
+                            slot.total_com_unit = ''
+
+                    if not to in slot.agents_to:
+                        slot.agents_to.append(to)
+                    if not fro in slot.agents_from:
+                        slot.agents_from.append(fro)
+
+                    if not slot.total_com_unit:
+                        if rt and not rt in slot.rts:
+                            print "--- not total_com_unit, add rt:"+str(rt)+" in slot:"+str(slot)
+                            slot.rts.append(rt)
+
+
+            #if slot.total_com_unit and str(slot.total_com_unit) == 'Hours':
+            #    print "Hours?"  #slot.total_com_unit = str(slot.total_com_unit)+' '+str(rt)
+                #if rt and not rt in slot.rts:
+                #    slot.rts.append(rt)
+
+
+            if slot.rts:
+              #print "- slot.rts:"+str(slot.rts)
+              if len(slot.rts) > 1:
+                print "-- multiple rts: "+str(len(slot.rts))+" for tx:"+str(self)
+                par = None
+                for t in slot.rts:
+                    if hasattr(t, 'ocp_artwork_type') and t.ocp_artwork_type:
+                        pare = t.ocp_artwork_type.parent
+
+                        if not par:
+                            par = pare
+                        elif par.id == pare.id:
+                            print "--- found parent: "+str(pare)
+                            rtz = EconomicResourceType.objects.filter(ocp_artwork_type__id=par.id)
+                            if rtz:
+                                slot.total_com_unit = "<em>"+str(rtz[0])+"</em>"
+                            else:
+                                slot.total_com_unit = "<em>"+str(par)+"</em>"
+              else:
+                slot.total_com_unit = slot.rts[0]
+                if hasattr(slot.total_com_unit, 'ocp_artwork_type') and slot.total_com_unit.ocp_artwork_type.is_account():
+                    print "--- is account, change slot_com_unit to:"+str(slot.rts[0].unit)
+                    slot.total_com_unit = slot.rts[0].unit
+                else:
+                    if slot.hours:
+                        slot.total_com_unit = str(_('hour'))+('s' if slot.total_com > 1 else '')+str(_(' of '))+str(slot.rts[0])
+                    else:
+                        pass #print "--- not account "+str(slot.total_com_unit)
+                #print "-- found one rt:"+str(rt)
+            elif slot.total_unit and not slot.total_com_unit:
+                slot.total_com_unit = slot.total_unit
+            elif hasattr(self, 'join_request'):
+                pass #print #"has jreq, is ok? "+str(self)
+            else:
+              print "- don't find rts? slot:"+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit)
+
+            if not memslot:
+              if slot.is_incoming(self, context_agent): #is_reciprocal:
                 slot.default_from_agent = default_to_agent
                 slot.default_to_agent = context_agent #default_from_agent
+                #print "- slot.is_incoming True, force is_income ? "+str(slot.id)
                 slot.is_income = True
-            else:
+              else:
                 slot.default_from_agent = context_agent #default_from_agent
                 slot.default_to_agent = default_to_agent
+                #print "- slot.is_incoming False, force is_income ? "+str(slot.id)
                 slot.is_income = False
+            else:
+                print "- Flag is_income as oposite of memslot for slot:"+str(slot.id)
+                if memslot.is_income:
+                    slot.is_income = False
+                else:
+                    slot.is_income = True
+                slot.default_from_agent = memslot.default_to_agent
+                slot.default_to_agent = memslot.default_from_agent
 
             if slot.is_currency and self.exchange_type.use_case != UseCase.objects.get(identifier="intrnl_xfer"):
                 if not slot.give_agent_is_context:
@@ -9000,6 +9216,9 @@ class Exchange(models.Model):
                 if not slot.receive_agent_is_context:
                     slot.default_to_agent = None #logged on agent
 
+            print "ex:"+str(self.id)+" slot:"+str(slot.id)+" is_income:"+str(slot.is_income)+" reci:"+str(slot.is_reciprocal)+" memslot:"+str(memslot)
+
+            memslot = slot
             pend = []
             for xf in slot.xfers:
               if xf.status() == 'pending':
@@ -9529,6 +9748,8 @@ class Exchange(models.Model):
                 agents.append(xfer.scope)
         return agents
 
+
+
 class Transfer(models.Model):
     name = models.CharField(_('name'), blank=True, max_length=128)
     transfer_type = models.ForeignKey(TransferType,
@@ -9704,6 +9925,52 @@ class Transfer(models.Model):
                 agents.append(self.context_agent)
         return agents
 
+    def resource_type(self):
+        rt = None
+        rts = []
+        events = self.events.all()
+        if events:
+          for event in events:
+            if event.resource:
+                if not event.resource.resource_type in rts:
+                    rts.append(event.resource.resource_type)
+                #break
+            if event.resource_type:
+                if not event.resource_type in rts:
+                    rts.append(event.resource_type)
+                #break
+        else:
+            for commit in self.commitments.all():
+                if commit.resource_type:
+                    if not commit.resource_type in rts:
+                        rts.append(commit.resource_type)
+                    #break
+        if rts:
+            #print "- rts:"+str(rts)
+            if len(rts) > 1:
+                print "-- multiple rts: "+str(len(rts))+" for tx:"+str(self)
+                loger.info("-- multiple rts: "+str(len(rts))+" for tx:"+str(self))
+                par = None
+                for t in rts:
+                    if hasattr(t, 'ocp_artwork_type') and t.ocp_artwork_type:
+                        pare = t.ocp_artwork_type.parent()
+                        if not par:
+                            par = pare
+                        elif par == pare:
+                            rt = par.resource_type
+            else:
+                 rt = rts[0]
+        else:
+            if hasattr(self.exchange, 'join_request') and self.exchange.join_request:
+                if self.transfer_type == self.exchange.ttpay():
+                    rt = self.exchange.join_request.payment_unit_rt()
+                else:
+                    rt = self.exchange.join_request.project.shares_type()
+            else:
+                print "- don't find rts nor jr? self(tx):"+str(self.id)+" ex:"+str(self.exchange.id)
+                loger.info("- don't find rts nor jr? self(tx):"+str(self.id)+" ex:"+str(self.exchange.id))
+        return rt
+
 
     def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
@@ -9747,9 +10014,9 @@ class Transfer(models.Model):
             need_evts = 1
         status = '??'
         comits = self.commitments.all_give() #filter(transfer=self)
-        events = self.events.all_give() #filter(transfer=self)
+        events = list(self.events.all_give()) #filter(transfer=self)
         for com in comits:
-            for ev in com.fulfillment_events.all():
+            for ev in com.fulfillment_events.all_give():
                 if not ev in events:
                     print " append ev:"+str(ev)
                     loger.info(" append ev:"+str(ev))
@@ -9759,6 +10026,13 @@ class Transfer(models.Model):
             status = 'pending' #str([ev.id for ev in events])+' '+str([co.id for co in comits])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
           elif len(events) == len(comits): #need_evts:
             status = 'complete'
+          else:
+            status = 'xx'
+            for com in comits:
+                if not com.status() == 'complete':
+                    status = 'pending'
+                elif status == 'xx':
+                    status = 'complete'
         elif len(events):
           if len(events) >= need_evts:
             status = 'complete' #str([ev.id for ev in events])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' complete'
@@ -10100,6 +10374,8 @@ class Transfer(models.Model):
             commits = self.commitments.all()
             if commits:
                 return commits[0].resource_type
+        if self.transfer_type.inherit_types:
+            pass # TODO
         return None
 
     def resource_name(self):
@@ -10441,7 +10717,13 @@ class CommitmentManager(models.Manager):
 
     def all_give(self):
         et_give = EventType.objects.get(name="Give")
-        return self.filter(event_type=et_give)
+        bkp = self.all()
+        filtered = self.filter(event_type=et_give)
+        if not filtered:
+            print "WARN not found 'give' event_type filtered from "+str(self)+", return all!"
+            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all!")
+            return bkp
+        return filtered
 
 
 class Commitment(models.Model):
@@ -10557,6 +10839,13 @@ class Commitment(models.Model):
                 name2,
             ])
         else:
+            name1 = 'from ?'
+            if self.from_agent:
+                name1 = 'from '+str(self.from_agent.nick)
+            name2 = 'to ?'
+            if self.to_agent:
+                name2 = 'to '+str(self.to_agent.nick)
+
             return ' '.join([
                 process_name,
                 self.event_type.label,
@@ -10564,6 +10853,8 @@ class Commitment(models.Model):
                 abbrev,
                 resource_name,
                 self.due_date.strftime('%Y-%m-%d'),
+                name1,
+                name2
         ])
 
     def show_name(self, agent=None, forced=False):
@@ -10579,8 +10870,9 @@ class Commitment(models.Model):
                     loger.warning("The Commitment has no exchange but its transfer has, FIXING!")
                     self.exchange = self.transfer.exchange
                     self.save()
-            x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
-            for action in x_actions:
+            if hasattr(self.exchange.exchange_type, 'ocp_record_type') and self.exchange.exchange_type.ocp_record_type:
+              x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
+              for action in x_actions:
                 opposite = action.opposite()
                 if opposite:
                     if action.clas and opposite.clas:
@@ -12401,7 +12693,13 @@ class EconomicEventManager(models.Manager):
 
     def all_give(self):
         et_give = EventType.objects.get(name="Give")
-        return self.filter(event_type=et_give)
+        bkp = self.all()
+        filtered = self.filter(event_type=et_give)
+        if not filtered:
+            print "WARN not found 'give' event_type filtered from "+str(self)+", return all!"
+            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all!")
+            return bkp
+        return filtered
 
     def related_agent(self, agent=None):
         evs = []
@@ -12542,8 +12840,9 @@ class EconomicEvent(models.Model):
                     loger.warning("The Event has no exchange but its transfer has it, FIXING!")
                     self.exchange = self.transfer.exchange
                     self.save()
-            x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
-            for action in x_actions:
+            if hasattr(self.exchange.exchange_type, 'ocp_record_type') and self.exchange.exchange_type.ocp_record_type:
+              x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
+              for action in x_actions:
                 opposite = action.opposite()
                 if opposite:
                     if action.clas and opposite.clas:
