@@ -199,7 +199,10 @@ h3.trtheading {
                 {% if exchange.status %}
                     <p>
                       {% trans "Status" %}: <span class="{{ exchange.status }}">{{ exchange.status|title }}</span> &nbsp;
-                        {% if request.user.is_superuser %}Context: {{ exchange.context_agent }}{% endif %}
+                        {% if exchange.context_agent and request.user.is_superuser %}
+                            Context: <a href="{% url "members_agent" agent_id=exchange.context_agent.id %}"
+                           style="">{{ exchange.context_agent.name }}</a>
+                        {% endif %}
                     </p>
                 {% endif %}
                 {% with exchange.join_request as req %}
@@ -269,7 +272,15 @@ h3.trtheading {
                     {% endif %}
 
                 {% else %}
-
+                    <p>
+                        {% trans "With Agents:" %}
+                        {% for ag in total_agents %}
+                            {% if ag and not ag == context_agent %}
+                                <a href="{% url "members_agent" agent_id=ag.id %}"
+                                   style="font-weight:bold; font-size:1.2em;">{{ ag.name }}</a> &nbsp;
+                            {% endif %}
+                        {% endfor %}
+                    </p>
                 {% endif %}
                 {% endwith %}
                 <p>
@@ -282,7 +293,9 @@ h3.trtheading {
                 </p>
                 {% if request.user.is_superuser %}
                   <p>
-                    <em>logger: {{ logger }} &nbsp; (txs:{{ exchange.transfers.all|length }}, coms:{{ exchange.commitments.all|length }}, evts:{{ exchange.events.all|length }})</em>
+                    <em>logger: {{ logger }} &nbsp; (tts:{% for tt in exchange.exchange_type.transfer_types.all %}{{ tt.id }},{% endfor %} txs:{{ exchange.transfers.all|length }}, coms:{{ exchange.commitments.all|length }}, evts:{{ exchange.events.all|length }})</em>
+                    {% for tx in exchange.transfers.all %}
+                      tx:{{ tx.id }}(tt:{{ tx.transfer_type.id }})-co:{{ tx.commitments.all|length }}-ev:{{ tx.events.all|length }}-reci:{{ tx.is_reciprocal }}<br> {% endfor %}
                   </p>
                   <p>
                     <em>notes: {{ exchange.notes }}</em>
@@ -309,7 +322,7 @@ h3.trtheading {
         {% with slots|first as tt %}
         <div class="span8">
           {% if exchange %}
-            {% if exchange.exchange_type.transfer_types.count > 1 or tt and not tt.is_income %}
+            {% if True or exchange.exchange_type.transfer_types.count > 1 or tt and not tt.is_income %}
             <div class="trt infobox">
                 <h3 class="trtheading">Outgoing Transfers
                 {% if logger %}<span class="info"> <a href="#" id="xfer-info" data-toggle="popover" data-trigger='hover' title="Transfers" data-placement="left"
@@ -353,6 +366,7 @@ h3.trtheading {
                                 {% if slot.is_share %} &nbsp; &nbsp;
                                   Share: <em><b>{{ slot.is_share.name }}</b></em>
                                 {% endif %}
+                                {% if request.user.is_superuser %} &nbsp; <em>(tt:{{ slot.id }} txs: {{ slot.xfers|length }} inco:{{ slot.is_income }})</em>{% endif %}
                             </p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
@@ -493,9 +507,9 @@ h3.trtheading {
                                       {% for comm in xfer.commitments.all_give %}
                                         <div class="comm"><span class="{% if comm.fulfillment_events.all %}complete{% else %}pending{% endif %}">&#9679;</span>
                                         <span class="event-label">{% trans "Commitment" %}: </span>
-                                        {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ comm.id }}){% endif %}
-                                        {% if logger or comm.created_by == request.user or comm.to_agent == request.user.agent.agent or comm.to_agent in request.user.agent.agent.managed_projects %}
-                                          {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
+                                        {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}&nbsp; <em>(tx:{{ xfer.id }} co:{{ comm.id }})</em>{% endif %}
+                                        {% if logger or comm.created_by == request.user or comm.to_agent == agent or comm.to_agent in agent.managed_projects %}
+                                          {% if logger and not exchange.join_request and not exchange.join_request.agent == agent %}
                                             {% if not comm.to_agent %}
                                                <a href="#agentModal{{ comm.id }}" class="btn btn-primary btn-mini" role="button" data-toggle="modal" alt="Create a new external agent (without a OCP user)">New External Agent?</a>
                                                <div class="modal hide fade" id="agentModal{{ comm.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
@@ -668,10 +682,10 @@ h3.trtheading {
                                         {% if comm.fulfillment_events.all %}
                                           {% for evt in comm.fulfillment_events.all_give %}
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>
-                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ evt.id }}){% endif %}
+                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(tx:{{ xfer.id }} ev:{{ evt.id }}){% endif %}
                                                 {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
-                                                {% if logger or evt.created_by == request.user or evt.to_agent == request.user.agent.agent or evt.to_agent in request.user.agent.agent.managed_projects %}
-                                                  {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
+                                                {% if logger or evt.created_by == request.user or evt.to_agent == agent or evt.to_agent in agent.managed_projects %}
+                                                  {% if logger and not exchange.join_request and not exchange.join_request.agent == agent %}
                                                     <a href="#xferModal{{ evt.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                         <i class="icon-edit"></i>
                                                     </a>
@@ -761,10 +775,10 @@ h3.trtheading {
                                       {% for evt in xfer.events.all_give %}
                                         <div class="evt"><span class="complete">&#9679;</span>
                                         <span class="event-label">{% trans "Transfer" %}:</span>
-                                        {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ evt.id }}){% endif %}
+                                        {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}&nbsp; <em>(tx:{{ xfer.id }} ev:{{ evt.id }})</em>{% endif %}
                                         {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
-                                        {% if logger or evt.created_by == request.user or evt.to_agent == request.user.agent.agent or evt.to_agent in request.user.agent.agent.managed_projects %}
-                                          {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
+                                        {% if logger or evt.created_by == request.user or evt.to_agent == agent or evt.to_agent in agent.managed_projects %}
+                                          {% if logger and not exchange.join_request and not exchange.join_request.agent == agent %}
                                             <a href="#xferModal{{ evt.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                 <i class="icon-edit"></i>
                                             </a>
@@ -848,6 +862,19 @@ h3.trtheading {
                                       {% endfor %}
                                     {% else %}
                                         <em class="">{% trans "This transfer has not any event or commitment yet..." %}</em>
+                                        {% if not forloop.first and request.user.is_superuser %}
+                                            <em>(id:{{ xfer.id }})</em>
+                                            <form
+                                                  style="display: inline;"
+                                                  class="delete-form"
+                                                  id="deleteForm{{ xfer.id }}"
+                                                  action="{% url "delete_transfer_events" transfer_id=xfer.id %}"
+                                                  method="POST" >
+                                                {% csrf_token %}
+                                                <input type="hidden" id="next" name="next" value="exchange-work" />
+                                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
+                                            </form>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             {% endfor %}
@@ -857,7 +884,7 @@ h3.trtheading {
                 {% endfor %}
             </div>
             {% endif %}
-            {% if exchange.can_have_reciprocal_transfers or tt and tt.is_income %}
+            {% if True or exchange.can_have_reciprocal_transfers or tt and tt.is_income %}
             <div class="trt infobox">
                 <h3 CLASS="trtheading">Incoming Transfers
                 {% if logger %}<span class="info"> <a href="#" id="rxfer-info" data-toggle="popover" data-trigger='hover' title="Reciprocal Transfers" data-placement="left"
@@ -897,6 +924,7 @@ h3.trtheading {
                                 {% if slot.is_share %} &nbsp; &nbsp;
                                   Share: <em><b>{{ slot.is_share.name }}</b></em>
                                 {% endif %}
+                                {% if request.user.is_superuser %} &nbsp; <em>(tt:{{ slot.id }} txs: {{ slot.xfers|length }} inco:{{ slot.is_income }})</em>{% endif %}
                             </p>
                             {% if agent and exchange and logger %}
                                 {% if not slot.is_currency %}
@@ -1038,9 +1066,9 @@ h3.trtheading {
                                       {% for comm in xfer.commitments.all_give %}
                                         <div class="comm"><span class="{% if comm.fulfillment_events.all %}complete{% else %}pending{% endif %}">&#9679;</span>
                                         <span class="event-label">{% trans "Commitment" %}: </span>
-                                        {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ comm.id }}){% endif %}
+                                        {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}(tx:{{ xfer.id }} co:{{ comm.id }}){% endif %}
                                         {% if logger or comm.created_by == request.user or comm.from_agent == request.user.agent.agent or comm.from_agent in request.user.agent.agent.managed_projects %}
-                                          {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
+                                          {% if logger and not exchange.join_request and not exchange.join_request.agent == agent %}
                                             {% if not comm.from_agent %}
                                                <a href="#agentModal{{ comm.id }}" class="btn btn-primary btn-mini" role="button" data-toggle="modal" alt="Create a new external agent (without a OCP user)">New External Agent?</a>
                                                <div class="modal hide fade" id="agentModal{{ comm.id }}" tabindex="-1" role="dialog" aria-labelledby="xfer-label" aria-hidden="true">
@@ -1212,10 +1240,10 @@ h3.trtheading {
                                         {% if comm.fulfillment_events.all %}
                                           {% for evt in comm.fulfillment_events.all_give %}
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>
-                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ evt.id }}){% endif %}
+                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(tx:{{ xfer.id }} ev:{{ evt.id }}){% endif %}
                                                 {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
-                                                {% if logger or evt.created_by == request.user or evt.from_agent == request.user.agent.agent or evt.from_agent in request.user.agent.agent.managed_projects %}
-                                                  {% if not exchange.join_request %}
+                                                {% if logger or evt.created_by == request.user or evt.from_agent == agent or evt.from_agent in agent.managed_projects %}
+                                                  {% if logger and not exchange.join_request %}
                                                     <a href="#xferModal{{ evt.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                         <i class="icon-edit"></i>
                                                     </a>
@@ -1305,10 +1333,10 @@ h3.trtheading {
                                       {% for evt in xfer.events.all_give %}
                                         <div class="evt"><span class="complete">&#9679;</span>
                                         <span class="event-label">{% trans "Transfer" %}: </span>
-                                        {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(id:{{ evt.id }}){% endif %}
+                                        {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}<em>(tx:{{ xfer.id }} ev:{{ evt.id }} co:{{ evt.commitment.id }})</em>{% endif %}
                                         {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
-                                        {% if logger or evt.created_by == request.user or evt.from_agent == request.user.agent.agent or evt.from_agent in request.user.agent.agent.managed_projects  %}
-                                          {% if not exchange.join_request and not exchange.join_request.agent == request.user.agent.agent %}
+                                        {% if logger or evt.created_by == request.user or evt.from_agent == agent or evt.from_agent in agent.managed_projects  %}
+                                          {% if logger and not exchange.join_request and not exchange.join_request.agent == agent %}
                                             <a href="#xferModal{{ evt.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                                 <i class="icon-edit"></i>
                                             </a>
@@ -1392,6 +1420,19 @@ h3.trtheading {
                                       {% endfor %}
                                     {% else %}
                                         <em class="">{% trans "This transfer has not any event or commitment yet..." %}</em>
+                                        {% if not forloop.first and request.user.is_superuser %}
+                                            <em>(id:{{ xfer.id }})</em>
+                                            <form
+                                                  style="display: inline;"
+                                                  class="delete-form"
+                                                  id="deleteForm{{ xfer.id }}"
+                                                  action="{% url "delete_transfer_events" transfer_id=xfer.id %}"
+                                                  method="POST" >
+                                                {% csrf_token %}
+                                                <input type="hidden" id="next" name="next" value="exchange-work" />
+                                                <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
+                                            </form>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             {% endfor %}
@@ -1403,7 +1444,7 @@ h3.trtheading {
             </div>
             {% endif %}
 
-            {% if not exchange.join_request.agent == request.user.agent.agent and exchange.join_request.project.agent.need_tasks %}
+            {% if not exchange.join_request.agent == agent and exchange.join_request.project.agent.need_tasks %}
             <div class="log-section infobox2">
                 <h3 style="margin-bottom: 4px;" >
                     {% trans "Work" %}
@@ -1453,7 +1494,7 @@ h3.trtheading {
                     <div class="event" >
                         <span ><span class="event-label">{% trans "Work event" %}: </span><b> {{ event.resource_type.name }}</b> {{ event.quantity }} {{ event.unit_of_quantity }} {{ event.event_date }} <span class="taken">{% trans "Done by" %} {{ event.from_agent.nick }}</span></span>
                         {% if agent == event.from_agent or logger or event.created_by == request.user %}
-
+                          {% if logger %}
                             <a href="#eventModal{{ event.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
                                 <i class="icon-edit"></i>
                             </a>
@@ -1500,6 +1541,7 @@ h3.trtheading {
                                 <input type="hidden" id="next" name="next" value="exchange-work" />
                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete work contribution!" >X</button>
                             </form>
+                          {% endif %}
                         {% endif %}
                         {% if event.description %}
                         <div class="notes"> {{ event.description|urlize|linebreaks }} </div>
