@@ -10719,9 +10719,9 @@ class CommitmentManager(models.Manager):
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
-        if not filtered:
-            print "WARN not found 'give' event_type filtered from "+str(self)+", return all!"
-            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all!")
+        if not filtered and bkp:
+            print "WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str([ev.event_type for ev in bkp])
+            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all! ")
             return bkp
         return filtered
 
@@ -12695,9 +12695,9 @@ class EconomicEventManager(models.Manager):
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
-        if not filtered:
-            print "WARN not found 'give' event_type filtered from "+str(self)+", return all!"
-            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all!")
+        if not filtered and bkp:
+            print "WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str(bkp)
+            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str(bkp))
             return bkp
         return filtered
 
