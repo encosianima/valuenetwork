@@ -3368,7 +3368,11 @@ def create_unit_types(**kwargs):
     share_rt.unit = ocp_share
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
-    share_rt.price_per_unit = 30
+    if not share_rt.price_per_unit:
+        print "- Added first FdC share price to 30 eur"
+        share_rt.price_per_unit = 30
+    else:
+        check_new_rt_price(share_rt)
     share_rt.unit_of_price = ocp_euro
     share_rt.save()
 
@@ -3386,6 +3390,8 @@ def create_unit_types(**kwargs):
     artw_fdcs = Ocp_Artwork_Type.objects.filter(name="Share")
     if not artw_fdcs:
         artw_fdcs = Ocp_Artwork_Type.objects.filter(name="Membership Share")
+    if not artw_fdcs:
+        artw_fdcs = Ocp_Artwork_Type.objects.filter(name="FreedomCoop Share")
     if artw_fdcs:
         artw_fdc = artw_fdcs[0]
     else:
@@ -3600,6 +3606,85 @@ def create_exchange_skills(**kwargs):
 
 
 #post_migrate.connect(create_exchange_skills, sender=WorkAppConfig)
+
+
+
+def check_new_rt_price(rt=None, **kwargs):
+    if not rt:
+        return
+    exs = []
+    coms = rt.commitments.all()
+    evts = rt.events.all()
+
+    pro = sht = None
+    if rt.context_agent:
+        if hasattr(rt.context_agent, 'project') and rt.context_agent.project:
+            pro = rt.context_agent.project
+            jrs = pro.join_requests.all()
+            for jr in jrs:
+                #print " : jr:"+str(jr.id)+" "+str(jr)
+                if jr.exchange:
+                    #print " : : ex:"+str(jr.exchange)
+                    exs.append(jr.exchange)
+
+    if pro:
+        sht = pro.shares_type()
+
+    print ": rt:"+str(rt.id)+" "+str(rt)+", price_per_unit:"+str(rt.price_per_unit)+" coms:"+str(len(coms))+" evts:"+str(len(evts))+" ca:"+str(rt.context_agent)+" sht:"+str(sht)
+
+    if not sht == rt:
+        print ":: rt is not the share_type of the project? "
+        return
+    #exs = rt.context_agent.exchanges.all()
+    for ex in exs:
+        #print ": : ex:"+str(ex.id)+" "+str(ex)
+        txpay = ex.txpay()
+        for tx in ex.transfers.all():
+            if tx == txpay:
+                cms = tx.commitments.all()
+                evs = tx.events.all()
+                #print " : tx:"+str(tx.id)+" qty:"+str(tx.quantity())+" u:"+str(tx.unit_of_quantity())+" rt:"+str(tx.resource_type())+" cms:"+str(len(cms))+" evs:"+str(len(evs))+" "+str(tx)
+                if cms and not evs:
+                    for cm in cms:
+                        jrpend = jrpend2 = ex.join_request.payment_pending_amount()
+                        jrunit = ex.join_request.payment_unit()
+                        jrurt = ex.join_request.payment_unit_rt()
+                        #print " : : cm:"+str(cm.id)+" rt:"+str(cm.resource_type)+" qty:"+str(cm.quantity)+" uq:"+str(cm.unit_of_quantity)+" jrpend:"+str(jrpend)
+                        if jrunit == cm.unit_of_quantity and cm.resource_type == jrurt:
+                            if not round(cm.quantity, 2) == round(jrpend, 2):
+                                print "- changed commitment quantity of "+str(round(cm.quantity, 2))+" for "+str(round(jrpend, 2))+" because share price has changed. Pro:"+str(pro.agent)+" cm:"+str(cm.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id)
+                                loger.info("- changed commitment quantity of "+str(round(cm.quantity, 2))+" for "+str(round(jrpend, 2))+" because share price has changed. Pro:"+str(pro.agent)+" cm:"+str(cm.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id))
+                                cm.quantity = jrpend2
+                                cm.save()
+
+
+    for ev in evts:
+        if not ev.exchange:
+          if ev.transfer:
+            if ev.transfer.exchange:
+                ev.exchange = ev.transfer.exchange
+                #ev.save()
+                print ":: FIX? missing exchange:"+str(ev.exchange.id)+" for event:"+str(ev.id)+" "+str(ev)
+                loger.info(":: FIX? missing exchange:"+str(ev.exchange.id)+" for event:"+str(ev.id)+" "+str(ev))
+            else:
+                print ":: Orphan event.transfer? tx:"+str(ev.transfer.id)+": "+str(ev.transfer)
+                loger.info(":: Orphan event.transfer? tx:"+str(ev.transfer.id)+": "+str(ev.transfer))
+          else:
+            print ":: Orphan event ?? "+str(ev.id)+" "+str(ev)
+            loger.info(":: Orphan event ?? "+str(ev.id)+" "+str(ev))
+
+        #print ":: ev:"+str(ev.id)+" tx:"+str(ev.transfer.id)+" ex:"+str(ev.exchange)+" com:"+str(ev.commitment)
+
+        if ev.commitment and not ev.commitment in coms:
+            print ":: add ev.comm not in coms: "+str(ev.commitment)
+            loger.info(":: add ev.comm not in coms: "+str(ev.commitment))
+
+        txpay = ev.exchange.txpay()
+        for tx in ev.exchange.transfers.all():
+            if tx == txpay:
+                pass #print "::: found txpay: "+str(tx)
+
+    return
 
 
 """
