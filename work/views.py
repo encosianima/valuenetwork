@@ -4932,6 +4932,11 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
             transfer.list_name = transfer.show_name(agent, flip) # "2nd arg is 'forced'
     '''
 
+    shr_pros = []
+    if hasattr(agent, 'project') and agent.project:
+        shr_pros.append(agent.project)
+
+
     for x in exchanges_by_type:
 
         x.transfer_list = list(x.transfers.all())
@@ -4939,20 +4944,22 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         for transfer in x.transfer_list:
 
             if transfer.quantity():
-              if transfer.transfer_type.is_incoming(x, agent): #reciprocal:
-                sign = '<'
-              else:
-                sign = '>'
               uq = transfer.unit_of_quantity()
               rt = transfer.resource_type()
               uv = transfer.unit_of_value()
-              if uv:
+              if uv and uq and uq.name == "Each":
                 uq = uv
               if not uq and rt:
                 uq = rt.unit
 
               toag = transfer.to_agent()
               fromag = transfer.from_agent()
+              if hasattr(toag, 'project') and toag.project:
+                if not toag.project in shr_pros:
+                    shr_pros.append(toag.project)
+              if hasattr(fromag, 'project') and fromag.project:
+                if not fromag.project in shr_pros:
+                    shr_pros.append(fromag.project)
 
               if uq:
                 #print ". uq:"+str(uq)+" is_curr:"+str(uq.is_currency())
@@ -4963,40 +4970,12 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                   if to['unit'] == uq.gen_unit.unit_type.id:
                     #print ". . found ut in unit_of_quantity: "+str(uq.gen_unit.unit_type)+" toag:"+str(toag)+" fromag:"+str(fromag)
                     nom = uq.gen_unit.unit_type.name
-                    #print ". . nom: "+str(nom)
-                    if not uq.gen_unit.unit_type.clas == 'each' and not uq.gen_unit.unit_type.clas == 'faircoin':
-                        print ". . found ut in unit_of_quantity: "+str(uq.gen_unit.unit_type)+" toag:"+str(toag)+" fromag:"+str(fromag)
-                        proj = comp = abbr = None
-                        if hasattr(agent, 'project') and agent.project:
-                            proj = agent.project
-                            #print ". . . found proj in agent: "+str(proj)
-                        elif toag:
-                            if hasattr(toag, 'project') and toag.project:
-                                proj = toag.project
-                                #print ". . . found proj in toag: "+str(proj)
-                        if fromag and not proj:
-                            if hasattr(fromag, 'project') and fromag.project:
-                                proj = fromag.project
-                                #print ". . . found proj in fromag: "+str(proj)
-                        if proj:
-                            comp = proj.compact_name()
-                            abbr = proj.abbrev_name()
-
-                        if comp and abbr:
-                            nar = nom.split(' ')
-                            nar[:] = [abbr if n == comp else n for n in nar]
-                            nom2 = ' '.join(nar)
-                            #print ". . . . comp:"+str(comp)+" abbr:"+str(abbr)+" nom2:"+str(nom2)
-                            if not nom == nom2:
-                                nom = nom2
-                                print "- Changed unit name for the abbrev form of project's name: "+str(nom)
-                                loger.info("- Changed unit name for the abbrev form of project's name: "+str(nom))
-
 
                     to['name'] = nom
                     to['clas'] = uq.gen_unit.unit_type.clas
 
                     if transfer.transfer_type.is_incoming(x, agent): #is_reciprocal:
+                      sign = '<'
                       if transfer.events.all():
                         if uv:
                             to['income'] = (to['income']*1) + (transfer.value()*1)
@@ -5009,6 +4988,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             to['incommit'] = (to['incommit']*1) + (transfer.quantity()*1)
                       #to['debug'] += str(x.id)+':'+str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_give_events()])+sign+' - '
                     else:
+                      sign = '>'
                       if transfer.events.all():
                         if uv:
                             to['outgo'] = (to['outgo']*1) + (transfer.value()*1)
@@ -5036,29 +5016,6 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                           for ttr in total_transfers:
                             if ttr['unit'] == rt.ocp_artwork_type.general_unit_type.id:
                               nom = rt.ocp_artwork_type.general_unit_type.name
-                              '''proj = comp = abbr = None
-                              if hasattr(agent, 'project') and agent.project:
-                                proj = agent.project
-                                print "... found proj in agent: "+str(proj)
-                              elif toag:
-                                if hasattr(toag, 'project') and toag.project:
-                                    proj = toag.project
-                                    print "... found proj in toag: "+str(proj)
-                              elif fromag:
-                                if hasattr(fromag, 'project') and fromag.project:
-                                    proj = fromag.project
-                                    print "... found proj in fromag: "+str(proj)
-                              if proj:
-                                comp = proj.compact_name()
-                                abbr = proj.abbrev_name()
-                              if comp and abbr:
-                                nar = nom.split(' ')
-                                nar[:] = [abbr if n == comp else n for n in nar]
-                                nom2 = ' '.join(nar)
-                                print ".... comp:"+str(comp)+" abbr:"+str(abbr)+" nom2:"+str(nom2)
-                                if not nom == nom2:
-                                    nom = nom2
-                                    print "- Changed unit name for the abbrev form of project't name: "+str(nom)'''
 
                               ttr['name'] = nom
                               ttr['clas'] = rt.ocp_artwork_type.general_unit_type.clas
@@ -5091,11 +5048,11 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                       #to['debug'] += str(x.transfer_give_events())+':'
 
                     elif uq.gen_unit.unit_type.clas == 'euro':
-                      to['balance'] = (to['income']*1) - (to['outgo']*1)
+                      pass #to['balance'] = (to['income']*1) - (to['outgo']*1)
 
                       #to['debug'] += str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name for ev in transfer.events.all()])+sign+' - '
                     else:
-                      to['balance'] = (to['income']*1) - (to['outgo']*1)
+
                       if not uq.is_currency():
                             to['debug'] += 'U:'+str(uq.gen_unit.unit_type.name)+sign
 
@@ -5115,10 +5072,10 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
             comma = ","
         #todo: get sort to work
 
-    # end for x in exchanges
+    # end for x in exchanges_by_type
 
-    if fairunit:
-        for to in total_transfers:
+    for to in total_transfers:
+        if fairunit:
             if to['unit'] == fairunit:
                 wal = agent.faircoin_resource()
                 if wal:
@@ -5132,6 +5089,37 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                         to['balance'] = '??'
                 else:
                     to['balance'] = '!!'
+            else:
+                to['balance'] = (to['income']*1) - (to['outgo']*1)
+        else:
+            to['balance'] = (to['income']*1) - (to['outgo']*1)
+        #if to['unit']:
+        #    unit = Unit.objects.get(id=to['unit'])
+        #    print ":: unit:"+str(unit)
+
+
+        # change shares names for shorter version
+        if to['name'] and shr_pros:
+            nom = to['name']
+            nar = nom.split(' ')
+            #print "shr_pros: "+str(shr_pros)
+            if len(nar) > 1:
+                for pro in shr_pros:
+                    comp = pro.compact_name()
+                    abbr = pro.abbrev_name()
+                    if comp and abbr:
+                        nar[:] = [abbr if n == comp else n for n in nar]
+                        nom2 = ' '.join(nar)
+                        #print ".... comp:"+str(comp)+" abbr:"+str(abbr)+" nom2:"+str(nom2)
+                        if not nom == nom2:
+                            to['name'] = nom2
+                            print "- Changed unit name for the abbrev form of project't name: "+str(nom2)
+                            break
+
+
+
+    for x in exchanges:
+        x.slots = x.slots_with_detail(agent)
 
 
     return render(request, "work/exchanges_all.html", {
@@ -5243,32 +5231,46 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
         total_t_unit = None
         total_rect = 0
         total_rect_unit = None
+        total_agents = []
         work_events = exchange.work_events()
         slots = exchange.slots_with_detail(context_agent)
 
         for slot in slots:
-            if slot.is_incoming(exchange, context_agent) == True:
+            #tos = slot.agents_to()
+            for to in slot.agents_to:
+                if not to in total_agents:
+                    total_agents.append(to)
+            #fros = slot.agents_from()
+            for fr in slot.agents_from:
+                if not fr in total_agents:
+                    total_agents.append(fr)
+
+            if slot.is_income == True: #is_incoming(exchange, context_agent) == True:
                 #pass
                 total_rect = total_rect + slot.total
-                slot.is_income = True
+                #print ".. change is_income to True? "+str(slot.is_income)
+                #slot.is_income = True
                 total_rect_unit = slot.total_unit
-            elif slot.is_incoming(exchange, context_agent) == False:
+            elif slot.is_income == False: #is_incoming(exchange, context_agent) == False:
                 total_t = total_t + slot.total
-                slot.is_income = False
+                #print ".. change is_income to False? "+str(slot.is_income)
+                #slot.is_income = False
                 total_t_unit = slot.total_unit
                 #pass
             elif slot.is_reciprocal:
                 total_rect = total_rect + slot.total
-                slot.is_income = True
+                print ".. change reci is_income to True? "+str(slot.is_income)
+                #slot.is_income = True
                 total_rect_unit = slot.total_unit
             else:
                 total_t = total_t + slot.total
-                slot.is_income = False
+                print ".. change reci is_income to False? "+str(slot.is_income)
+                #slot.is_income = False
                 total_t_unit = slot.total_unit
 
         if agent:
             if request.user == exchange.created_by or context_agent in agent.managed_projects() or context_agent == agent:
-                logger = True
+                pass #logger = True
             if hasattr(exchange, 'join_request') and exchange.join_request: #hasattr(exchange, 'join_request')
                 #if exchange.join_request.agent == agent:
                 logger = False
@@ -5296,8 +5298,12 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                     if not slot in fliped:
                         slot.list_name = slot.show_name(context_agent, True) # 2nd arg is 'forced' (no need commitments or events)
                         slot.flip = True
-                        if slot.is_income:
-                            slot.is_income = False
+                        #if slot.is_income:
+                        #    print "- Switch slot.is_income to False because is Fliped ?"
+                        #    #slot.is_income = False
+                        #else:
+                        #    print "- Switch slot.is_income to True because is Fliped ?"
+                        #    #slot.is_income = True
                         fliped.append(slot)
 
             for slot in slots:
@@ -5309,18 +5315,19 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                 if not fa_init:
                     fa_init = agent
 
-                if not slot.flip:
+                #if not slot.flip:
                     #fa_init = ta_init
                     #ta_init = slot.default_from_agent
                     #slot.default_from_agent = fa_init
                     #slot.default_to_agent = ta_init
 
-                    if slot.inherit_types:
+                #    if slot.inherit_types:
                         #pass
-                        if slot.is_income:
-                            pass #slot.is_income = False
-                        else:
-                            slot.is_income = True
+                #        if slot.is_income:
+                #            pass #slot.is_income = False
+                #        else:
+                #            print "-Switch slot.is_income to True because inherit_types ?"
+                #            pass #slot.is_income = True
 
                 xfer_init = {
                     "from_agent": fa_init,
@@ -5364,6 +5371,7 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
         "total_t_unit": total_t_unit,
         "total_rect": total_rect,
         "total_rect_unit": total_rect_unit,
+        "total_agents": total_agents,
         "help": get_help("exchange"),
         #"add_type": add_new_type_mkp(),
     })
@@ -5831,6 +5839,7 @@ def change_transfer_commitments_work(request, transfer_id):
 def delete_transfer_commitments(request, transfer_id, commitment_id=None):
     transfer = get_object_or_404(Transfer, pk=transfer_id)
     exchange = transfer.exchange
+    agid = transfer.context_agent.id
     if request.method == "POST":
       if commitment_id:
         comm = get_object_or_404(Commitment, pk=commitment_id)
@@ -5843,7 +5852,7 @@ def delete_transfer_commitments(request, transfer_id, commitment_id=None):
         if transfer.is_deletable():
              transfer.delete()
     return HttpResponseRedirect('/%s/%s/%s/%s/%s/'
-        % ('work/agent', transfer.context_agent.id, 'exchange-logging-work', 0, exchange.id))
+        % ('work/agent', agid, 'exchange-logging-work', 0, exchange.id))
 
 
 
