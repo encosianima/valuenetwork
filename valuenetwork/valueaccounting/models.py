@@ -1502,7 +1502,8 @@ class EconomicAgent(models.Model):
                     else:
                         pass #raise ValidationError("The rt is not related currency or accounts: "+str(rt.ocp_artwork_type.is_account()))
                   else:
-                      raise ValidationError("The resource type has not a related ocp_artwork_type! "+str(rt))
+                    loger.info("WARN! The resource type has not a related ocp_artwork_type! id:"+str(rt.id)+" "+str(rt))
+                    #raise ValidationError("The resource type has not a related ocp_artwork_type! "+str(rt))
                 else:
                     #print "The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.gen_unit.unit_type.clas)
                     if uq.gen_unit.unit_type.id not in uids and uq.is_currency(): #gen_unit.unit_type.clas == 'each':

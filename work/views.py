@@ -3104,7 +3104,9 @@ def project_update_payment_status(request, project_slug=None):
         project = get_object_or_404(Project, fobi_slug=project_slug.strip('/'))
     if project and request.POST:
         user_agent = request.user.agent.agent
-        if not user_agent == project.agent or not user_agent in project.agent.managers():
+        if user_agent == project.agent or user_agent in project.agent.managers():
+            pass
+        else:
             raise ValidationError("User not allowed to do this.")
 
         req_id = request.POST["order_id"]
@@ -3184,7 +3186,9 @@ def project_update_payment_status(request, project_slug=None):
 def join_requests(request, agent_id):
     user_agent = request.user.agent.agent
     agent = EconomicAgent.objects.get(pk=agent_id)
-    if not user_agent == agent or not user_agent in agent.managers():
+    if user_agent == agent or user_agent in agent.managers():
+        pass
+    else:
         raise ValidationError("User not allowed to see this page.")
     state = "new"
     state_form = RequestStateForm(
