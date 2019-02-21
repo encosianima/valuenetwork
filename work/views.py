@@ -1953,6 +1953,10 @@ def project_update_payment_status(request, project_slug=None):
     if project_slug:
         project = get_object_or_404(Project, fobi_slug=project_slug.strip('/'))
     if project and request.POST:
+        user_agent = request.user.agent.agent
+        if not user_agent == project.agent or not user_agent in project.agent.managers():
+            raise ValidationError("User not allowed to do this.")
+
         req_id = request.POST["order_id"]
         price = request.POST["price"]
         status = request.POST["status"]
@@ -2024,6 +2028,10 @@ def project_update_payment_status(request, project_slug=None):
 
 @login_required
 def join_requests(request, agent_id):
+    user_agent = request.user.agent.agent
+    agent = EconomicAgent.objects.get(pk=agent_id)
+    if not user_agent == agent or not user_agent in agent.managers():
+        raise ValidationError("User not allowed to see this page.")
     state = "new"
     state_form = RequestStateForm(
         initial={"state": "new",},
@@ -2034,7 +2042,6 @@ def join_requests(request, agent_id):
             data = state_form.cleaned_data
             state = data["state"]
 
-    agent = EconomicAgent.objects.get(pk=agent_id)
     project = agent.project
     requests =  JoinRequest.objects.filter(state=state, project=project).order_by('pk').reverse() #'request_date')
     agent_form = JoinAgentSelectionForm(project=project)
@@ -2240,7 +2247,7 @@ def update_share_payment(request, join_request_id):
     if not jn_req.project:
         raise ValidationError("This request has no project ??!!!")
     user_agent = get_agent(request)
-    if not user_agent in jn_req.project.agent.managers():
+    if not user_agent in jn_req.project.agent.managers() or not user_agent == jn_req.project.agent:
         raise ValidationError("You don't have permission to do this !!!")
     if request.method == "POST":
         status = request.POST.get("status")
