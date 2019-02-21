@@ -1405,8 +1405,8 @@ class JoinRequest(models.Model):
             elif reqs:
                 return False
             else:
-                raise ValidationError("This join_request is wrong! req:"+str(self)+" ag:"+str(self.agent))
-        else:
+                raise ValidationError("This join_request is wrong! req:"+str(self.id)+" ag:"+str(self.agent))
+        else: #if self.requested_username:
             reqs = JoinRequest.objects.filter(project=self.project, requested_username=self.requested_username)
             if len(reqs) > 1:
                 for req in reqs:
@@ -1415,7 +1415,7 @@ class JoinRequest(models.Model):
             elif reqs:
                 return False
             else:
-                raise ValidationError("This join_request is wrong! req:"+str(self))
+                raise ValidationError("This join_request is wrong! req:"+str(self.id)+" name:"+str(self.requested_username))
 
 
 class NewFeature(models.Model):
