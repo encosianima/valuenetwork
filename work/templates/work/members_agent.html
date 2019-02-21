@@ -553,10 +553,40 @@
                                         compact: <b>{{ agent.project.compact_name }}</b><br>
                                         abbrev: <b>{{ agent.project.abbrev_name }}</b></span>
                                     {% endif %}
-                                    {% if not agent.project.share_types or request.user.is_superuser %}<br><br>
-                                      <b><a href="{% url "create_project_shares" agent_id=agent.id %}">Create Project Shares</a></b>
-                                    {% endif %}
                                 {% endwith %}
+                            {% endif %}
+                            {% if not agent.project.share_types or request.user.is_superuser %}<br><br>
+                                {% if user_agent in agent.managers or user_agent == agent %}
+                                  <form
+                                      style=""
+                                      class="create-shares-form miniform"
+                                      id="createSharesForm"
+                                      action="{% url "create_project_shares" agent_id=agent.id %}"
+                                      method="POST" >
+                                    {% csrf_token %}
+                                    <label for="shareabbr">{% trans "Share unit abbrev" %}:</label>
+                                    <input type="text" id="shareabbr" name="shareabbr"
+                                           {% if agent.project.shares_account_type %}
+                                               value="{{ agent.project.shares_account_type.unit_of_price.abbrev }}"
+                                           {% else %}
+                                               value="{{ agent.project.abbrev_name }}"
+                                           {% endif %}>
+                                    <label for="shareprice">{% trans "Share price" %}:</label>
+                                    <input type="text" id="shareprice" name="shareprice"
+                                           value="{{ agent.project.shares_type.price_per_unit }}">
+                                    <label for="priceunit">{% trans "Unit of price" %}:</label>
+                                    <select id="priceunit" name="priceunit">
+                                        <option value="">...</option>
+                                        {% for un in units %}
+                                        <option value="{{ un.id }}"
+                                                {% if agent.project.shares_type.unit_of_price.id == un.id %}selected="selected"{% endif %}
+                                                >{{ un }}</option>
+                                        {% endfor %}
+                                    </select><br/>
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini"
+                                            title="Create Project Shares" >{% trans "Create Project Shares" %}</button>
+                                  </form>
+                                {% endif %}
                             {% endif %}
                             </td>
                           </tr>
