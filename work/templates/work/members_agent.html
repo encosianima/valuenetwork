@@ -1092,7 +1092,7 @@
           var id = event.target.id;
           var listId = '#list-' + id.split('-')[1];
           $(listId).slideToggle(200);
-          $(this).text($(this).text() == {% trans '(HIDE)' %} ? {% trans '(SHOW)' %} : {% trans '(HIDE)' %});
+          $(this).text($(this).text() == "{% trans '(HIDE)' %}" ? "{% trans '(SHOW)' %}" : "{% trans '(HIDE)' %}");
         });
 
         /*var ObjChosSingle = {
