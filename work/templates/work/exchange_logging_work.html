@@ -847,9 +847,6 @@ h3.trtheading {
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                               </form>
                                             {% endif %}
-                                            {% if evt.faircoin_transaction %}
-                                                tx: {{ evt.faircoin_transaction.tx_hash }}
-                                            {% endif %}
                                           {% endif %}
                                         {% endif %}
                                         {% if evt.description %}
@@ -1313,9 +1310,6 @@ h3.trtheading {
                                                         <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                                       </form>
                                                     {% endif %}
-                                                    {% if evt.faircoin_transaction %}
-                                                      tx: {{ evt.faircoin_transaction.tx_hash }}
-                                                    {% endif %}
                                                   {% endif %}
                                                 {% endif %}
                                                 {% if event.description %}
@@ -1404,9 +1398,6 @@ h3.trtheading {
                                                 <input type="hidden" id="next" name="next" value="exchange-work" />
                                                 <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete transfer" >X</button>
                                               </form>
-                                            {% endif %}
-                                            {% if evt.faircoin_transaction %}
-                                                tx: {{ evt.faircoin_transaction.tx_hash }}
                                             {% endif %}
                                           {% endif %}
                                         {% endif %}
