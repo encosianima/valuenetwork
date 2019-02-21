@@ -1982,6 +1982,7 @@ def members_agent(request, agent_id):
 
     dups = check_duplicate_agents(request, agent)
 
+
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email and request.user.agent.agent in agent.managers():
         messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
 
@@ -2013,6 +2014,7 @@ def members_agent(request, agent_id):
         "Stype_form": Stype_form,
         "auto_resource": auto_resource,
         "related_rts": related_rts,
+        "units": Unit.objects.filter(unit_type='value').exclude(name__icontains="share"),
     })
 
 
@@ -6330,15 +6332,35 @@ def create_project_shares(request, agent_id):
     agent = EconomicAgent.objects.get(id=agent_id)
     project = agent.project
 
-    nome = project.compact_name()
-    abbr = project.abbrev_name()
-    if len(abbr) < 3:
-        raise ValidationError("The project abbrev name is too short to create shares ?! "+abbr)
-
     user_agent = get_agent(request)
     if not user_agent or not request.user.is_superuser or not project.fobi_slug: # or not project.share_types()
         loger.warning("No project fobi slug? "+str(project)+" or not user_agent")
         return render(request, 'work/no_permission.html')
+
+    nome = project.compact_name()
+    abbr = project.abbrev_name()
+
+    if request.method == "POST":
+        shareprice = request.POST.get('shareprice')
+        priceunit = request.POST.get('priceunit')
+        shareabbr = request.POST.get('shareabbr')
+        #print "shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr)
+        prunit = Unit.objects.get(id=priceunit)
+        if not shareprice or not priceunit or not shareabbr or not prunit:
+            print "some vars missing!! shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" prunit:"+str(prunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr)
+            loger.info("some vars missing!! shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" prunit:"+str(prunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr))
+            messages.error(request, "Some vars missing!! shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" prunit:"+str(prunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr))
+            return render(request, 'work/no_permission.html')
+
+        if not abbr == shareabbr:
+            abbr = shareabbr
+    else:
+        raise ValidationError("can't create shares without the custom data")
+
+    if len(abbr) < 3:
+        raise ValidationError("The project abbrev name is too short to create shares ?! "+abbr)
+
+
 
     # Project Shares
 
@@ -6360,12 +6382,17 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created OCP Unit: '"+nome+" Share ("+abbr+")'"
             loger.info("- created OCP Unit: '"+nome+" Share ("+abbr+")'")
+            messages.info(request, "- created OCP Unit: '"+nome+" Share ("+abbr+")'")
     else:
         if len(ocpboc_shares) > 1:
             raise ValidationError("There is more than one Unit !? "+str(ocpboc_shares))
         ocpboc_share = ocpboc_shares[0]
     ocpboc_share.name = nome+' Share'
     ocpboc_share.unit_type = 'value'
+    if ocpboc_share.abbrev and not ocpboc_share.abbrev == abbr:
+        print "- changed shares Unit abbrev, from "+str(ocpboc_share.abbrev)+" to "+str(abbr)
+        loger.info("- changed shares Unit abbrev, from "+str(ocpboc_share.abbrev)+" to "+str(abbr))
+        messages.info(request, "- changed shares Unit abbrev, from "+str(ocpboc_share.abbrev)+" to "+str(abbr))
     ocpboc_share.abbrev = abbr
     ocpboc_share.save()
 
@@ -6380,6 +6407,7 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created Ocp_Unit_Type: '"+nome+" Shares'"
             loger.info("- created Ocp_Unit_Type: '"+nome+" Shares'")
+            messages.info(request, "- created Ocp_Unit_Type: '"+nome+" Shares'")
     else:
         if len(gen_boc_typs) > 1:
             raise ValidationError("There are more than one Ocp_Unit_Type !? "+str(gen_boc_typs))
@@ -6402,6 +6430,7 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created General.Unit: '"+nome+" Share'"
             loger.info("- created General.Unit: '"+nome+" Share'")
+            messages.info(request, "- created General.Unit: '"+nome+" Share'")
     boc_share.name = nome+" Share"
     boc_share.code = abbr
     boc_share.unit_type = gen_boc_typ
@@ -6432,12 +6461,17 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created EconomicResourceType: '"+nome+" Share'"
             loger.info("- created EconomicResourceType: '"+nome+" Share'")
+            messages.info(request, "- created EconomicResourceType: '"+nome+" Share'")
     share_rt.name = nome+" Share"
-    share_rt.unit = ocp_each
+    if share_rt.unit and not share_rt.unit == ocpboc_share:
+        print "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share)
+        loger.info("- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
+        messages.info(request, "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
+    share_rt.unit = ocpboc_share #ocp_each
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
-    #share_rt.price_per_unit = 1 # TODO allow coords to choose share price and unit in a form
-    #share_rt.unit_of_price = ocp_euro
+    share_rt.price_per_unit = shareprice # allow coords to choose share price and unit in a form
+    share_rt.unit_of_price = prunit
     share_rt.context_agent = project.agent
     share_rt.save()
 
@@ -6446,12 +6480,15 @@ def create_project_shares(request, agent_id):
         if not fv.facet_value == shrfv:
             print "- delete: "+str(fv)
             loger.info("- delete: "+str(fv))
+            messages.info(request, "- delete: "+str(fv))
             fv.delete()
     share_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
         resource_type=share_rt,
         facet_value=shrfv)
     if created:
         print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+        loger.info("- created ResourceTypeFacetValue: "+str(share_rtfv))
+        messages.info(request, "- created ResourceTypeFacetValue: "+str(share_rtfv))
 
 
     #  Ocp_Artwork_Type
@@ -6475,6 +6512,7 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created Ocp_Artwork_Type: '"+nome+" Share'"
             loger.info("- created Ocp_Artwork_Type: '"+nome+" Share'")
+            messages.info(request, "- created Ocp_Artwork_Type: '"+nome+" Share'")
     artw_boc.name = nome+" Share"
     artw_boc.parent = Type.objects.get(id=artw_sh.id)
     artw_boc.resource_type = share_rt
@@ -6501,6 +6539,7 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created EconomicResourceType: "+str(ert_acc)
             loger.info("- created EconomicResourceType: "+str(ert_acc))
+            messages.info(request, "- created EconomicResourceType: "+str(ert_acc))
     ert_acc.name = agent.name+" Shares Account"
     ert_acc.unit = ocp_each
     ert_acc.inventory_rule = 'yes'
@@ -6525,6 +6564,7 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created Ocp_Artwork_Type: '"+nome+" Shares Account'"
             loger.info("- created Ocp_Artwork_Type: '"+nome+" Shares Account'")
+            messages.info(request, "- created Ocp_Artwork_Type: '"+nome+" Shares Account'")
     proacc.name = agent.name+" Shares Account"
     proacc.parent = parent_accs
     proacc.clas = nome.lower()+'shares'
@@ -6563,6 +6603,7 @@ def create_project_shares(request, agent_id):
             if created:
                 print "- created EconomicResource: "+str(res)
                 loger.info("- created EconomicResource: "+str(res))
+                messages.info(request, "- created EconomicResource: "+str(res))
     old_ident = res.identifier
     res.resource_type = ert_acc
     res.identifier = agent.nick+" shares account for "+agent.nick
@@ -6571,6 +6612,7 @@ def create_project_shares(request, agent_id):
     if not res.identifier == old_ident:
         print "The resource name has changed! rename member accounts?"
         loger.info("The resource name has changed! rename member accounts?")
+        messages.info(request, "The resource name has changed! rename member accounts?")
         for ag in agent.all_has_associates():
             for rs in ag.has_associate.owned_accounts():
                 if abbr+" shares account" in rs.identifier:
@@ -6578,6 +6620,7 @@ def create_project_shares(request, agent_id):
                     rs.save()
                     print "- Renamed account! "+rs.identifier
                     loger.info("- Renamed account! "+rs.identifier)
+                    messages.info(request, "- Renamed account! "+rs.identifier)
 
     #  AgentResourceRole
     if not aresrol:
@@ -6588,6 +6631,7 @@ def create_project_shares(request, agent_id):
         if created:
             print "- created AgentResourceRole: "+str(aresrol)
             loger.info("- created AgentResourceRole: "+str(aresrol))
+            messages.info(request, "- created AgentResourceRole: "+str(aresrol))
 
 
 
