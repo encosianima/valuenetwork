@@ -987,7 +987,7 @@ def members_agent(request, agent_id):
     if not auto_resource == '':
         pass #messages.warning(request, auto_resource)
 
-    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
+    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email and user_agent in agent.managers():
         messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
 
     return render(request, "work/members_agent.html", {
@@ -2526,7 +2526,7 @@ def project_feedback(request, agent_id, join_request_id):
     if jn_req.agent and not jn_req.check_user_pass():
         auto_resource = create_user_accounts(request, jn_req.agent, jn_req.project)
 
-    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email:
+    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email and user_agent in agent.managers():
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
 
     return render(request, "work/join_request_with_comments.html", {
