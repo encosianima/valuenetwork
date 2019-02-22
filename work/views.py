@@ -3419,7 +3419,9 @@ def update_share_payment(request, join_request_id):
     if not jn_req.project:
         raise ValidationError("This request has no project ??!!!")
     user_agent = get_agent(request)
-    if not user_agent in jn_req.project.agent.managers() or not user_agent == jn_req.project.agent:
+    if user_agent in jn_req.project.agent.managers() or user_agent == jn_req.project.agent:
+        pass
+    else:
         raise ValidationError("You don't have permission to do this !!!")
     if request.method == "POST":
         status = request.POST.get("status")
@@ -4928,7 +4930,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
     exchange_types = Ocp_Record_Type.objects.filter(exchange_type__isnull=False, exchange_type__id__in=set([ex.exchange_type.id for ex in exchanges_by_type])).order_by('pk', 'tree_id', 'lft').distinct()
 
-    total_transfers = [{'unit':u,'name':'','clas':'','income':0,'incommit':0,'outgo':0,'outcommit':0, 'balance':0,'balnote':'','debug':''} for u in agent.used_units_ids(exchanges_by_type)]
+    total_transfers = [{'unit':u,'name':'','clas':'','abbr':'','income':0,'incommit':0,'outgo':0,'outcommit':0, 'balance':0,'balnote':0,'debug':''} for u in agent.used_units_ids(exchanges_by_type)]
     total_rec_transfers = 0
     comma = ""
 
@@ -4986,6 +4988,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
                     to['name'] = nom
                     to['clas'] = uq.gen_unit.unit_type.clas
+                    to['abbr'] = uq.symbol if uq.symbol else uq.abbrev
 
                     if transfer.transfer_type.is_incoming(x, agent): #is_reciprocal:
                       sign = '<'
@@ -5054,11 +5057,8 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
                       #to['debug'] += str(x.transfer_give_events())+':'
                     elif uq.gen_unit.unit_type.clas == 'faircoin':
-
-                      fairunit = uq.gen_unit.unit_type.id
-
-                      to['balnote'] = (to['income']*1) - (to['outgo']*1)
-                      #to['debug'] += str(x.transfer_give_events())+':'
+                        fairunit = uq.gen_unit.unit_type.id
+                        #to['debug'] += str(x.transfer_give_events())+':'
 
                     elif uq.gen_unit.unit_type.clas == 'euro':
                       pass #to['balance'] = (to['income']*1) - (to['outgo']*1)
@@ -5087,19 +5087,26 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
     # end for x in exchanges_by_type
 
+    facc = agent.faircoin_resource()
+    wal = faircoin_utils.is_connected()
+
     for to in total_transfers:
-        if fairunit:
+
+        if fairunit: # and agent.faircoin_resource(): # or agent.need_faircoins():
             if to['unit'] == fairunit:
-                wal = agent.faircoin_resource()
-                if wal:
-                    if wal.is_wallet_address():
-                        bal = wal.digital_currency_balance()
+                to['balnote'] = (to['income']*1) - (to['outgo']*1)
+                if facc:
+                  if wal:
+                    if facc.is_wallet_address():
+                        bal = facc.digital_currency_balance()
                         try:
                             to['balance'] = '{0:.4f}'.format(float(bal))
                         except ValueError:
                             to['balance'] = bal
                     else:
-                        to['balance'] = '??'
+                        to['balance'] = "<span class='error'>unknown</span>"
+                  else:
+                    to['balance'] = "<span class='error'>no wallet</span>"
                 else:
                     to['balance'] = '!!'
             else:

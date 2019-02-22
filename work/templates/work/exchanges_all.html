@@ -31,6 +31,9 @@ span.pending, span.complete, span.empty {
   /*float: left;*/
   padding: 0 0.1em 0 0;
 }
+h3 {
+    font-size: 19.5px;
+}
 
 .totals {
     /*border: solid 2px firebrick;
@@ -102,7 +105,11 @@ span.total {
     /*right: 6px;*/
 }
 div.dataTables_filter {
-   float: right;
+    float: right;
+}
+div.dataTables_length {
+    float: right;
+    margin-right: 4em;
 }
 
 small {
@@ -331,7 +338,8 @@ hr {
     <div class="span12">
         <div class="span8" style="margin-left:0;">
           {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent or request.user.is_superuser %}
-            <div class="totals infobox" style="">
+            <div class="totals infobox" style="min-width:320px; padding-bottom:13px;">
+              <span class="showhide" id="sh-totals" style="float:right;">(SHOW)</span>
               <h3>
               {% trans "Totals:" %}
               </h3>
@@ -346,74 +354,58 @@ hr {
                     <th>{% trans "" %} &nbsp; </th>
 
                     {% for tt in total_transfers %}
-                    {% if tt.name %}
-                      {% if tt.clas == 'each' %}
-
-                      {% else %}
-                          <th>
-                              &nbsp; <b>{{ tt.name }}:</b>
-                          </th>
+                      {% if tt.name %}
+                        <th>
+                              &nbsp; &nbsp; <b style="font-size:110%">{{ tt.name }}:</b>
+                        </th>
                       {% endif %}
-                    {% endif %}
+                    {% endfor %}
+                  </tr>
+                  <tr>
+                    <th>
+                      &nbsp; &nbsp; <b>{% trans "Balance:" %}</b>
+                    </th>
+                    {% for tt in total_transfers %}
+                      {% if tt.name %}
+                          <td>&nbsp; &nbsp; <b style="">{{ tt.balance|safe }}</b>
+                              {% if tt.balnote %}<br/>? {{ tt.balnote }} {{ tt.abbr }}
+                              {% elif tt.balnote == 0 and tt.clas == 'faircoin' %}
+                              {% else %} <b>{{ tt.abbr }}</b>
+                              {% endif %}</td>
+                      {% endif %}
                     {% endfor %}
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+                  <tr id="list-totals1" class="list">
                     <th>
                       <b>{% trans "Incoming:" %}</b><br/><small>{% trans "commited" %}</small>
                     </th>
                     {% for tt in total_transfers %}
-                    {% if tt.name %}
-                      {% if tt.clas == 'each' %}
-
-                      {% else %}
-                            <td>{{ tt.income }}<br/>{% if tt.incommit %}(+{{ tt.incommit }}){% else %}&nbsp;{% endif %}</td>
+                      {% if tt.name %}
+                        <td>&nbsp; &nbsp; {{ tt.income }} {{ tt.abbr }}<br/>{% if tt.incommit %}(+{{ tt.incommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
                       {% endif %}
-                    {% endif %}
                     {% endfor %}
                   </tr>
-                  <tr>
+                  <tr id="list-totals2" class="list">
                     <th>
                       <b>{% trans "Outgoing:" %}</b><br/><small>{% trans "commited" %}</small>
                     </th>
                     {% for tt in total_transfers %}
-                    {% if tt.name %}
-                      {% if tt.clas == 'each' %}
-
-                      {% else %}
-                          <td>{{ tt.outgo }}<br/>{% if tt.outcommit %}(-{{ tt.outcommit }}){% else %}&nbsp;{% endif %}</td>
+                      {% if tt.name %}
+                          <td>&nbsp; &nbsp; {{ tt.outgo }} {{ tt.abbr }}<br/>{% if tt.outcommit %}(-{{ tt.outcommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
                       {% endif %}
-                    {% endif %}
-                    {% endfor %}
-                  </tr>
-                  <tr>
-                    <th>
-                      <b style="font-size:110%">{% trans "Balance:" %}</b>
-                    </th>
-                    {% for tt in total_transfers %}
-                    {% if tt.name %}
-                      {% if tt.clas == 'each' %}
-
-                      {% else %}
-                          <td><b>{{ tt.balance }}</b><br/>{% if tt.balnote %}¿{{ tt.balnote }}?{% else %}&nbsp;{% endif %}</td>
-                      {% endif %}
-                    {% endif %}
                     {% endfor %}
                   </tr>
                   {% if request.user.is_superuser %}
-                  <tr>
+                  <tr id="list-totals3" class="list">
                     <th style="background:none; text-align:left;">
                         (debug:)
                     </th>
                     {% for tt in total_transfers %}
-                    {% if tt.name %}
-                      {% if tt.clas == 'each' %}
-
-                      {% else %}
-                              <td style="text-align:left;"><small>{{ tt.debug }}</small></td>
+                      {% if tt.name %}
+                          <td style="text-align:left;"><small>{{ tt.debug }}</small></td>
                       {% endif %}
-                    {% endif %}
                     {% endfor %}
 
                   </tr>
@@ -429,6 +421,7 @@ hr {
               <br />{% trans "* Note these totals are meaningful only if the events selected all use the same currency. <br/>(We'll do a multi total per unit-type box soon)" %} -->
 
             </div>
+            <br/><br/>
           {% endif %}
         </div>
 
@@ -442,28 +435,28 @@ hr {
                 </div>
             {% endif %}
             {% endcomment %}
-            <h3>{% trans "Filter the List" %}</h3>
-            <form id="filter-form" action="." method="POST">
+            <h3 style="margin-bottom:8px;">{% trans "Filters:" %}</h3>
+            <form id="filter-form" action="." method="POST" style="margin-bottom:6px;">
 	            {% csrf_token %}
-                <div id="div_id_start_date" class="control-group" style="display: inline;" >
-                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
-                        {% trans "Start date " %}
+                <div id="div_id_start_date" class="control-group" style="display:inline-block; margin-bottom:0;" >
+                    <label for="id_start_date" class="control-label required-field" style="display:inline-block;" >
+                        {% trans "Start:" %}
                     </label>
-                    <div class="controls" style="display: inline;" >
+                    <div class="controls" style="display: inline-flex;" >
                         {{ dt_selection_form.start_date }}
-                    </div>
+                    </div> &nbsp;
                 </div>
-                <div id="div_id_end_date" class="control-group" >
-                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
-                        {% trans "End date  " %}
+                <div id="div_id_end_date" class="control-group" style="display:inline-block; margin-bottom:0;" >
+                    <label for="id_end_date" class="control-label required-field" style="display:inline-block;" >
+                        {% trans "End:" %}
                     </label>
-                    <div class="controls" style="display: inline;" >
+                    <div class="controls" style="display: inline-flex;" >
                         {{ dt_selection_form.end_date }}
                     </div>
                 </div>
-	            <p><span class="title"> {% trans "Filter by Type" %}</span> &nbsp; <span class="showhide" id="sh-filter_by_type" >(SHOW)</span>
+	            <div class="list" id="list-filter_by_type" style="display:none;">
+                <p><span class="title"> {% trans "Filter by Type" %}:</span>
                 </p>
-                <div class="list" id="list-filter_by_type" style="display:none;">
                 <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
                 {% for x in exchanges_by_type %}
                   {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent in x.related_agents %}
@@ -489,8 +482,13 @@ hr {
 	            {% endfor %}
 	            {% endif %}
 {% endcomment %}
+
+                <div style="float:right; margin-top:5px;">
+                    <span class="title"> {% trans "by type:" %}</span> &nbsp; <span class="showhide" id="sh-filter_by_type" >(SHOW)</span>
+                </div>
 	            <input type="hidden" id="categories" name="categories" value=" {{ selected_values }} " />
-	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
+	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}"
+                       style="float:left; margin-bottom:5px;"/>
             </form>
           </div>
         </div>
@@ -505,7 +503,6 @@ hr {
             <span>({% trans "related to you" %})</span>
             {% endif %}: &nbsp;<span style="font-size:80%" class="small">({% trans "listing" %} {{ exchanges.count }} of {{ exchanges_by_type.count }})</span>
         </h3>
-        <br/>
         <table id="exchanges" style="width: 100%;" class="table table-bordered table-hover table-condensed cell-border order-column stripe" >
         <thead>
             <th>{% trans "State" %}</th>
@@ -1292,8 +1289,8 @@ hr {
     $(".list").hide();
     $(".showhide").click(function(event){
       var id = event.target.id;
-      var listId = '#list-' + id.split('-')[1];
-      $(listId).slideToggle(200);
+      var listId = 'list-' + id.split('-')[1];
+      $("[id^="+listId+"]").slideToggle(200);
       $(this).text($(this).text() == '(SHOW)' ? '(HIDE)' : '(SHOW)');
     });
 
