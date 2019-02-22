@@ -9203,7 +9203,7 @@ class Exchange(models.Model):
                 #print "- slot.is_incoming False, force is_income ? "+str(slot.id)
                 slot.is_income = False
             else:
-                print "- Flag is_income as oposite of memslot for slot:"+str(slot.id)
+                print "- Flag is_income as oposite of memslot for slot:"+str(slot.id)+" memslot:"+str(memslot.id)
                 if memslot.is_income:
                     slot.is_income = False
                 else:
@@ -9217,7 +9217,7 @@ class Exchange(models.Model):
                 if not slot.receive_agent_is_context:
                     slot.default_to_agent = None #logged on agent
 
-            print "ex:"+str(self.id)+" slot:"+str(slot.id)+" is_income:"+str(slot.is_income)+" reci:"+str(slot.is_reciprocal)+" memslot:"+str(memslot)
+            #print "ex:"+str(self.id)+" slot:"+str(slot.id)+" is_income:"+str(slot.is_income)+" reci:"+str(slot.is_reciprocal)+" memslot:"+str(memslot)
 
             memslot = slot
             pend = []
@@ -12697,8 +12697,14 @@ class EconomicEventManager(models.Manager):
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
         if not filtered and bkp:
-            print "WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str(bkp)
-            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str(bkp))
+            #print "x bkp: "+str(bkp)
+            internal = bkp.filter(exchange__isnull=False, exchange__exchange_type__use_case__identifier='intrnl_xfer')
+            if not internal and bkp:
+                internal = bkp.filter(transfer__exchange__isnull=False, transfer__exchange__exchange_type__use_case__identifier='intrnl_xfer')
+                #print "x filter using ev tx ex. internal:"+str(len(internal))
+            if internal:
+                print "WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp)
+                loger.info("WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp))
             return bkp
         return filtered
 
