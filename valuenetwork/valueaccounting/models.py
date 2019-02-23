@@ -2857,10 +2857,15 @@ class EconomicResourceType(models.Model):
         super(EconomicResourceType, self).save(*args, **kwargs)
 
     def is_virtual_account(self):
-        if self.behavior == "account":
+        if self.behavior == "account" or self.behavior == "dig_acct":
             return True
         else:
             return False
+
+    def is_account(self):
+        if hasattr(self, 'ocp_artwork_type') and self.ocp_artwork_type:
+            return self.ocp_artwork_type.is_account()
+        return self.is_virtual_account()
 
     def is_work(self):
         if self.behavior == "work":
@@ -8738,7 +8743,7 @@ class TransferType(models.Model):
             print "WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id)
             loger.info("WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id))
 
-        print "- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)
+        print "- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id)
         loger.info("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal))
         return self.is_reciprocal
 
@@ -9116,10 +9121,10 @@ class Exchange(models.Model):
                             to = jn_req.agent
                             prt = jn_req.project.shares_type()
                             if not prt == rt:
-                                print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                #print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
                                 rt = prt
                             slot.total_com = jn_req.payment_amount()
-                            slot.total_com_unit = ''
+                            slot.total_com_unit = '' # unit is set later because rt is defined
                     if not fro and jn_req:
                         if ttpay.name == slot.name:
                             fro = jn_req.agent
@@ -9145,7 +9150,7 @@ class Exchange(models.Model):
 
                     if not slot.total_com_unit:
                         if rt and not rt in slot.rts:
-                            print "--- not total_com_unit, add rt:"+str(rt)+" in slot:"+str(slot)
+                            print "--- not total_com_unit, add rt:"+str(rt)+" in ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
                             slot.rts.append(rt)
 
 
@@ -9189,7 +9194,7 @@ class Exchange(models.Model):
             elif hasattr(self, 'join_request'):
                 pass #print #"has jreq, is ok? "+str(self)
             else:
-              print "- don't find rts? slot:"+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit)
+              print "- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit)
 
             if not memslot:
               if slot.is_incoming(self, context_agent): #is_reciprocal:
@@ -9203,7 +9208,7 @@ class Exchange(models.Model):
                 #print "- slot.is_incoming False, force is_income ? "+str(slot.id)
                 slot.is_income = False
             else:
-                print "- Flag is_income as oposite of memslot for slot:"+str(slot.id)+" memslot:"+str(memslot.id)
+                #print "- Flag is_income as oposite of memslot for slot:"+str(slot.id)+" memslot:"+str(memslot.id)
                 if memslot.is_income:
                     slot.is_income = False
                 else:
