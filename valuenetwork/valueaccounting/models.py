@@ -8740,7 +8740,7 @@ class TransferType(models.Model):
                         print "WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req)
                         loger.info("WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req))
                 else:
-                    print "... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" cms:"+str(len(tx.commitments.all()[0].id))+" evs:"+str(len(tx.events.all()))+" "+str(tx)
+                    print "... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" cms:"+str(len(tx.commitments.all()))+" evs:"+str(len(tx.events.all()))+" "+str(tx)
                     loger.info("... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" "+str(tx))
             elif not mem:
                 #print "... set mem: "+str(tx.id)+" tt:"+str(tx.transfer_type.id)+" self:"+str(self.id)
