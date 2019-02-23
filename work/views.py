@@ -4935,6 +4935,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
     comma = ""
 
     fairunit = None
+    eachunit = None
 
     '''for x in exchanges:
         x.list_name = x.show_name(agent)
@@ -4964,10 +4965,10 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
               uv = transfer.unit_of_value()
               if uq and uq.name == "Each" and uv: # and not uq and
                 if rt.is_account():
-                    print ",, Switch uq each from uv:"+str(uv)+" in tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account())
+                    print ",, Switch uq each from uv:"+str(uv)+" in ex:"+str(x.id)+" tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account())
                     uq = uv
               if not uq and rt:
-                print ",, Switch missing uq from rt.unit:"+str(rt.unit)+" in tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account())
+                print ",, Switch missing uq from rt.unit:"+str(rt.unit)+" in ex:"+str(x.id)+" tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account())
                 uq = rt.unit
 
               toag = transfer.to_agent()
@@ -5021,22 +5022,23 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                       #to['debug'] += str(x.id)+':'+str([str(ev.event_type.name)+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_receive_events()])+sign+' - '
 
                     if uq.gen_unit.unit_type.clas == 'each':
-                      print "... found each in unit_of_quantity: "+str(uq)
-                      loger.info("... found each in unit_of_quantity: "+str(uq))
-                      #rt = transfer.resource_type()
+                      eachunit = to['unit']
+                      #print "... found each in unit_of_quantity! ex:"+str(x.id)+" tx:"+str(transfer.id)+" rt:"+str(rt)
+                      #loger.info("... found each in unit_of_quantity! ex:"+str(x.id)+" tx:"+str(transfer.id)+" rt:"+str(rt))
                       rt.cur = False
                       if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
                         rt.cur = rt.ocp_artwork_type.is_currency()
 
                         if rt.cur: # and rt.ocp_artwork_type.general_unit_type:
+                          print "--- found rt.is_currency, add to totals. "+str(rt)+" ex:"+str(x.id)+" tx:"+str(transfer.id)
                           if rt.ocp_artwork_type.general_unit_type:
-                            to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type.general_unit_type.name)+sign+' - '
+                            to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type.general_unit_type.name)+sign+'(ex:'+str(x.id)+') - '
                           else:
                             to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type)+sign+'-MISSING UNIT! '
                           for ttr in total_transfers:
                             if ttr['unit'] == rt.ocp_artwork_type.general_unit_type.id:
                               nom = rt.ocp_artwork_type.general_unit_type.name
-
+                              print "---- found other unit to add currency rt. nom:"+str(nom)+" tx:"+str(transfer.id)+" tx.qty:"+str(transfer.quantity())+" evs:"+str(len(transfer.events.all()))
                               ttr['name'] = nom
                               ttr['clas'] = rt.ocp_artwork_type.general_unit_type.clas
 
@@ -5045,19 +5047,23 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                                   ttr['income'] = (ttr['income']*1) + (transfer.quantity()*1)
                                 if sign == '>':
                                   ttr['outgo'] = (ttr['outgo']*1) + (transfer.quantity()*1)
-                                ttr['balance'] = (ttr['income']*1) - (ttr['outgo']*1)
+                                #ttr['balance'] = (ttr['income']*1) - (ttr['outgo']*1)
                               else:
                                 if sign == '<':
                                   ttr['incommit'] = (ttr['incommit']*1) + (transfer.quantity()*1)
                                 if sign == '>':
                                   ttr['outcommit'] = (ttr['outcommit']*1) + (transfer.quantity()*1)
                               break
-
+                            else:
+                                pass #print "---- pass u:"+str(ttr['name'])+" <> "+str(rt.ocp_artwork_type.general_unit_type)
                         else:
+                            #to['debug'] += '::'+str(rt)+'!!'+sign+'::'
+                            #print "--- found rt with ocp_artwork_type but is not currency, skip "+str(rt)
                             pass #raise ValidationError("Not rt.cur or rt.ocp_artwork_type.general_unit_type! rt: "+str(rt))
 
                       elif rt:
-                        to['debug'] += '::'+str(rt)+'!!'+sign+'::'
+                        print "--- found rt without ocp_artwork_type, skip "+str(rt)
+                        to['debug'] += ':'+str(rt)+'!!'+sign+':'
 
                       #to['debug'] += str(x.transfer_give_events())+':'
                     elif uq.gen_unit.unit_type.clas == 'faircoin':
@@ -5067,7 +5073,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                     elif uq.gen_unit.unit_type.clas == 'euro':
                       pass #to['balance'] = (to['income']*1) - (to['outgo']*1)
 
-                      #to['debug'] += str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name for ev in transfer.events.all()])+sign+' - '
+                      #to['debug'] += str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name for ev in transfer.events.all()])+sign+'(ex:'+str(x.id)+') - '
                     else:
 
                       if not uq.is_currency():
@@ -5121,6 +5127,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         #    unit = Unit.objects.get(id=to['unit'])
         #    print ":: unit:"+str(unit)
 
+        to['balance'] = str(to['balance'])
 
         # change shares names for shorter version
         if to['name'] and shr_pros:
@@ -5139,12 +5146,14 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             to['name'] = nom2
                             print "- Changed unit name for the abbrev form of project't name: "+str(nom2)
                             break
+    if eachunit:
+        total_transfers = [to for to in total_transfers if not to['unit'] == eachunit]
 
 
-
+    print "......... start slots_with_detail .........."
     for x in exchanges:
         x.slots = x.slots_with_detail(agent)
-
+    print "......... end slots_with_detail .........."
 
     return render(request, "work/exchanges_all.html", {
         "exchanges": exchanges,

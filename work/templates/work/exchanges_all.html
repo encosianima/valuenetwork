@@ -376,7 +376,7 @@ hr {
                       {% if tt.name %}
                           <td>&nbsp; &nbsp; <b style="">{{ tt.balance|safe }}</b>
                               {% if tt.balnote %}<br/>? {{ tt.balnote }} {{ tt.abbr }}
-                              {% else %} <b>{{ tt.abbr }}</b>
+                              {% elif not tt.balance|first == '<' %} <b>{{ tt.abbr }}</b>
                               {% endif %}</td>
                       {% endif %}
                     {% endfor %}
