@@ -51,27 +51,32 @@ h3 {
 .totals table {
   position: relative;
 }
-.totals table thead {
+/*.totals table thead {
   border-bottom: 1px solid #ddd;
+}*/
+.totals table tbody tr {
+  border-top: 1px solid #ddd;
 }
-.totals table tr {
-  border-bottom: 1px solid #ddd;
-}
-.totals table tr:last-child {
-  border-bottom: none;
+.totals table tbody tr:first-child {
+  border-top: none;
 }
 .totals table tr td {
   border-left: 1px solid #ddd;
-  padding: 5px;
+  padding: 5px 10px;
   text-align: right;
   /*font-weight: bold;*/
 }
 .totals table tr th {
   text-align: right;
-  padding: 5px;
+  padding: 5px 10px;
   color: #476B6B;
   border-right: 1px solid #ddd;
   font-weight: normal;
+}
+.totals table tr:first-child th {
+  border-right: none;
+  padding: 0 10px;
+  text-align: left;
 }
 .totals table tr th:last-child {
   border-right: none;
@@ -356,30 +361,29 @@ hr {
                     {% for tt in total_transfers %}
                       {% if tt.name %}
                         <th>
-                              &nbsp; &nbsp; <b style="font-size:110%">{{ tt.name }}:</b>
+                              <b style="font-size:110%">{{ tt.name }}:</b>
                         </th>
-                      {% endif %}
-                    {% endfor %}
-                  </tr>
-                  <tr>
-                    <th>
-                      &nbsp; &nbsp; <b>{% trans "Balance:" %}</b>
-                    </th>
-                    {% for tt in total_transfers %}
-                      {% if tt.name %}
-                          <td>&nbsp; &nbsp; <b style="">{{ tt.balance|safe }}</b>
-                              {% if tt.balnote %}<br/>? {{ tt.balnote }} {{ tt.abbr }}
-                              {% elif tt.balnote == 0 and tt.clas == 'faircoin' %}
-                              {% else %} <b>{{ tt.abbr }}</b>
-                              {% endif %}</td>
                       {% endif %}
                     {% endfor %}
                   </tr>
                 </thead>
                 <tbody>
+                  <tr>
+                    <th style="min-width: 65px;">
+                      &nbsp; <span class="list" id="list-totals_B"><b style="font-size:110%">{% trans "Balance:" %}</b></span>
+                    </th>
+                    {% for tt in total_transfers %}
+                      {% if tt.name %}
+                          <td>&nbsp; &nbsp; <b style="">{{ tt.balance|safe }}</b>
+                              {% if tt.balnote %}<br/>? {{ tt.balnote }} {{ tt.abbr }}
+                              {% else %} <b>{{ tt.abbr }}</b>
+                              {% endif %}</td>
+                      {% endif %}
+                    {% endfor %}
+                  </tr>
                   <tr id="list-totals1" class="list">
                     <th>
-                      <b>{% trans "Incoming:" %}</b><br/><small>{% trans "commited" %}</small>
+                      <b>{% trans "Incoming:" %}</b><br/><small>{% trans "commited" %}:</small>
                     </th>
                     {% for tt in total_transfers %}
                       {% if tt.name %}
@@ -389,7 +393,7 @@ hr {
                   </tr>
                   <tr id="list-totals2" class="list">
                     <th>
-                      <b>{% trans "Outgoing:" %}</b><br/><small>{% trans "commited" %}</small>
+                      <b>{% trans "Outgoing:" %}</b><br/><small>{% trans "commited" %}:</small>
                     </th>
                     {% for tt in total_transfers %}
                       {% if tt.name %}
