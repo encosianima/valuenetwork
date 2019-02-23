@@ -2871,10 +2871,15 @@ class EconomicResourceType(models.Model):
         super(EconomicResourceType, self).save(*args, **kwargs)
 
     def is_virtual_account(self):
-        if self.behavior == "account":
+        if self.behavior == "account" or self.behavior == "dig_acct":
             return True
         else:
             return False
+
+    def is_account(self):
+        if hasattr(self, 'ocp_artwork_type') and self.ocp_artwork_type:
+            return self.ocp_artwork_type.is_account()
+        return self.is_virtual_account()
 
     def is_work(self):
         if self.behavior == "work":
@@ -8735,8 +8740,8 @@ class TransferType(models.Model):
                         print "WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req)
                         loger.info("WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req))
                 else:
-                    print "...not found to or from or jr, tx:"+str(tx)
-                    loger.info("...not found to or from or jr, tx:"+str(tx))
+                    print "... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" cms:"+str(len(tx.commitments.all()[0].id))+" evs:"+str(len(tx.events.all()))+" "+str(tx)
+                    loger.info("... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" "+str(tx))
             elif not mem:
                 #print "... set mem: "+str(tx.id)+" tt:"+str(tx.transfer_type.id)+" self:"+str(self.id)
                 mem = tx
@@ -8752,7 +8757,7 @@ class TransferType(models.Model):
             print "WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id)
             loger.info("WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id))
 
-        print "- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)
+        print "- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id)
         loger.info("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal))
         return self.is_reciprocal
 
@@ -9096,7 +9101,8 @@ class Exchange(models.Model):
                             slot.total_com += transfer.value()
                             slot.total_com_unit = transfer.unit_of_value()
                         else:
-                            print "-- found value "+str(transfer.value())+" "+str(transfer.unit_of_value())+" but not slot.is_currency, id:"+str(slot.id)+" "+str(slot)
+                            print "-- found value "+str(transfer.value())+" "+str(transfer.unit_of_value())+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
+                            loger.info("-- found value "+str(transfer.value())+" "+str(transfer.unit_of_value())+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
                     if transfer.quantity() and not slot.total_com_unit:
                         slot.total_com += transfer.quantity()
                         slot.total_com_unit = transfer.unit_of_quantity()
@@ -9130,10 +9136,10 @@ class Exchange(models.Model):
                             to = jn_req.agent
                             prt = jn_req.project.shares_type()
                             if not prt == rt:
-                                print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                #print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
                                 rt = prt
                             slot.total_com = jn_req.payment_amount()
-                            slot.total_com_unit = ''
+                            slot.total_com_unit = '' # unit is set later because rt is defined
                     if not fro and jn_req:
                         if ttpay.name == slot.name:
                             fro = jn_req.agent
@@ -9159,7 +9165,7 @@ class Exchange(models.Model):
 
                     if not slot.total_com_unit:
                         if rt and not rt in slot.rts:
-                            print "--- not total_com_unit, add rt:"+str(rt)+" in slot:"+str(slot)
+                            print "--- not total_com_unit, add rt:"+str(rt)+" in ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
                             slot.rts.append(rt)
 
 
@@ -9172,7 +9178,7 @@ class Exchange(models.Model):
             if slot.rts:
               #print "- slot.rts:"+str(slot.rts)
               if len(slot.rts) > 1:
-                print "-- multiple rts: "+str(len(slot.rts))+" for tx:"+str(self)
+                print "-- multiple rts: "+str(len(slot.rts))+" for ex:"+str(self)+" slot:"+str(slot.id)
                 par = None
                 for t in slot.rts:
                     if hasattr(t, 'ocp_artwork_type') and t.ocp_artwork_type:
@@ -9190,7 +9196,7 @@ class Exchange(models.Model):
               else:
                 slot.total_com_unit = slot.rts[0]
                 if hasattr(slot.total_com_unit, 'ocp_artwork_type') and slot.total_com_unit.ocp_artwork_type.is_account():
-                    print "--- is account, change slot_com_unit to:"+str(slot.rts[0].unit)
+                    print "--- is account, change slot_com_unit to:"+str(slot.rts[0].unit)+" ex:"+str(self.id)+" slot:"+str(slot.id)
                     slot.total_com_unit = slot.rts[0].unit
                 else:
                     if slot.hours:
@@ -9203,7 +9209,7 @@ class Exchange(models.Model):
             elif hasattr(self, 'join_request'):
                 pass #print #"has jreq, is ok? "+str(self)
             else:
-              print "- don't find rts? slot:"+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit)
+              print "- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit)
 
             if not memslot:
               if slot.is_incoming(self, context_agent): #is_reciprocal:
@@ -9217,7 +9223,7 @@ class Exchange(models.Model):
                 #print "- slot.is_incoming False, force is_income ? "+str(slot.id)
                 slot.is_income = False
             else:
-                print "- Flag is_income as oposite of memslot for slot:"+str(slot.id)
+                #print "- Flag is_income as oposite of memslot for slot:"+str(slot.id)+" memslot:"+str(memslot.id)
                 if memslot.is_income:
                     slot.is_income = False
                 else:
@@ -9231,7 +9237,7 @@ class Exchange(models.Model):
                 if not slot.receive_agent_is_context:
                     slot.default_to_agent = None #logged on agent
 
-            print "ex:"+str(self.id)+" slot:"+str(slot.id)+" is_income:"+str(slot.is_income)+" reci:"+str(slot.is_reciprocal)+" memslot:"+str(memslot)
+            #print "ex:"+str(self.id)+" slot:"+str(slot.id)+" is_income:"+str(slot.is_income)+" reci:"+str(slot.is_reciprocal)+" memslot:"+str(memslot)
 
             memslot = slot
             pend = []
@@ -10353,31 +10359,46 @@ class Transfer(models.Model):
         return None
 
     def from_agent(self):
+        frs = []
         events = self.events.all()
+        commits = self.commitments.all()
         if events:
             for ev in events:
-                if ev.from_agent:
-                    return ev.from_agent
-        else:
-            commits = self.commitments.all()
-            if commits:
-                for com in commits:
-                    if com.from_agent:
-                        return com.from_agent
+                if ev.from_agent and not ev.from_agent in frs:
+                    frs.append(ev.from_agent)
+                    #return ev.from_agent
+        if commits:
+            for com in commits:
+                if com.from_agent and not com.from_agent in frs:
+                    frs.append(com.from_agent)
+                    #return com.from_agent
+        if frs:
+            if len(frs) > 1:
+                print "WARN! the tx:"+str(self.id)+" has various FROM agents: "+str(frs)
+                loger.info("WARN! the tx:"+str(self.id)+" has various FROM agents: "+str(frs))
+            return frs[0]
+
         return None
 
     def to_agent(self):
+        tos = []
         events = self.events.all()
+        commits = self.commitments.all()
         if events:
             for ev in events:
-                if ev.to_agent:
-                    return ev.to_agent
-        else:
-            commits = self.commitments.all()
-            if commits:
-                for com in commits:
-                    if com.to_agent:
-                        return com.to_agent
+                if ev.to_agent and not ev.to_agent in tos:
+                    tos.append(ev.to_agent)
+                    #return ev.to_agent
+        if commits:
+            for com in commits:
+                if com.to_agent and not com.to_agent in tos:
+                    tos.append(com.to_agent)
+                    #return com.to_agent
+        if tos:
+            if len(tos) > 1:
+                print "WARN! the tx:"+str(self.id)+" has various TO agents: "+str(tos)
+                loger.info("WARN! the tx:"+str(self.id)+" has various TO agents: "+str(tos))
+            return tos[0]
         return None
 
     def resource_type(self):
@@ -10735,8 +10756,13 @@ class CommitmentManager(models.Manager):
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
         if not filtered and bkp:
-            print "WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str([ev.event_type for ev in bkp])
-            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all! ")
+            internal = bkp.filter(exchange__isnull=False, exchange__exchange_type__use_case__identifier='intrnl_xfer')
+            if not internal and bkp:
+                internal = bkp.filter(transfer__exchange__isnull=False, transfer__exchange__exchange_type__use_case__identifier='intrnl_xfer')
+                #print "x filter using ev tx ex. internal:"+str(len(internal))
+            if internal:
+                print "WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str([ev.event_type for ev in bkp])
+                loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all! ")
             return bkp
         return filtered
 
@@ -10856,10 +10882,10 @@ class Commitment(models.Model):
         else:
             name1 = 'from ?'
             if self.from_agent:
-                name1 = 'from '+str(self.from_agent.nick)
+                name1 = 'from '+unicode(self.from_agent.nick)
             name2 = 'to ?'
             if self.to_agent:
-                name2 = 'to '+str(self.to_agent.nick)
+                name2 = 'to '+unicode(self.to_agent.nick)
 
             return ' '.join([
                 process_name,
@@ -12711,8 +12737,14 @@ class EconomicEventManager(models.Manager):
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
         if not filtered and bkp:
-            print "WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str(bkp)
-            loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str(bkp))
+            #print "x bkp: "+str(bkp)
+            internal = bkp.filter(exchange__isnull=False, exchange__exchange_type__use_case__identifier='intrnl_xfer')
+            if not internal and bkp:
+                internal = bkp.filter(transfer__exchange__isnull=False, transfer__exchange__exchange_type__use_case__identifier='intrnl_xfer')
+                #print "x filter using ev tx ex. internal:"+str(len(internal))
+            if internal:
+                print "WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp)
+                loger.info("WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp))
             return bkp
         return filtered
 

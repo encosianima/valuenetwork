@@ -1143,12 +1143,19 @@ class ContextTransferForm(forms.Form):
                 else:
                     self.fields['quantity'].label += " ERROR: this form has not ocp_resource_type field, RT:"+str(resource_type)
 
-            try:
-                self.fields["ocp_resource_type"].queryset = transfer_type.exchange_type.ocp_record_type.get_ocp_resource_types(transfer_type=transfer_type)
-                if resource_type:
-                    self.fields["ocp_resource_type"].initial = Ocp_Artwork_Type.objects.get(resource_type=resource_type)
-            except:
-                self.fields["ocp_resource_type"].label = "  Sorry, this exchange type is not yet related to any resource types..."
+            resini = self.fields["resource"].queryset.first()
+            if resini:
+                print "++ found resource initial, get rt: "+str(resini)
+                self.fields["ocp_resource_type"].queryset = Ocp_Artwork_Type.objects.filter(resource_type=resini.resource_type)
+                self.fields["ocp_resource_type"].initial = Ocp_Artwork_Type.objects.get(resource_type=resini.resource_type)
+                #self.fields["ocp_resource_type"].label = str(self.fields["ocp_resource_type"].initial)
+            else:
+                try:
+                    self.fields["ocp_resource_type"].queryset = transfer_type.exchange_type.ocp_record_type.get_ocp_resource_types(transfer_type=transfer_type)
+                    if resource_type:
+                        self.fields["ocp_resource_type"].initial = Ocp_Artwork_Type.objects.get(resource_type=resource_type)
+                except:
+                    self.fields["ocp_resource_type"].label = "  Sorry, this exchange type is not yet related to any resource types..."
 
         else: # no transfer type, rise error TODO
           pass
