@@ -4962,9 +4962,12 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
               uq = transfer.unit_of_quantity()
               rt = transfer.resource_type()
               uv = transfer.unit_of_value()
-              if uv and uq and uq.name == "Each":
-                uq = uv
+              if uq and uq.name == "Each" and uv: # and not uq and
+                if rt.is_account():
+                    print ",, Switch uq each from uv:"+str(uv)+" in tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account())
+                    uq = uv
               if not uq and rt:
+                print ",, Switch missing uq from rt.unit:"+str(rt.unit)+" in tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account())
                 uq = rt.unit
 
               toag = transfer.to_agent()
@@ -5018,7 +5021,8 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                       #to['debug'] += str(x.id)+':'+str([str(ev.event_type.name)+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_receive_events()])+sign+' - '
 
                     if uq.gen_unit.unit_type.clas == 'each':
-                      #print "... found each in unit_of_quantity: "+str(uq)
+                      print "... found each in unit_of_quantity: "+str(uq)
+                      loger.info("... found each in unit_of_quantity: "+str(uq))
                       #rt = transfer.resource_type()
                       rt.cur = False
                       if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type:
@@ -5094,8 +5098,8 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
         if fairunit: # and agent.faircoin_resource(): # or agent.need_faircoins():
             if to['unit'] == fairunit:
-                to['balnote'] = (to['income']*1) - (to['outgo']*1)
                 if facc:
+                  to['balnote'] = (to['income']*1) - (to['outgo']*1)
                   if wal:
                     if facc.is_wallet_address():
                         bal = facc.digital_currency_balance()
@@ -5107,8 +5111,8 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                         to['balance'] = "<span class='error'>unknown</span>"
                   else:
                     to['balance'] = "<span class='error'>no wallet</span>"
-                else:
-                    to['balance'] = '!!'
+                else: # not fairaccount like botc, count fairs like everything else
+                    to['balance'] = (to['income']*1) - (to['outgo']*1) #'!!'
             else:
                 to['balance'] = (to['income']*1) - (to['outgo']*1)
         else:
