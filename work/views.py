@@ -1171,7 +1171,7 @@ def migrate_fdc_shares(request, jr):
                 txcms = tx.commitments.all()
                 if txcms:
                   for com in txcms:
-                    comevs = com.events.all()
+                    comevs = com.fulfilling_events()
                     #print "TODO -- com: "+str(com)+" comevs:"+str(comevs)
                     #loger.info("TODO -- com: "+str(com)+" comevs:"+str(comevs))
                     if comevs:
@@ -6967,6 +6967,8 @@ def create_shares_exchange_types(request, agent_id):
         ttshrs = TransferType.objects.filter(exchange_type=extyp, inherit_types=True)
         if not ttshrs:
             ttshrs = TransferType.objects.filter(exchange_type=extyp, name__icontains="Receive")
+        if not ttshrs:
+            ttshrs = TransferType.objects.filter(exchange_type=extyp, name__icontains="Transfer Membership")
         if ttshrs:
             if len(ttshrs) > 1:
                 raise ValidationError("There are more than 1 TransferType with inherit_types or 'Receive' : "+str(ttshrs))
