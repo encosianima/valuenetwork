@@ -851,12 +851,15 @@ def migrate_fdc_shares(request, jr):
                     if ar.resource == sh:
                         account.created_date = sh.created_date
                         account.save()
+                        for ev in sh.events.all():
+                            ev.resource = account
+                            ev.save()
                         sh.quantity = 0
+                        ar.delete()
                         if sh.is_deletable():
-                            ar.delete()
                             sh.delete()
                         else:
-                            loger.info("WARN! The old Share can't be deleted? sh.__dict__: "+str(sh.__dict__))
+                            loger.info("WARN! The old Share can't be deleted? sh:"+str(sh.id)+" sh.__dict__: "+str(sh.__dict__))
                         loger.info("FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
                         messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
 
@@ -1171,7 +1174,7 @@ def migrate_fdc_shares(request, jr):
                 txcms = tx.commitments.all()
                 if txcms:
                   for com in txcms:
-                    comevs = com.events.all()
+                    comevs = com.fulfilling_events()
                     #print "TODO -- com: "+str(com)+" comevs:"+str(comevs)
                     #loger.info("TODO -- com: "+str(com)+" comevs:"+str(comevs))
                     if comevs:
@@ -6967,6 +6970,8 @@ def create_shares_exchange_types(request, agent_id):
         ttshrs = TransferType.objects.filter(exchange_type=extyp, inherit_types=True)
         if not ttshrs:
             ttshrs = TransferType.objects.filter(exchange_type=extyp, name__icontains="Receive")
+        if not ttshrs:
+            ttshrs = TransferType.objects.filter(exchange_type=extyp, name__icontains="Transfer Membership")
         if ttshrs:
             if len(ttshrs) > 1:
                 raise ValidationError("There are more than 1 TransferType with inherit_types or 'Receive' : "+str(ttshrs))

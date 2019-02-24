@@ -9269,7 +9269,7 @@ class Exchange(models.Model):
                     if opposite:
                         if action.clas and opposite.clas:
                             newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
-                        else:
+                        if name == newname:
                             newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
                         if take_ts or forced:
                             if action.clas == 'buy' or action.clas == 'receive':
