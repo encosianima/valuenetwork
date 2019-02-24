@@ -851,12 +851,15 @@ def migrate_fdc_shares(request, jr):
                     if ar.resource == sh:
                         account.created_date = sh.created_date
                         account.save()
+                        for ev in sh.events.all():
+                            ev.resource = account
+                            ev.save()
                         sh.quantity = 0
+                        ar.delete()
                         if sh.is_deletable():
-                            ar.delete()
                             sh.delete()
                         else:
-                            loger.info("WARN! The old Share can't be deleted? sh.__dict__: "+str(sh.__dict__))
+                            loger.info("WARN! The old Share can't be deleted? sh:"+str(sh.id)+" sh.__dict__: "+str(sh.__dict__))
                         loger.info("FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
                         messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
 
