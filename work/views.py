@@ -1180,8 +1180,7 @@ def migrate_fdc_shares(request, jr):
                             loger.info("- change commitment to_agent to FdC! "+str(comm.to_agent))
                             #evt.to_agent = fdc
                         sh_unit = None
-                        if not fairtx:
-                          if comm.resource_type.ocp_artwork_type:
+                        if comm.resource_type.ocp_artwork_type:
                             if comm.resource_type.ocp_artwork_type.general_unit_type:
                                 genut = comm.resource_type.ocp_artwork_type.general_unit_type
                                 ocput = Ocp_Unit_Type.objects.get(id=genut.id)
@@ -1200,13 +1199,10 @@ def migrate_fdc_shares(request, jr):
                             else:
                                 print "-- Error: The commitment resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(comm.resource_type.ocp_artwork_type)+" for commitment:"+str(comm.id)
                                 loger.error("-- Error: The commitment resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(comm.resource_type.ocp_artwork_type)+" for commitment:"+str(comm.id))
-                          else:
+                        else:
                             print "-- The commitment resource_type has no ocp_artwork_type? rt:"+str(comm.resource_type)+" for commitment:"+str(comm.id)
                             loger.error("-- The commitment resource_type has no ocp_artwork_type? rt:"+str(comm.resource_type)+" for commitment:"+str(comm.id))
-                        else:
-                            #print "- the commitment has fairtx! id:"+str(comm.id)+" "+str(comm)
-                            #loger.info("- the commitment has fairtx! id:"+str(comm.id)+" "+str(comm))
-                            pass
+
                         if not sh_unit and not fairtx:
                             print "x Not found share unit in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm)
                             loger.error("x Not found share unit in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm))
