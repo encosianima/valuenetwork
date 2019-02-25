@@ -116,6 +116,12 @@ div.dataTables_length {
     float: right;
     margin-right: 4em;
 }
+td.qty {
+    text-align: right;
+}
+th.give {
+    background-color: #F5F5F0;
+}
 
 small {
   font-size: 90%;
@@ -376,7 +382,7 @@ hr {
                       {% if tt.name %}
                           <td>&nbsp; &nbsp; <b style="">{{ tt.balance|safe }}</b>
                               {% if tt.balnote %}<br/>? {{ tt.balnote }} {{ tt.abbr }}
-                              {% elif not tt.balance|first == '<' %} <b>{{ tt.abbr }}</b>
+                              {% elif not tt.balance|first == '<' %} <b>{{ tt.abbr }}</b> {% elif '' == '>' %}
                               {% endif %}</td>
                       {% endif %}
                     {% endfor %}
@@ -387,7 +393,7 @@ hr {
                     </th>
                     {% for tt in total_transfers %}
                       {% if tt.name %}
-                        <td>&nbsp; &nbsp; {{ tt.income }} {{ tt.abbr }}<br/>{% if tt.incommit %}(+{{ tt.incommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
+                        <td>&nbsp; + {{ tt.income }} {{ tt.abbr }}<br/>{% if tt.incommit %}(+{{ tt.incommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
                       {% endif %}
                     {% endfor %}
                   </tr>
@@ -397,7 +403,7 @@ hr {
                     </th>
                     {% for tt in total_transfers %}
                       {% if tt.name %}
-                          <td>&nbsp; &nbsp; {{ tt.outgo }} {{ tt.abbr }}<br/>{% if tt.outcommit %}(-{{ tt.outcommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
+                          <td>&nbsp; - {{ tt.outgo }} {{ tt.abbr }}<br/>{% if tt.outcommit %}(-{{ tt.outcommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
                       {% endif %}
                     {% endfor %}
                   </tr>
@@ -514,13 +520,15 @@ hr {
             <th>{% trans "Action" %}</th>
             <th>{% trans "Agent" %}</th>
             <th class="give">{% trans "Give" %}<br/>
-                <span class="sub-th">{% trans "Amount" %}</span>
+                <span class="sub-th">{% trans "Qty" %}</span>
             </th>
             <th class="give"><br/><span class="sub-th">{% trans "Resource" %}</span></th>
+            <th class="give"><br/><span class="sub-th">{% trans "Last date" %}</span></th>
             <th class="receive">{% trans "Receive" %}<br/>
-                <span class="sub-th">{% trans "Amount" %}</span>
+                <span class="sub-th">{% trans "Qty" %}</span>
             </th>
             <th class="receive"><br/><span class="sub-th">{% trans "Resource" %}</span></th>
+            <th class="receive"><br/><span class="sub-th">{% trans "Last date" %}</span></th>
         </thead>
         <tbody>
         {% for x in exchanges %}
@@ -724,6 +732,15 @@ hr {
                             {% endfor %}
                         {% endif %}
                     </td>
+                    <td class="give date">
+                        {% if x.slots %}
+                            {% for slot in x.slots %}
+                                {% if context_agent in slot.agents_from %}
+                                    <span class="{{ slot.status }}">&#9679;</span> {{ slot.last_date }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
                     <td class="receive qty">
                         {% if x.slots %}
                             {% for slot in x.slots %}
@@ -830,6 +847,15 @@ hr {
                             {% for event in x.work_events %}
                                 {% if event.to_agent == context_agent %}
                                     {{ event }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td class="receive date">
+                        {% if x.slots %}
+                            {% for slot in x.slots %}
+                                {% if context_agent in slot.agents_to %}
+                                    <span class="{{ slot.status }}">&#9679;</span> {{ slot.last_date }}
                                 {% endif %}
                             {% endfor %}
                         {% endif %}

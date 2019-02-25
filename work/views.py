@@ -5137,11 +5137,12 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             to['income'] = (to['income']*1) + (transfer.value()*1)
                         else:
                             to['income'] = (to['income']*1) + (transfer.quantity()*1)
-                      else:
-                        if uv:
+                      for com in transfer.commitments.all():
+                        if com.unfilled_quantity() > 0:
+                          if uv:
                             to['incommit'] = (to['incommit']*1) + (transfer.value()*1)
-                        else:
-                            to['incommit'] = (to['incommit']*1) + (transfer.quantity()*1)
+                          else:
+                            to['incommit'] = (to['incommit']*1) + (com.unfilled_quantity()*1)
                       #to['debug'] += str(x.id)+':'+str([ev.event_type.name+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_give_events()])+sign+' - '
                     else:
                       sign = '>'
@@ -5150,11 +5151,12 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             to['outgo'] = (to['outgo']*1) + (transfer.value()*1)
                         else:
                             to['outgo'] = (to['outgo']*1) + (transfer.quantity()*1)
-                      else:
-                        if uv:
+                      for com in transfer.commitments.all():
+                        if com.unfilled_quantity() > 0:
+                          if uv:
                             to['outcommit'] = (to['outcommit']*1) + (transfer.value()*1)
-                        else:
-                            to['outcommit'] = (to['outcommit']*1) + (transfer.quantity()*1)
+                          else:
+                            to['outcommit'] = (to['outcommit']*1) + (com.unfilled_quantity()*1)
                       #to['debug'] += str(x.id)+':'+str([str(ev.event_type.name)+':'+str(ev.quantity)+':'+ev.resource_type.name+':'+ev.resource_type.ocp_artwork_type.name for ev in x.transfer_receive_events()])+sign+' - '
 
                     if uq.gen_unit.unit_type.clas == 'each':
@@ -5184,11 +5186,12 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                                 if sign == '>':
                                   ttr['outgo'] = (ttr['outgo']*1) + (transfer.quantity()*1)
                                 #ttr['balance'] = (ttr['income']*1) - (ttr['outgo']*1)
-                              else:
-                                if sign == '<':
-                                  ttr['incommit'] = (ttr['incommit']*1) + (transfer.quantity()*1)
-                                if sign == '>':
-                                  ttr['outcommit'] = (ttr['outcommit']*1) + (transfer.quantity()*1)
+                              for com in transfer.commitments.all():
+                                if com.unfilled_quantity() > 0:
+                                  if sign == '<':
+                                    ttr['incommit'] = (ttr['incommit']*1) + (com.unfilled_quantity()*1)
+                                  if sign == '>':
+                                    ttr['outcommit'] = (ttr['outcommit']*1) + (com.unfilled_quantity()*1)
                               break
                             else:
                                 pass #print "---- pass u:"+str(ttr['name'])+" <> "+str(rt.ocp_artwork_type.general_unit_type)
@@ -5287,9 +5290,11 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
 
 
     print "......... start slots_with_detail .........."
+    loger.info("......... start slots_with_detail ..........")
     for x in exchanges:
         x.slots = x.slots_with_detail(agent)
     print "......... end slots_with_detail .........."
+    loger.info("......... end slots_with_detail ..........")
 
     return render(request, "work/exchanges_all.html", {
         "exchanges": exchanges,
