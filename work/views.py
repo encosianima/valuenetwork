@@ -1107,8 +1107,8 @@ def migrate_fdc_shares(request, jr):
                                 ocput = Ocp_Unit_Type.objects.get(id=genut.id)
                                 if ocput:
                                     us = ocput.units()
-                                    print "-- Found shr unit_type: "+str(ocput)+" units:"+str(us)
-                                    loger.debug("-- Found shr unit_type: "+str(ocput)+" units:"+str(us))
+                                    #print "-- Found shr unit_type: "+str(ocput)+" units:"+str(us)
+                                    #loger.debug("-- Found shr unit_type: "+str(ocput)+" units:"+str(us))
                                     if us:
                                         sh_unit = us[0]
                                     else:
@@ -1186,8 +1186,8 @@ def migrate_fdc_shares(request, jr):
                                 ocput = Ocp_Unit_Type.objects.get(id=genut.id)
                                 if ocput:
                                     us = ocput.units()
-                                    print "-- Found shr unit_type: "+str(ocput)+" units:"+str(us)
-                                    loger.debug("-- Found shr unit_type: "+str(ocput)+" units:"+str(us))
+                                    #print "-- Found shr unit_type: "+str(ocput)+" units:"+str(us)
+                                    #loger.debug("-- Found shr unit_type: "+str(ocput)+" units:"+str(us))
                                     if us:
                                         sh_unit = us[0]
                                     else:
