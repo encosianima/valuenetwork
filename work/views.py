@@ -1163,8 +1163,83 @@ def migrate_fdc_shares(request, jr):
                 if not comms:
                     pass #print "The Transfer has no commitments! "+str(tx)
                 else:
-                    print "The Transfer has commitments?? txid:"+str(tx.id)+" coms: "+str(comms)
-                    loger.warning("The Transfer has commitments?? txid:"+str(tx.id)+" coms: "+str(comms))
+                    print "The Transfer has commitments... txid:"+str(tx.id)+" coms: "+str(comms)
+                    loger.warning("The Transfer has commitments... txid:"+str(tx.id)+" coms: "+str(comms))
+                    for comm in comms:
+                        if not comm.resource_type == unit_rt:
+                            print "- change comm resource_type? "+str(comm.resource_type)+" -> "+str(unit_rt)+" comm:"+str(comm.id)+" ex:"+str(ex.id)+" tx:"+str(tx.id)+" et:"+str(comm.exchange_stage)
+                            loger.info("- change comm resource_type? "+str(comm.resource_type)+" -> "+str(unit_rt)+" comm:"+str(comm.id)+" ex:"+str(ex.id)+" tx:"+str(tx.id)+" et:"+str(comm.exchange_stage))
+                        #if not comm.resource == fairres:
+                        #    print "- Don't change commitment resource: "+str(comm.resource)+" -> "+str(fairres)
+                        if not comm.exchange:
+                            print "- add exchange to commitment? "+str(comm)+" ex:"+str(comm.exchange)
+                            loger.info("- add exchange to commitment? "+str(comm)+" ex:"+str(comm.exchange))
+                        if not comm.to_agent == fdc:
+                            print "- change commitment to_agent to FdC! "+str(comm.to_agent)
+                            loger.info("- change commitment to_agent to FdC! "+str(comm.to_agent))
+                            #evt.to_agent = fdc
+                        sh_unit = None
+                        if not fairtx:
+                          if comm.resource_type.ocp_artwork_type:
+                            if comm.resource_type.ocp_artwork_type.general_unit_type:
+                                genut = comm.resource_type.ocp_artwork_type.general_unit_type
+                                ocput = Ocp_Unit_Type.objects.get(id=genut.id)
+                                if ocput:
+                                    us = ocput.units()
+                                    print "-- Found shr unit_type: "+str(ocput)+" units:"+str(us)
+                                    loger.debug("-- Found shr unit_type: "+str(ocput)+" units:"+str(us))
+                                    if us:
+                                        sh_unit = us[0]
+                                    else:
+                                        print "-- Error: Can't find units for the unit_type: "+str(ocput)+" for commitment:"+str(comm.id)
+                                        loger.error("-- Error: Can't find units for the unit_type: "+str(ocput)+" for commitment:"+str(comm.id))
+                                else:
+                                    print "-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for commitment:"+str(comm.id)
+                                    loger.error("-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for commitment:"+str(comm.id))
+                            else:
+                                print "-- Error: The commitment resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(comm.resource_type.ocp_artwork_type)+" for commitment:"+str(comm.id)
+                                loger.error("-- Error: The commitment resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(comm.resource_type.ocp_artwork_type)+" for commitment:"+str(comm.id))
+                          else:
+                            print "-- The commitment resource_type has no ocp_artwork_type? rt:"+str(comm.resource_type)+" for commitment:"+str(comm.id)
+                            loger.error("-- The commitment resource_type has no ocp_artwork_type? rt:"+str(comm.resource_type)+" for commitment:"+str(comm.id))
+                        else:
+                            #print "- the commitment has fairtx! id:"+str(comm.id)+" "+str(comm)
+                            #loger.info("- the commitment has fairtx! id:"+str(comm.id)+" "+str(comm))
+                            pass
+                        if not sh_unit and not fairtx:
+                            print "x Not found share unit in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm)
+                            loger.error("x Not found share unit in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm))
+                            continue
+                        if not unit_rt:
+                            print "x Not found unit_rt in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm)
+                            loger.error("x Not found unit_rt in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm))
+                            continue
+
+                        comm.context_agent = fdc
+                        comm.exchange = ex
+                        comm.exchange_stage = et
+                        if tx.transfer_type == paytt:
+                            if not comm.resource_type == unit_rt:
+                                print "-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(unit_rt)
+                                loger.info("-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(unit_rt))
+                            if not comm.unit_of_quantity == unit:
+                                print "-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(unit)
+                                loger.info("-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(unit))
+                            comm.resource_type = unit_rt
+                            comm.unit_of_quantity = unit
+                        elif tx.transfer_type == shrtt and sh_unit:
+                            if not comm.resource_type == shrtyp:
+                                print "-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(shrtyp)
+                                loger.info("-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(shrtyp))
+                            if not comm.unit_of_quantity == sh_unit:
+                                print "-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(sh_unit)
+                                loger.info("-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(sh_unit))
+                            comm.resource_type = shrtyp
+                            comm.unit_of_quantity = sh_unit
+                        else:
+                            raise ValidationError("Transfer with an unknown transfer_type: "+str(tx.transfer_type)+" or nor sh_unit:"+str(sh_unit)+" in commitment:"+str(comm.id))
+                        comm.save()
+
 
               elif tx.from_agent() == fdc:
                 print " - Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share())
@@ -1240,8 +1315,49 @@ def migrate_fdc_shares(request, jr):
                         #cm.save()
                 return
               elif tx.from_agent() == fdc.parent():
-                print "Found exchange related from FdC parent! "+str(tx)
-                loger.info("Found exchange related from FdC parent! "+str(tx))
+                print "Found exchange related from FdC parent! ex:"+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx)
+                loger.info("Found exchange related from FdC parent! ex:"+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx))
+                txcoms = tx.commitments.all()
+                txevts = tx.events.all()
+                if tx.transfer_type == shrtt: # is share
+                    for txcom in txcoms:
+                        if not txcom.from_agent == fdc:
+                            print "- CHANGED txcom.from_agent to FdC in shrtt! (was "+str(txcom.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom)
+                            loger.info("- CHANGED txcom.from_agent to FdC in shrtt! (was "+str(txcom.from_agent)+")ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom))
+                            txcom.from_agent = fdc
+                            txcom.save()
+                        for ev in txcom.fulfilling_events():
+                            if not ev.from_agent == fdc:
+                                print "- CHANGED txcom.event.from_agent to FdC in shrtt! (was "+str(ev.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev)
+                                loger.info("- CHANGED txcom.event.from_agent to FdC in shrtt! (was "+str(ev.from_agent)+")ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev))
+                                ev.from_agent = fdc
+                                ev.save()
+                    for txevt in txevts:
+                        if not txevt.from_agent == fdc:
+                            print "- CHANGED txevt.from_agent to FdC in shrtt! (was "+str(txevt.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt)
+                            loger.info("- CHANGED txevt.from_agent to FdC in shrtt! (was "+str(txevt.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt))
+                            txevt.from_agent = fdc
+                            txevt.save()
+                elif tx.transfer_type == paytt: # is payment
+                    for txcom in txcoms:
+                        if not txcom.to_agent == fdc:
+                            print "- CHANGED txcom.to_agent to FdC in shrtt! (was "+str(txcom.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom)
+                            loger.info("- CHANGED txcom.to_agent to FdC in shrtt! (was "+str(txcom.to_agent)+")ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom))
+                            txcom.to_agent = fdc
+                            txcom.save()
+                        for ev in txcom.fulfilling_events():
+                            if not ev.to_agent == fdc:
+                                print "- CHANGED txcom.event.to_agent to FdC in shrtt! (was "+str(ev.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev)
+                                loger.info("- CHANGED txcom.event.to_agent to FdC in shrtt! (was "+str(ev.to_agent)+")ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev))
+                                ev.to_agent = fdc
+                                ev.save()
+                    for txevt in txevts:
+                        if not txevt.to_agent == fdc:
+                            print "- CHANGED txevt.to_agent to FdC in shrtt! (was "+str(txevt.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt)
+                            loger.info("- CHANGED txevt.to_agent to FdC in shrtt! (was "+str(txevt.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt))
+                            txevt.to_agent = fdc
+                            txevt.save()
+
               else:
                 txcoms = tx.commitments.all()
                 txevts = tx.events.all()
