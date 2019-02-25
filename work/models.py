@@ -1467,8 +1467,8 @@ class JoinRequest(models.Model):
                                 created_by = self.agent.user().user,
                             )
                             if created:
-                                print "- created Commitment: "+str(commit_share)
-                                loger.info("- created Commitment: "+str(commit_share))
+                                print "- created Commitment:"+str(commit_share.id)+" "+str(commit_share)
+                                loger.info("- created Commitment:"+str(commit_share.id)+" "+str(commit_share))
 
 
                         '''sh_com, created = Commitment.objects.get_or_create(
@@ -1555,10 +1555,10 @@ class JoinRequest(models.Model):
                                                 rs.notes += note
                                             else:
                                                 rs.notes = note
-                                            rs.price_per_unit += amount # update the price_per_unit with payment amount
+                                            rs.price_per_unit += self.pending_shares() # update the price_per_unit with payment amount
                                             rs.save()
-                                            print "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs)
-                                            loger.info("Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
+                                            print "Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs)
+                                            loger.info("Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs))
                                             #messages.info(request, "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
                           else: # not pending_shares and not share events
                             date = agshac.created_date
