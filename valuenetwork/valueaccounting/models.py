@@ -5436,13 +5436,13 @@ class ExchangeType(models.Model):
                         newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
                     if name == newname:
                         newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
-                    #if gives or forced:
-                    #    if action.clas == 'buy' or action.clas == 'receive':
-                    #        name = newname
-                    #if takes or forced:
-                    #    if action.clas == 'sell' or action.clas == 'give':
-                    #        name = newname
-                    name = newname
+                    if hasattr(agent, 'project') and agent.project:
+                        if action.clas == 'buy' or action.clas == 'receive':
+                            name = newname
+                    else:
+                        if action.clas == 'sell' or action.clas == 'give':
+                            name = newname
+                    #name = newname
         arr = name.split(' ')
         name = arr[0]
         return name
@@ -9072,10 +9072,12 @@ class Exchange(models.Model):
             slot.total_com_unit = None
             slot.rts = []
             slot.hours = False
+            slot.last_date = None
             for transfer in transfers:
                 if transfer.transfer_type == slot:
                     rt = transfer.resource_type()
                     slot.xfers.append(transfer)
+                    slot.last_date = transfer.last_date()
                     if transfer.actual_value():
                         slot.total += transfer.actual_value()
                         slot.total_unit = transfer.unit_of_value()
@@ -9919,6 +9921,14 @@ class Transfer(models.Model):
         if events:
             return events[0].unit_of_quantity
         return None
+
+    def last_date(self):
+        events = self.events.all().order_by('-event_date')
+        if events:
+            return events[0].event_date.isoformat()
+        commis = self.commitments.all().order_by('-due_date')
+        if commis:
+            return commis[0].due_date.isoformat()
 
     def related_agents(self):
         agents = []
