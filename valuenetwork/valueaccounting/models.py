@@ -10031,8 +10031,15 @@ class Transfer(models.Model):
         if len(comits):
           if len(events) < len(comits) or not len(events) >= need_evts:
             status = 'pending' #str([ev.id for ev in events])+' '+str([co.id for co in comits])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
-          elif len(events) == len(comits): #need_evts:
-            status = 'complete'
+          #elif len(events) == len(comits): #need_evts:
+          #  if len(comits) > 1:
+          #      print " tx evs and coms count is equal, but more than one commit... ONLY CHECKED first! tx:"+str(self.id)+" ex:"+str(self.exchange.id)+" comits:"+str(comits)
+          #      loger.info(" tx evs and coms count is equal, but more than one commit... ONLY CHECKED first! tx:"+str(self.id)+" ex:"+str(self.exchange.id)+" comits:"+str(comits))
+          #  comi = comits[0]
+          #  if comi.unfilled_quantity():
+          #      status = "pending"
+          #  else:
+          #      status = 'complete'
           else:
             status = 'xx'
             for com in comits:
@@ -10913,6 +10920,15 @@ class Commitment(models.Model):
                         if action.clas == 'sell' or action.clas == 'give':
                             name = newname
         return name
+
+    def status(self):
+        if self.unfilled_quantity():
+            return 'pending'
+        else:
+            if self.fulfilling_events():
+                return 'complete'
+            else:
+                return 'pending'
 
     @property #ValueFlows
     def action(self):

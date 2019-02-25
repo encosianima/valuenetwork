@@ -505,7 +505,7 @@ h3.trtheading {
                                 <div class="event">
                                     {% if xfer.commitments.all %}
                                       {% for comm in xfer.commitments.all_give %}
-                                        <div class="comm"><span class="{% if comm.fulfillment_events.all %}complete{% else %}pending{% endif %}">&#9679;</span>
+                                        <div class="comm"><span class="{{ comm.status }}">&#9679;</span>
                                         <span class="event-label">{% trans "Commitment" %}: </span>
                                         {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}&nbsp; <em>(tx:{{ xfer.id }} co:{{ comm.id }})</em>{% endif %}
                                         {% if logger or comm.created_by == request.user or comm.to_agent == agent or comm.to_agent in agent.managed_projects %}
@@ -682,7 +682,7 @@ h3.trtheading {
                                         {% if comm.fulfillment_events.all %}
                                           {% for evt in comm.fulfillment_events.all_give %}
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>
-                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(tx:{{ xfer.id }} ev:{{ evt.id }}){% endif %}
+                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}&nbsp; <em>(tx:{{ xfer.id }} ev:{{ evt.id }})</em>{% endif %}
                                                 {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
                                                 {% if logger or evt.created_by == request.user or evt.to_agent == agent or evt.to_agent in agent.managed_projects %}
                                                   {% if logger and not exchange.join_request and not exchange.join_request.agent == agent %}
@@ -1058,9 +1058,9 @@ h3.trtheading {
                                 <div class="event">
                                     {% if xfer.commitments.all %}
                                       {% for comm in xfer.commitments.all_give %}
-                                        <div class="comm"><span class="{% if comm.fulfillment_events.all %}complete{% else %}pending{% endif %}">&#9679;</span>
+                                        <div class="comm"><span class="{{ comm.status }}">&#9679;</span>
                                         <span class="event-label">{% trans "Commitment" %}: </span>
-                                        {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}(tx:{{ xfer.id }} co:{{ comm.id }}){% endif %}
+                                        {{ comm|show_name:context_agent|safe }} {% if request.user.is_superuser %}&nbsp; <em>(tx:{{ xfer.id }} co:{{ comm.id }})</em>{% endif %}
                                         {% if logger or comm.created_by == request.user or comm.from_agent == request.user.agent.agent or comm.from_agent in request.user.agent.agent.managed_projects %}
                                           {% if logger and not exchange.join_request and not exchange.join_request.agent == agent %}
                                             {% if not comm.from_agent %}
@@ -1234,7 +1234,7 @@ h3.trtheading {
                                         {% if comm.fulfillment_events.all %}
                                           {% for evt in comm.fulfillment_events.all_give %}
                                             <div class="ce">>&nbsp;<span class="event-label">{% trans "Transfer" %}: </span>
-                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}(tx:{{ xfer.id }} ev:{{ evt.id }}){% endif %}
+                                                {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}&nbsp; <em>(tx:{{ xfer.id }} ev:{{ evt.id }})</em>{% endif %}
                                                 {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
                                                 {% if logger or evt.created_by == request.user or evt.from_agent == agent or evt.from_agent in agent.managed_projects %}
                                                   {% if logger and not exchange.join_request %}
