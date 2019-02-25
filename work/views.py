@@ -1078,7 +1078,8 @@ def migrate_fdc_shares(request, jr):
                             print "WARNING: Not deleted Transfer because has events or shares!! "+str(tt)
                             loger.error("WARNING: Not deleted Transfer because has events or shares!! "+str(tt))
 
-                for evt in tx.events.all():
+                evnts = tx.events.all()
+                for evt in evnts:
                     fairtx = None
                     if hasattr(evt, 'faircoin_transaction') and evt.faircoin_transaction:
                         fairtx = evt.faircoin_transaction.id
@@ -1239,6 +1240,21 @@ def migrate_fdc_shares(request, jr):
                         else:
                             raise ValidationError("Transfer with an unknown transfer_type: "+str(tx.transfer_type)+" or nor sh_unit:"+str(sh_unit)+" in commitment:"+str(comm.id))
                         comm.save()
+
+                        if not comm.fulfilling_events() and evnts:
+                            print "Warning! events to connect to the commitment? comm:"+str(comm.id)+" "+str(comm)+" evnts:"+str(evnts)
+                            for ev in evnts:
+                                if not ev.commitment == comm:
+                                    if comm.resource_type == ev.resource_type:
+                                        print "- CONNECTED evt of same tx to the comm:"+str(comm.id)+" evt:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id)
+                                        loger.info("- CONNECTED evt of same tx to the comm:"+str(comm.id)+" evt:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id))
+                                        messages.info(request, "- CONNECTED evt of same tx to the comm:"+str(comm.id)+" evt:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id))
+                                        ev.commitment = comm
+                                        ev.save()
+                                    else:
+                                        print "- tx evt not related the tx commitment, CONNECT as fulfilling_evt ?? Different RT, SKIP! com:"+str(comm.id)+" ev:"+str(ev.id)+" "+str(ev)
+                                        loger.info("- tx evt not related the tx commitment, CONNECT as fulfilling_evt ?? Different RT, SKIP! com:"+str(comm.id)+" comrt:"+str(comm.resource_type)+" ev:"+str(ev.id)+" evrt:"+str(ev.resource_type)) #+" "+str(ev))
+
 
 
               elif tx.from_agent() == fdc:
