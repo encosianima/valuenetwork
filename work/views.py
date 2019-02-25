@@ -1375,6 +1375,11 @@ def migrate_fdc_shares(request, jr):
                 txevts = tx.events.all()
                 print "Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(txcoms))+" evts:"+str(len(txevts))
                 loger.debug("Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(txcoms))+" evts:"+str(len(txevts)))
+                if not tx.context_agent and tx.transfer_type == shrtt:
+                    print "- ADDED context_agent FdC to shrtt tx:"+str(tx.id)+" ex:"+str(ex.id)
+                    loger.info("- ADDED context_agent FdC to shrtt tx:"+str(tx.id)+" ex:"+str(ex.id))
+                    tx.context_agent = fdc
+                    tx.save()
                 if tx.context_agent == fdc:
                     if tx.transfer_type == shrtt:
                         if jr.total_shares():
@@ -6501,7 +6506,8 @@ def create_project_shares(request, agent_id):
 
     nome = project.compact_name()
     abbr = project.abbrev_name()
-
+    print "---------- start create_project_shares ("+str(nome)+":"+str(abbr)+") ----------"
+    loger.info("---------- start create_project_shares ("+str(nome)+":"+str(abbr)+") ----------")
     if request.method == "POST":
         shareprice = request.POST.get('shareprice')
         priceunit = request.POST.get('priceunit')
@@ -6795,7 +6801,8 @@ def create_project_shares(request, agent_id):
             loger.info("- created AgentResourceRole: "+str(aresrol))
             messages.info(request, "- created AgentResourceRole: "+str(aresrol))
 
-
+    print "---------- end create_project_shares ("+str(nome)+":"+str(abbr)+") ----------"
+    loger.info("---------- end create_project_shares ("+str(nome)+":"+str(abbr)+") ----------")
 
     return HttpResponseRedirect('/%s/%s/'
             % ('work/agent', project.agent.id))
@@ -6812,6 +6819,9 @@ def create_shares_exchange_types(request, agent_id):
     user_agent = get_agent(request)
     if not user_agent or not project.share_types() or not request.user.is_superuser:
         return render(request, 'work/no_permission.html')
+
+    print "---------- start create_shares_exchange_types ("+str(agent)+") ----------"
+    loger.info("---------- start create_shares_exchange_types ("+str(agent)+") ----------")
 
     ocpag = EconomicAgent.objects.root_ocp_agent()
     dummy = EconomicAgent.objects.get(nick="Dummy")
@@ -7622,6 +7632,8 @@ def create_shares_exchange_types(request, agent_id):
             pro_shr_rectyp.exchange_type = slug_et
             pro_shr_rectyp.save()
 
+    print "---------- end create_shares_exchange_types ("+str(agent)+") ----------"
+    loger.info("---------- end create_shares_exchange_types ("+str(agent)+") ----------")
 
     #return exchanges_all(request, project.agent.id)
     return HttpResponseRedirect('/%s/%s/%s/'
