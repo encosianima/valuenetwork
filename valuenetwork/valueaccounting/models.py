@@ -10922,7 +10922,7 @@ class Commitment(models.Model):
         return name
 
     def status(self):
-        if self.unfilled_quantity():
+        if self.unfilled_quantity() > 0: # if over-payed this is negative
             return 'pending'
         else:
             if self.fulfilling_events():
