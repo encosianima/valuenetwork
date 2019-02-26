@@ -9302,14 +9302,17 @@ class Exchange(models.Model):
         return self.events.filter(
             event_type__relationship='work')
 
-    def events(self):
-        events = []
+    def all_events(self): # renamed from 'events' to avoid manager conflict
+        events = self.events.all()
         for transfer in self.transfers.all():
             for event in transfer.events.all():
-                events.append(event)
+                if not event in events:
+                    events.append(event)
+                    print "event without direct exchange... id:"+str(event.id)+" "+str(event)
+                    loger.info("event without direct exchange... id:"+str(event.id)+" "+str(event))
         return events
 
-    def xfer_events(self): # the above function fails, so rename and works
+    def xfer_events(self): # the above function fails, so rename and works (now works)
         events = []
         for transfer in self.transfers.all():
             for event in transfer.events.all():

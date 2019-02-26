@@ -285,7 +285,7 @@ a.more-link {
                     {% if req.payment_url %}
                         {% if req.payment_fees and req.payment_fees_payer == req.agent %}
                            (+ {{ req.payment_fees }} {{ req.payment_unit_rt.unit.symbol }} {% trans "gateway fees" %})
-                        {% endif %}
+                        {% endif %} &nbsp; &nbsp;
                         <form action="{{ req.payment_url }}" method="POST" style="display:inline" target="_blank">
                             {% csrf_token %}
                             <input type="hidden" name="order_id" id="order_id" value="{{ req.pk }}" />
