@@ -377,8 +377,12 @@ def share_payment(request, agent_id):
 
         exchange = req.exchange
         if not exchange:
-            raise ValidationError("Can't find the exchange related the shares payment!")
-        evts = exchange.events()
+            updated = req.update_payment_status('pending')
+            if not updated:
+                raise ValidationError("Error updating the payment status to pending.")
+            exchange = req.exchange
+            #raise ValidationError("Can't find the exchange related the shares payment!")
+        evts = exchange.all_events()
         if evts:
             raise ValidationError("The exchange already has events? "+str(evts))
 
@@ -413,8 +417,8 @@ def share_payment(request, agent_id):
 
         updated = req.update_payment_status('complete', address_end, address_origin)
         if not updated:
-            raise ValidationError("Error updating the payment status.")
-        evts = req.exchange.events()
+            raise ValidationError("Error updating the payment status to complete.")
+        #evts = req.exchange.events()
         for ev in evts:
             if ev.resource_type == req.payment_unit_rt() and ev.resource_type == fair_rt:
                 fairtx = FaircoinTransaction(
