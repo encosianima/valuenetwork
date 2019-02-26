@@ -3665,9 +3665,9 @@ def check_new_rt_price(rt=None, **kwargs):
           if ev.transfer:
             if ev.transfer.exchange:
                 ev.exchange = ev.transfer.exchange
-                #ev.save()
-                print ":: FIX? missing exchange:"+str(ev.exchange.id)+" for event:"+str(ev.id)+" "+str(ev)
-                loger.info(":: FIX? missing exchange:"+str(ev.exchange.id)+" for event:"+str(ev.id)+" "+str(ev))
+                ev.save()
+                print ":: FIXED missing exchange:"+str(ev.exchange.id)+" for event:"+str(ev.id)+" "+str(ev)
+                loger.info(":: FIXED missing exchange:"+str(ev.exchange.id)+" for event:"+str(ev.id)+" "+str(ev))
             else:
                 print ":: Orphan event.transfer? tx:"+str(ev.transfer.id)+": "+str(ev.transfer)
                 loger.info(":: Orphan event.transfer? tx:"+str(ev.transfer.id)+": "+str(ev.transfer))
