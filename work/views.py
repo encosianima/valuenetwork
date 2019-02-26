@@ -330,7 +330,7 @@ def share_payment(request, agent_id):
         try:
             req_id = request.POST.get('join_request')
             req = JoinRequest.objects.get(id=req_id)
-            pro_agent = req.project #EconomicAgent.objects.get(id=cont_id)
+            pro_agent = req.project.agent #EconomicAgent.objects.get(id=cont_id)
             #loger.warning("Found the context agent of the share's payment: "+str(cont_id))
             #return True
         except:
