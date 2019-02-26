@@ -372,7 +372,7 @@ def create_location(request, agent_id=None):
         "zoom": zoom,
     })
 
-@login_required
+"""@login_required
 def request_faircoin_address(request, agent_id=None):
     if request.method == "POST":
         agent = None
@@ -385,6 +385,7 @@ def request_faircoin_address(request, agent_id=None):
             agent.request_faircoin_address()
     return HttpResponseRedirect('/%s/%s/'
         % ('work/agent', agent.id))
+"""
 
 @login_required
 def change_location(request, location_id, agent_id=None):

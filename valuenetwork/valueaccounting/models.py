@@ -1323,6 +1323,8 @@ class EconomicAgent(models.Model):
         if self in noneed:
             resp = False
         #import pdb; pdb.set_trace()
+        if not self.is_participant():
+            resp = False
         return resp
 
     def need_faircoins(self):
@@ -9127,7 +9129,7 @@ class Exchange(models.Model):
                     fro = transfer.from_agent()
                     if not to and jn_req:
                         if ttpay.name == slot.name:
-                            #to = jn_req.project.agent
+                            to = jn_req.project.agent
                             prt = jn_req.payment_unit_rt()
                             if not prt == rt:
                                 print "x pay to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)

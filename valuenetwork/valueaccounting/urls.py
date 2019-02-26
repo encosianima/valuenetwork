@@ -554,8 +554,8 @@ urlpatterns += [
 
 if 'faircoin' in settings.INSTALLED_APPS:
     urlpatterns += [
-        url(r"^request-faircoin-address/(?P<agent_id>\d+)/$", valuenetwork.valueaccounting.views.request_faircoin_address,
-            name="request_faircoin_address"),
+        #url(r"^request-faircoin-address/(?P<agent_id>\d+)/$", valuenetwork.valueaccounting.views.request_faircoin_address,
+        #    name="request_faircoin_address"),
         url(r"^send-faircoins/(?P<resource_id>\d+)/$", valuenetwork.valueaccounting.views.send_faircoins,
             name="send_faircoins"),
         url(r"^validate-faircoin-address/$", valuenetwork.valueaccounting.views.validate_faircoin_address,

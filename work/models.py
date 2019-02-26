@@ -128,7 +128,7 @@ SELECTION_CHOICES = (
 
 class Project(models.Model):
     agent = models.OneToOneField(EconomicAgent,
-        verbose_name=_('agent'), related_name='project')
+        verbose_name=_('agent'), related_name='project', on_delete=models.CASCADE)
     joining_style = models.CharField(_('joining style'),
         max_length=12, choices=JOINING_STYLE_CHOICES,
         default="autojoin")
@@ -140,15 +140,6 @@ class Project(models.Model):
         default="all")
     fobi_slug = models.CharField(_('custom form slug'),
         max_length=255, blank=True)
-
-    #fobi_form = models.OneToOneField(FormEntry,
-    #    verbose_name=_('custom form'), related_name='project',
-    #    blank=True, null=True,
-    #    help_text=_("this Project use this custom form (fobi FormEntry)"))
-    #join_request = models.ForeignKey(JoinRequest,
-    #    verbose_name=_('join request'), related_name='project',
-    #    blank=True, null=True,
-    #    help_text=_("this Project is using this JoinRequest form"))
 
     def __unicode__(self):
         return _('Project: ') + self.agent.name
@@ -445,11 +436,13 @@ class SkillSuggestion(models.Model):
     skill = models.CharField(_('skill'), max_length=128,
         help_text=_("A new skill that you want to offer that is not already listed"))
     suggested_by = models.ForeignKey(User, verbose_name=_('suggested by'),
-        related_name='skill_suggestion', blank=True, null=True, editable=False)
+        related_name='skill_suggestion', blank=True, null=True,
+        editable=False, on_delete=models.SET_NULL)
     suggestion_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     resource_type = models.ForeignKey(EconomicResourceType,
         verbose_name=_('resource_type'), related_name='skill_suggestions',
         blank=True, null=True,
+        on_delete=models.SET_NULL,
         help_text=_("this skill suggestion became this ResourceType"))
     state = models.CharField(_('state'),
         max_length=12, choices=REQUEST_STATE_CHOICES,
@@ -493,6 +486,7 @@ class JoinRequest(models.Model):
     # common fields for all projects
     project = models.ForeignKey(Project,
         verbose_name=_('project'), related_name='join_requests',
+        on_delete=models.CASCADE,
         #blank=True, null=True,
         help_text=_("this join request is for joining this Project"))
 
@@ -515,7 +509,7 @@ class JoinRequest(models.Model):
 
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='project_join_requests',
-        blank=True, null=True,
+        blank=True, null=True, on_delete=models.SET_NULL,
         help_text=_("this join request became this EconomicAgent"))
 
     fobi_data = models.OneToOneField(SavedFormDataEntry,
@@ -751,7 +745,7 @@ class JoinRequest(models.Model):
                   amount = None
                   if self.project.agent.need_faircoins():
                     if not self.agent:
-                        txt = str(_("The project coordinators will create your account, and you will receive an email with an initial random password that should be changed after logging in. Once changed you'll be able to top-up your internal Faircoin account and proceed to pay the membership shares."))
+                        txt = str(_("Once you log in and change your password, you'll be able to top-up your internal Faircoin account and proceed to pay the membership shares."))
                         return txt
 
                     addr = self.agent.faircoin_address()
@@ -1918,12 +1912,12 @@ class InvoiceNumber(models.Model):
     sequence = models.IntegerField(_("sequence"),)
     description = models.TextField(_('Description'), blank=True,null=True)
     member = models.ForeignKey(EconomicAgent, related_name="invoice_numbers",
-        verbose_name=_('member'),)
+        verbose_name=_('member'), on_delete=models.CASCADE)
     exchange = models.ForeignKey(Exchange,
-        blank=True, null=True,
+        blank=True, null=True, on_delete=models.SET_NULL,
         verbose_name=_('exchange'), related_name='invoice_numbers')
     created_by = models.ForeignKey(User, verbose_name=_('created by'),
-        related_name='invoice_numbers_created', editable=False)
+        related_name='invoice_numbers_created', editable=False, on_delete=models.CASCADE)
     created_date = models.DateField(auto_now_add=True, editable=False)
 
     class Meta:
@@ -3636,7 +3630,9 @@ def check_new_rt_price(rt=None, **kwargs):
     if pro:
         sht = pro.shares_type()
 
-    print ": rt:"+str(rt.id)+" "+str(rt)+", price_per_unit:"+str(rt.price_per_unit)+" coms:"+str(len(coms))+" evts:"+str(len(evts))+" ca:"+str(rt.context_agent)+" sht:"+str(sht)
+    print "check_new_rt_price: rt:"+str(rt.id)+" "+str(rt)+", price_per_unit:"+str(rt.price_per_unit)+" coms:"+str(len(coms))+" evts:"+str(len(evts))+" ca:"+str(rt.context_agent)+" sht:"+str(sht)
+    loger.info("check_new_rt_price... rt:"+str(rt.id)+" "+str(rt)+", price_per_unit:"+str(rt.price_per_unit)+" coms:"+str(len(coms))+" evts:"+str(len(evts))+" ca:"+str(rt.context_agent)+" sht:"+str(sht))
+
 
     if not sht == rt:
         print ":: rt is not the share_type of the project? "
