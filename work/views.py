@@ -770,6 +770,7 @@ def migrate_fdc_shares(request, jr):
     if not fdc == jr.project.agent:
         #loger.warning("skip migrate, is not a FdC joinrequest")
         return
+    user_agent = get_agent(request)
     shacct = fdc.project.shares_account_type()
     shrtyp = fdc.project.shares_type()
     mems = jr.agent.membership_requests.all()
@@ -799,7 +800,8 @@ def migrate_fdc_shares(request, jr):
             agrel.save()
             print "WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel)
             loger.info("WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel))
-            messages.warning(request, "Converted the agent relation to 'candidate' because the join request is not accepted yet.")
+            if user_agent in fdc.managers():
+                messages.warning(request, "Converted the agent relation to 'candidate' because the join request is not accepted yet.")
         elif agrel.state == 'candidate':
             agrel.state = 'potential'
             agrel.save()
@@ -807,7 +809,8 @@ def migrate_fdc_shares(request, jr):
         if not agrel.association_type == aamem:
             print "WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr)
             loger.info("WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
-            messages.warning(request, "WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
+            if user_agent in fdc.managers():
+                messages.warning(request, "WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
             agrel.association_type = aamem
             agrel.save()
     elif not agrels:
@@ -881,16 +884,24 @@ def migrate_fdc_shares(request, jr):
                     loger.info("- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
                     messages.warning(request, "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
 
+            # transfer shares if payed
+            if user_agent in fdc.managers() or user_agent == fdc or request.user.is_superuser:
+              if jr.pending_shares() and jr.payment_payed_amount() >= jr.total_price():
+
+                print "Found payed tx but shares missing, TRANSFER project shares! jr:"+str(jr)
+
     else:
-        print str(shacct)+' not in res: '+str(res)
-        loger.info("Can't migrate FdC shares before user has shares account! "+str(jr.agent))
-        messages.warning(request, "Can't migrate FdC shares before user has shares account! "+str(jr.agent))
+        #print str(shacct)+' not in res: '+str(res)
+        loger.info("Can't migrate FdC shares before user has shares account! jr:"+str(jr.id)+" ag:"+str(jr.agent))
+        if user_agent in fdc.managers() or request.user.is_superuser:
+            messages.warning(request, "Can't migrate FdC shares before user has shares account! "+str(jr.agent))
 
     et = jr.exchange_type()
     if not et:
         print "Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent)
         loger.info("Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent))
-        messages.warning(request, "Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent))
+        if user_agent in fdc.managers():
+            messages.warning(request, "Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent))
         return
 
     if et.context_agent and not et.context_agent == fdc:
