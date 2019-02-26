@@ -1306,6 +1306,11 @@ class JoinRequest(models.Model):
         elif not amount2 and status == 'complete':
             print "No pending shares but something is missing, recheck! "+str(self)
 
+        pendamo = self.payment_pending_amount()
+        if not pendamo == amountpay:
+            print "WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id)
+            loger.info("WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id))
+
         if status:
             if self.agent:
                 agshac = self.agent_shares_account()
@@ -1326,7 +1331,7 @@ class JoinRequest(models.Model):
                 if len(xfers) < len(tts):
                     print "WARNING, some transfers are missing! repair? "
                     loger.warning("WARNING, some transfers are missing! repair? ")
-                    return
+                    return False
 
                 xfer_pay = None
                 xfer_share = None
@@ -1373,13 +1378,13 @@ class JoinRequest(models.Model):
                                         loger.info("CHANGED evt:"+str(evt.id)+" qty:0 to "+str(amountpay))
                                         evt.quantity = amountpay
                                         evt.save()
-
                             #return
                         elif amountpay:
                             if unit.abbrev == 'fair' and self.project.agent.need_faircoins():
-                                print "The agent uses internal faircoins, so don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent)
-                                loger.info("The agent uses internal faircoins, so don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent))
-                                return
+                                if not self.agent.faircoin_resource() or not self.agent.faircoin_resource().faircoin_address.is_mine():
+                                    print "The agent uses internal faircoins, but not agent fairaccount or is not mine, don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent)
+                                    loger.info("The agent uses internal faircoins, but not agent fairaccount or is not mine, don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent))
+                                    return False
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
                                 event_date = datetime.date.today(),
@@ -1593,8 +1598,9 @@ class JoinRequest(models.Model):
                             loger.warning("The shares transfer already has Events!! "+str(len(evts)))
                             for ev in evts:
                                 rt_u = ev.resource_type.ocp_artwork_type.general_unit_type.unit_set.first().ocp_unit
-                                print "...repair shr_evt? "+str(ev.id)+" qty:"+str(ev.quantity)+" u:"+str(ev.unit_of_quantity)+" / val:"+str(ev.value)+" u:"+str(ev.unit_of_value)+" rt:"+str(ev.resource_type)+" rt_u:"+str(rt_u)+" from:"+str(ev.from_agent)+" to:"+str(ev.to_agent)
-
+                                print "...repair shr_evt? "+str(ev.id)+" qty:"+str(ev.quantity)+" uq:"+str(ev.unit_of_quantity)+" / val:"+str(ev.value)+" uv:"+str(ev.unit_of_value)+" rt:"+str(ev.resource_type)+" rt_u:"+str(rt_u)+" from:"+str(ev.from_agent)+" to:"+str(ev.to_agent)
+                                loger.info("...repair shr_evt? "+str(ev.id)+" qty:"+str(ev.quantity)+" uq:"+str(ev.unit_of_quantity)+" / val:"+str(ev.value)+" uv:"+str(ev.unit_of_value)+" rt:"+str(ev.resource_type)+" rt_u:"+str(rt_u)+" from:"+str(ev.from_agent)+" to:"+str(ev.to_agent))
+                            return False
 
 
                         """sh_evt2, created = EconomicEvent.objects.get_or_create(
