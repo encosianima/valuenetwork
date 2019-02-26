@@ -326,7 +326,8 @@ a.more-link {
                           {% endif %}
                       {% endif %}
                       {% if req.exchange and not req.pending_shares %}
-                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange|show_name:user_agent|safe }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
+                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">
+                              {{ req.exchange|show_name:user_agent|safe }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
                         {% if user_agent in req.project.agent.managers or user_agent == req.project.agent %}
                           {% if not req.project.agent.need_faircoins and not req.exchange.status == 'complete' %} &nbsp; &nbsp;
                             <form

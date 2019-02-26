@@ -731,7 +731,9 @@ class JoinRequest(models.Model):
 
     def payment_html(self):
         payopt = self.payment_option()
-        fairrs = self.agent.faircoin_resource()
+        fairrs = None
+        if self.agent:
+            fairrs = self.agent.faircoin_resource()
         obj = None
         if settings.PAYMENT_GATEWAYS and payopt:
             gates = settings.PAYMENT_GATEWAYS
@@ -748,6 +750,10 @@ class JoinRequest(models.Model):
                   txt = ''
                   amount = None
                   if self.project.agent.need_faircoins():
+                    if not self.agent:
+                        txt = str(_("The project coordinators will create your account, and you will receive an email with an initial random password that should be changed after logging in. Once changed you'll be able to top-up your internal Faircoin account and proceed to pay the membership shares."))
+                        return txt
+
                     addr = self.agent.faircoin_address()
                     wallet = WALLET
                     price = faircoin_utils.share_price_in_fairs(self)
@@ -772,7 +778,7 @@ class JoinRequest(models.Model):
                             else:
                                 txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
                           else:
-                            txt = str(_("The faircoin address is not from the same wallet!"))
+                            txt = str(_("The agent faircoin address is not from the same wallet!"))
                         else:
                           txt = str(_("The OCP wallet is not available now, try later."))
                       else:
