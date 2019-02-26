@@ -11,7 +11,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 from django.contrib import messages
 
-from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent, EconomicResourceType, Help
+from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent, EconomicResourceType, EconomicAgent, Help
 from valuenetwork.valueaccounting.forms import EconomicResourceForm
 from valuenetwork.valueaccounting.service import ExchangeService
 from faircoin import utils as faircoin_utils
@@ -258,6 +258,24 @@ class ConfirmPasswordView(UpdateView):
 
     def get_success_url(self):
         return self.request.get_full_path()
+
+
+
+@login_required
+def request_faircoin_address(request, agent_id=None):
+    if request.method == "POST":
+        agent = None
+        if agent_id:
+            agent = get_object_or_404(EconomicAgent, id=agent_id)
+        user_agent = get_agent(request)
+        if not user_agent:
+            return render(request, 'work/no_permission.html')
+        if agent:
+            agent.request_faircoin_address()
+            logger.info("- The user_agent:"+str(user_agent)+" has requested a Faircoin address for agent:"+str(agent))
+    return HttpResponseRedirect('/%s/%s/'
+        % ('work/agent', agent.id))
+
 
 
 from faircoin.models import FaircoinAddress, FaircoinTransaction
