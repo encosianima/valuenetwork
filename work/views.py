@@ -418,7 +418,7 @@ def share_payment(request, agent_id):
         updated = req.update_payment_status('complete', address_end, address_origin)
         if not updated:
             raise ValidationError("Error updating the payment status to complete.")
-        #evts = req.exchange.events()
+        evts = req.exchange.all_events()
         for ev in evts:
             if ev.resource_type == req.payment_unit_rt() and ev.resource_type == fair_rt:
                 fairtx = FaircoinTransaction(
