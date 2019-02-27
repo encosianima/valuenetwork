@@ -270,20 +270,30 @@ class ExchangeService(object):
                     date = datetime.date.fromtimestamp(time)
                     tt = ExchangeService.faircoin_incoming_transfer_type()
                     xt = tt.exchange_type
-                    exchange = Exchange(
-                        exchange_type=xt,
-                        use_case=xt.use_case,
-                        name="Receive Faircoins",
-                        start_date=date,
-                    )
-                    exchange.save()
-                    transfer = Transfer(
-                        transfer_type=tt,
-                        exchange=exchange,
-                        transfer_date=date,
-                        name="Receive Faircoins",
-                    )
-                    transfer.save()
+                    jn_req = event = fairtx = None
+                    for req in resource.owner().project_join_requests.all():
+                        if req.project.shares_account_type() == resource.resource_type:
+                            jn_req = req
+                            exchange = jn_req.exchange
+                            transfer = exchange.txpay()
+                            event = transfer.events.get(faircoin_transaction__tx_hash__isnull=True)
+                            fairtx = event.faircoin_transaction
+                            #print "found jr:"+str(req.id)+" pro:"+str(req.project.agent)
+                    if not jn_req:
+                        exchange = Exchange(
+                            exchange_type=xt,
+                            use_case=xt.use_case,
+                            name="Receive Faircoins",
+                            start_date=date,
+                        )
+                        exchange.save()
+                        transfer = Transfer(
+                            transfer_type=tt,
+                            exchange=exchange,
+                            transfer_date=date,
+                            name="Receive Faircoins",
+                        )
+                        transfer.save()
 
                     et_receive = EventType.objects.get(name="Receive")
                     state = "external"
@@ -292,25 +302,35 @@ class ExchangeService(object):
                     if confirmations > 2:
                         state = "confirmed"
 
-                    event = EconomicEvent(
-                        event_type=et_receive,
-                        event_date=date,
-                        to_agent=agent,
-                        resource_type=resource.resource_type,
-                        resource=resource,
-                        quantity=qty,
-                        transfer=transfer,
-                        event_reference=faircoin_address
-                    )
+                    if not event:
+                        event = EconomicEvent(
+                            event_type=et_receive,
+                            event_date=date,
+                            to_agent=agent,
+                            resource_type=resource.resource_type,
+                            resource=resource,
+                            quantity=qty,
+                            transfer=transfer,
+                            event_reference=faircoin_address
+                        )
+                    else:
+                        event.quantity = qty
+                        event.event_reference = faircoin_address
+                        #event.event_date = date
                     event.save()
-                    fairtx = FaircoinTransaction(
-                        event=event,
-                        tx_hash=str(tx[0]),
-                        tx_state=state,
-                        to_address=faircoin_address,
-                        amount=qty,
-                        minus_fee=False,
-                    )
+                    if not fairtx:
+                        fairtx = FaircoinTransaction(
+                            event=event,
+                            tx_hash=str(tx[0]),
+                            tx_state=state,
+                            to_address=faircoin_address,
+                            amount=qty,
+                            minus_fee=False,
+                        )
+                    else:
+                        fairtx.tx_state = state
+                        fairtx.tx_hash = str(tx[0])
+                        fairtx.amount = qty
                     fairtx.save()
                     tx_included.append(str(tx[0]))
         return tx_included
