@@ -1380,16 +1380,19 @@ class JoinRequest(models.Model):
                                         evt.save()
                             #return
                         elif amountpay:
+                            event_res = None
                             if unit.abbrev == 'fair' and self.project.agent.need_faircoins():
                                 if not self.agent.faircoin_resource() or not self.agent.faircoin_resource().faircoin_address.is_mine():
                                     print "The agent uses internal faircoins, but not agent fairaccount or is not mine, don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent)
                                     loger.info("The agent uses internal faircoins, but not agent fairaccount or is not mine, don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent))
                                     return False
+                                else:
+                                    event_res = self.agent.faircoin_resource()
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
                                 event_date = datetime.date.today(),
                                 resource_type = unit_rt,
-                                #resource=event_res,
+                                resource=event_res,
                                 transfer = xfer_pay,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
