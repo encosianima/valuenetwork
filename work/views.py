@@ -433,7 +433,22 @@ def share_payment(request, agent_id):
                 loger.info("- created FaircoinTransaction: "+str(fairtx))
                 if not ev.event_reference == address_end:
                     ev.event_reference = address_end
-                    ev.save()
+                    print "-- added event_reference to ev:"+str(ev.id)+" "+str(ev)
+                    loger.info("-- added event_reference to ev:"+str(ev.id)+" "+str(ev))
+                if not ev.description:
+                    ev.description = ev.transfer.transfer_type.name
+                    print "-- added description to ev:"+str(ev.id)+" "+str(ev)
+                    loger.info("-- added description to ev:"+str(ev.id)+" "+str(ev))
+                if not ev.from_agent:
+                    ev.from_agent = from_agent
+                    print "-- added from_agent to ev:"+str(ev.id)+" ag:"+str(agent)
+                    loger.info("-- added from_agent to ev:"+str(ev.id)+" ag:"+str(agent))
+                if not ev.to_agent:
+                    ev.to_agent = to_agent
+                    print "-- added to_agent to ev:"+str(ev.id)+" ag:"+str(agent)
+                    loger.info("-- added to_agent to ev:"+str(ev.id)+" ag:"+str(agent))
+
+                ev.save()
                 break
 
 
