@@ -7541,11 +7541,16 @@ def create_shares_exchange_types(request, agent_id):
 
             ## TODO delete when fully migrated
             fdc_et = None
-            if not slug_ets:
-                if slug == 'fair' and project.fobi_slug == 'freedom-coop':
-                    fdc_et = ExchangeType.objects.membership_share_exchange_type()
-                    if fdc_et:
-                        slug_ets = [fdc_et]
+            if slug == 'fair' and project.fobi_slug == 'freedom-coop':
+                fdc_et = ExchangeType.objects.membership_share_exchange_type()
+            if fdc_et:
+                if not slug_ets:
+                    slug_ets = [fdc_et]
+                else:
+                    print "## Repair old fdc_et uses because there is the new et? fdc_et:"+str(fdc_et)+" old_exs:"+str(len(fdc_et.exchanges.all()))+" new_et:"+str(slug_ets[0])+" new_exs:"+str(len(slug_ets[0].exchanges.all()))
+                    loger.info("## Repair old fdc_et uses because there is the new et? fdc_et:"+str(fdc_et)+" old_exs:"+str(len(fdc_et.exchanges.all()))+" new_et:"+str(slug_ets[0])+" new_exs:"+str(len(slug_ets[0].exchanges.all())))
+                    for ex in fdc_et.exchanges.all():
+                        pass
             ##
 
             if slug_ets:
