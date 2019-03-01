@@ -9938,6 +9938,7 @@ class Transfer(models.Model):
         commis = self.commitments.all().order_by('-due_date')
         if commis:
             return commis[0].due_date.isoformat()
+        return '?'
 
     def related_agents(self):
         agents = []
@@ -13845,9 +13846,9 @@ class EconomicEvent(models.Model):
 
     def unit(self):
         if self.unit_of_quantity:
-            return self.unit_of_quantity.abbrev
+            return self.unit_of_quantity.symbol if self.unit_of_quantity.symbol else self.unit_of_quantity.abbrev
         elif self.resource_type.unit:
-            return self.resource_type.unit.abbrev
+            return self.resource_type.unit.symbol if self.resource_type.unit.symbol else self.resource_type.unit.abbrev
         else:
             return "unit?"
 
