@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 from django.contrib import messages
+from django.db.models import Q, Count
 
 from valuenetwork.valueaccounting.models import EconomicResource, EconomicEvent, EconomicResourceType, EconomicAgent, Help
 from valuenetwork.valueaccounting.forms import EconomicResourceForm
@@ -203,7 +204,10 @@ def faircoin_history(request, resource_id):
                 unconfirmed_balance = "Not accessible now"
         else:
             wallet = False
-    event_list = resource.events.all()
+    event_list = EconomicEvent.objects.filter(Q(resource=resource) | Q(faircoin_transaction__to_address=resource.faircoin_address.address)).annotate(numev=Count("transfer__events")).exclude(numev__gt=1, event_type__name="Receive")
+    #event_list = resource.events.all()
+    for ev in event_list:
+        ev.list_name = ev.show_name(resource.owner()).split(' ')[0]
     init = {"quantity": resource.quantity,}
     unit = resource.resource_type.unit
 

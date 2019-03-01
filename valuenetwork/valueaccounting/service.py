@@ -251,10 +251,21 @@ class ExchangeService(object):
             return []
 
         event_list = EconomicEvent.objects.filter(
+            Q(resource=resource) | Q(faircoin_transaction__to_address=resource.faircoin_address.address)
+            ).annotate(numev=Count("transfer__events")
+            ).exclude(numev__gt=1, event_type__name="Receive")
+        event_list = event_list.filter(
+            event_date__gt=redistribution_date,
+            faircoin_transaction__tx_hash__isnull=False
+        )
+        event_list2 = EconomicEvent.objects.filter( #
             resource=resource,
             event_date__gt=redistribution_date,
             faircoin_transaction__tx_hash__isnull=False
         )
+        if not len(event_list) == len(event_list2):
+            print ";; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2))
+            loger.info(";; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2)))
 
         tx_in_ocp = []
         for event in event_list:
@@ -271,14 +282,48 @@ class ExchangeService(object):
                     tt = ExchangeService.faircoin_incoming_transfer_type()
                     xt = tt.exchange_type
                     jn_req = event = fairtx = None
+                    if hasattr(resource.owner(), 'project') and resource.owner().project:
+                        for req in resource.owner().project.join_requests.all():
+                            #print  ";; req:"+str(req)
+                            if req.exchange and req.agent.faircoin_resource():
+                                txpay = req.exchange.txpay()
+                                if txpay:
+                                    for ev in txpay.events.all():
+                                        if ev.to_agent == resource.owner() and ev.faircoin_transaction and not ev.faircoin_transaction.tx_hash:
+                                            jn_req = req
+                                            exchange = req.exchange
+                                            transfer = txpay
+                                            event = ev
+                                            fairtx = ev.faircoin_transaction
+                                            print ";; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id)
+                                            loger.info(";; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id))
+                                            break
+                                        #else:
+                                        #    print ";; skip ev "
+                                else:
+                                    print ";; not found txpay in req:"+str(req.id)
+                                    loger.info(";; not found txpay in req:"+str(req.id))
+                            else:
+                                print ";; not req.exchange ?"
+                            if jn_req:
+                                #print ";; found"
+                                break
+                    else:
+                        print ";; no project"
                     for req in resource.owner().project_join_requests.all():
-                        if req.project.shares_account_type() == resource.resource_type:
-                            jn_req = req
-                            exchange = jn_req.exchange
-                            transfer = exchange.txpay()
-                            event = transfer.events.get(faircoin_transaction__tx_hash__isnull=True)
-                            fairtx = event.faircoin_transaction
-                            #print "found jr:"+str(req.id)+" pro:"+str(req.project.agent)
+                        if req.exchange: #project.shares_account_type() == resource.resource_type:
+                            for tx in req.exchange.transfers.all():
+                                for ev in tx.events.all():
+                                    if ev.faircoin_transaction:
+                                        if ev.faircoin_transaction.to_address == resource.faircoin_address():
+                                            jn_req = req
+                                            exchange = req.exchange
+                                            transfer = tx #req.exchange.txpay()
+                                            event = ev #transfer.events.get(faircoin_transaction__tx_hash__isnull=True)
+                                            fairtx = ev.faircoin_transaction
+                                            print ";; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(exchange.id)
+                                            loger.info(";; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(exchange.id))
+                                            break
                     if not jn_req:
                         exchange = Exchange(
                             exchange_type=xt,

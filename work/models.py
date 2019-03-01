@@ -1313,6 +1313,9 @@ class JoinRequest(models.Model):
 
         if status:
             if self.agent:
+                user = None
+                if self.agent.user():
+                    user = self.agent.user().user
                 agshac = self.agent_shares_account()
 
                 if not self.exchange:
@@ -1405,7 +1408,7 @@ class JoinRequest(models.Model):
                                 is_contribution = xfer_pay.transfer_type.is_contribution,
                                 is_to_distribute = xfer_pay.transfer_type.is_to_distribute,
                                 event_reference = gateref,
-                                created_by = self.agent.user().user,
+                                created_by = user,
                                 commitment = commit_pay,
                                 exchange = ex,
                             )
@@ -1431,7 +1434,7 @@ class JoinRequest(models.Model):
                                 is_contribution = xfer_pay.transfer_type.is_contribution,
                                 is_to_distribute = xfer_pay.transfer_type.is_to_distribute,
                                 event_reference = gateref,
-                                created_by = self.agent.user().user,
+                                created_by = user,
                                 commitment = commit_pay2,
                             )
                             if created:
@@ -1472,7 +1475,7 @@ class JoinRequest(models.Model):
                                 from_agent = self.project.agent,
                                 to_agent = self.agent,
                                 #description = description,
-                                created_by = self.agent.user().user,
+                                created_by = user,
                             )
                             if created:
                                 print "- created Commitment:"+str(commit_share.id)+" "+str(commit_share)
@@ -1495,7 +1498,7 @@ class JoinRequest(models.Model):
                             from_agent = self.project.agent,
                             to_agent = self.agent,
                             #description = description,
-                            created_by = self.agent.user().user,
+                            created_by = user,
                         )
                         if created:
                             print "- created Commitment: "+str(sh_com)
@@ -1517,7 +1520,7 @@ class JoinRequest(models.Model):
                             from_agent = self.project.agent,
                             to_agent = self.agent,
                             #description = description,
-                            created_by = self.agent.user().user,
+                            created_by = user,
                         )
                         if created:
                             print "- created Commitment: "+str(sh_com2)
@@ -1543,7 +1546,7 @@ class JoinRequest(models.Model):
                                 is_contribution = xfer_share.transfer_type.is_contribution,
                                 is_to_distribute = xfer_share.transfer_type.is_to_distribute,
                                 #event_reference = gateref,
-                                created_by = self.agent.user().user,
+                                created_by = user,
                                 commitment = commit_share,
                                 exchange = ex,
                             )
@@ -1588,7 +1591,7 @@ class JoinRequest(models.Model):
                                 is_contribution = xfer_share.transfer_type.is_contribution,
                                 is_to_distribute = xfer_share.transfer_type.is_to_distribute,
                                 #event_reference = gateref,
-                                created_by = self.agent.user().user,
+                                created_by = user,
                                 commitment = commit_share,
                                 exchange = ex,
                             )
@@ -1623,7 +1626,7 @@ class JoinRequest(models.Model):
                             is_contribution = False, #xfer_pay.transfer_type.is_contribution,
                             is_to_distribute = False, #xfer_pay.transfer_type.is_to_distribute,
                             #event_reference = gateref,
-                            created_by = req.agent.user().user,
+                            created_by = user,
                         )"""
 
                         return True
@@ -1647,7 +1650,7 @@ class JoinRequest(models.Model):
                                 from_agent = self.agent,
                                 to_agent = self.project.agent,
                                 #description = description,
-                                created_by = self.agent.user().user,
+                                created_by = user,
                             )
                             if created:
                                 print "- created Commitment: "+str(commit_pay)
@@ -1669,7 +1672,7 @@ class JoinRequest(models.Model):
                                 from_agent = self.agent,
                                 to_agent = self.project.agent,
                                 #description = description,
-                                created_by = self.agent.user().user,
+                                created_by = user,
                             )
                             if created:
                                 print "- created Commitment: "+str(commit_pay2)
@@ -1706,7 +1709,7 @@ class JoinRequest(models.Model):
                                     from_agent = self.project.agent,
                                     to_agent = self.agent,
                                     #description = description,
-                                    created_by = self.agent.user().user,
+                                    created_by = user,
                                 )
                                 if created:
                                     print "- created Commitment: "+str(commit_share)
@@ -1728,7 +1731,7 @@ class JoinRequest(models.Model):
                                     from_agent = self.project.agent,
                                     to_agent = self.agent,
                                     #description = description,
-                                    created_by = self.agent.user().user,
+                                    created_by = user,
                                 )
                                 if created:
                                     print "- created Commitment: "+str(commit_share2)

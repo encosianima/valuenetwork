@@ -5381,10 +5381,14 @@ class ExchangeTypeManager(models.Manager):
         return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
 
     def membership_share_exchange_type(self):
+        print "The old membership_share_exchange_type was called!! "
+        loger.info("The old membership_share_exchange_type was called!! ")
         try:
             xt = ExchangeType.objects.get(name='Membership Contribution')
         except ExchangeType.DoesNotExist:
-            raise ValidationError("Membership Contribution does not exist by that name")
+            print "Membership Contribution et does not exist anymore..."
+            loger.info("Membership Contribution et does not exist anymore...")
+            #raise ValidationError("Membership Contribution does not exist by that name")
         return xt
 
 
@@ -10928,11 +10932,13 @@ class Commitment(models.Model):
             takes = self.to_agent == agent
             if not self.exchange:
                 if not self.transfer.exchange:
+                    print "error showing name: not self.exchange?"
                     return "error showing name: not self.exchange?"
                 else:
                     loger.warning("The Commitment has no exchange but its transfer has, FIXING!")
                     self.exchange = self.transfer.exchange
                     self.save()
+            #print "com:"+str(self.id)+" ag:"+str(agent)+" gives:"+str(gives)+" takes:"+str(takes)
             if hasattr(self.exchange.exchange_type, 'ocp_record_type') and self.exchange.exchange_type.ocp_record_type:
               x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
               for action in x_actions:
@@ -10948,6 +10954,11 @@ class Commitment(models.Model):
                     if takes or forced:
                         if action.clas == 'sell' or action.clas == 'give':
                             name = newname
+            else:
+                print "The comm exchange.exchange_type has not ocp_record_type ? cm:"+str(self.id)+" et:"+str(self.exchange.exchange_type)
+                loger.info("The comm exchange.exchange_type has not ocp_record_type ? cm:"+str(self.id)+" et:"+str(self.exchange.exchange_type))
+        #else:
+        #    print "No agent??"
         return name
 
     def status(self):
@@ -12933,6 +12944,10 @@ class EconomicEvent(models.Model):
                     if takes or forced:
                         if action.clas == 'sell' or action.clas == 'give':
                             name = newname
+            else:
+                if self.from_agent and self.to_agent:
+                    name = '?'+name
+                print "The ev:"+str(self.id)+" exchange.exchange_type has not ocp_record_type ? ag:"+str(agent)+" gives:"+str(gives)+" takes:"+str(takes)+" ex:"+str(self.exchange.id)+" et:"+str(self.exchange.exchange_type.id)+" "+str(self.exchange.exchange_type)
         return name
 
 

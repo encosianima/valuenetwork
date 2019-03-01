@@ -433,7 +433,22 @@ def share_payment(request, agent_id):
                 loger.info("- created FaircoinTransaction: "+str(fairtx))
                 if not ev.event_reference == address_end:
                     ev.event_reference = address_end
-                    ev.save()
+                    print "-- added event_reference to ev:"+str(ev.id)+" "+str(ev)
+                    loger.info("-- added event_reference to ev:"+str(ev.id)+" "+str(ev))
+                if not ev.description:
+                    ev.description = ev.transfer.transfer_type.name
+                    print "-- added description to ev:"+str(ev.id)+" "+str(ev)
+                    loger.info("-- added description to ev:"+str(ev.id)+" "+str(ev))
+                if not ev.from_agent:
+                    ev.from_agent = from_agent
+                    print "-- added from_agent to ev:"+str(ev.id)+" ag:"+str(agent)
+                    loger.info("-- added from_agent to ev:"+str(ev.id)+" ag:"+str(agent))
+                if not ev.to_agent:
+                    ev.to_agent = to_agent
+                    print "-- added to_agent to ev:"+str(ev.id)+" ag:"+str(agent)
+                    loger.info("-- added to_agent to ev:"+str(ev.id)+" ag:"+str(agent))
+
+                ev.save()
                 break
 
 
@@ -7526,11 +7541,16 @@ def create_shares_exchange_types(request, agent_id):
 
             ## TODO delete when fully migrated
             fdc_et = None
-            if not slug_ets:
-                if slug == 'fair' and project.fobi_slug == 'freedom-coop':
-                    fdc_et = ExchangeType.objects.membership_share_exchange_type()
-                    if fdc_et:
-                        slug_ets = [fdc_et]
+            if slug == 'fair' and project.fobi_slug == 'freedom-coop':
+                fdc_et = ExchangeType.objects.membership_share_exchange_type()
+            if fdc_et:
+                if not slug_ets:
+                    slug_ets = [fdc_et]
+                else:
+                    print "## Repair old fdc_et uses because there is the new et? fdc_et:"+str(fdc_et)+" old_exs:"+str(len(fdc_et.exchanges.all()))+" new_et:"+str(slug_ets[0])+" new_exs:"+str(len(slug_ets[0].exchanges.all()))
+                    loger.info("## Repair old fdc_et uses because there is the new et? fdc_et:"+str(fdc_et)+" old_exs:"+str(len(fdc_et.exchanges.all()))+" new_et:"+str(slug_ets[0])+" new_exs:"+str(len(slug_ets[0].exchanges.all())))
+                    for ex in fdc_et.exchanges.all():
+                        pass
             ##
 
             if slug_ets:
