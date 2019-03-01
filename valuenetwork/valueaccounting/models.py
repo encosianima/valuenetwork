@@ -12924,6 +12924,7 @@ class EconomicEvent(models.Model):
             takes = self.to_agent == agent
             if not self.exchange:
                 if not self.transfer.exchange:
+                    loger.info("error showing name: not self.exchange? ev:"+str(self.id))
                     return "error showing name: not self.exchange?"
                 else:
                     loger.warning("The Event has no exchange but its transfer has it, FIXING!")
