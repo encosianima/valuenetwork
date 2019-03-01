@@ -98,7 +98,7 @@
                         {% endif %}
                         <td>{{ event.event_date|date:"Y-m-d" }}</td>
                         <td>{{ event.list_name|safe }}</td>
-                        <td>{{ event.from_agent }}</td>
+                        <td>{{ event.from_agent.name }}</td>
                         <!-- <td>{{ event.context_agent }}</td> -->
                         {% if event.event_type == "Give" and event.transaction_state == "new" %}
                             <td style="text-align: right;" >{{ event.quantity_formatted }} (+fee)</td>

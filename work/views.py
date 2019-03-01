@@ -379,7 +379,7 @@ def share_payment(request, agent_id):
         if not exchange:
             updated = req.update_payment_status('pending')
             if not updated:
-                raise ValidationError("Error updating the payment status to pending.")
+                raise ValidationError("Error updating the payment status to pending. jr:"+str(req.id))
             exchange = req.exchange
             #raise ValidationError("Can't find the exchange related the shares payment!")
         evts = exchange.all_events()

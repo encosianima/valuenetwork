@@ -1161,8 +1161,9 @@
               <p>{% trans "Sorry, you've tried to join this project but your request was <b>declined</b> for any reason. See the thread at" %}:
               <b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}">{% trans "Your Declined Joining Feedback" %}</a></b> </p>
             {% else %}
-              <p>{% trans "This project has a moderated access workflow, and you've requested access to join in. To keep track of the joining process go to" %}:
-                  <b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}">{% trans "Your Joining Feedback" %}</a></b></p>
+              <p>{% trans "You've requested to join this project. To keep track of the joining process go to" %}:
+                  <br><b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}"
+                            class="btn btn-primary" >{% trans "Your Joining Feedback" %}</a></b></p>
             {% endif %}
         {% else %}
           <p>{% trans "This project has a moderated access workflow. Please fill the following form to request access, and then you will have a special feedback page to comunicate with the project coordinators" %}:</p>
