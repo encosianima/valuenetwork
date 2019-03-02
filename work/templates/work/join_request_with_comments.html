@@ -255,7 +255,8 @@ a.more-link {
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
                   {% if req.exchange %}
                     &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
-                    {% if user_agent in req.project.agent.managers and not req.project.agent.need_faircoins %} &nbsp; &nbsp;
+                    {% if user_agent in req.project.agent.managers %}
+                      {% if not req.project.agent.need_faircoins or not req.payment_pending_amount %} &nbsp; &nbsp;
                         <form
                               class="action-form"
                               id="status-form{{ req.id }}"
@@ -264,8 +265,14 @@ a.more-link {
                             {% csrf_token %}
                             <input type="hidden" name="status" value="complete">
                             <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                            <br/><span class="help-text" style="font-size:0.8em">{% trans "(This will set the payment as done and transfer the shares)" %}</span>
+                            <br/><span class="help-text" style="font-size:0.8em">
+                            {% if not req.payment_pending_amount %}
+                                {% trans "(The payment is done, this will only transfer the pending shares)" %}
+                            {% else %}
+                                {% trans "(This will set the payment as done and transfer the shares)" %}
+                            {% endif %}</span>
                         </form>
+                      {% endif %}
                     {% endif %}
                   {% else %}
                     {% if user_agent in req.project.agent.managers and req.exchange_type %} &nbsp; &nbsp;

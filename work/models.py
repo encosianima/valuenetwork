@@ -1366,6 +1366,8 @@ class JoinRequest(models.Model):
 
                     if status == 'complete' or status == 'published':
 
+        #       C O M P L E T E
+
                         if len(evts):
                             print ("The payment transfer already has events! "+str(len(evts)))
                             loger.warning("The payment transfer already has events! "+str(len(evts)))
@@ -1382,7 +1384,7 @@ class JoinRequest(models.Model):
                                         evt.quantity = amountpay
                                         evt.save()
                             #return
-                        elif amountpay:
+                        elif amountpay and pendamo:
                             event_res = None
                             if unit.abbrev == 'fair' and self.project.agent.need_faircoins():
                                 if not self.agent.faircoin_resource() or not self.agent.faircoin_resource().faircoin_address.is_mine():
@@ -1458,7 +1460,7 @@ class JoinRequest(models.Model):
                             loger.error("ERROR: Can't find xfer_share!! "+str(self))
 
                         # create commitments for shares
-                        if not commit_share and self.pending_shares():
+                        if not commit_share and self.pending_shares() and not evts:
                             commit_share, created = Commitment.objects.get_or_create(
                                 event_type = et_give,
                                 commitment_date = datetime.date.today(),
@@ -1695,7 +1697,7 @@ class JoinRequest(models.Model):
                                 if not commit_share2:
                                   commit_share2 = commit_share
 
-                            # create commitments for shares
+                            # create commitments for shares if payed
                             if not commit_share and not self.payment_pending_amount() and not evts:
                                 commit_share, created = Commitment.objects.get_or_create(
                                     event_type = et_give,
