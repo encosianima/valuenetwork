@@ -1,5 +1,6 @@
 import requests, json, logging, time
 from random import randint
+from decimal import Decimal
 
 from django.conf import settings
 
