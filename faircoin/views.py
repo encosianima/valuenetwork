@@ -19,7 +19,7 @@ from faircoin import utils as faircoin_utils
 from faircoin.forms import SendFairCoinsForm
 from faircoin.decorators import confirm_password
 
-FAIRCOIN_DIVISOR = Decimal("100000000.00")
+FAIRCOIN_DIVISOR = faircoin_utils.FAIRCOIN_DIVISOR #Decimal("100000000.00")
 
 WALLET = faircoin_utils.is_connected()
 
@@ -79,6 +79,7 @@ def manage_faircoin_account(request, resource_id):
             wallet = False
             if resource.is_address_requested(): is_wallet_address = True
 
+    netfee = faircoin_utils.network_fee_fairs()
     project = None
     jn_req = None
     for req in resource.owner().project_join_requests.all():
@@ -98,7 +99,7 @@ def manage_faircoin_account(request, resource_id):
             if resource.owner().owns_resource_of_type(shacct) and share_price == 0:
                 payment_due = False
             if confirmed_balance and confirmed_balance != "Not accessible now":
-                can_pay = confirmed_balance >= share_price
+                can_pay = (confirmed_balance + netfee) >= share_price
             break
         elif request.user.is_superuser:
             logger.warning("(debug) pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
