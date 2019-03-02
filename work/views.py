@@ -983,8 +983,8 @@ def migrate_fdc_shares(request, jr):
                 note = 'repaired '+str(datetime.date.today())+'. '
                 #jr.create_exchange(note, ex)
             else:
-                print "--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex.id)+" "+str(ex)
-                loger.debug("--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex.id)+" "+str(ex))
+                #print "--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex.id)+" "+str(ex)
+                #loger.debug("--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex.id)+" "+str(ex))
                 continue
         elif not txpay or not txshr:
             print "- - found just one tx? (will rebuild) txpay:"+str(txpay)+" txshr:"+str(txshr)
