@@ -768,7 +768,7 @@ class JoinRequest(models.Model):
                                                       {'f':"<span class='error'>"+str(round(Decimal(amopend - balance), 8))+" fair</span>", 'ac':' </b> '+addr+' <b> '})
                                 elif amopend:
                                     txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
-                                    txt += "</b><a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
+                                    txt += "</b> &nbsp;<a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
                                     txt += "' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
                             else:
                                 txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
