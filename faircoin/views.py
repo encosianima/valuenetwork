@@ -89,9 +89,9 @@ def manage_faircoin_account(request, resource_id):
         shacct = req.project.shares_account_type()
         if faircoin_account and wallet and obj and obj['key'] == 'faircoin' and shacct:
             share = req.project.shares_type() #EconomicResourceType.objects.membership_share()
-            share_price = faircoin_utils.share_price_in_fairs(req)
+            #share_price = faircoin_utils.share_price_in_fairs(req)
             number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
-            share_price = share_price * number_of_shares
+            share_price = req.payment_pending_amount() #share_price * number_of_shares
             project = req.project
             jn_req = req
             payment_due = True

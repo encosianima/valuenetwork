@@ -1573,7 +1573,9 @@ class JoinRequest(models.Model):
                                             #messages.info(request, "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
                           else: # not pending_shares and not share events
                             date = agshac.created_date
-                            print "No pending shares and no events related shares. Repair! total_shares:"+str(self.total_shares())+" date:"+str(date)
+                            print "No pending shares and no events related shares. REPAIR! total_shares:"+str(self.total_shares())+" date:"+str(date)
+                            loger.info("No pending shares and no events related shares. REPAIR! total_shares:"+str(self.total_shares())+" date:"+str(date))
+
                             sh_evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
                                 event_date = date,
@@ -1633,7 +1635,9 @@ class JoinRequest(models.Model):
 
                     elif status == 'pending':
 
-                        if not commit_pay:
+        #        P E N D I N G
+
+                        if not commit_pay and self.payment_pending_amount():
                             commit_pay, created = Commitment.objects.get_or_create(
                                 event_type = et_give,
                                 commitment_date = datetime.date.today(),
@@ -1692,7 +1696,7 @@ class JoinRequest(models.Model):
                                   commit_share2 = commit_share
 
                             # create commitments for shares
-                            '''if not commit_share:
+                            if not commit_share and not self.payment_pending_amount() and not evts:
                                 commit_share, created = Commitment.objects.get_or_create(
                                     event_type = et_give,
                                     commitment_date = datetime.date.today(),
@@ -1714,7 +1718,7 @@ class JoinRequest(models.Model):
                                 if created:
                                     print "- created Commitment: "+str(commit_share)
                                     loger.info("- created Commitment: "+str(commit_share))
-                            if not commit_share2:
+                            '''if not commit_share2:
                                 commit_share2, created = Commitment.objects.get_or_create(
                                     event_type = et_receive,
                                     commitment_date = datetime.date.today(),
