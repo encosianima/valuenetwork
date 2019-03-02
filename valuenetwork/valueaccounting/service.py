@@ -34,13 +34,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Internal Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Transfer FairCoins")
+            name="Transfer Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Transfer FairCoins")
+                name="Transfer Faircoins")
             xt.save()
         return xt
 
@@ -52,10 +52,14 @@ class ExchangeService(object):
             name="Transfer FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Transfer FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
@@ -67,13 +71,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Outgoing Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Send FairCoins")
+            name="Send Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Send FairCoins")
+                name="Send Faircoins")
             xt.save()
         return xt
 
@@ -85,10 +89,14 @@ class ExchangeService(object):
             name="Send FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Send FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
@@ -100,13 +108,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Incoming Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Receive FairCoins")
+            name="Receive Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Receive FairCoins")
+                name="Receive Faircoins")
             xt.save()
         return xt
 
@@ -118,10 +126,14 @@ class ExchangeService(object):
             name="Receive FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Receive FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
