@@ -537,8 +537,8 @@ hr {
                     <td>
 
                             <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"
-                               class="{{ x.status }}" >
-                                {{ x.status|title }}
+                               class="{{ x.statuss }}" >
+                                {{ x.statuss|title }}
                             </a>
 
                         {% if user == x.created_by or user.is_superuser%}

@@ -1803,18 +1803,25 @@ class EconomicAgent(models.Model):
             resource__resource_type__behavior="account")
         return [var.resource for var in vars]
 
-    def owned_shares(self):
+    def owned_shares(self, context=None):
         shares = []
         for rs in self.owned_resources():
             if rs.resource_type in EconomicResourceType.objects.shares_types():
-                shares.append(rs)
+                if context:
+                    if rs.resource_type.context_agent:
+                        if rs.resource_type.context_agent == context:
+                            shares.append(rs)
+                    else:
+                        print "... rs.rt without ca..."
+                else:
+                    shares.append(rs)
         return shares
 
     def owned_shares_accounts(self, res_type=None):
         shares = []
         for rs in self.owned_resources():
             if res_type and rs.resource_type == res_type:
-                return rs
+                return [rs]
             if rs.resource_type in EconomicResourceType.objects.share_accounts_types():
                 shares.append(rs)
         return shares
@@ -5374,6 +5381,7 @@ class ExchangeTypeManager(models.Manager):
         except ExchangeType.DoesNotExist:
             print "Membership Contribution et does not exist anymore..."
             loger.info("Membership Contribution et does not exist anymore...")
+            xt = None
             #raise ValidationError("Membership Contribution does not exist by that name")
         return xt
 
@@ -9068,6 +9076,7 @@ class Exchange(models.Model):
         if hasattr(self, 'join_request') and self.join_request:
             jn_req = self.join_request
 
+        self.statuss = 'complete'
         for slot in slots:
             slot.xfers = []
             slot.agents_to = []
@@ -9236,24 +9245,30 @@ class Exchange(models.Model):
             memslot = slot
             pend = []
             for xf in slot.xfers:
-              if xf.status() == 'pending':
+              xf.statuss = xf.status()
+              if xf.statuss == 'pending':
                 pend.append(xf)
             if len(pend):
-              slot.status = pend[0].status()
+              slot.status = pend[0].statuss
             elif slot.xfers:
-              slot.status = slot.xfers[0].status()
+              slot.status = slot.xfers[0].statuss
             else:
               slot.status = 'empty'
+            if not slot.status == 'complete':
+                self.statuss = 'pending'
         return slots
 
     def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
         newname = None
+        if forced:
+            print "exchange show_name FORCED "+str(self.id)+" "+str(self)
         if self.transfers:
             give_ts = self.transfers.filter( Q(events__isnull=False, events__from_agent=agent) | Q(commitments__isnull=False, commitments__from_agent=agent) ).exclude(transfer_type__is_currency=False)
             take_ts = self.transfers.filter( Q(events__isnull=False, events__to_agent=agent) | Q(commitments__isnull=False, commitments__to_agent=agent) ).exclude(transfer_type__is_currency=False)
             et_name = str(self.exchange_type)
             action = ''
+            #print "ex show_name ag:"+str(agent)+" give_ts:"+str(give_ts)+" take_ts:"+str(take_ts)+" et_name:"+str(et_name)
             if hasattr(self.exchange_type, 'ocp_record_type'):
                 et_name = str(self.exchange_type.ocp_record_type)
                 actions = self.exchange_type.ocp_record_type.x_actions()
@@ -9265,10 +9280,10 @@ class Exchange(models.Model):
                             newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
                         if name == newname:
                             newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
-                        if take_ts or forced:
+                        if give_ts or forced:
                             if action.clas == 'buy' or action.clas == 'receive':
                                 name = newname
-                        if give_ts or forced:
+                        if take_ts or forced:
                             if action.clas == 'sell' or action.clas == 'give':
                                 name = newname
 
@@ -10035,6 +10050,7 @@ class Transfer(models.Model):
         return name
 
     def status(self):
+        #print "tx status"
         if self.exchange.exchange_type.use_case.identifier == 'intrnl_xfer':
             need_evts = 1 #2
         else:
@@ -10765,6 +10781,7 @@ class CommitmentManager(models.Manager):
         return answer
 
     def all_give(self):
+        #print "comm all_give "
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
@@ -12762,6 +12779,7 @@ class EconomicEventManager(models.Manager):
         return EconomicEvent.objects.filter(is_contribution=True)
 
     def all_give(self):
+        #print "event all_give"
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
@@ -12932,6 +12950,20 @@ class EconomicEvent(models.Model):
                     if takes or forced:
                         if action.clas == 'sell' or action.clas == 'give':
                             name = newname
+                    if not takes and not gives:
+                        if not self.from_agent and not self.to_agent:
+                            print "The event has no 'to' nor 'from' agents ?? ev:"+str(self.id)+" "+str(self)
+                            loger.warning("The event has no 'to' nor 'from' agents ?? ev:"+str(self.id)+" "+str(self))
+                        elif self.to_agent == agent.parent() and self.faircoin_transaction: # only used when a fairaccount is inherited from parent
+                            if action.clas == 'sell' or action.clas == 'give':
+                                name = newname
+                        elif self.from_agent == agent.parent() and self.faircoin_transaction:
+                            if action.clas == 'buy' or action.clas == 'receive':
+                                name = newname
+                        else:
+                            print "no gives nor takes? "+str(self.id)+" ag:"+str(agent)+" to:"+str(self.to_agent)+" from:"+str(self.from_agent)
+
+
             else:
                 if self.from_agent and self.to_agent:
                     name = '?'+name
