@@ -7692,8 +7692,8 @@ def create_shares_exchange_types(request, agent_id):
     loger.info("---------- end create_shares_exchange_types ("+str(agent)+") ----------")
 
     #return exchanges_all(request, project.agent.id)
-    return HttpResponseRedirect('/%s/%s/%s/'
-                % ('work/agent', project.agent.id, 'exchanges'))
+    return HttpResponseRedirect('/%s/%s/'
+                % ('work/agent', project.agent.id))
 
 
 #    P R O J E C T   R E S O U R C E S

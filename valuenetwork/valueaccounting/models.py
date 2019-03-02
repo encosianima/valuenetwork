@@ -9285,10 +9285,16 @@ class Exchange(models.Model):
         name = self.__unicode__()
         newname = None
         if forced:
-            print "exchange show_name FORCED "+str(self.id)+" "+str(self)
-        if self.transfers:
-            give_ts = self.transfers.filter( Q(events__isnull=False, events__from_agent=agent) | Q(commitments__isnull=False, commitments__from_agent=agent) ).exclude(transfer_type__is_currency=False)
-            take_ts = self.transfers.filter( Q(events__isnull=False, events__to_agent=agent) | Q(commitments__isnull=False, commitments__to_agent=agent) ).exclude(transfer_type__is_currency=False)
+            print ":: FORCED exchange show_name ex:"+str(self.id)+" "+str(self)
+            loger.info(":: FORCED exchange show_name ex:"+str(self.id)+" "+str(self))
+        trans = self.transfers.all()
+        if len(trans) > 1:
+            give_ts = self.transfers.filter( Q(events__isnull=False, events__from_agent=agent) |
+                                            Q(commitments__isnull=False, commitments__from_agent=agent)
+                                           ).exclude(transfer_type__is_currency=False)
+            take_ts = self.transfers.filter( Q(events__isnull=False, events__to_agent=agent) |
+                                            Q(commitments__isnull=False, commitments__to_agent=agent)
+                                           ).exclude(transfer_type__is_currency=False)
             et_name = str(self.exchange_type)
             action = ''
             #print "ex show_name ag:"+str(agent)+" give_ts:"+str(give_ts)+" take_ts:"+str(take_ts)+" et_name:"+str(et_name)
@@ -9303,15 +9309,18 @@ class Exchange(models.Model):
                             newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
                         if name == newname:
                             newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
-                        if give_ts or forced:
+                        if take_ts or forced:
                             if action.clas == 'buy' or action.clas == 'receive':
                                 name = newname
-                        if take_ts or forced:
+                        if give_ts or forced:
                             if action.clas == 'sell' or action.clas == 'give':
                                 name = newname
 
                         #import pdb; pdb.set_trace()
                         #return str(action.clas)+' -> '+str(opposite.clas)+': '+name #+' GIVE: '+str(give_ts)+' - TAKE: '+str(take_ts)
+        elif not trans:
+            print "WARN Exchange has no transfers ?? ex:"+str(self.id)+" "+str(self)
+            loger.info("WARN Exchange has no transfers ?? ex:"+str(self.id)+" "+str(self))
         return name
 
     def status(self):
