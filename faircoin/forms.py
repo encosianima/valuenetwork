@@ -21,7 +21,7 @@ class SendFairCoinsForm(forms.Form):
         queryset=EconomicAgent.objects.filter(
             agent_resource_roles__role__is_owner=True,
             agent_resource_roles__resource__resource_type__behavior="dig_acct",
-            agent_resource_roles__resource__faircoin_address__address__isnull=False),
+            agent_resource_roles__resource__faircoin_address__address__isnull=False).distinct(),
         widget=forms.Select(
             attrs={'class': 'chzn-select'}),
             label=_("If you send to an OCP agent, choose it here to get the address:"),
@@ -35,12 +35,13 @@ class SendFairCoinsForm(forms.Form):
         if agent and agent.related_all_agents_queryset:
             ag_ids = []
             for ag in agent.related_all_agents_queryset():
-                ag_ids.append(ag.id)
+                if not ag.id in ag_ids and not ag == agent:
+                    ag_ids.append(ag.id)
             self.fields['to_user'].queryset = EconomicAgent.objects.filter(
                 id__in=ag_ids,
                 agent_resource_roles__role__is_owner=True,
                 agent_resource_roles__resource__resource_type__behavior="dig_acct",
-                agent_resource_roles__resource__faircoin_address__address__isnull=False)
+                agent_resource_roles__resource__faircoin_address__address__isnull=False).distinct()
         self.fields['minus_fee'].initial  = False
 
     def clean(self):
