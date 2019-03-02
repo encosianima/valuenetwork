@@ -9055,6 +9055,7 @@ class Exchange(models.Model):
         slots = self.exchange_type.transfer_types.all()
         slots = list(slots)
         memslot = None
+        int_usecase = UseCase.objects.get(identifier="intrnl_xfer")
         transfers = self.transfers.all()
         default_to_agent = None
         default_from_agent = None
@@ -9093,22 +9094,29 @@ class Exchange(models.Model):
                     rt = transfer.resource_type()
                     slot.xfers.append(transfer)
                     slot.last_date = transfer.last_date()
-                    if transfer.actual_value():
-                        slot.total += transfer.actual_value()
-                        slot.total_unit = transfer.unit_of_value()
-                    elif transfer.actual_quantity():
-                        slot.total += transfer.actual_quantity()
-                        slot.total_unit = transfer.unit_of_quantity()
-                    if transfer.value():
+                    acval = transfer.actual_value()
+                    valunit = transfer.unit_of_value()
+                    acqua = transfer.actual_quantity()
+                    quaunit = transfer.unit_of_quantity()
+
+                    if acval:
+                        slot.total += acval
+                        slot.total_unit = valunit
+                    elif acqua:
+                        slot.total += acqua
+                        slot.total_unit = quaunit
+                    val = transfer.value()
+                    if val:
                         if slot.is_currency:
-                            slot.total_com += transfer.value()
-                            slot.total_com_unit = transfer.unit_of_value()
+                            slot.total_com += val
+                            slot.total_com_unit = valunit
                         else:
-                            print "-- found value "+str(transfer.value())+" "+str(transfer.unit_of_value())+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
-                            loger.info("-- found value "+str(transfer.value())+" "+str(transfer.unit_of_value())+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
-                    if transfer.quantity() and not slot.total_com_unit:
-                        slot.total_com += transfer.quantity()
-                        slot.total_com_unit = transfer.unit_of_quantity()
+                            print "-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
+                            loger.info("-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
+                    qua = transfer.quantity()
+                    if qua and not slot.total_com_unit:
+                        slot.total_com += qua
+                        slot.total_com_unit = quaunit
                         if not slot.total_com_unit:
                             if rt and not rt in slot.rts:
                                 slot.rts.append(rt)
@@ -9213,6 +9221,7 @@ class Exchange(models.Model):
                 pass #print #"has jreq, is ok? "+str(self)
             else:
               print "- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit)
+              loger.info("- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit))
 
             if not memslot:
               if slot.is_incoming(self, context_agent): #is_reciprocal:
@@ -9234,7 +9243,7 @@ class Exchange(models.Model):
                 slot.default_from_agent = memslot.default_to_agent
                 slot.default_to_agent = memslot.default_from_agent
 
-            if slot.is_currency and self.exchange_type.use_case != UseCase.objects.get(identifier="intrnl_xfer"):
+            if slot.is_currency and self.exchange_type.use_case != int_usecase:
                 if not slot.give_agent_is_context:
                     slot.default_from_agent = None #logged on agent
                 if not slot.receive_agent_is_context:
