@@ -983,8 +983,8 @@ def migrate_fdc_shares(request, jr):
                 note = 'repaired '+str(datetime.date.today())+'. '
                 #jr.create_exchange(note, ex)
             else:
-                print "--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex)
-                loger.debug("--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex))
+                print "--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex.id)+" "+str(ex)
+                loger.debug("--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex.id)+" "+str(ex))
                 continue
         elif not txpay or not txshr:
             print "- - found just one tx? (will rebuild) txpay:"+str(txpay)+" txshr:"+str(txshr)
@@ -1426,8 +1426,14 @@ def migrate_fdc_shares(request, jr):
                                 loger.info("Call update_payment_status complete to repair the missing share event... jr:"+str(jr.id))
                                 jr.update_payment_status('complete')
                         else:
-                            print "- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id)
-                            loger.info("- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id))
+                            if not jr.payment_pending_amount():
+                                print "- CREATE missing Commitment for Shares..."
+                                jr.update_payment_status('pending')
+                            else:
+                                print "- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id)
+                                loger.info("- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id))
+
+
                     elif tx.transfer_type == paytt:
                         if not txcoms and not txevts:
                             exevts = tx.exchange.xfer_events()
