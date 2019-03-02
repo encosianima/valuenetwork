@@ -7,6 +7,8 @@ url = "http://localhost:8069"
 timeout = 60
 logger = logging.getLogger('ocp')
 
+FAIRCOIN_DIVISOR = Decimal("100000000.00")
+
 # Send command to the daemon.
 def send_command(cmd, params = [] ):
     if params == '': params = []
@@ -54,6 +56,9 @@ def network_fee():
         return response
     """
     return 1000000
+
+def network_fee_fairs():
+    return Decimal(network_fee()) / FAIRCOIN_DIVISOR
 
 def estimate_fee(address_origin, address_end, amount):
     format_dict = [address_origin, address_end, amount]
