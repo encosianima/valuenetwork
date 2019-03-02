@@ -187,13 +187,14 @@ def transfer_faircoins(request, resource_id):
 def faircoin_history(request, resource_id):
     resource = get_object_or_404(EconomicResource, id=resource_id)
     agent = get_agent(request)
+    owner = resource.owner()
     wallet = faircoin_utils.is_connected()
     confirmed_balance = None
     unconfirmed_balance = None
     if wallet:
         if resource.is_wallet_address():
             exchange_service = ExchangeService.get()
-            exchange_service.include_blockchain_tx_as_event(resource.owner(), resource)
+            exchange_service.include_blockchain_tx_as_event(owner, resource)
             try:
                 balances = faircoin_utils.get_address_balance(resource.faircoin_address.address)
                 confirmed_balance = Decimal(balances[0]) / FAIRCOIN_DIVISOR
@@ -207,6 +208,13 @@ def faircoin_history(request, resource_id):
     event_list = EconomicEvent.objects.filter(Q(resource=resource) | Q(faircoin_transaction__to_address=resource.faircoin_address.address)).annotate(numev=Count("transfer__events")).exclude(numev__gt=1, event_type__name="Receive")
     #event_list = resource.events.all()
     for ev in event_list:
+        if ev.exchange:
+            if ev.to_agent == owner.parent() and not ev.from_agent == owner:
+                print "-- change exchange agent to parent? ev:"+str(ev.id)+" ca:"+str(ev.exchange.context_agent)+" from:"+str(ev.from_agent)+" ex:"+str(ev.exchange.id)+" et:"+str(ev.exchange.exchange_type)
+            if ev.from_agent == owner.parent() and not ev.to_agent == owner:
+                print "-- change exchange agent from parent? ev:"+str(ev.id)+" ca:"+str(ev.exchange.context_agent)+" to:"+str(ev.to_agent)+" ex:"+str(ev.exchange.id)+" et:"+str(ev.exchange.exchange_type)
+
+
         ev.list_name = ev.show_name(resource.owner()).split(' ')[0]
     init = {"quantity": resource.quantity,}
     unit = resource.resource_type.unit
