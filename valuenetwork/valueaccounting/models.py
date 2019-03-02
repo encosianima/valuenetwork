@@ -1817,18 +1817,25 @@ class EconomicAgent(models.Model):
             resource__resource_type__behavior="account")
         return [var.resource for var in vars]
 
-    def owned_shares(self):
+    def owned_shares(self, context=None):
         shares = []
         for rs in self.owned_resources():
             if rs.resource_type in EconomicResourceType.objects.shares_types():
-                shares.append(rs)
+                if context:
+                    if rs.resource_type.context_agent:
+                        if rs.resource_type.context_agent == context:
+                            shares.append(rs)
+                    else:
+                        print "... rs.rt without ca..."
+                else:
+                    shares.append(rs)
         return shares
 
     def owned_shares_accounts(self, res_type=None):
         shares = []
         for rs in self.owned_resources():
             if res_type and rs.resource_type == res_type:
-                return rs
+                return [rs]
             if rs.resource_type in EconomicResourceType.objects.share_accounts_types():
                 shares.append(rs)
         return shares
@@ -5388,6 +5395,7 @@ class ExchangeTypeManager(models.Manager):
         except ExchangeType.DoesNotExist:
             print "Membership Contribution et does not exist anymore..."
             loger.info("Membership Contribution et does not exist anymore...")
+            xt = None
             #raise ValidationError("Membership Contribution does not exist by that name")
         return xt
 
@@ -9061,6 +9069,7 @@ class Exchange(models.Model):
         slots = self.exchange_type.transfer_types.all()
         slots = list(slots)
         memslot = None
+        int_usecase = UseCase.objects.get(identifier="intrnl_xfer")
         transfers = self.transfers.all()
         default_to_agent = None
         default_from_agent = None
@@ -9082,6 +9091,7 @@ class Exchange(models.Model):
         if hasattr(self, 'join_request') and self.join_request:
             jn_req = self.join_request
 
+        self.statuss = 'complete'
         for slot in slots:
             slot.xfers = []
             slot.agents_to = []
@@ -9098,22 +9108,29 @@ class Exchange(models.Model):
                     rt = transfer.resource_type()
                     slot.xfers.append(transfer)
                     slot.last_date = transfer.last_date()
-                    if transfer.actual_value():
-                        slot.total += transfer.actual_value()
-                        slot.total_unit = transfer.unit_of_value()
-                    elif transfer.actual_quantity():
-                        slot.total += transfer.actual_quantity()
-                        slot.total_unit = transfer.unit_of_quantity()
-                    if transfer.value():
+                    acval = transfer.actual_value()
+                    valunit = transfer.unit_of_value()
+                    acqua = transfer.actual_quantity()
+                    quaunit = transfer.unit_of_quantity()
+
+                    if acval:
+                        slot.total += acval
+                        slot.total_unit = valunit
+                    elif acqua:
+                        slot.total += acqua
+                        slot.total_unit = quaunit
+                    val = transfer.value()
+                    if val:
                         if slot.is_currency:
-                            slot.total_com += transfer.value()
-                            slot.total_com_unit = transfer.unit_of_value()
+                            slot.total_com += val
+                            slot.total_com_unit = valunit
                         else:
-                            print "-- found value "+str(transfer.value())+" "+str(transfer.unit_of_value())+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
-                            loger.info("-- found value "+str(transfer.value())+" "+str(transfer.unit_of_value())+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
-                    if transfer.quantity() and not slot.total_com_unit:
-                        slot.total_com += transfer.quantity()
-                        slot.total_com_unit = transfer.unit_of_quantity()
+                            print "-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
+                            loger.info("-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
+                    qua = transfer.quantity()
+                    if qua and not slot.total_com_unit:
+                        slot.total_com += qua
+                        slot.total_com_unit = quaunit
                         if not slot.total_com_unit:
                             if rt and not rt in slot.rts:
                                 slot.rts.append(rt)
@@ -9218,6 +9235,7 @@ class Exchange(models.Model):
                 pass #print #"has jreq, is ok? "+str(self)
             else:
               print "- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit)
+              loger.info("- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit))
 
             if not memslot:
               if slot.is_incoming(self, context_agent): #is_reciprocal:
@@ -9239,7 +9257,7 @@ class Exchange(models.Model):
                 slot.default_from_agent = memslot.default_to_agent
                 slot.default_to_agent = memslot.default_from_agent
 
-            if slot.is_currency and self.exchange_type.use_case != UseCase.objects.get(identifier="intrnl_xfer"):
+            if slot.is_currency and self.exchange_type.use_case != int_usecase:
                 if not slot.give_agent_is_context:
                     slot.default_from_agent = None #logged on agent
                 if not slot.receive_agent_is_context:
@@ -9250,24 +9268,30 @@ class Exchange(models.Model):
             memslot = slot
             pend = []
             for xf in slot.xfers:
-              if xf.status() == 'pending':
+              xf.statuss = xf.status()
+              if xf.statuss == 'pending':
                 pend.append(xf)
             if len(pend):
-              slot.status = pend[0].status()
+              slot.status = pend[0].statuss
             elif slot.xfers:
-              slot.status = slot.xfers[0].status()
+              slot.status = slot.xfers[0].statuss
             else:
               slot.status = 'empty'
+            if not slot.status == 'complete':
+                self.statuss = 'pending'
         return slots
 
     def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
         newname = None
+        if forced:
+            print "exchange show_name FORCED "+str(self.id)+" "+str(self)
         if self.transfers:
             give_ts = self.transfers.filter( Q(events__isnull=False, events__from_agent=agent) | Q(commitments__isnull=False, commitments__from_agent=agent) ).exclude(transfer_type__is_currency=False)
             take_ts = self.transfers.filter( Q(events__isnull=False, events__to_agent=agent) | Q(commitments__isnull=False, commitments__to_agent=agent) ).exclude(transfer_type__is_currency=False)
             et_name = str(self.exchange_type)
             action = ''
+            #print "ex show_name ag:"+str(agent)+" give_ts:"+str(give_ts)+" take_ts:"+str(take_ts)+" et_name:"+str(et_name)
             if hasattr(self.exchange_type, 'ocp_record_type'):
                 et_name = str(self.exchange_type.ocp_record_type)
                 actions = self.exchange_type.ocp_record_type.x_actions()
@@ -9279,10 +9303,10 @@ class Exchange(models.Model):
                             newname = name.replace(str(action.clas), '<em>'+opposite.clas+'</em>')
                         if name == newname:
                             newname = name.replace(action.name, '<em>'+opposite.name+'</em>')
-                        if take_ts or forced:
+                        if give_ts or forced:
                             if action.clas == 'buy' or action.clas == 'receive':
                                 name = newname
-                        if give_ts or forced:
+                        if take_ts or forced:
                             if action.clas == 'sell' or action.clas == 'give':
                                 name = newname
 
@@ -9952,6 +9976,7 @@ class Transfer(models.Model):
         commis = self.commitments.all().order_by('-due_date')
         if commis:
             return commis[0].due_date.isoformat()
+        return '?'
 
     def related_agents(self):
         agents = []
@@ -10048,6 +10073,7 @@ class Transfer(models.Model):
         return name
 
     def status(self):
+        #print "tx status"
         if self.exchange.exchange_type.use_case.identifier == 'intrnl_xfer':
             need_evts = 1 #2
         else:
@@ -10778,6 +10804,7 @@ class CommitmentManager(models.Manager):
         return answer
 
     def all_give(self):
+        #print "comm all_give "
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
@@ -12775,6 +12802,7 @@ class EconomicEventManager(models.Manager):
         return EconomicEvent.objects.filter(is_contribution=True)
 
     def all_give(self):
+        #print "event all_give"
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
@@ -12945,6 +12973,20 @@ class EconomicEvent(models.Model):
                     if takes or forced:
                         if action.clas == 'sell' or action.clas == 'give':
                             name = newname
+                    if not takes and not gives:
+                        if not self.from_agent and not self.to_agent:
+                            print "The event has no 'to' nor 'from' agents ?? ev:"+str(self.id)+" "+str(self)
+                            loger.warning("The event has no 'to' nor 'from' agents ?? ev:"+str(self.id)+" "+str(self))
+                        elif self.to_agent == agent.parent() and self.faircoin_transaction: # only used when a fairaccount is inherited from parent
+                            if action.clas == 'sell' or action.clas == 'give':
+                                name = newname
+                        elif self.from_agent == agent.parent() and self.faircoin_transaction:
+                            if action.clas == 'buy' or action.clas == 'receive':
+                                name = newname
+                        else:
+                            print "no gives nor takes? "+str(self.id)+" ag:"+str(agent)+" to:"+str(self.to_agent)+" from:"+str(self.from_agent)
+
+
             else:
                 if self.from_agent and self.to_agent:
                     name = '?'+name
@@ -13859,9 +13901,9 @@ class EconomicEvent(models.Model):
 
     def unit(self):
         if self.unit_of_quantity:
-            return self.unit_of_quantity.abbrev
+            return self.unit_of_quantity.symbol if self.unit_of_quantity.symbol else self.unit_of_quantity.abbrev
         elif self.resource_type.unit:
-            return self.resource_type.unit.abbrev
+            return self.resource_type.unit.symbol if self.resource_type.unit.symbol else self.resource_type.unit.abbrev
         else:
             return "unit?"
 

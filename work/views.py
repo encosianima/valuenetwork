@@ -379,7 +379,7 @@ def share_payment(request, agent_id):
         if not exchange:
             updated = req.update_payment_status('pending')
             if not updated:
-                raise ValidationError("Error updating the payment status to pending.")
+                raise ValidationError("Error updating the payment status to pending. jr:"+str(req.id))
             exchange = req.exchange
             #raise ValidationError("Can't find the exchange related the shares payment!")
         evts = exchange.all_events()
@@ -1497,6 +1497,7 @@ def run_fdc_scripts(request, agent):
         raise ValidationError("This is only intended for Freedom Coop agent migration")
     fdc = agent
     if not hasattr(fdc, 'project'): return
+    print "............ start run_fdc_scripts ............."
     acctyp = fdc.project.shares_account_type()
     shrtyp = fdc.project.shares_type()
     oldshr = EconomicResourceType.objects.membership_share()
@@ -1773,6 +1774,9 @@ def run_fdc_scripts(request, agent):
     if pend and request.user.agent.agent in fdc.managers():
         messages.error(request, "Membership Requests pending to MIGRATE to the new generic JoinRequest system: <b>"+str(pend)+"</b>", extra_tags='safe')
 
+    print "............ end run_fdc_scripts ............."
+
+
 
 
 #    P R O J E C T S
@@ -1892,6 +1896,7 @@ def members_agent(request, agent_id):
     if not user_agent or not user_agent.is_participant: # or not agent in user_agent.related_all_agents(): # or not user_agent.is_active_freedom_coop_member:
         return render(request, 'work/no_permission.html')
 
+    print "--------- start members_agent ----------"
     if agent.nick == "Freedom Coop": run_fdc_scripts(request, agent)
 
     user_is_agent = False
@@ -2148,9 +2153,20 @@ def members_agent(request, agent_id):
 
     dups = check_duplicate_agents(request, agent)
 
+    if hasattr(agent, 'project') and agent.project.is_moderated():
+        if not agent.email and user_agent in agent.managers():
+            messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
+        for ass in has_associations:
+            ag = ass.is_associate
+            ag.jn_reqs = ag.project_join_requests.filter(project=agent.project)
+            ag.oldshares = ag.owned_shares(agent)
+            ag.newshares = 0
+            acc = ag.owned_shares_accounts(agent.project.shares_account_type())
+            if acc:
+                ag.newshares = int(acc[0].price_per_unit)
 
-    if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email and user_agent in agent.managers():
-        messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
+
+    print "--------- end members_agent ----------"
 
     return render(request, "work/members_agent.html", {
         "agent": agent,

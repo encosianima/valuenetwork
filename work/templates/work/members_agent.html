@@ -557,10 +557,13 @@
                                     {% endif %}
                                 {% endwith %}
                             {% endif %}
-                            {% if not agent.project.share_types or request.user.is_superuser %}<br><br>
+                            {% if not agent.project.share_types or request.user.is_superuser %}<br>
                                 {% if user_agent in agent.managers or user_agent == agent %}
+                                  <p style="text-align:right">{% trans "Create Project Shares:" %}
+                                      <span class="showhide" id="sh-createshares">(SHOW)</span>
+                                  </p>
+                                  <div class="list" id="list-createshares" style="display:none">
                                   <form
-                                      style=""
                                       class="create-shares-form miniform"
                                       id="createSharesForm"
                                       action="{% url "create_project_shares" agent_id=agent.id %}"
@@ -588,6 +591,7 @@
                                     <button style="display: inline;"  class="btn btn-warning btn-mini"
                                             title="Create Project Shares" >{% trans "Create Project Shares" %}</button>
                                   </form>
+                                  </div>
                                 {% endif %}
                             {% endif %}
                             </td>
@@ -1032,7 +1036,7 @@
                                     &nbsp;<b class="error">ERROR: multiple FdC memberships!</b>
                                 {% endif %}
                             {% endwith %}
-                            {% for req in assoc.is_associate.joinaproject_requests|reqs_related_agent:agent %}
+                            {% for req in assoc.is_associate.jn_reqs %}
                               {% if req.id %}
                                 {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %} &nbsp;
                                 {% get_comment_count for req as ncom  %}
@@ -1043,7 +1047,7 @@
                                 {% else %}
                                 {% endif %}
                                 {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
-                                                               class="{{ req.exchange.status }}">{{ req.exchange.status }}</a> {% endif %}
+                                                               class="bold">Exchange</a> {% endif %}
                                 {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                               {% endif %}
@@ -1053,12 +1057,12 @@
                             {% endif %}
                             {% if assoc.association_type.association_behavior == "member" or assoc.association_type.association_behavior == "manager" %}
                               {% if agent.project.shares_type %}
-                                {% with assoc.is_associate.owned_shares|shares_related_project:agent.project as oldshares %}
+                                {% with assoc.is_associate.oldshares as oldshares %}
                                   {% if oldshares %}
-                                      &nbsp; <span class="error">OldShares: {{ oldshares }}</span>
+                                      &nbsp; <span class="error">OldShares: {{ oldshares|length }}</span>
                                   {% endif %}
                                 {% endwith %}
-                                {% with assoc.is_associate.owned_shares_accounts|shares_related_project:agent.project as shares %}
+                                {% with assoc.is_associate.newshares as shares %}
                                   {% if shares %}
                                       &nbsp; <span style="color:#476B6B">({{ shares }} share{{ shares|pluralize }})</span>
                                   {% elif assoc.state == "active" %}
@@ -1071,7 +1075,7 @@
                           {% endif %}
                         {% elif not assoc.state == "inactive" and not assoc.is_associate in agent.declined_agents %}
                           <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
-                              {% for req in assoc.is_associate.joinaproject_requests|reqs_related_agent:agent %}
+                              {% for req in assoc.is_associate.jn_reqs %}
                                 {% if req.agent == user_agent %}
                                   {% if req.id %}
                                     {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
@@ -1081,7 +1085,7 @@
                                         <b>{% trans "Feedback" %}</b> {{ ncom }}
                                     </a>
                                     {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
-                                                                   class="{{ req.exchange.status }}">{{ req.exchange.status }}</a> {% endif %}
+                                                                   class="bold">Exchange</a> {% endif %}
                                     {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                   {% endif %}
                                   {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
@@ -1161,8 +1165,9 @@
               <p>{% trans "Sorry, you've tried to join this project but your request was <b>declined</b> for any reason. See the thread at" %}:
               <b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}">{% trans "Your Declined Joining Feedback" %}</a></b> </p>
             {% else %}
-              <p>{% trans "This project has a moderated access workflow, and you've requested access to join in. To keep track of the joining process go to" %}:
-                  <b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}">{% trans "Your Joining Feedback" %}</a></b></p>
+              <p>{% trans "You've requested to join this project. To keep track of the joining process go to" %}:
+                  <br><b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}"
+                            class="btn btn-primary" >{% trans "Your Joining Feedback" %}</a></b></p>
             {% endif %}
         {% else %}
           <p>{% trans "This project has a moderated access workflow. Please fill the following form to request access, and then you will have a special feedback page to comunicate with the project coordinators" %}:</p>

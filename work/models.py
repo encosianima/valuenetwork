@@ -2809,7 +2809,8 @@ def create_unit_types(**kwargs):
 
 
 
-    # FairCoin
+    #   F a i r C o i n
+
     ocp_fair, created = Unit.objects.get_or_create(name='FairCoin', unit_type='value')
     if created:
         print "- created a main ocp Unit: 'FairCoin'!"
@@ -2941,7 +2942,9 @@ def create_unit_types(**kwargs):
     fair_rt.general_unit_type = gen_fair_typ
     fair_rt.save()
 
-    # Faircoin Ocp Account
+
+    #    F a i r c o i n   O c p   A c c o u n t
+
     fairacc_rts = EconomicResourceType.objects.filter(name='Faircoin Ocp Account')
     if not fairacc_rts:
         fairacc_rt, created = EconomicResourceType.objects.get_or_create(
@@ -2995,7 +2998,202 @@ def create_unit_types(**kwargs):
     facc_rt.save()
 
 
-    # Euros
+    # connect Faircoin   E x c h a n g e   T y p e s
+
+    int_usecase = UseCase.objects.get(name="Internal Exchange")
+    out_usecase = UseCase.objects.get(name="Outgoing Exchange")
+    inc_usecase = UseCase.objects.get(name="Incoming Exchange")
+
+    intfairets = ExchangeType.objects.filter(name="Transfer FairCoins")
+    if not intfairets:
+        intfairets = ExchangeType.objects.filter(name="Transfer Faircoins")
+    if intfairets:
+        intfairet = intfairets[0]
+    else:
+        intfairet, c = ExchangeType.objects.get_or_create(
+            name="Transfer Faircoins",
+            use_case=int_usecase)
+        if c:
+            print "- created new ExchangeType: "+str(intfairet)
+    intfairet.use_case = int_usecase
+    intfairet.name = "Transfer Faircoins"
+    intfairet.save()
+
+    extfairets = ExchangeType.objects.filter(name="Send FairCoins")
+    if not extfairets:
+        extfairets = ExchangeType.objects.filter(name="Send Faircoins")
+    if extfairets:
+        extfairet = extfairets[0]
+    extfairet.name = "Send Faircoins"
+    extfairet.use_case = out_usecase
+    extfairet.save()
+
+    incfairets = ExchangeType.objects.filter(name="Receive FairCoins")
+    if not incfairets:
+        incfairets = ExchangeType.objects.filter(name="Receive Faircoins")
+    if incfairets:
+        incfairet = incfairets[0]
+    incfairet.name = "Receive Faircoins"
+    incfairet.use_case = inc_usecase
+    incfairet.save()
+
+
+    ocpext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
+    gen_gifts = Ocp_Record_Type.objects.filter(name__icontains="Gift Economy")
+    if gen_gifts:
+        gen_gift = gen_gifts[0]
+    else:
+        gen_gift, c = Ocp_Record_Type.objects.get_or_create(
+            name="Gift Economy:",
+            parent=ocpext)
+        if c:
+            print "- created Ocp_Record_Type: "+str(gen_gift)
+    gen_gift.name = "Gift Economy:"
+    gen_gift.clas = "gift_economy"
+    gen_gift.save()
+
+    gen_gives = Ocp_Record_Type.objects.filter(name__icontains="Give gift")
+    if gen_gives:
+        gen_give = gen_gives[0]
+    else:
+        gen_give, c = Ocp_Record_Type.objects.get_or_create(
+            name="Give gift:",
+            parent=gen_gift)
+        if c:
+            print "- created Ocp_Record_Type: "+str(gen_give)
+    gen_give.name = "Give gift:"
+    gen_give.clas = "give"
+    gen_give.parent = gen_gift
+    gen_give.save()
+
+    gen_nmats = Ocp_Record_Type.objects.filter(name__icontains="give Non-material resources")
+    if gen_nmats:
+        gen_nmat = gen_nmats[0]
+    else:
+        gen_nmat, c = Ocp_Record_Type.objects.get_or_create(
+            name="give Non-material resources",
+            parent=gen_give)
+        if c:
+            print "- created Ocp_Record_Type: "+str(gen_nmat)
+    gen_nmat.name = "give Non-material resources"
+    gen_nmat.parent = gen_give
+    gen_nmat.ocpRecordType_ocp_artwork_type = nonmat_typ
+    gen_nmat.save()
+
+    oldet = ExchangeType.objects.filter(name="give FairCoin donation")
+    if oldet:
+        oldet = oldet[0]
+        if not oldet.is_deletable():
+            print "WARN! there's also a 'give FairCoin donation' ExchangeType! not deletable. usecase:"+str(oldet.use_case)+" exs:"+str(len(oldet.exchanges.all()))+" <> "+str(len(intfairet.exchanges.all()))
+            if oldet.use_case == int_usecase:
+                for ex in oldet.exchanges.all():
+                    print "internal? edit ex:"+str(ex.id)
+                return
+            elif oldet.use_case == out_usecase:
+                for ex in oldet.exchanges.all():
+                    print "outgoing: EDITED et of ex:"+str(ex.id)
+                    ex.exchange_type = extfairet
+                    ex.save()
+            elif oldet.use_case == inc_usecase:
+                for ex in oldet.exchanges.all():
+                    print "incoming? edit ex:"+str(ex.id)
+                return
+        else:
+            print "- DELETED ExchangeType: "+str(oldet.id)+" "+str(oldet)
+            oldet.delete()
+
+    gen_fairints = Ocp_Record_Type.objects.filter(name__icontains="give FairCoin donation (via ocp)")
+    if not gen_fairints:
+        gen_fairints = Ocp_Record_Type.objects.filter(name__icontains="give FairCoin donation")
+    if gen_fairints:
+        if len(gen_fairints) > 1:
+            print "WARNING there is more than one gen_fairint ? "+str(gen_fairints)
+            return
+        gen_fairint = gen_fairints[0]
+    else:
+        gen_fairint, c = Ocp_Record_Type.objects.get_or_create(
+            name="give FairCoin donation (via ocp)",
+            parent=gen_nmat)
+        if c:
+            print "- created Ocp_Record_Type: "+str(gen_fairint)
+    gen_fairint.name = "give FairCoin donation (via ocp)"
+    gen_fairint.parent = gen_nmat
+    gen_fairint.ocpRecordType_ocp_artwork_type = fair_rt # facc_rt ?
+    gen_fairint.exchange_type = intfairet
+    gen_fairint.save()
+
+    gen_fairouts = Ocp_Record_Type.objects.filter(name__icontains="give FairCoin donation (external)")
+    if gen_fairouts:
+        gen_fairout = gen_fairouts[0]
+    else:
+        gen_fairout, c = Ocp_Record_Type.objects.get_or_create(
+            name="give FairCoin donation (external)",
+            parent=gen_nmat)
+        if c:
+            print "- created Ocp_Record_Type: "+str(gen_fairout)
+    gen_fairout.name = "give FairCoin donation (external)"
+    gen_fairout.parent = gen_nmat
+    gen_fairout.ocpRecordType_ocp_artwork_type = fair_rt
+    gen_fairout.exchange_type = extfairet
+    gen_fairout.save()
+
+    gen_receives = Ocp_Record_Type.objects.filter(name__icontains="Receive gift")
+    if gen_receives:
+        if len(gen_receives) > 1:
+            print "WARNING: There is more than one gen_receives: "+str(gen_receives)
+        gen_receive = gen_receives[0]
+    else:
+        gen_receive, c = Ocp_Record_Type.objects.get_or_create(
+            name="Receive gift:",
+            parent=gen_gift)
+        if c:
+            print "- created Ocp_Record_Type: "+str(gen_receive)
+    gen_receive.name = "Receive gift:"
+    gen_receive.parent = gen_gift
+    gen_receive.description = "Branch of exchange types only used when there's no way to identify the sending 'from' agent in the system"
+    gen_receive.save()
+
+    gen_recnons = Ocp_Record_Type.objects.filter(name__icontains="receive Non-material resources")
+    if gen_recnons:
+        if len(gen_recnons) > 1:
+            print "WARNING: There is more than one gen_recnons: "+str(gen_recnons)
+        gen_recnon = gen_recnons[0]
+    else:
+        gen_recnon, c = Ocp_Record_Type.objects.get_or_create(
+            name="receive Non-material resources",
+            parent=gen_receive)
+        if c:
+            print "- created Ocp_Record_Type: "+str(gen_recnon)
+    gen_recnon.name = "receive Non-material resources"
+    gen_recnon.parent = gen_receive
+    gen_recnon.ocpRecordType_ocp_artwork_type = nonmat_typ
+    gen_recnon.save()
+
+    gen_recfairs = Ocp_Record_Type.objects.filter(name__icontains="receive Faircoin donation")
+    if not gen_recfairs:
+        gen_recfairs = Ocp_Record_Type.objects.filter(name__icontains="receive Faircoin")
+    if gen_recfairs:
+        if len(gen_recfairs) > 1:
+            print "WARNING: Theres is more than one gen_recfairs: "+str(gen_recfairs)
+        gen_recfair = gen_recfairs[0]
+    else:
+        gen_recfair, c = Ocp_Record_Type.objects.get_or_create(
+            name="receive Faircoin donation",
+            parent=gen_recnon)
+        if c:
+            print "- created Ocp_Record_Type: "+str(gen_recfair)
+    gen_recfair.name = "receive Faircoin donation"
+    gen_recfair.parent = gen_recnon
+    gen_recfair.ocpRecordType_ocp_artwork_type = fair_rt
+    gen_recfair.exchange_type = incfairet
+    gen_recfair.save()
+
+
+
+
+
+    #    E u r o s
+
     ocp_euro, created = Unit.objects.get_or_create(
         name='Euro',
         unit_type='value',
@@ -3186,7 +3384,7 @@ def create_unit_types(**kwargs):
 
 
 
-    # Cryptos Bitcoin
+    #   C r y p t o s   B i t c o i n
 
     ocp_btc, created = Unit.objects.get_or_create(name='Bitcoin', unit_type='value')
     if created:

@@ -34,13 +34,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Internal Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Transfer FairCoins")
+            name="Transfer Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Transfer FairCoins")
+                name="Transfer Faircoins")
             xt.save()
         return xt
 
@@ -52,10 +52,14 @@ class ExchangeService(object):
             name="Transfer FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Transfer FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
@@ -67,13 +71,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Outgoing Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Send FairCoins")
+            name="Send Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Send FairCoins")
+                name="Send Faircoins")
             xt.save()
         return xt
 
@@ -85,10 +89,14 @@ class ExchangeService(object):
             name="Send FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Send FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
@@ -100,13 +108,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Incoming Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Receive FairCoins")
+            name="Receive Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Receive FairCoins")
+                name="Receive Faircoins")
             xt.save()
         return xt
 
@@ -118,10 +126,14 @@ class ExchangeService(object):
             name="Receive FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Receive FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
@@ -266,9 +278,9 @@ class ExchangeService(object):
             event_date__gt=redistribution_date,
             faircoin_transaction__tx_hash__isnull=False
         )
-        if not len(event_list) == len(event_list2):
-            print ";; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2))
-            loger.info(";; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2)))
+        if event_list2 and not len(event_list) == len(event_list2):
+            print "Different event_list counts! ;; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2))
+            loger.info("Different event_list counts! ;; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2)))
 
         tx_in_ocp = []
         for event in event_list:
@@ -298,21 +310,21 @@ class ExchangeService(object):
                                             transfer = txpay
                                             event = ev
                                             fairtx = ev.faircoin_transaction
-                                            print ";; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id)
-                                            loger.info(";; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id))
+                                            print ";;; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id)
+                                            loger.info(";;; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id))
                                             break
                                         #else:
                                         #    print ";; skip ev "
                                 else:
-                                    print ";; not found txpay in req:"+str(req.id)
-                                    loger.info(";; not found txpay in req:"+str(req.id))
+                                    print ";;; not found txpay in req:"+str(req.id)
+                                    loger.info(";;; not found txpay in req:"+str(req.id))
                             else:
-                                print ";; not req.exchange ?"
+                                print ";;; not req.exchange ?"
                             if jn_req:
                                 #print ";; found"
                                 break
                     else:
-                        print ";; no project"
+                        print ";;; no project"
                     for req in resource.owner().project_join_requests.all():
                         if req.exchange: #project.shares_account_type() == resource.resource_type:
                             for tx in req.exchange.transfers.all():
@@ -324,8 +336,8 @@ class ExchangeService(object):
                                             transfer = tx #req.exchange.txpay()
                                             event = ev #transfer.events.get(faircoin_transaction__tx_hash__isnull=True)
                                             fairtx = ev.faircoin_transaction
-                                            print ";; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(exchange.id)
-                                            loger.info(";; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(exchange.id))
+                                            print ";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(exchange.id)
+                                            loger.info(";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(exchange.id))
                                             break
                     if not jn_req:
                         exchange = Exchange(
