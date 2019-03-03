@@ -762,7 +762,7 @@ class JoinRequest(models.Model):
                           if is_wallet_address:
                             balance = fairrs.faircoin_address.balance()
                             if balance != None:
-                                if balance < (amopend + netfee):
+                                if round(balance, 8) < round(amopend + netfee, 8):
                                     txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br/>"
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
                                                       {'f':"<span class='error'>"+str(round(Decimal((amopend + netfee) - balance), 8))+" fair</span>", 'ac':' </b> '+addr+' <b> '})
