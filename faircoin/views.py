@@ -92,14 +92,14 @@ def manage_faircoin_account(request, resource_id):
             share = req.project.shares_type() #EconomicResourceType.objects.membership_share()
             #share_price = faircoin_utils.share_price_in_fairs(req)
             number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
-            share_price = req.payment_pending_amount() #share_price * number_of_shares
+            share_price = req.payment_pending_amount() + netfee #share_price * number_of_shares
             project = req.project
             jn_req = req
             payment_due = True
             if resource.owner().owns_resource_of_type(shacct) and share_price == 0:
                 payment_due = False
             if confirmed_balance and confirmed_balance != "Not accessible now":
-                can_pay = (confirmed_balance + netfee) >= share_price
+                can_pay = confirmed_balance >= share_price
             break
         elif request.user.is_superuser:
             logger.warning("(debug) pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
