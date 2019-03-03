@@ -348,12 +348,15 @@ def share_payment(request, agent_id):
         loger.warning("Switch share_price:"+str(share_price)+" to pending_amount:"+str(pend_amount)+" for req:"+str(req))
         share_price = pend_amount
 
-      network_fee = faircoin_utils.network_fee()
+      wallet = faircoin_utils.is_connected()
+      netfee = faircoin_utils.network_fee_fairs()
       fair_rt = faircoin_utils.faircoin_rt()
       cand_shacc = req.agent_shares_account()
       if not cand_shacc:
             raise ValidationError("Can't find the candidate share's account of type: "+str(pro_agent.shares_account_type()))
-      if share_price <= balance and network_fee:
+      if not wallet:
+            messages.error(request, 'Sorry, payment with faircoin is not available now. Try later.')
+      elif (share_price + netfee) <= balance:
         #pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
         pay_to_agent = pro_agent #EconomicAgent.objects.get(nick=pay_to_id)
         pay_to_account = pay_to_agent.faircoin_resource()
@@ -554,12 +557,14 @@ def share_payment(request, agent_id):
             raise ValidationError("Can't find the agent relation!")'''
 
       else:
-          loger.error("No enough funds or no network_fee")
-          messages.error(request, "No enough funds or no network_fee")
+          loger.error("No enough funds... req:"+str(req.id)+" ag:"+str(req.agent)+" pro:"+str(pro_agent)+" netfee: "+str(netfee)+" ƒ")
+          messages.error(request, "No enough funds... maybe missing the network fee? "+str(netfee)+" ƒ")
 
-    elif network_fee is None:
-        messages.error(request,
-            'Sorry, payment with faircoin is not available now. Try later.')
+    else: # not req or not pro_agent
+        loger.warning("Can't find pro_agent:"+str(pro_agent)+" or req:"+str(req))
+        raise ValidationError("Can't find pro_agent:"+str(pro_agent)+" or req:"+str(req))
+        #messages.error(request,
+        #    'Sorry, payment with faircoin is not available now. Try later.')
 
     return redirect('project_feedback', agent_id=req.agent.id, join_request_id=req.id) #HttpResponseRedirect('/%s/'
         #% ('work/home'))
