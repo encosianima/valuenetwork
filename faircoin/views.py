@@ -100,7 +100,7 @@ def manage_faircoin_account(request, resource_id):
             if resource.owner().owns_resource_of_type(shacct) and share_price == 0:
                 payment_due = False
             if confirmed_balance and confirmed_balance != "Not accessible now":
-                can_pay = confirmed_balance >= share_price
+                can_pay = round(confirmed_balance, 8) >= round(share_price, 8)
                 if not can_pay:
                     pending_amount = round(share_price - confirmed_balance, 8)
             break
