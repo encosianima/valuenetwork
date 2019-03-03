@@ -346,7 +346,7 @@ def share_payment(request, agent_id):
       if not share_price == pend_amount:
         print "Switch share_price:"+str(share_price)+" to pending_amount:"+str(pend_amount)+" for req:"+str(req)
         loger.warning("Switch share_price:"+str(share_price)+" to pending_amount:"+str(pend_amount)+" for req:"+str(req))
-        share_price = pend_amount
+        share_price = Decimal(pend_amount)
 
       wallet = faircoin_utils.is_connected()
       netfee = faircoin_utils.network_fee_fairs()
@@ -356,7 +356,7 @@ def share_payment(request, agent_id):
             raise ValidationError("Can't find the candidate share's account of type: "+str(pro_agent.shares_account_type()))
       if not wallet:
             messages.error(request, 'Sorry, payment with faircoin is not available now. Try later.')
-      elif (share_price + netfee) <= balance:
+      elif round(Decimal(share_price), 8) <= round(balance, 8):
         #pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
         pay_to_agent = pro_agent #EconomicAgent.objects.get(nick=pay_to_id)
         pay_to_account = pay_to_agent.faircoin_resource()
@@ -454,6 +454,7 @@ def share_payment(request, agent_id):
                 ev.save()
                 break
 
+        messages.info(request, _("You've payed the shares with your faircoins! The exchange is now complete and the shares has been transfered."))
 
         resource = agent_account
         '''event = EconomicEvent(
