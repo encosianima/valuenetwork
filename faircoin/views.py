@@ -80,8 +80,8 @@ def manage_faircoin_account(request, resource_id):
             if resource.is_address_requested(): is_wallet_address = True
 
     netfee = faircoin_utils.network_fee_fairs()
-    project = None
-    jn_req = None
+    project = jn_req = None
+    pending_amount = None
     for req in resource.owner().project_join_requests.all():
       #candidate_membership = resource.owner().candidate_membership(req.project.agent)
       if req.pending_shares(): #candidate_membership:
@@ -92,7 +92,8 @@ def manage_faircoin_account(request, resource_id):
             share = req.project.shares_type() #EconomicResourceType.objects.membership_share()
             #share_price = faircoin_utils.share_price_in_fairs(req)
             number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
-            share_price = Decimal(req.payment_pending_amount()) + netfee #share_price * number_of_shares
+            share_price = round(Decimal(req.payment_pending_amount()) + netfee, 8) #share_price * number_of_shares
+            pending_amount = share_price
             project = req.project
             jn_req = req
             payment_due = True
@@ -100,6 +101,8 @@ def manage_faircoin_account(request, resource_id):
                 payment_due = False
             if confirmed_balance and confirmed_balance != "Not accessible now":
                 can_pay = confirmed_balance >= share_price
+                if not can_pay:
+                    pending_amount = round(share_price - confirmed_balance, 8)
             break
         elif request.user.is_superuser:
             logger.warning("(debug) pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
@@ -118,6 +121,7 @@ def manage_faircoin_account(request, resource_id):
         "candidate_membership": candidate_membership,
         "payment_due": payment_due,
         "share_price": share_price,
+        "pending_amount": pending_amount,
         "number_of_shares": number_of_shares,
         "can_pay": can_pay,
         "project": project,
