@@ -92,7 +92,7 @@ def manage_faircoin_account(request, resource_id):
             share = req.project.shares_type() #EconomicResourceType.objects.membership_share()
             #share_price = faircoin_utils.share_price_in_fairs(req)
             number_of_shares = req.pending_shares() #resource.owner().number_of_shares()
-            share_price = req.payment_pending_amount() + netfee #share_price * number_of_shares
+            share_price = Decimal(req.payment_pending_amount()) + netfee #share_price * number_of_shares
             project = req.project
             jn_req = req
             payment_due = True
