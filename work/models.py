@@ -1396,7 +1396,7 @@ class JoinRequest(models.Model):
                                 event_type = et_give,
                                 event_date = datetime.date.today(),
                                 resource_type = unit_rt,
-                                resource=event_res,
+                                resource = event_res,
                                 transfer = xfer_pay,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
@@ -1417,12 +1417,12 @@ class JoinRequest(models.Model):
                                 print " created Event: "+str(evt)
                                 loger.info(" created Event: "+str(evt))
 
-                            '''
+
                             evt2, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_receive,
                                 event_date = datetime.date.today(),
                                 resource_type = unit_rt,
-                                #resource
+                                resource = event_res,
                                 transfer = xfer_pay,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
@@ -1437,10 +1437,11 @@ class JoinRequest(models.Model):
                                 event_reference = gateref,
                                 created_by = user,
                                 commitment = commit_pay2,
+                                exchange = ex,
                             )
                             if created:
-                                print " created Event: "+str(evt2)
-                                loger.info(" created Event: "+str(evt2))'''
+                                print " created Event2: "+str(evt2)
+                                loger.info(" created Event2: "+str(evt2))
 
                         if xfer_share:
                             evts = xfer_share.events.all()
@@ -1463,7 +1464,7 @@ class JoinRequest(models.Model):
                             commit_share, created = Commitment.objects.get_or_create(
                                 event_type = et_give,
                                 commitment_date = datetime.date.today(),
-                                due_date = datetime.date.today() + datetime.timedelta(days=4), # TODO custom process delaytime by project
+                                due_date = datetime.date.today() + datetime.timedelta(days=7), # TODO custom process delaytime by project
                                 resource_type = shtype, #account_type,
                                 exchange = ex,
                                 transfer = xfer_share,
@@ -1482,50 +1483,30 @@ class JoinRequest(models.Model):
                                 print "- created Commitment:"+str(commit_share.id)+" "+str(commit_share)
                                 loger.info("- created Commitment:"+str(commit_share.id)+" "+str(commit_share))
 
+                            if not commit_share2:
+                                commit_share2, created = Commitment.objects.get_or_create(
+                                    event_type = et_receive,
+                                    commitment_date = datetime.date.today(),
+                                    due_date = datetime.date.today() + datetime.timedelta(days=7), # TODO custom process delaytime by project
+                                    resource_type = shtype, #account_type,
+                                    exchange = ex,
+                                    transfer = xfer_share,
+                                    exchange_stage = ex.exchange_type,
+                                    context_agent = self.project.agent,
+                                    quantity = amount,
+                                    unit_of_quantity = account_type.unit_of_price,
+                                    #value = amount,
+                                    #unit_of_value = account_type.unit_of_price,
+                                    from_agent = self.project.agent,
+                                    to_agent = self.agent,
+                                    #description = description,
+                                    created_by = user,
+                                )
+                                if created:
+                                    print "- created Commitment2: "+str(commit_share2)
+                                    loger.info("- created Commitment2: "+str(commit_share2))
 
-                        '''sh_com, created = Commitment.objects.get_or_create(
-                            event_type = et_give,
-                            commitment_date = datetime.date.today(),
-                            due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
-                            resource_type = account_type,
-                            exchange = ex,
-                            transfer = xfer_share,
-                            exchange_stage = ex.exchange_type,
-                            context_agent = self.project.agent,
-                            quantity = amount,
-                            unit_of_quantity = account_type.unit,
-                            value = amount,
-                            unit_of_value = account_type.unit_of_price,
-                            from_agent = self.project.agent,
-                            to_agent = self.agent,
-                            #description = description,
-                            created_by = user,
-                        )
-                        if created:
-                            print "- created Commitment: "+str(sh_com)
-                            loger.info("- created Commitment: "+str(sh_com))
 
-                        sh_com2, created = Commitment.objects.get_or_create(
-                            event_type = et_receive,
-                            commitment_date = datetime.date.today(),
-                            due_date = datetime.date.today() + datetime.timedelta(days=1), # TODO custom process delaytime by project
-                            resource_type = account_type,
-                            exchange = ex,
-                            transfer = xfer_share,
-                            exchange_stage = ex.exchange_type,
-                            context_agent = self.project.agent,
-                            quantity = amount,
-                            unit_of_quantity = account_type.unit,
-                            value = amount,
-                            unit_of_value = account_type.unit_of_price,
-                            from_agent = self.project.agent,
-                            to_agent = self.agent,
-                            #description = description,
-                            created_by = user,
-                        )
-                        if created:
-                            print "- created Commitment: "+str(sh_com2)
-                            loger.info("- created Commitment: "+str(sh_com2))'''
 
                         # create share events
                         if not evts:
@@ -1554,6 +1535,31 @@ class JoinRequest(models.Model):
                             if created:
                                 print "- created Event: "+str(sh_evt)
                                 loger.info("- created Event: "+str(sh_evt))
+
+                            sh_evt2, created = EconomicEvent.objects.get_or_create(
+                                event_type = et_receive,
+                                event_date = datetime.date.today(),
+                                resource_type = shtype, #account_type,
+                                resource=agshac,
+                                transfer = xfer_share,
+                                exchange_stage = ex.exchange_type,
+                                context_agent = self.project.agent,
+                                quantity = self.pending_shares(),
+                                unit_of_quantity = account_type.unit_of_price,
+                                #value = amountpay,
+                                #unit_of_value = unit, #account_type.unit_of_price,
+                                from_agent = self.project.agent,
+                                to_agent = self.agent,
+                                is_contribution = xfer_share.transfer_type.is_contribution,
+                                is_to_distribute = xfer_share.transfer_type.is_to_distribute,
+                                #event_reference = gateref,
+                                created_by = user,
+                                commitment = commit_share2,
+                                exchange = ex,
+                            )
+                            if created:
+                                print "- created Event2: "+str(sh_evt2)
+                                loger.info("- created Event2: "+str(sh_evt2))
 
                             # transfer shares
                             user_rts = list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
@@ -1602,6 +1608,31 @@ class JoinRequest(models.Model):
                                 print "- created missing shares Event: "+str(sh_evt)
                                 loger.info("- created missing shares Event: "+str(sh_evt))
 
+                            sh_evt2, created = EconomicEvent.objects.get_or_create(
+                                event_type = et_receive,
+                                event_date = date,
+                                resource_type = shtype, #account_type,
+                                resource = agshac,
+                                transfer = xfer_share,
+                                exchange_stage = ex.exchange_type,
+                                context_agent = self.project.agent,
+                                quantity = self.total_shares(),
+                                unit_of_quantity = account_type.unit_of_price,
+                                #value = amountpay,
+                                #unit_of_value = unit, #account_type.unit_of_price,
+                                from_agent = self.project.agent,
+                                to_agent = self.agent,
+                                is_contribution = xfer_share.transfer_type.is_contribution,
+                                is_to_distribute = xfer_share.transfer_type.is_to_distribute,
+                                #event_reference = gateref,
+                                created_by = user,
+                                commitment = commit_share2,
+                                exchange = ex,
+                            )
+                            if created:
+                                print "- created missing shares Event2: "+str(sh_evt2)
+                                loger.info("- created missing shares Event2: "+str(sh_evt2))
+
                         else:
                             print "The shares transfer already has Events!! "+str(len(evts))
                             loger.warning("The shares transfer already has Events!! "+str(len(evts)))
@@ -1611,26 +1642,6 @@ class JoinRequest(models.Model):
                                 loger.info("...repair shr_evt? "+str(ev.id)+" qty:"+str(ev.quantity)+" uq:"+str(ev.unit_of_quantity)+" / val:"+str(ev.value)+" uv:"+str(ev.unit_of_value)+" rt:"+str(ev.resource_type)+" rt_u:"+str(rt_u)+" from:"+str(ev.from_agent)+" to:"+str(ev.to_agent))
                             return False
 
-
-                        """sh_evt2, created = EconomicEvent.objects.get_or_create(
-                            event_type = et_receive,
-                            event_date = datetime.date.today(),
-                            resource_type = account_type,
-                            #resource=event_res,
-                            transfer = xfer_share,
-                            exchange_stage = ex.exchange_type,
-                            context_agent = project.agent,
-                            quantity = 1,
-                            unit_of_quantity = account_type.unit,
-                            value = amount,
-                            unit_of_value = account_type.unit_of_price,
-                            from_agent = project.agent,
-                            to_agent = req.agent,
-                            is_contribution = False, #xfer_pay.transfer_type.is_contribution,
-                            is_to_distribute = False, #xfer_pay.transfer_type.is_to_distribute,
-                            #event_reference = gateref,
-                            created_by = user,
-                        )"""
 
                         return True
 
@@ -1642,7 +1653,7 @@ class JoinRequest(models.Model):
                             commit_pay, created = Commitment.objects.get_or_create(
                                 event_type = et_give,
                                 commitment_date = datetime.date.today(),
-                                due_date = datetime.date.today() + datetime.timedelta(days=2), # TODO custom process delaytime by project
+                                due_date = datetime.date.today() + datetime.timedelta(days=7), # TODO custom process delaytime by project
                                 resource_type = unit_rt,
                                 exchange = ex,
                                 transfer = xfer_pay,
@@ -1660,28 +1671,28 @@ class JoinRequest(models.Model):
                             if created:
                                 print "- created Commitment: "+str(commit_pay)
                                 loger.info("- created Commitment: "+str(commit_pay))
-                        '''if not commit_pay2:
-                            commit_pay2, created = Commitment.objects.get_or_create(
-                                event_type = et_receive,
-                                commitment_date = datetime.date.today(),
-                                due_date = datetime.date.today() + datetime.timedelta(days=2), # TODO custom process delaytime by project
-                                resource_type = unit_rt,
-                                exchange = ex,
-                                transfer = xfer_pay,
-                                exchange_stage = ex.exchange_type,
-                                context_agent = self.project.agent,
-                                quantity = amountpay,
-                                unit_of_quantity = unit,
-                                #value = amountpay,
-                                #unit_of_value = unit,
-                                from_agent = self.agent,
-                                to_agent = self.project.agent,
-                                #description = description,
-                                created_by = user,
-                            )
-                            if created:
-                                print "- created Commitment: "+str(commit_pay2)
-                                loger.info("- created Commitment: "+str(commit_pay2))'''
+                            if not commit_pay2:
+                                commit_pay2, created = Commitment.objects.get_or_create(
+                                    event_type = et_receive,
+                                    commitment_date = datetime.date.today(),
+                                    due_date = datetime.date.today() + datetime.timedelta(days=7), # TODO custom process delaytime by project
+                                    resource_type = unit_rt,
+                                    exchange = ex,
+                                    transfer = xfer_pay,
+                                    exchange_stage = ex.exchange_type,
+                                    context_agent = self.project.agent,
+                                    quantity = amountpay,
+                                    unit_of_quantity = unit,
+                                    #value = amountpay,
+                                    #unit_of_value = unit,
+                                    from_agent = self.agent,
+                                    to_agent = self.project.agent,
+                                    #description = description,
+                                    created_by = user,
+                                )
+                                if created:
+                                    print "- created Commitment2: "+str(commit_pay2)
+                                    loger.info("- created Commitment2: "+str(commit_pay2))
 
                         if xfer_share:
                             evts = xfer_share.events.all()
@@ -1701,7 +1712,7 @@ class JoinRequest(models.Model):
                                 commit_share, created = Commitment.objects.get_or_create(
                                     event_type = et_give,
                                     commitment_date = datetime.date.today(),
-                                    due_date = datetime.date.today() + datetime.timedelta(days=4), # TODO custom process delaytime by project
+                                    due_date = datetime.date.today() + datetime.timedelta(days=7), # TODO custom process delaytime by project
                                     resource_type = shtype, #account_type,
                                     exchange = ex,
                                     transfer = xfer_share,
@@ -1719,28 +1730,29 @@ class JoinRequest(models.Model):
                                 if created:
                                     print "- created Commitment: "+str(commit_share)
                                     loger.info("- created Commitment: "+str(commit_share))
-                            '''if not commit_share2:
-                                commit_share2, created = Commitment.objects.get_or_create(
-                                    event_type = et_receive,
-                                    commitment_date = datetime.date.today(),
-                                    due_date = datetime.date.today() + datetime.timedelta(days=4), # TODO custom process delaytime by project
-                                    resource_type = shtype, #account_type,
-                                    exchange = ex,
-                                    transfer = xfer_share,
-                                    exchange_stage = ex.exchange_type,
-                                    context_agent = self.project.agent,
-                                    quantity = amount,
-                                    unit_of_quantity = account_type.unit_of_price,
-                                    #value = amount,
-                                    #unit_of_value = account_type.unit_of_price,
-                                    from_agent = self.project.agent,
-                                    to_agent = self.agent,
-                                    #description = description,
-                                    created_by = user,
-                                )
-                                if created:
-                                    print "- created Commitment: "+str(commit_share2)
-                                    loger.info("- created Commitment: "+str(commit_share2))'''
+
+                                if not commit_share2:
+                                    commit_share2, created = Commitment.objects.get_or_create(
+                                        event_type = et_receive,
+                                        commitment_date = datetime.date.today(),
+                                        due_date = datetime.date.today() + datetime.timedelta(days=7), # TODO custom process delaytime by project
+                                        resource_type = shtype, #account_type,
+                                        exchange = ex,
+                                        transfer = xfer_share,
+                                        exchange_stage = ex.exchange_type,
+                                        context_agent = self.project.agent,
+                                        quantity = amount,
+                                        unit_of_quantity = account_type.unit_of_price,
+                                        #value = amount,
+                                        #unit_of_value = account_type.unit_of_price,
+                                        from_agent = self.project.agent,
+                                        to_agent = self.agent,
+                                        #description = description,
+                                        created_by = user,
+                                    )
+                                    if created:
+                                        print "- created Commitment2: "+str(commit_share2)
+                                        loger.info("- created Commitment2: "+str(commit_share2))
 
                         return True
 
