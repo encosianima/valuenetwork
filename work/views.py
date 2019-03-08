@@ -3384,6 +3384,8 @@ def join_requests(request, agent_id):
         pass
     else:
         raise ValidationError("User not allowed to see this page.")
+    print "-------------- start join_requests ----------------"
+    loger.debug("-------------- start join_requests ----------------")
     state = "new"
     state_form = RequestStateForm(
         initial={"state": "new",},
@@ -3445,6 +3447,9 @@ def join_requests(request, agent_id):
 
     if project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
+
+    print "-------------- end join_requests ----------------"
+    loger.debug("-------------- end join_requests ----------------")
 
     return render(request, "work/join_requests.html", {
         "help": get_help("join_requests"),

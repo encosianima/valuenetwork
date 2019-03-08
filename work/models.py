@@ -171,7 +171,7 @@ class Project(models.Model):
                     rts_with_clas.append(rt)
         return rts_with_clas
 
-    def shares_account_type(self):
+    """def shares_account_type(self):
         at = None
         form = self.fobi_form()
         if form:
@@ -182,7 +182,7 @@ class Project(models.Model):
                 for rt in self.rts_with_clas():
                     if rt.ocp_artwork_type.clas == name: # matches the rt clas identifier with the fobi field name
                         at = rt
-        return at
+        return at"""
 
     def shares_type(self):
         st = None
@@ -376,11 +376,13 @@ class Project(models.Model):
         account_type = None
         if self.joining_style == "moderated" and self.fobi_slug:
             rts = self.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
+            keys = self.fobi_items_keys()
             for rt in rts:
-                #if hasattr(rt, 'ocp_artwork_type') and rt.ocp_artwork_type and rt.ocp_artwork_type.clas
-                    for key in self.fobi_items_keys():
-                        if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
-                            account_type = rt
+                for key in keys:
+                    if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
+                        account_type = rt
+                        break
+                if account_type: break
         return account_type
 
     def active_payment_options_obj(self):
@@ -1384,7 +1386,7 @@ class JoinRequest(models.Model):
                                         evt.save()
                             #return
                         elif amountpay and pendamo:
-                            event_res = None
+                            event_res = event_res2 = None
                             if unit.abbrev == 'fair' and self.project.agent.need_faircoins():
                                 if not self.agent.faircoin_resource() or not self.agent.faircoin_resource().faircoin_address.is_mine():
                                     print "The agent uses internal faircoins, but not agent fairaccount or is not mine, don't create events if unit is faircoin. SKIP! pro:"+str(self.project.agent)
@@ -1392,6 +1394,7 @@ class JoinRequest(models.Model):
                                     return False
                                 else:
                                     event_res = self.agent.faircoin_resource()
+                                    event_res2 = self.project.agent.faircoin_resource()
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
                                 event_date = datetime.date.today(),
@@ -1422,7 +1425,7 @@ class JoinRequest(models.Model):
                                 event_type = et_receive,
                                 event_date = datetime.date.today(),
                                 resource_type = unit_rt,
-                                resource = event_res,
+                                resource = event_res2,
                                 transfer = xfer_pay,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
@@ -1464,7 +1467,7 @@ class JoinRequest(models.Model):
                             commit_share, created = Commitment.objects.get_or_create(
                                 event_type = et_give,
                                 commitment_date = datetime.date.today(),
-                                due_date = datetime.date.today() + datetime.timedelta(days=7), # TODO custom process delaytime by project
+                                due_date = datetime.date.today(), # + datetime.timedelta(days=7), # TODO custom process delaytime by project
                                 resource_type = shtype, #account_type,
                                 exchange = ex,
                                 transfer = xfer_share,
@@ -1487,7 +1490,7 @@ class JoinRequest(models.Model):
                                 commit_share2, created = Commitment.objects.get_or_create(
                                     event_type = et_receive,
                                     commitment_date = datetime.date.today(),
-                                    due_date = datetime.date.today() + datetime.timedelta(days=7), # TODO custom process delaytime by project
+                                    due_date = datetime.date.today(), # + datetime.timedelta(days=7), # TODO custom process delaytime by project
                                     resource_type = shtype, #account_type,
                                     exchange = ex,
                                     transfer = xfer_share,
