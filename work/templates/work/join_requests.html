@@ -103,7 +103,9 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
             <tbody>
                 {% for req in requests %}
                     <tr class="{% cycle 'odd' 'even' %}">
-                      {% if True or state != "accepted" %}
+                        <td>{{ req.actions|safe }}</td>
+
+                        {% if False and state != "accepted" %}
                             <td>
                                 {% if not req.fobi_data %}
                                   <span class="error">ERROR!</span>
@@ -301,7 +303,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                                 {% endif %}
 
                             </td>
-                      {% endif %}
+                        {% endif %}
 
                       <td>{{ req.request_date|date:"Y-m-d" }}</td>
                       <td>

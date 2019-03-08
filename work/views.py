@@ -3375,11 +3375,13 @@ def project_update_payment_status(request, project_slug=None):
         raise ValidationError("Can't find a project or request:POST: "+str(request.POST))
         return HttpResponse('error')
 
+from django.middleware import csrf
 
 @login_required
 def join_requests(request, agent_id):
     user_agent = request.user.agent.agent
     agent = EconomicAgent.objects.get(pk=agent_id)
+    managing = False
     if user_agent == agent or user_agent in agent.managers():
         pass
     else:
@@ -3406,6 +3408,8 @@ def join_requests(request, agent_id):
 
     if fobi_slug and requests:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
+        if user_agent == project.agent or user_agent in project.agent.managers():
+            managing = True
         #req = requests.last()
         for req in requests:
             if req.fobi_data and req.fobi_data.pk:
@@ -3428,6 +3432,10 @@ def join_requests(request, agent_id):
                 if len(fobi_headers) and len(fobi_keys) == len(fobi_headers):
                     break
 
+        com_content_type = ContentType.objects.get(model="joinrequest")
+        csrf_token = csrf.get_token(request)
+        csrf_token_field = '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf_token+'"> '
+
         for req in requests:
             if not req.agent and req.requested_username:
               try:
@@ -3444,6 +3452,129 @@ def join_requests(request, agent_id):
                 req.items_data.append(req.data.get(key))
             else:
               req.entries = []
+
+            # calucate the actions table cell to speedup the template
+            req.actions = ''
+            chekpass = req.check_user_pass()
+            payamount = req.payment_amount()
+            totalshrs = req.total_shares()
+            pendshrs = req.pending_shares()
+            proshrtyps = project.share_types()
+            reqstatus = ''
+            if req.exchange:
+                reqstatus = req.exchange.status()
+
+            deleteform = '<form class="action-form" id="delete-form'+str(req.id)+'" method="POST" '
+            deleteform += 'action="'+reverse("delete_request", args=(req.id,))+'" >'
+            deleteform += csrf_token_field
+            deleteform += '<input type="submit" class="btn btn-mini btn-danger" name="submit" value="'+str(_("Delete"))+'" /></form>'
+
+            declineform = '<form class="action-form" id="decline-form'+str(req.id)+'" method="POST" '
+            declineform += 'action="'+reverse("decline_request", args=(req.id,))+'" >'
+            declineform += csrf_token_field
+            declineform += '<input type="submit" class="btn btn-mini btn-warning" name="submit" value="'+str(_("Decline"))+'" /></form>'
+
+
+            if not req.fobi_data:
+                req.actions = '<span class="error">ERROR!</span> &nbsp;'
+            if chekpass:
+                req.actions += '<span class="error">'+str(_("Not Valid yet!"))+'</span> &nbsp;'
+            elif proshrtyps and req.fobi_data:
+                if req.agent:
+                    req.actions += str(payamount)+'&nbsp;'+str(_("Shares:"))+'&nbsp;'
+                    if pendshrs:
+                        if totalshrs:
+                            req.actions += '<span class="complete">'+str(totalshrs)+'</span>&nbsp;+&nbsp;<span class="error">'+str(req.pending_shares())+'</span>'
+                        else:
+                            req.actions += '<span class="error">'+str(totalshrs)+'</span>'
+                    else:
+                        if not totalshrs == payamount:
+                            req.actions += '<span class="complete">'+str(totalshrs)+'</span>'
+                        else:
+                            req.actions += '<em class="complete"></em>'
+                    req.actions += '<br />'
+                if reqstatus:
+                    req.actions += '<a href="'+reverse("exchange_logging_work", args=(req.project.agent.id, 0, req.exchange.id))+'"'
+                    req.actions += ' class="'+str(reqstatus)+'" >'+str(reqstatus.title())+'</a> '
+                elif pendshrs:
+                    if not req.payment_option()['key'] == 'ccard' and req.agent and req.exchange_type():
+                        if managing:
+                            req.actions += '<form class="action-form" id="status-form'+str(req.id)+'" '
+                            req.actions += 'action="'+reverse("update_share_payment", args=(req.id,))+'" method="POST" >'
+                            req.actions += csrf_token_field
+                            req.actions += '<input type="hidden" name="status" value="pending"> '
+                            req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" '
+                            req.actions += ' value="'+str(_("Set as Pending"))+'" '
+                            if chekpass:
+                                req.actions += 'disabled="disabled" '
+                            req.actions += ' /></form>'
+
+                            if request.user.is_superuser:
+                                req.actions += '<span class="help-text" style="font-size:0.8em">('+str(req.exchange_type())+')</span>'
+                    if request.user.is_superuser:
+                        pass
+                        #req.actions += '<span class="help-text" style="font-size:0.8em">ET: '+str(req.exchange_type())
+                        #req.actions += ' <br />UT: '+str(req.payment_unit())+' RT: '+str(req.payment_unit_rt())+'</span><br />'
+            dup = req.duplicated()
+            if dup:
+                req.actions += '<em class="error">'+str(_("Duplicated!"))+'</em>'
+                req.actions += '('+str(_("see the other"))+' <a href="'+reverse('project_feedback', args=(req.project.agent.id, dup.id))+'" >'
+                req.actions += str(_("request"))+'</a>) <br /> '+str(_("This request:"))+' '
+                req.actions += deleteform
+
+            ncom = len(Comment.objects.filter(content_type=com_content_type, object_pk=req.pk))
+            req.actions += '<a class="btn btn-info btn-mini" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'"> '
+            req.actions += '<b>'+str(_("Feedback:"))+'</b> '+str(ncom)+'</a>&nbsp;'
+
+            if state == "declined":
+                req.actions += '<form class="action-form" id="undecline-form'+str(req.id)+'" method="POST" '
+                req.actions += 'action="'+reverse("undecline_request", args=(req.id,))+'" >'
+                req.actions += csrf_token_field
+                req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Undecline"))+'" /></form>'
+
+                req.actions += deleteform
+
+            elif state == "accepted":
+                req.actions += declineform
+
+            elif req.fobi_data:
+                if req.agent:
+                    if not pendshrs or not proshrtyps:
+                        if not chekpass:
+                            req.actions += '<form class="action-form" id="accept-form'+str(req.id)+'" method="POST" '
+                            req.actions += 'action="'+reverse("accept_request", args=(req.id,))+'" >'
+                            req.actions += csrf_token_field
+                            req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Accept Member"))+'" /></form>'
+
+                    if chekpass:
+                        if req.agent.is_deletable():
+                            req.actions += ' &nbsp; <span class="help-text">'+str(_("Wait to confirm, or delete agent, user and request"))+':</span>'
+                            req.actions += '<form style="display: inline;" class="delete-agent-form indent" id="delete-agent-form'+str(req.id)+'" '
+                            req.actions += 'action="'+reverse("delete_request_agent_and_user", args=(req.id,))+' " method="POST" >'
+                            req.actions += csrf_token_field
+                            req.actions += '<button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >'+str(_("Delete all"))+'</button></form>'
+                    else:
+                        req.actions += declineform
+
+                else:
+                    posag = req.possible_agent
+                    if posag:
+                        req.actions += '<br>"<a href="'+reverse('members_agent', args=(posag.id,))+'">'+str(posag)+'</a>" '+str(_("is taken, choose this agent?"))
+                        req.actions += '<a href="'+reverse("connect_agent_to_join_request", args=(posag.id, req.id))+'" class="btn btn-primary" '
+                        req.actions += 'style="margin-bottom:20px;">'+str(_("Connect to"))+' '+str(posag)+'</a> <br />'
+
+                    req.actions += '<form class="action-form" id="create-form'+str(req.id)+'" '
+                    req.actions += 'action="'+reverse("confirm_request", args=(req.id,))+'" method="POST" >'
+                    req.actions += csrf_token_field
+                    req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Confirm Email"))+'" /> '
+                    req.actions += '<span class="help-text">'+str(_("sends random pass and creates user+agent"))+'</span></form>'
+
+                    req.actions += deleteform
+
+            else:
+                req.actions += deleteform
+
+
 
     if project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
