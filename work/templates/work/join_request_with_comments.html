@@ -305,7 +305,21 @@ a.more-link {
                             <input type="submit" value="{% if req.payment_html %}{{ req.payment_html }}{% else %}{% trans "Pay your Shares" %}{% endif %}" class="btn btn-primary" />
                         </form> <!-- <a href="{% url 'payment_url' paymode=req.payment_option.key join_request_id=req.id %}" target="ocp_pay" class="btn btn-primary">{% if req.payment_html %}{{ req.payment_html }}{% else %}{% trans "Pay your Shares" %}{% endif %}</a> -->
                     {% elif req.payment_html %}
-                        <div id="payment_html">{{ req.payment_html|safe }}</div>
+                        <div id="payment_html">{{ req.payment_html|safe }}
+                            {% if req.agent.need_faircoins and not req.agent.faircoin_resource %} &nbsp;
+                              <form
+                                style="display: inline;"
+                                action="{% url "request_faircoin_address" agent_id=req.agent.id %}"
+                                method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="feedback">
+                                <input type="hidden" name="jn_req" value="{{ req.id }}">
+                                <button style="display: inline;"  class="btn btn-primary" title="Create FairCoin Address" >
+                                    {% trans "Request FairCoin Address" %}
+                                </button>
+                              </form>
+                            {% endif %}
+                        </div>
                     {% else %}
                         <span class="error">{% trans "ERROR: request without a payment option!" %}</span>
                     {% endif %}

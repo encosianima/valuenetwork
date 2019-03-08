@@ -280,8 +280,9 @@ class ConfirmPasswordView(UpdateView):
 
 @login_required
 def request_faircoin_address(request, agent_id=None):
+    next = 'agent'
     if request.method == "POST":
-        agent = None
+        agent = jn_req = None
         if agent_id:
             agent = get_object_or_404(EconomicAgent, id=agent_id)
         user_agent = get_agent(request)
@@ -290,8 +291,14 @@ def request_faircoin_address(request, agent_id=None):
         if agent:
             agent.request_faircoin_address()
             logger.info("- The user_agent:"+str(user_agent)+" has requested a Faircoin address for agent:"+str(agent))
-    return HttpResponseRedirect('/%s/%s/'
-        % ('work/agent', agent.id))
+
+            next = request.POST.get('next')
+            jn_req = request.POST.get('jn_req')
+    if next == 'feedback' and jn_req:
+        return redirect('project_feedback', agent_id=agent.id, join_request_id=int(jn_req))
+    else:
+        return HttpResponseRedirect('/%s/%s/'
+            % ('work/agent', agent.id))
 
 
 
