@@ -13656,16 +13656,23 @@ class ValueEquationBucket(models.Model):
                     "Context agent: ",
                     bucket_context_agent.nick
                     ])
-            if bucket_context_agent:
-                events = EconomicEvent.objects.filter(context_agent=bucket_context_agent)
-            else:
-                events = EconomicEvent.objects.filter(context_agent=context_agent)
             if start_date and end_date:
-                events = events.filter(event_date__range=(start_date, end_date))
+                events = EconomicEvent.objects.filter(event_date__range=(start_date, end_date))
             elif start_date:
-                events = events.filter(event_date__gte=start_date)
+                events = EconomicEvent.objects.filter(event_date__gte=start_date)
             elif end_date:
-                events = events.filter(event_date__gte=end_date)
+                events = EconomicEvent.objects.filter(event_date__gte=end_date)
+            if bucket_context_agent:
+                #import pdb; pdb.set_trace()
+                agents = bucket_context_agent.with_all_sub_agents() #includes self
+                event_list = []
+                for event in events:
+                    if event.context_agent in agents:
+                        event_list.append(event)
+                events = event_list
+                #EconomicEvent.objects.filter(context_agent=bucket_context_agent)
+            else:
+                events = events.filter(context_agent=context_agent)
             for evt in events:
                 br = evt.bucket_rule(ve)
                 value = evt.value
