@@ -13668,7 +13668,7 @@ class ValueEquationBucket(models.Model):
                 agents = bucket_context_agent.with_all_sub_agents() #includes self
                 event_list = []
                 for event in events:
-                    if event.context_agent in agents and event.is_double_validated():
+                    if event.context_agent in agents and event.is_double_validated() and event.is_contribution == True: #probably don't need that last check
                         event_list.append(event)
                 events = event_list
                 #EconomicEvent.objects.filter(context_agent=bucket_context_agent)
