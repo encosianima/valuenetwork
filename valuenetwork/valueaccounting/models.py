@@ -13664,10 +13664,11 @@ class ValueEquationBucket(models.Model):
                 events = EconomicEvent.objects.filter(event_date__gte=end_date)
             if bucket_context_agent:
                 #import pdb; pdb.set_trace()
+                # FairCoop Open Coop Work specific !!!
                 agents = bucket_context_agent.with_all_sub_agents() #includes self
                 event_list = []
                 for event in events:
-                    if event.context_agent in agents:
+                    if event.context_agent in agents and event.is_double_validated() and event.is_contribution == True: #probably don't need that last check
                         event_list.append(event)
                 events = event_list
                 #EconomicEvent.objects.filter(context_agent=bucket_context_agent)
