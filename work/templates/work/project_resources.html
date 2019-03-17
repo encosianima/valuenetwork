@@ -188,7 +188,7 @@ img {
         <div id="by_type" class="infobox">
           <ul class="root">
             {% for rt in resource_types %}
-              <li><h4><a href="{% url "resource_type" resource_type_id=rt.id %}">{{ rt.name }}</a> ( {{ rt.facet_list }} ) </h4>
+              <li><h4> <!--<a href="{% url "resource_type" resource_type_id=rt.id %}">-->{{ rt.name }}<!--</a> ( {{ rt.facet_list }} )--> </h4>
                 <ul>
                 {% for resource in rt.items %}
                   <li><div class="res">
@@ -205,7 +205,11 @@ img {
                     {% if resource.stage %}
                         ~ Stage: {{ resource.stage }}
                     {% endif %}
-                    ~ {{ resource.quantity }} {{ resource.unit_of_quantity }}
+                    {% if resource.price_per_unit %}
+                        ~ Value: {{ resource.price_per_unit }} {{ resource.resource_type.unit_of_price.abbrev }}
+                    {% else %}
+                        ~ {{ resource.quantity }} {{ resource.unit_of_quantity.abbrev }}
+                    {% endif %}
                     {% if resource.current_location %}
                         ~ Location: {{ resource.current_location }}
                     {% endif %}
@@ -233,9 +237,14 @@ img {
                 {% if not rel == agent.resource_relationships|first %}</ul></li>{% endif %}
                 <li><h4>{{ rel.role.name }} </h4><ul>
               {% endifchanged %}
-              <li>
-                <a href="{% url "project_resource" agent_id=agent.id resource_id=rel.resource.id %}"> {{ rel.resource }}</a>
-              </li>
+              <li><div class="res">
+                <a href="{% url "project_resource" agent_id=agent.id resource_id=rel.resource.id %}"> {{ rel.resource.label }}</a>
+                {% if rel.resource.price_per_unit %}
+                  ~ Value: {{ rel.resource.price_per_unit }} {{ rel.resource.resource_type.unit_of_price.abbrev }}
+                {% else %}
+                  ~ {{ rel.resource.quantity }} {{ rel.resource.unit_of_quantity.abbrev }}
+                {% endif %}
+              </div></li>
             {% endfor %}
             </ul></li>
           </ul>
