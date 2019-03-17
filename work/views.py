@@ -2422,6 +2422,7 @@ def create_user_accounts(request, agent, project=None):
           if user_agent == ag.has_associate or user_agent in ag.has_associate.managers() or user_agent in agent.managers() or user_is_agent:
             rtsc = ag.has_associate.project.rts_with_clas()
             for rt in rtsc:
+              if rt.context_agent == ag.has_associate:
                 is_account = False
                 ancs = rt.ocp_artwork_type.get_ancestors(True, True)
                 for anc in ancs:
@@ -2490,6 +2491,9 @@ def create_user_accounts(request, agent, project=None):
                             auto_resource += _("There's a problem with the naming of the account: ")+str(res)+"<br>"
                             break
                         """
+              else:
+                print "- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent)
+                loger.info("- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent))
           else:
             pass # no permission
         else:
