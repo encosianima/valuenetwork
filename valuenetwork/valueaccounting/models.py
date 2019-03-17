@@ -1420,7 +1420,14 @@ class EconomicAgent(models.Model):
             except:
                 pass
         if len(need):
-            resp = True
+            for ag in need:
+                if not ag == self:
+                    if self in ag.participants():
+                        resp = True
+                    else:
+                        resp = False
+                else:
+                    resp = True
 
         #import pdb; pdb.set_trace()
         return resp
