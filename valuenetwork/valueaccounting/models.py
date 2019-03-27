@@ -737,7 +737,12 @@ class EconomicAgent(models.Model):
             resource__resource_type__behavior="dig_acct",
             resource__faircoin_address__address__isnull=False)
         if candidates:
-            return candidates[0].resource
+            if len(candidates) > 1:
+                for can in candidates:
+                    if can.resource.faircoin_address.is_mine():
+                        return can.resource
+            else:
+                return candidates[0].resource
         else:
             return None
 
