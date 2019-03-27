@@ -121,7 +121,7 @@ def manage_faircoin_account(request, resource_id):
         "candidate_membership": candidate_membership,
         "payment_due": payment_due,
         "share_price": round(share_price, 8),
-        "pending_amount": pending_amount,
+        "pending_amount": round(pending_amount, 8),
         "number_of_shares": number_of_shares,
         "can_pay": can_pay,
         "project": project,
