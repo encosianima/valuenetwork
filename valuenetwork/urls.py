@@ -41,6 +41,7 @@ urlpatterns = [
 
     url(r"^total-shares/(?P<project_slug>[-\w]+)/$", work.views.project_total_shares, name="project_total_shares"),
     url(r"^update-share-payment/(?P<project_slug>[-\w]+)/$", work.views.project_update_payment_status, name="project_update_payment_status"),
+    url(r"^member-shares/$", work.views.member_total_shares, name="member_total_shares"),
 
     # View URLs
     url(r'^fobi/', include('fobi.urls.view')),

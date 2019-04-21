@@ -30,6 +30,8 @@ class ChipChapAuthConnection(object):
             self.url_client = cdata['url_client']
             self.url_history = cdata['url_history']
             self.url_balance = cdata['url_balance']
+
+            self.ocp_api_key = cdata['ocp_api_key']
         else:
             self.able_to_connect = False
             self.logger.critical("Invalid configuration data to connect.")
