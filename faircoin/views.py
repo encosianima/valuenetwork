@@ -81,7 +81,7 @@ def manage_faircoin_account(request, resource_id):
 
     netfee = faircoin_utils.network_fee_fairs()
     project = jn_req = None
-    pending_amount = None
+    pending_amount = 0
     for req in resource.owner().project_join_requests.all():
       #candidate_membership = resource.owner().candidate_membership(req.project.agent)
       if req.pending_shares(): #candidate_membership:

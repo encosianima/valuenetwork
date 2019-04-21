@@ -16,7 +16,8 @@
           <ul class="root" id="treeData" style="/*display: none;*/">
             {% recursetree Rtype_tree %}
               {% if node.resource_type in resource_types or node.facet_value in facetvalues or request.user.is_staff %}
-                  <li id="Rid_{{ node.id }}">{% if not node.resource_type and not node.facet_value and not node.facet %}<em>{% endif %}{{ node.name }}{% if node.resource_type %} < {% endif %}{% if node.facet_value %}: {% endif %}
+                  <li id="Rid_{{ node.id }}">{% if not node.resource_type and not node.facet_value and not node.facet %}<em>{% endif %}
+                      {{ node.name }}{% if node.resource_type %} < {% endif %}{% if node.facet_value %}: {% endif %}
                     {% if not node.resource_type and not node.facet_value and not node.facet %}</em>{% endif %}
                     {% if not node.is_leaf_node %}
                         <ul class="children">

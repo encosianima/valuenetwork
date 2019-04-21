@@ -3044,6 +3044,11 @@ def create_unit_types(**kwargs):
         extfairets = ExchangeType.objects.filter(name="Send Faircoins")
     if extfairets:
         extfairet = extfairets[0]
+    else:
+        extfairet = ExchangeType(
+            use_case=out_usecase,
+            name="Send Faircoins"
+        )
     extfairet.name = "Send Faircoins"
     extfairet.use_case = out_usecase
     extfairet.save()
