@@ -3015,17 +3015,30 @@ def joinaproject_request(request, form_slug = False):
                         })
                 else:
                     # no fobi data?
+                    if api_key:
+                        errs = '"missing_fields": "The custom fields are not found ??"'
+                        return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
                     pass
               else:
                 # fobi errors
+                # send errors as json if api_key call
+                if api_key:
+                    errs = ''
+                    for err in fobi_form.errors.iteritems():
+                        errs += '"'+striptags(err[0])+'": "'+striptags(err[1])+'"'
+                    #import pdb; pdb.set_trace()
+                    return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
                 pass
 
             else:
-              # no slug?
-              pass
+                # no slug?
+                if api_key:
+                    errs = '"missing_slug": "The custom form slug is not found ??"'
+                    return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
+                pass
         else:
             # form not valid
-            # TODO send errors as json if api_key call
+            # send errors as json if api_key call
             if api_key:
                 errs = ''
                 for err in join_form.errors.iteritems():
