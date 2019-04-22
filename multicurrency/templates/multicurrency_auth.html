@@ -10,48 +10,49 @@
   <div class="container">
     <legend>
       <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a> >
-	        {% trans "Multicurrency-wallet Access" %}
+	        {% trans "Multicurrency Accounts" %}
       <div class="subnav">
-
+          {% if jn_req %}
+              <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=jn_req.id %}">{% trans "BotC Feedback" %}</a>
+          {% endif %}
       </div>
     </legend>
     {% include "_messages.html" %}
     <div class="infobox span6">
-    <h3>{% trans "Muticurrency-wallet users for" %} {{ agent.name }}</h3>
+    <h3>{% trans "BotC-Wallet accounts for" %} {{ agent.name }}:</h3>
       <table class="table" style="">
         <thead>
           <tr>
-            <th class="span8">ChipChap User</th>
-            <th class="span2"></th>
-            <th class="span2"></th>
+            <th class="span3"></th>
+            <th class="span3"></th>
           </tr>
         {% for oauth in oauths %}
           <tr>
-            <td><strong>{{ oauth.auth_user }}</strong></td>
-            <td style="text-align:right;">
-              <a class="btn btn-primary" href="{% url 'multicurrency_history' agent_id=agent.id oauth_id=oauth.id %}">
-                {% trans 'Access' %}
+            <td>
+              <a class="btn btn-primary"  style="font-size:1em;"
+                 href="{% url 'multicurrency_history' agent_id=agent.id oauth_id=oauth.id %}">
+                {% trans "Access:" %} {{ oauth.auth_user }}
               </a>
             </td>
             <td style="text-align:right;">
               <form id="deleteForm" class="validateMe" action="{% url 'multicurrency_deleteauth' agent_id=agent.id oauth_id=oauth.id %}" method="POST" >
                   {% csrf_token %}
                   {{ delete_form }}
-                  <input type="submit" name="submit" value="{% trans "Log Out" %}" class="btn btn-primary btn-mini" />
+                  <input type="submit" name="submit" value="{% trans "Log Out" %}" class="btn btn-danger btn-mini" />
               </form>
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="3"><p>{% trans "You don't have any ChipChap authenticated user in ocp yet." %}<br />
-            {% trans "If you already have any access to ChipChap's panel, use the form below to authenticate." %}<br />
-            {% trans "If you don't have any access to ChipChap's panel, create one by clicking this button:" %}<br /><br />
+          <tr><td colspan="2"><p>{% trans "You don't have any BotC-Wallet authenticated access in ocp yet." %}<br />
+            {% trans "If you already have any access to BotC-Wallet's panel, use the form below to authenticate." %}<br />
+            {% trans "If you don't have any access to BotC-Wallet's panel, create one by clicking this button:" %}<br /><br />
 
-            <a href="#create-chipchap-user" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new ChipChap user" %}</a>
+            <a href="#create-chipchap-user" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new BotC-Wallet user" %}</a>
 
             <div class="modal hide fade" id="create-chipchap-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                    <h3 id="agent-label">{% trans "Create New ChipChap User" %}</h3>
+                    <h3 id="agent-label">{% trans "Create New BotC-Wallet Account" %}</h3>
                 </div>
                 <div class="modal-body">
                     <form id="createForm" class="createMe" action="{% url 'multicurrency_createauth' agent_id=agent.id %}" method="POST" onsubmit="return validateRepassword()">
@@ -65,7 +66,7 @@
                         </div>
                         <div class="modal-footer">
                             <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create ChipChap User" %}' />
+                            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create BotC-Wallet User" %}' />
                         </div>
                     </form>
                 </div>
@@ -75,17 +76,28 @@
         {% endfor %}
       </table>
     </div>
+    {% if jn_req %}
+        <div class="span4">
+            <h3>
+                {% trans "Related membership" %}:
+            </h3>
+            <br />
+            <p>
+                <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=jn_req.id %}" class="btn btn-primary">{% trans "Feedback with" %} {{ jn_req.project.agent.name }}</a>
+            </p>
+        </div>
+    {% endif %}
     <br /><br />
     <div class="span6 miniform" style="margin-left:0">
-      <h3>{% trans "Authenticate an existing user in ChipChap" %}:</h3>
+      <h3>{% trans "Authenticate an existing account in BotC-Wallet" %}:</h3>
       <form id="oauthForm" class="validateMe" action="." method="POST" >
           {% csrf_token %}
           {{ oauth_form|as_bootstrap }}
           <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" />
       </form>
       <p><small class="muted">
-        {% trans "By submitting your ChipChap user/password you give permission to this site to access (read-only) to your wallet." %}<br />
-        {% trans "Your password won't be stored, it's just necessary to check your identity in ChipChap system." %}
+        {% trans "By submitting your BotC-Wallet user/password you give permission to this site to access (read-only) to your wallet." %}<br />
+        {% trans "Your password won't be stored, it's just necessary to check your identity in BotC-Wallet system." %}
       </small></p>
     </div>
   </div>

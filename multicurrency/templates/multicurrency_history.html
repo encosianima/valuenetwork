@@ -8,9 +8,12 @@
   <div class="container">
     <legend>
       <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a> >
-	        {% trans "Multicurrency-wallet Account (user:" %} {{ auth_user }})
+      <a class="indent" href="{% url 'multicurrency_auth' agent_id=agent.id %}">{% trans "Multicurrency Accounts" %}</a> >
+	         {{ auth_user }}
       <div class="subnav">
-
+          {% if jn_req %}
+              <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=jn_req.id %}">{% trans "BotC Feedback" %}</a>
+          {% endif %}
       </div>
     </legend>
     {% include "_messages.html" %}

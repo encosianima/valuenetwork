@@ -1,11 +1,18 @@
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 
 
 class MulticurrencyAuthForm(forms.Form):
-    name = forms.CharField(max_length=32, widget=forms.TextInput(
-        attrs={'class': 'required-field input-xxlarge', }))
-    password = forms.CharField(max_length=32, widget=forms.PasswordInput(
-        attrs={'class': 'required-field input-xxlarge', }))
+    loginname = forms.CharField(
+        max_length=32,
+        label = _("Wallet Username"),
+        widget=forms.TextInput(
+            attrs={'class': 'required-field input-xxlarge', }))
+    wallet_password = forms.CharField(
+        max_length=32,
+        label = _("Wallet Password"),
+        widget=forms.PasswordInput(
+            attrs={'class': 'required-field input-xxlarge', }))
 
 
 class MulticurrencyAuthDeleteForm(forms.Form):

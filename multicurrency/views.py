@@ -46,8 +46,9 @@ def auth(request, agent_id):
     if request.method == 'POST':
         form = MulticurrencyAuthForm(request.POST)
         if form.is_valid():
-            name = form.cleaned_data['name']
-            password = form.cleaned_data['password']
+            name = form.cleaned_data['loginname']
+            password = form.cleaned_data['wallet_password']
+            oauth = None
             connection = ChipChapAuthConnection.get()
             try:
                 response = connection.new_client(name, password)
@@ -55,7 +56,7 @@ def auth(request, agent_id):
                 messages.error(request, _('Authentication failed.'))
                 return redirect('multicurrency_auth', agent_id=agent_id)
             try:
-                MulticurrencyAuth.objects.create(
+                oauth = MulticurrencyAuth.objects.create(
                     agent=agent,
                     auth_user=name,
                     access_key=response['access_key'],
@@ -67,14 +68,29 @@ def auth(request, agent_id):
                     request, _('Something was wrong saving your data.'))
             messages.success(
                 request,
-                _('Your ChipChap user has been succesfully authenticated.'))
+                _('Your BotC-Wallet user has been succesfully authenticated.'))
+
+            for req in agent.project_join_requests.all():
+                if req.project.agent.need_multicurrency():
+                    req.multiwallet_user(name)
+
+            if oauth:
+                return redirect('multicurrency_history', agent_id=agent_id, oauth_id=oauth.id)
+
             return redirect('multicurrency_auth', agent_id=agent_id)
+
 
     else:
         try:
             oauths = MulticurrencyAuth.objects.filter(agent=agent)
         except MulticurrencyAuth.DoesNotExist:
             oauths = None
+
+        jnreq = None
+        if agent:
+            for req in agent.project_join_requests.all():
+                if req.project.agent.need_multicurrency():
+                    jnreq = req
 
         form = MulticurrencyAuthForm()
         delete_form = MulticurrencyAuthDeleteForm()
@@ -86,6 +102,7 @@ def auth(request, agent_id):
             'agent': agent,
             'user_agent': user_agent,
             'oauths': oauths,
+            'jn_req': jnreq,
             'oauth_form': form,
             'create_form': create_form,
             'delete_form': delete_form,
@@ -117,7 +134,7 @@ def deleteauth(request, agent_id, oauth_id):
             oauth.delete()
             messages.success(
                 request,
-                _('Your ChipChap user has been succesfully logged out.'))
+                _('Your BotC-Wallet user has been succesfully logged out.'))
     return redirect('multicurrency_auth', agent_id=agent_id)
 
 
@@ -142,7 +159,7 @@ def createauth(request, agent_id):
             except ChipChapAuthError as e:
                 messages.error(
                     request,
-                    _('Something was wrong creating new chip-chap user.')
+                    _('Something was wrong creating new BotC-wallet user.')
                     + ' (' + str(e) + ')')
                 return redirect('multicurrency_auth', agent_id=agent_id)
             try:
@@ -152,11 +169,16 @@ def createauth(request, agent_id):
             except ChipChapAuthError:
                 messages.success(
                     request,
-                    _('Your ChipChap user has been succesfully created. Check '
+                    _('Your BotC-Wallet account has been succesfully created. Check '
                       'your email and follow the link to confirm your email in'
-                      ' ChipChap system. Come back here with your credentials,'
+                      ' BotC-Wallet system. Come back here with your credentials,'
                       ' and authenticate your new user in the bottom form.'))
                 # messages.error(request, _('Authentication failed.'))
+
+                for req in agent.project_join_requests.all():
+                    if req.project.agent.need_multicurrency():
+                        req.multiwallet_user(form.cleaned_data['username'])
+
                 return redirect('multicurrency_auth', agent_id=agent_id)
             try:
                 MulticurrencyAuth.objects.create(
@@ -277,6 +299,7 @@ def history(request, agent_id, oauth_id):
             'table_rows': table_rows,
             'auth_user': oauth.auth_user,
             'oauth_id': oauth.id,
+            'jn_req': oauth.related_join_request(),
             'agent': agent,
             'offset': offset,
             'paginator': paginator,
