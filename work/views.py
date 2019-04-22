@@ -3285,7 +3285,7 @@ def edit_form_field_data(request, joinrequest_id):
             val = request.POST['value']
             if ';' in val:
                 val = val.split(';')
-            loger.debug(request, "Key:"+str(key)+" Val:"+str(val))
+            loger.debug("Key:"+str(key)+" Val:"+str(val))
             if req.fobi_data and req.fobi_data.pk:
                 req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
@@ -3294,7 +3294,17 @@ def edit_form_field_data(request, joinrequest_id):
                     old = req.data[key]
                 req.data[key] = val
                 entry.saved_data = json.dumps(req.data)
+
+                req.headers = json.loads(entry.form_data_headers)
+                if not key in req.headers:
+                    print "Fix fobi header! "+key
+                    for elm in entry.form_entry.formelemententry_set.all():
+                        pdata = json.loads(elm.plugin_data)
+                        if key == pdata['name']:
+                            req.headers[key] = pdata['label']
+                entry.form_data_headers = json.dumps(req.headers)
                 entry.save()
+                #import pdb; pdb.set_trace()
                 return HttpResponse("Ok", content_type="text/plain")
     return HttpResponse("Fail", content_type="text/plain")
 
@@ -3396,7 +3406,7 @@ def member_total_shares(request):
                     #return HttpResponse('{"error": "The agent id not match the join_request agent?"}', content_type='application/json')
                     raise ValidationError("The agent id not match the join_request agent? "+str(agent_id))
             elif not texplug:
-                multiauth = MulticurrencyAuth.objects.filter(auth_user=wallet_user.strip('/'))
+                multiauth = MulticurrencyAuth.objects.filter(auth_user=wallet_user)
                 if multiauth:
                     if len(multiauth) == 1:
                         jnreq = JoinRequest.objects.filter(project=project, agent=multiauth.agent)
@@ -4180,6 +4190,23 @@ def project_feedback(request, agent_id, join_request_id):
     if jn_req.agent and not jn_req.check_user_pass():
         auto_resource = create_user_accounts(request, jn_req.agent, jn_req.project)
 
+    wallet_form = None
+    oauth_form = None
+    if 'multicurrency' in settings.INSTALLED_APPS and agent.need_multicurrency():
+        from multicurrency.forms import MulticurrencyAuthCreateForm, MulticurrencyAuthForm
+        walletuser = jn_req.multiwallet_user()
+        if jn_req.agent:
+            if not walletuser:
+                walletuser = jn_req.agent.nick
+            wallet_form = MulticurrencyAuthCreateForm(initial={
+                'username': walletuser,
+                'email': jn_req.agent.email,
+            })
+            oauth_form = MulticurrencyAuthForm(initial={
+                'loginname': walletuser,
+                'wallet_password': '',
+            })
+
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email and user_agent in agent.managers():
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
 
@@ -4190,6 +4217,8 @@ def project_feedback(request, agent_id, join_request_id):
         "agent": agent,
         "fobi_headers": fobi_headers,
         "auto_resource": auto_resource,
+        "wallet_form": wallet_form,
+        "oauth_form": oauth_form,
     })
 
 
