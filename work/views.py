@@ -2941,7 +2941,7 @@ def joinaproject_request(request, form_slug = False):
                     join_url = get_url_starter(request) + "/work/project-feedback/" + str(jn_req.project.agent.id) +"/"+str(jn_req.id)
                     context_agent = jn_req.project.agent
 
-                    if jn_req.payment_url(): # its a credit card payment, create the user and the agent
+                    if jn_req.payment_url() or jn_req.multiwallet_user(): # its a credit card payment (or botc multiwallet), create the user and the agent
 
                         password = jn_req.create_useragent_randompass(request or None)
                         description = "Check the automatically created Agent and User for the Join Request of "
@@ -3430,7 +3430,8 @@ def member_total_shares(request):
 
             return HttpResponse('{"owned_shares": '+str(jnreq.total_shares())
                                 +', "requested_shares": '+str(jnreq.payment_amount())
-                                +', "gateway": "'+str(jnreq.payment_gateway())
+                                +', "wallet_user": "'+str(wallet_user)
+                                +'", "gateway": "'+str(jnreq.payment_gateway())
                                 +'", "share_model": {"price": '+str(shrtyp.price_per_unit)
                                 +', "price_unit": "'+str(shrtyp.unit_of_price.abbrev)
                                 +'", "name": "'+str(shrtyp.unit.name)

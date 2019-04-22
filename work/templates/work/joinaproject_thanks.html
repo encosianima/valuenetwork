@@ -68,9 +68,9 @@
             <p style="text-align:center; font-size:120%; ">
                 {% trans "You've choosed to pay your" %} <b>{{ jn_req.pending_shares }}</b> {% trans "Shares via" %} <span style="font-weight:bold;">{{ jn_req.payment_option.val }}</span>
             </p>
-            {% if jn_req.payment_url %}
+            {% if jn_req.payment_url or jn_req.multiwallet_user %}
                 <p style="text-align:center; font-size:120%; ">
-                    {% trans "To pay the shares directly by credit card is required to login first in OCP." %}
+                    {% trans "To pay the shares directly by credit card or BotC wallet is required to first login in OCP." %}
                 </p>
                 <p style="text-align:center; font-size:120%;">
                     {% trans "You've received an email with an initial random password to proceed (change it afterwards)." %}
