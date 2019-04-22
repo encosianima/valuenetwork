@@ -13,3 +13,11 @@ class MulticurrencyAuth(models.Model):
     created_by = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     created = models.DateField(auto_now_add=True)
     updated = models.DateField(auto_now=True)
+
+    def related_join_request(self):
+        jnreq = None
+        if self.agent:
+            for req in self.agent.project_join_requests.all():
+                if req.project.agent.need_multicurrency():
+                    jnreq = req
+        return jnreq
