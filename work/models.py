@@ -644,6 +644,35 @@ class JoinRequest(models.Model):
                             balance = int(rs.price_per_unit) # TODO: update the price_per_unit with wallet balance
         return balance
 
+    def multiwallet_user(self, username=None):
+        answer = ''
+        mkey = "multiwallet_username" # fieldname specially defined in the fobi form
+
+        if self.project.is_moderated() and self.fobi_data and self.project.agent.need_multicurrency():
+            self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
+            entry = self.entries[0]
+            self.data = json.loads(entry.saved_data)
+            if mkey in self.data:
+                answer = self.data.get(mkey)
+            #import pdb; pdb.set_trace()
+            if username:
+                if not username == answer:
+                    if self.fobi_data.pk:
+                        self.data[mkey] = username
+                        entry.saved_data = json.dumps(self.data)
+
+                        headers = json.loads(entry.form_data_headers)
+                        if not mkey in headers:
+                            print "Update fobi header! "+mkey+": "+username
+                            for elm in entry.form_entry.formelemententry_set.all():
+                                pdata = json.loads(elm.plugin_data)
+                                if mkey == pdata['name']:
+                                    headers[mkey] = pdata['label']
+                        entry.form_data_headers = json.dumps(headers)
+                        entry.save()
+                        answer = username
+        return answer
+
     def payment_option(self):
         answer = {}
         data2 = None
