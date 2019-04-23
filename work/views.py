@@ -2802,7 +2802,7 @@ def joinaproject_request(request, form_slug = False):
             POST = {}
             for key, val in jdata.items():
                 POST[ key ] = val
-            wallet_user = jdata['multiwallet_username']
+            wallet_user = jdata['wallet_user']
             api_key = jdata['ocp_api_key']
             if api_key:
                 if 'multicurrency' in settings.INSTALLED_APPS:
@@ -2999,8 +2999,8 @@ def joinaproject_request(request, form_slug = False):
 
                     if api_key:
                         # return json to the botc call
-                        return HttpResponse('{"join_request": '+str(jn_req.id)
-                                            +', "ocp_agent": '+str(jn_req.agent.id if jn_req.agent else 0)
+                        return HttpResponse('{"join_request_id": '+str(jn_req.id)
+                                            +', "ocp_agent_id": '+str(jn_req.agent.id if jn_req.agent else 0)
                                             +', "multiwallet_username": "'+str(wallet_user)+'"}', content_type="application/json")
                     else:
                         return render(request, "work/joinaproject_thanks.html", {
