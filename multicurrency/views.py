@@ -239,6 +239,7 @@ def history(request, agent_id, oauth_id):
         balance_clean = []
         for bal in balance['data']:
             if int(bal['balance']) != 0:
+              if not bal['id'] == 'multidivisa':
                 clean_bal = Decimal(int(bal['balance']))/(10**int(bal['scale']))
                 clean_currency = bal['currency'] if bal['currency'] != 'FAC' else 'FAIR'
                 balance_clean.append(str(clean_bal.quantize(Decimal('0.01'))) + ' ' + clean_currency)
