@@ -32,7 +32,7 @@
     </div>
     <br /><br /><br />
     <table id="listable" class="table table-bordered table-hover table-condensed ">
-      <caption style="text-align:left;">{{ table_caption }}</caption>
+      <caption style="text-align:left; margin-bottom: 5px;">{{ table_caption }}</caption>
       <thead>
         <tr>
           <th></th>
@@ -46,7 +46,11 @@
             <tr>
               <td>{{ forloop.counter|add:offset }}</td>
               {% for td in row %}
-                <td>{{ td }}</td>
+                {% if forloop.revcounter == 2 %}
+                    <td style="text-align: right;">{{ td }}</td>
+                {% else %}
+                    <td>{{ td|safe }}</td>
+                {% endif %}
               {% endfor %}
             </tr>
           {% endfor %}
@@ -87,7 +91,7 @@
             stateSave: true,
             autoWidth: true,
             paging:   false,
-            ordering: false,
+            //ordering: false,
             info:     false,
             //order: [[1, 'desc']],
             dom: '<ft<"right"B>i>', //'B<"clear">lfrtip',

@@ -253,22 +253,38 @@ def history(request, agent_id, oauth_id):
         table_caption = "Showing " + str(tx_list['data']['start'] + 1) + " to "\
             + str(tx_list['data']['end']) + " of " + str(tx_list['data']['total'])\
             + " movements"
-        table_headers = ['Created', 'Concept', 'Method', 'Address', 'Amount']
+        table_headers = ['Created', 'Updated', 'Concept', 'Method', 'IO', 'Account or Address', 'Amount', 'Unit']
         table_rows = []
         paginator = {}
         if tx_list['data']['total'] > 0:
             for tx in tx_list['data']['elements']:
                 created = parse_datetime(tx['created']) if 'created' in tx else '--'
+                updated = parse_datetime(tx['updated']) if 'updated' in tx else '--'
                 concept = '--'
                 address = '--'
+                io = '-'
+                unit = '--'
                 if 'pay_in_info' in tx:
+                    io = '<span class="complete">&lt;&lt;</span>'
                     concept = tx['pay_in_info']['concept'] if 'concept' in tx['pay_in_info'] else '--'
                     address = tx['pay_in_info']['address'] if 'address' in tx['pay_in_info'] else '--'
+                    if address == '--':
+                        address = tx['data_out']['received_from'] if 'received_from' in tx['data_out'] else '--'
                 elif 'pay_out_info' in tx:
+                    io = '<span class="error">&gt;&gt;</span>'
                     concept = tx['pay_out_info']['concept'] if 'concept' in tx['pay_out_info'] else '--'
                     address = tx['pay_out_info']['address'] if 'address' in tx['pay_out_info'] else '--'
+                    if address == '--':
+                        address = tx['pay_out_info']['beneficiary'] if 'beneficiary' in tx['pay_out_info'] else '--'
                 method = tx['method'] if 'method' in tx else '--'
                 if method in methods: method = methods[method]
+                if 'ANDROID FAIR APP' in concept:
+                    concept = _("FairPay: payed with your NFC card")
+                if 'ANDROID APP' in concept:
+                    concept = _("FairPay: charged via NFC card")
+                if 'Payment' == concept:
+                    concept = _("FairPay: charged via QR code")
+                #import pdb; pdb.set_trace()
                 amount = Decimal(tx['amount']) if 'amount' in tx else Decimal('0')
                 scale = int(tx['scale']) if 'scale' in tx else 0
                 amount = amount/(10**scale)
@@ -277,21 +293,24 @@ def history(request, agent_id, oauth_id):
                 currency = tx['currency'] if 'currency' in tx else '--'
                 if currency == "FAC": currency = "FAIR"
                 table_rows.append([
-                    created.strftime('%d/%m/%y %H:%M'),
+                    created.strftime('%Y/%m/%d-%H:%M'),
+                    updated.strftime('%Y/%m/%d-%H:%M'),
                     concept,
                     method,
+                    io,
                     address,
-                    str(amount.quantize(Decimal('0.01'))) + ' ' + currency,
+                    str(round(amount, scale)), #.quantize(Decimal('0.01'))),
+                    currency,
                 ])
                 if tx_list['data']['total'] > tx_list['data']['end']:
                     paginator['next'] = {
-                        'limit': str(items_per_page),
+                        'limit': str(limit),
                         'offset': str(tx_list['data']['end'])
                     }
-                if tx_list['data']['start'] >= items_per_page:
+                if tx_list['data']['start'] >= limit:
                     paginator['previous'] = {
-                        'limit': str(items_per_page),
-                        'offset': str(int(tx_list['data']['start']) - items_per_page)
+                        'limit': str(limit),
+                        'offset': str(int(tx_list['data']['start']) - limit)
                     }
         return render(request, 'multicurrency_history.html', {
             'balance_clean': balance_clean,
