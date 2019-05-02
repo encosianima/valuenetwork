@@ -898,6 +898,9 @@ class JoinRequest(models.Model):
             pendamo = 0
         return round(pendamo, 8)
 
+    def payment_pending_to_pay(self):
+        return self.pending_shares() * self.share_price()
+
 
     def payment_account_type(self):
         account_type = None
@@ -3087,6 +3090,12 @@ def create_unit_types(**kwargs):
         incfairets = ExchangeType.objects.filter(name="Receive Faircoins")
     if incfairets:
         incfairet = incfairets[0]
+    else:
+        incfairet, c = ExchangeType.objects.get_or_create(
+            name="Receive Faircoins",
+            use_case=inc_usecase)
+        if c:
+            print "- created ExchangeType: "+str(incfairet)
     incfairet.name = "Receive Faircoins"
     incfairet.use_case = inc_usecase
     incfairet.save()
