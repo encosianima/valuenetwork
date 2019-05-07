@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404
 from django.contrib import messages
 from django.utils.dateparse import parse_datetime
@@ -11,8 +11,9 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.valueaccounting.models import EconomicAgent
 from multicurrency.models import MulticurrencyAuth
 from multicurrency.forms import MulticurrencyAuthForm, \
-    MulticurrencyAuthDeleteForm, MulticurrencyAuthCreateForm
+    MulticurrencyAuthDeleteForm, MulticurrencyAuthCreateForm, PaySharesForm
 from multicurrency.utils import ChipChapAuthConnection, ChipChapAuthError
+from work.models import JoinRequest
 
 
 def get_agents(request, agent_id):
@@ -232,7 +233,7 @@ def history(request, agent_id, oauth_id):
         )
     except ChipChapAuthError:
         messages.error(
-            request, _('Something was wrong connecting to chip-chap.'))
+            request, _('Something was wrong connecting to BotC-wallet.'))
         return redirect('multicurrency_auth', agent_id=agent_id)
 
     if tx_list['status'] == 'ok' and balance['status'] == 'ok':
@@ -282,7 +283,7 @@ def history(request, agent_id, oauth_id):
                     concept = _("FairPay: payed with your NFC card")
                 if 'ANDROID APP' in concept:
                     concept = _("FairPay: charged via NFC card")
-                if 'Payment' == concept:
+                if 'Payment' == concept and method == 'FAIR':
                     concept = _("FairPay: charged via QR code")
                 #import pdb; pdb.set_trace()
                 amount = Decimal(tx['amount']) if 'amount' in tx else Decimal('0')
@@ -327,5 +328,77 @@ def history(request, agent_id, oauth_id):
     else:
         messages.error(
             request,
-            _('Something was wrong connecting to chip-chap.'))
+            _('Something was wrong connecting to BotC-wallet.'))
         return redirect('multicurrency_auth', agent_id=agent_id)
+
+
+
+@login_required
+def authpayment(request, agent_id):
+    if request.method == 'POST':
+        form = PaySharesForm(data=request.POST or None)
+        if form.is_valid():
+          data = form.cleaned_data
+          jnreq = None
+          if agent_id:
+            access_permission, user_agent, agent = get_agents(request, agent_id)
+            if not access_permission:
+                raise PermissionDenied
+            #import pdb; pdb.set_trace()
+            try:
+                oauths = MulticurrencyAuth.objects.filter(agent=agent)
+            except MulticurrencyAuth.DoesNotExist:
+                raise Http404
+            oauth = None
+            for o in oauths:
+                if o.id == int(data['auth_id']):
+                    oauth = o
+            if not oauth:
+                raise Http404
+            if 'jnreq_id' in data and data['jnreq_id']:
+                jnreq = JoinRequest.objects.get(id=data['jnreq_id'])
+                pend = jnreq.payment_pending_to_pay()
+                unit = jnreq.payment_unit().abbrev
+                wuser = jnreq.multiwallet_user()
+                if not unit == data['unit']:
+                    raise ValidationError("unit is not the same")
+                if not str(pend) == str(data['amount']):
+                    raise ValidationError("amount is not the same (pend:"+str(pend)+" / amount:"+str(data['amount'])+")")
+                if not wuser == oauth.auth_user:
+                    raise ValidationError("multiwallet user is not the same !")
+                balobj = oauth.balance_obj()
+                if unit in balobj:
+                    if balobj[unit] < pend:
+                        raise ValidationError("not enough funds ?")
+                else:
+                    raise ValidationError("not found unit in balances ?")
+
+                connection = ChipChapAuthConnection.get()
+                try:
+                    share_payment = connection.send_w2w(
+                        oauth.access_key,
+                        oauth.access_secret,
+                        unit,
+                        pend,
+                        # TODO add wuser botc and scale
+                    )
+                except ChipChapAuthError:
+                    messages.error(
+                        request, _('Something was wrong connecting to BotC-wallet.'))
+                    return redirect('multicurrency_auth', agent_id=agent_id)
+
+                if share_payment['status'] == 'ok':
+                    for payd in share_payment['data']:
+                        print payd
+
+
+            messages.success( request,
+                _('The payment is done! Transfered')+" "+str(data['amount'])+" "+data['unit']+" "+str(_("to"))+" "+str(jnreq.project.agent.name)+".")
+
+            return redirect('project_feedback', agent_id=agent_id, join_request_id=jnreq.id)
+        else:
+            #print form
+            messages.success( request,
+                _('Error in the transfer form: ')) #+str(form))
+
+    return redirect('members_agent', agent_id=agent_id)

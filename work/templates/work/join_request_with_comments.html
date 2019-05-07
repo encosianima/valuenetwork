@@ -384,19 +384,31 @@ a.more-link {
             {% if req.project.agent.need_multicurrency %}
               <tr><th>{% trans "Multicurrency Account" %}:</th>
                 <td>
-                  <b>{{ req.multiwallet_user }}</b> &nbsp;
-                  {% if req.agent %}
+                {% if req.agent %}
+                  {% if req.check_user_pass %}
+                      <span class="warning">{% trans "Change your password first..." %}</span>
+                  {% else %}
                     {% if req.agent.multicurrencyauth_set.all %}
                         {% for mauth in req.agent.multicurrencyauth_set.all %}
                           {% if mauth.auth_user == req.multiwallet_user %}
-                            <a href="{% url 'multicurrency_history' agent_id=req.agent.id oauth_id=mauth.id %}" class="btn btn-primary btn-mini">{% trans "Read BotC-Wallet" %}</a>
+                            <a href="{% url 'multicurrency_history' agent_id=req.agent.id oauth_id=mauth.id %}"
+                               class="btn btn-info btn-mini">{% trans "Read '" %}{{ mauth.auth_user }}{% trans "' Multiwallet" %}</a>
+                            &nbsp; <span class="help-text">{{ out_text|safe }}</span>
+                            {% if pay_form %} &nbsp; &nbsp;
+                                <form id="payForm" action="{% url 'authpayment' agent_id=req.agent.id %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    {{ pay_form|as_bootstrap }}
+                                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans "Transfer" %} {{ req.payment_pending_to_pay }} {{ req.payment_unit.symbol }} {% trans "to" %} {{ req.project.agent.nick }}" />
+                                </form>
+                            {% endif %}
                           {% elif req.multiwallet_user %}
+                            <b>{{ req.multiwallet_user }}</b> &nbsp;
                             <span class="error">&lt;- ERROR?</span> &nbsp; {{ mauth.auth_user }}
                           {% endif %}
                         {% endfor %}
                     {% elif req.multiwallet_user %}
+                        <b>{{ req.multiwallet_user }}</b> &nbsp;
                         <a href="#connect-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Connect BotC-Wallet account" %}</a> &nbsp;
-
                     {% endif %}
                     {% if not req.multiwallet_user %}
                         <a href="#create-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create new BotC-Wallet account" %}</a>
@@ -426,7 +438,6 @@ a.more-link {
 
                         &nbsp;{% trans "or" %}&nbsp;
                         <a href="#connect-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Connect existent BotC-Wallet account" %}</a> &nbsp;
-
                     {% endif %}
 
                     <div class="modal hide fade" id="connect-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
@@ -451,9 +462,11 @@ a.more-link {
                     </div>
 
                     {% if request.user.is_superuser %}
-                       &nbsp; <a href="{% url "multicurrency_auth" agent_id=req.agent.id %}" class="btn btn-primary btn-mini"> + </a>
+                       &nbsp; <a href="{% url "multicurrency_auth" agent_id=req.agent.id %}"
+                                 class="btn btn-info btn-mini" style="float:right;"> + </a>
                     {% endif %}
                   {% endif %}
+                {% endif %}
                 </td>
               </tr>
             {% endif %}

@@ -2823,6 +2823,9 @@ def joinaproject_request(request, form_slug = False):
             fobi_form = FormClass(POST, request.FILES)
             join_form = JoinRequestForm(data=POST, project=project, api_key=True)
             #import pdb; pdb.set_trace()
+          else:
+            pass #loger.error("Can't find the ocp_api_key in sent data!")
+            #raise ValidationError("Can't find the ocp_api_key in sent data!")
         except:
             pass
         if join_form.is_valid():
@@ -4119,6 +4122,8 @@ def project_feedback(request, agent_id, join_request_id):
     fobi_headers = []
     fobi_keys = []
 
+    out_text = ''
+
     if fobi_slug:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
         #req = jn_req
@@ -4193,20 +4198,39 @@ def project_feedback(request, agent_id, join_request_id):
 
     wallet_form = None
     oauth_form = None
+    pay_form = None
     if 'multicurrency' in settings.INSTALLED_APPS and agent.need_multicurrency():
-        from multicurrency.forms import MulticurrencyAuthCreateForm, MulticurrencyAuthForm
+        from multicurrency.forms import MulticurrencyAuthCreateForm, MulticurrencyAuthForm, PaySharesForm
         walletuser = jn_req.multiwallet_user()
         if jn_req.agent:
+            other = None
+            auth = None
+            for oauth in jn_req.agent.multicurrencyauth_set.all():
+                if oauth.auth_user == walletuser:
+                    auth = oauth
+                    break
+                else:
+                    other = oauth
+            if other and not walletuser:
+                # switch for real auth_user
+                walletuser = other.auth_user
+                auth = other
             if not walletuser:
                 walletuser = jn_req.agent.nick
-            wallet_form = MulticurrencyAuthCreateForm(initial={
-                'username': walletuser,
-                'email': jn_req.agent.email,
-            })
-            oauth_form = MulticurrencyAuthForm(initial={
-                'loginname': walletuser,
-                'wallet_password': '',
-            })
+            if auth and jn_req.pending_shares():
+
+                out_text, reqdata = auth.pay_shares_html(jn_req, request.user)
+                pay_form = PaySharesForm(initial=reqdata)
+
+            else:
+                wallet_form = MulticurrencyAuthCreateForm(initial={
+                    'username': walletuser,
+                    'email': jn_req.agent.email,
+                })
+                oauth_form = MulticurrencyAuthForm(initial={
+                    'loginname': walletuser,
+                    'wallet_password': '',
+                })
 
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email and user_agent in agent.managers():
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
@@ -4220,6 +4244,8 @@ def project_feedback(request, agent_id, join_request_id):
         "auto_resource": auto_resource,
         "wallet_form": wallet_form,
         "oauth_form": oauth_form,
+        "out_text": out_text,
+        "pay_form": pay_form,
     })
 
 
