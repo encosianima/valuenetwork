@@ -202,9 +202,27 @@ th, td {
         {% trans "As an <b>active participant</b> in a project, you can collaborate doing tasks." %}
       </p> -->
     {% elif agent.is_participant_candidate %}
-      <p>
-        {% trans "As a <b>participant candidate</b> in a project, you should be accepted by the project coordinators before you can collaborate doing project tasks." %}
-      </p>
+        {% for req in agent.project_join_requests.all %}
+            {% if 'faircoins' in req.project.services and not agent.faircoin_resource %}
+                <div>{% trans "As a participant <b>candidate</b> in the" %} <b>{{ req.project.agent.name }}</b>
+                    {% trans "project, you need an internal Faircoin Account to fill it and pay your shares:" %}
+                    <form class="action-form" style="display: inline-block;"
+                          action="{% url "request_faircoin_address" agent_id=req.agent.id %}"
+                          method="POST" >
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="feedback">
+                        <input type="hidden" name="jn_req" value="{{ req.id }}">
+                        <button class="btn btn-primary" title="Create FairCoin Address" >
+                            {% trans "Request FairCoin Address" %}
+                        </button>
+                    </form>
+                </div>
+            {% elif req.state == "new" %}
+              <p>
+                {% trans "As a participant <b>candidate</b> in the" %} <b>{{ req.project.agent.name }}</b> {% trans "project, you should be accepted by its coordinators before you can use all the project tools." %}
+              </p>
+            {% endif %}
+        {% endfor %}
     {% endif %}
     <p>
       {% trans "The options you already have in OCP are:" %}
