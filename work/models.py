@@ -434,6 +434,8 @@ class Project(models.Model):
         return abbr
 
 
+
+
 class SkillSuggestion(models.Model):
     skill = models.CharField(_('skill'), max_length=128,
         help_text=_("A new skill that you want to offer that is not already listed"))
@@ -759,11 +761,12 @@ class JoinRequest(models.Model):
 
                     if fairrs:
                       if addr:
-                        if wallet:
-                          is_wallet_address = faircoin_utils.is_mine(addr)
-                          if is_wallet_address:
-                            balance = fairrs.faircoin_address.balance()
-                            if balance != None:
+                        if not addr == "address_requested":
+                          if wallet:
+                            is_wallet_address = faircoin_utils.is_mine(addr)
+                            if is_wallet_address:
+                              balance = fairrs.faircoin_address.balance()
+                              if balance != None:
                                 if round(balance, 8) < round(amopend, 8):
                                     txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br/>"
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
@@ -772,12 +775,14 @@ class JoinRequest(models.Model):
                                     txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
                                     txt += "</b> &nbsp;<a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
                                     txt += "' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
-                            else:
+                              else:
                                 txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
+                            else:
+                              txt = str(_("The agent faircoin address is not from the same wallet!"))
                           else:
-                            txt = str(_("The agent faircoin address is not from the same wallet!"))
+                            txt = str(_("The OCP wallet is not available now, try later."))
                         else:
-                          txt = str(_("The OCP wallet is not available now, try later."))
+                            txt = str(_("The account is requested and should be available in less than a minute... please refresh the page!"))
                       else:
                         txt = str(_("No faircoin address?"))
                     else:
