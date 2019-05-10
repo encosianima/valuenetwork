@@ -79,6 +79,10 @@ def auth(request, agent_id):
                 return redirect('multicurrency_history', agent_id=agent_id, oauth_id=oauth.id)
 
             return redirect('multicurrency_auth', agent_id=agent_id)
+        else:
+            messages.error(request, "The form has errors: "+str(form.errors))
+            return redirect('multicurrency_auth', agent_id=agent_id)
+
 
 
     else:
@@ -269,7 +273,7 @@ def history(request, agent_id, oauth_id):
                     io = '<span class="complete">&lt;&lt;</span>'
                     concept = tx['pay_in_info']['concept'] if 'concept' in tx['pay_in_info'] else '--'
                     address = tx['pay_in_info']['address'] if 'address' in tx['pay_in_info'] else '--'
-                    if address == '--':
+                    if address == '--' and 'data_out' in tx:
                         address = tx['data_out']['received_from'] if 'received_from' in tx['data_out'] else '--'
                 elif 'pay_out_info' in tx:
                     io = '<span class="error">&gt;&gt;</span>'

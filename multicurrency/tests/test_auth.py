@@ -64,10 +64,11 @@ class ChipChapAuthTest(TestCase):
 
         # Authenticate ChipChap user
         data = {
-            "name": "auth_user",
-            "password": "auth_user_passwd",
+            "loginname": "auth_user",
+            "wallet_password": "auth_user_passwd",
         }
         response = self.client.post(url, data=data)
+        #import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 302)
 
         auth = MulticurrencyAuth.objects.filter(agent=self.agent)
