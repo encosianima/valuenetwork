@@ -2707,7 +2707,7 @@ def project_login(request, form_slug = False):
                     return HttpResponseRedirect(reverse('project_joinform', args=(project.agent.id,)))
 
                 elif len(req) == 1:
-                    if req[0].pending_shares() and req[0].payment_url():
+                    if req[0].pending_shares(): # and req[0].payment_url():
                         return HttpResponseRedirect(reverse('project_feedback', args=(agent.id, req[0].pk)))
                     elif req[0].check_user_pass():
                         return HttpResponseRedirect(reverse('project_feedback', args=(agent.id, req[0].pk)))
