@@ -327,17 +327,17 @@ class ExchangeService(object):
                         print ";;; no project"
                     for req in resource.owner().project_join_requests.all():
                         if req.exchange: #project.shares_account_type() == resource.resource_type:
-                            for tx in req.exchange.transfers.all():
-                                for ev in tx.events.all():
+                            for tf in req.exchange.transfers.all():
+                                for ev in tf.events.all():
                                     if hasattr(ev, 'faircoin_transaction') and ev.faircoin_transaction:
                                         if ev.faircoin_transaction.to_address == resource.faircoin_address.address:
                                             jn_req = req
                                             exchange = req.exchange
-                                            transfer = tx #req.exchange.txpay()
+                                            transfer = tf #req.exchange.txpay()
                                             event = ev #transfer.events.get(faircoin_transaction__tx_hash__isnull=True)
                                             fairtx = ev.faircoin_transaction
-                                            print ";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(exchange.id)
-                                            loger.info(";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(exchange.id))
+                                            print ";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tf:"+str(tf.id)+" ex:"+str(exchange.id)
+                                            loger.info(";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tf:"+str(tf.id)+" ex:"+str(exchange.id))
                                             break
                     if not jn_req:
                         exchange = Exchange(
