@@ -329,7 +329,7 @@ class ExchangeService(object):
                         if req.exchange: #project.shares_account_type() == resource.resource_type:
                             for tx in req.exchange.transfers.all():
                                 for ev in tx.events.all():
-                                    if 'faircoin_transaction' in ev and ev.faircoin_transaction:
+                                    if hasattr(ev, 'faircoin_transaction') and ev.faircoin_transaction:
                                         if ev.faircoin_transaction.to_address == resource.faircoin_address.address:
                                             jn_req = req
                                             exchange = req.exchange
