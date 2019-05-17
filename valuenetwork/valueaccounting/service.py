@@ -330,7 +330,7 @@ class ExchangeService(object):
                             for tx in req.exchange.transfers.all():
                                 for ev in tx.events.all():
                                     if ev.faircoin_transaction:
-                                        if ev.faircoin_transaction.to_address == resource.faircoin_address():
+                                        if ev.faircoin_transaction.to_address == resource.faircoin_address.address:
                                             jn_req = req
                                             exchange = req.exchange
                                             transfer = tx #req.exchange.txpay()
