@@ -3063,11 +3063,35 @@ def create_unit_types(**kwargs):
         incfairets = ExchangeType.objects.filter(name="Receive Faircoins")
     if incfairets:
         incfairet = incfairets[0]
+    else:
+        incfairet, c = ExchangeType.objects.get_or_create(
+            use_case=inc_usecase,
+            name="Receive Faircoins"
+        )
+        if c:
+            print "- created ExchangeType: "+str(incfairet)
     incfairet.name = "Receive Faircoins"
     incfairet.use_case = inc_usecase
     incfairet.save()
 
-
+    genrec = Artwork_Type.objects.get(clas='Record')
+    ocprec, c = Ocp_Record_Type.objects.get_or_create(
+        name="OCP Record",
+        clas="ocp_record",
+        parent=genrec)
+    if c:
+        print "- created Ocp_Record_Type: "+str(ocprec)
+    ocpexts = Ocp_Record_Type.objects.filter(clas='ocp_exchange')
+    if ocpexts:
+        ocpext = ocpexts[0]
+    else:
+        ocpext, c = Ocp_Record_Type.objects.get_or_create(
+            clas="ocp_exchange",
+            name="OCP ExchangeType",
+            parent=ocprec
+        )
+        if c:
+            print "- created Ocp_Record_Type: "+str(ocpext)
     ocpext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
     gen_gifts = Ocp_Record_Type.objects.filter(name__icontains="Gift Economy")
     if gen_gifts:
