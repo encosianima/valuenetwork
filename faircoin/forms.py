@@ -49,10 +49,18 @@ class SendFairCoinsForm(forms.Form):
         if data["to_address"]:
             data["to_address"] = data["to_address"].strip()
         data["quantity"] = Decimal(data["quantity"])
-        if data["to_user"] and not data["to_address"]:
-           touser = data["to_user"]
-           if touser and touser.faircoin_address():
-               data["to_address"] = touser.faircoin_address()
+        if data["to_user"]:
+            touser = data["to_user"]
+            touseraddr = touser.faircoin_address()
+            if touser and touseraddr:
+                if data["to_address"] and not data["to_address"] == touseraddr:
+                    self.add_error('to_address', _("The destination address is not the destination agent's address!"))
+                else:
+                    data["to_address"] = touseraddr
+        if not data["to_address"]:
+            self.add_error('to_address', _("The destination fair account is missing"))
+        if data['quantity'] <= 0:
+            self.add_error('quantity', _("The amount must be positive"))
 
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
