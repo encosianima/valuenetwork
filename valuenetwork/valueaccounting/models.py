@@ -12971,8 +12971,8 @@ class EconomicEvent(models.Model):
         if agent:
             gives = self.from_agent == agent
             takes = self.to_agent == agent
-            if not self.exchange:
-                if not self.transfer.exchange:
+            if not hasattr(self, 'exchange') or not self.exchange:
+                if not hasattr(self.transfer, 'exchange') or not self.transfer.exchange:
                     loger.info("error showing name: not self.exchange? ev:"+str(self.id))
                     return "error showing name: not self.exchange?"
                 else:
