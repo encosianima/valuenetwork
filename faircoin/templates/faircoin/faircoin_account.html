@@ -406,9 +406,11 @@
         jQuery.validator.addMethod("quantity",
             function(value, element) {
                 var isValidQuantity = /^\d{0,6}(\.\d{0,4})?$/.test(value);
+                if isValidQuantity and parseFloat(value) <= 0:
+                    isValidQuantity = false;
                 return this.optional(element) || isValidQuantity;
             },
-            "Please enter a number less than 1000000 with no more than 4 decimal places"
+            "Please enter a positive number less than 1000000 with no more than 4 decimal places"
         );
 
         $.validator.addClassRules("quantity", { quantity: true });
