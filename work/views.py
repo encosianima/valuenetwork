@@ -2770,7 +2770,9 @@ def joinaproject_request(request, form_slug = False):
         try:
             form_entry = FormEntry.objects.get(slug=fobi_slug)
         except:
-            pass
+            print "ERROR: Not found the FormEntry with fobi_slug: "+fobi_slug
+            loger.error("ERROR: Not found the FormEntry with fobi_slug: "+fobi_slug)
+            #pass
 
         form_element_entries = form_entry.formelemententry_set.all()[:]
         form_entry.project = project
