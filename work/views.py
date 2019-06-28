@@ -2608,9 +2608,8 @@ def repair_duplicate_agents(request, agent):
             for att in dir(co):
               if hasattr(co, att):
                 met = getattr(co, att)
-                txt = str(met)
-                if True or 'valueaccounting' in txt or 'work' in txt:
-                  try:
+                #txt = str(met)
+                try:
                     res = met.all()
                     if len(res): #len(txt) > 0 and not txt == '>': # and not str(met) in tps:
                         its = []
@@ -2619,9 +2618,9 @@ def repair_duplicate_agents(request, agent):
                         its = ', '.join(its)
                         tps.append('- <em>'+att+'</em>: '+str(len(res))+' - ids('+str([str(rs.id) for rs in res])+')') #+str(txt)+' Res:')
                         obs += len(res)
-                  except:
-                    if not att[0] == '_' and len(txt) > 1:
-                      pass #tps.append(att+': '+str(txt))
+                except:
+                    #if not att[0] == '_' and len(txt) > 1:
+                    pass #tps.append(att+': '+str(txt))
             tps = '<br>'.join(tps)
             for pro in co.__dict__:
                 fld = getattr(co, pro)
