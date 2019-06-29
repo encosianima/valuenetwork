@@ -2608,9 +2608,8 @@ def repair_duplicate_agents(request, agent):
             for att in dir(co):
               if hasattr(co, att):
                 met = getattr(co, att)
-                txt = str(met)
-                if True or 'valueaccounting' in txt or 'work' in txt:
-                  try:
+                #txt = str(met)
+                try:
                     res = met.all()
                     if len(res): #len(txt) > 0 and not txt == '>': # and not str(met) in tps:
                         its = []
@@ -2619,25 +2618,27 @@ def repair_duplicate_agents(request, agent):
                         its = ', '.join(its)
                         tps.append('- <em>'+att+'</em>: '+str(len(res))+' - ids('+str([str(rs.id) for rs in res])+')') #+str(txt)+' Res:')
                         obs += len(res)
-                  except:
-                    if not att[0] == '_' and len(txt) > 1:
-                      pass #tps.append(att+': '+str(txt))
+                except:
+                    #if not att[0] == '_' and len(txt) > 1:
+                    pass #tps.append(att+': '+str(txt))
             tps = '<br>'.join(tps)
             for pro in co.__dict__:
                 fld = getattr(co, pro)
                 if not fld == None and not fld == '':
-                    props.append('<em>'+pro+'</em>: &nbsp;<b>'+str(fld)+'</b>')
+                    if not isinstance(fld, unicode):
+                        fld = str(fld)
+                    props.append('<em>'+pro+'</em>: &nbsp;<b>'+fld+'</b>')
             pros = '<br>'.join(props)
             if obs > mem:
                 mem = obs
                 main = co
             cases.append('<td style="padding-right:2em; vertical-align:top;"><b><a href="'
                          +reverse('members_agent', args={co.id})+'">'+co.nick+'</a> id:'+str(co.id)+'</b>'
-                         +str(usrs)+" ("+str(co.agent_type)+")"+' objects: <b>'+str(obs)+'</b><br>'+str(tps)+'<br><br>'
-                         +str(pros)+'</td>')
+                         +usrs+" ("+str(co.agent_type)+")"+' objects: <b>'+str(obs)+'</b><br>'+tps+'<br><br>'
+                         +pros+'</td>')
         actions = ""
         if main:
-            actions = "</tr><tr><td><b>main is "+str(main.nick)+"?</b> "
+            actions = "</tr><tr><td><b>main is "+main.nick+"?</b> "
             for co in copis:
                 if not co == main:
                     pass #actions += "merge all of "+str(co.nick)+" to main? "
@@ -2770,7 +2771,9 @@ def joinaproject_request(request, form_slug = False):
         try:
             form_entry = FormEntry.objects.get(slug=fobi_slug)
         except:
-            pass
+            print "ERROR: Not found the FormEntry with fobi_slug: "+fobi_slug
+            loger.error("ERROR: Not found the FormEntry with fobi_slug: "+fobi_slug)
+            #pass
 
         form_element_entries = form_entry.formelemententry_set.all()[:]
         form_entry.project = project

@@ -1,13 +1,16 @@
 from django.contrib.auth.models import User
 from django.conf import settings
-
+from django.test import RequestFactory
 import decimal
 
 from valuenetwork.valueaccounting.models import \
     AgentType, EconomicAgent, AgentUser, EventType, EconomicResourceType, \
     Unit, AgentResourceRoleType
 
-from work.models import Project
+from work.models import Project, create_unit_types
+
+from fobi.utils import perform_form_entry_import
+import json
 
 # It creates the needed initial data to run the work tests:
 # admin_user, admin_agent, Freedom Coop agent, FC Membership request agent, ...
@@ -25,7 +28,7 @@ def initial_test_data():
             password='admin_passwd',
             email='admin_user@example.com'
         )
-        print "t- created User: 'admin _user'"
+        print "t- created User: 'admin_user'"
 
     # AgentTypes
     individual_at, c = AgentType.objects.get_or_create(
@@ -56,11 +59,29 @@ def initial_test_data():
     # Project for FreedomCoop
     pro, c = Project.objects.get_or_create(agent=fdc, joining_style="moderated", fobi_slug='freedom-coop')
     if c: print "t- created Project: "+str(pro)
+    pro.visibility = 'public'
+    pro.save()
+
+    # Fobi form for project
+    json_data = open(settings.BASE_DIR+'/work/tests/freedom-coop.json')
+    form_data = json.load(json_data) # deserialises it
+    #data2 = json.dumps(data1) # json formatted string
+
+    request = RequestFactory().get(settings.BASE_DIR)
+    request.user = admin_user
+    form_entry = perform_form_entry_import(request, form_data)
+    if form_entry:
+        print "t- created fobi FormEntry importing freedom-coop.json: "+str(form_entry)
+        #import pdb; pdb.set_trace()
+
+    json_data.close()
+
+    create_unit_types()
 
     # EconomicAgent for Memebership Request
-    fdcm, c = EconomicAgent.objects.get_or_create(name='FreedomCoop Membership',
-        nick=settings.SEND_MEMBERSHIP_PAYMENT_TO, agent_type=project_at, is_context=True)
-    if c: print "t- created EconomicAgent: 'FreedomCoop Membership'"
+    #fdcm, c = EconomicAgent.objects.get_or_create(name='FreedomCoop Membership',
+    #    nick=settings.SEND_MEMBERSHIP_PAYMENT_TO, agent_type=project_at, is_context=True)
+    #if c: print "t- created EconomicAgent: 'FreedomCoop Membership'"
 
     # EventType for todos
     et, c = EventType.objects.get_or_create(name='Todo', label='todo',

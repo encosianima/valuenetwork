@@ -390,6 +390,8 @@ CAPTCHA_NOISE_FUNCTIONS = (
   'captcha.helpers.noise_dots',
   'captcha.helpers.noise_dots',
 )
+if 'test' in sys.argv:
+    CAPTCHA_TEST_MODE = True
 
 # ----put all other settings above this line----
 try:
