@@ -2625,7 +2625,9 @@ def repair_duplicate_agents(request, agent):
             for pro in co.__dict__:
                 fld = getattr(co, pro)
                 if not fld == None and not fld == '':
-                    props.append('<em>'+pro+'</em>: &nbsp;<b>'+str(fld)+'</b>')
+                    if not isinstance(fld, unicode):
+                        fld = str(fld)
+                    props.append('<em>'+pro+'</em>: &nbsp;<b>'+fld+'</b>')
             pros = '<br>'.join(props)
             if obs > mem:
                 mem = obs
