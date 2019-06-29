@@ -2634,11 +2634,11 @@ def repair_duplicate_agents(request, agent):
                 main = co
             cases.append('<td style="padding-right:2em; vertical-align:top;"><b><a href="'
                          +reverse('members_agent', args={co.id})+'">'+co.nick+'</a> id:'+str(co.id)+'</b>'
-                         +str(usrs)+" ("+str(co.agent_type)+")"+' objects: <b>'+str(obs)+'</b><br>'+str(tps)+'<br><br>'
-                         +str(pros)+'</td>')
+                         +usrs+" ("+str(co.agent_type)+")"+' objects: <b>'+str(obs)+'</b><br>'+tps+'<br><br>'
+                         +pros+'</td>')
         actions = ""
         if main:
-            actions = "</tr><tr><td><b>main is "+str(main.nick)+"?</b> "
+            actions = "</tr><tr><td><b>main is "+main.nick+"?</b> "
             for co in copis:
                 if not co == main:
                     pass #actions += "merge all of "+str(co.nick)+" to main? "
