@@ -141,7 +141,7 @@
                     {% if resource.owner == request.user.agent.agent or resource.owner in request.user.agent.agent.managed_projects %}
 	                  <tr>
                         <th style="text-align: right;">{% trans "Balance" %}</th>
-                        {% if wallet %}
+                        {% if wallet and is_wallet_address %}
                             {% if not confirmed_balance == unconfirmed_balance %}
                                 <td>{{ confirmed_balance }} (-> {{ unconfirmed_balance }}) {{ resource.unit_of_quantity }}</td>
                             {% else %}
@@ -406,8 +406,9 @@
         jQuery.validator.addMethod("quantity",
             function(value, element) {
                 var isValidQuantity = /^\d{0,6}(\.\d{0,4})?$/.test(value);
-                if isValidQuantity and parseFloat(value) <= 0:
+                if (isValidQuantity && parseFloat(value) <= 0){
                     isValidQuantity = false;
+                }
                 return this.optional(element) || isValidQuantity;
             },
             "Please enter a positive number less than 1000000 with no more than 4 decimal places"
@@ -475,6 +476,10 @@ function clicked(e) {
        FormObject = document.forms['sendCoinsForm'];
        var qty = FormObject.elements["quantity"].value;
        var toadd = FormObject.elements["to_address"].value;
+       var toagind = FormObject.elements["to_user"].selectedIndex;
+       var toagopts = FormObject.elements["to_user"].options;
+       var toagid = FormObject.elements["to_user"].value;
+       var toagn = toagopts[toagind].text;
        var balance = "{{ confirmed_balance }}";
        balance = balance.replace(',', '.');
        if ( parseFloat(qty) > parseFloat(balance) ) {
@@ -483,7 +488,14 @@ function clicked(e) {
            e.preventDefault();
            return false;
        }
-       var msg = "Please confirm the transaction:\n\n  Send :  " + qty + "  FairCoins\n  To address :  " + toadd + "\n\nThis action is irreversible and can not be undone.";
+       var msg = "Please confirm the transaction:\n\n  Send :  " + qty + "  FairCoins\n  ";
+       if (toadd){
+           msg += "To address :  " + toadd + "\n";
+       } else if (toagn){
+           msg += "To agent :  " + toagn + " ("+toagid+")\n";
+       }
+       msg += "\nThis action is irreversible and can not be undone.";
+
        if (confirm(msg)) {
            return true;
        } else {
