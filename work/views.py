@@ -798,6 +798,9 @@ def migrate_fdc_shares(request, jr):
     user_agent = get_agent(request)
     shacct = fdc.project.shares_account_type()
     shrtyp = fdc.project.shares_type()
+    if not jr.agent:
+        #raise ValidationError("Missing the join-request agent??")
+        return
     mems = jr.agent.membership_requests.all()
     if len(mems) > 1:
         raise ValidationError("More than one membership request to migrate?! agent:"+str(jr.agent))
