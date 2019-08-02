@@ -483,7 +483,7 @@ function clicked(e) {
        var balance = "{{ confirmed_balance }}";
        balance = balance.replace(',', '.');
        if ( parseFloat(qty) > parseFloat(balance) ) {
-           msg = "Insufficient funds confirmed.\n\nYour request       :  " + qty + "\n\nConfirmed funds :  " + balance;
+           var msg = "Insufficient funds confirmed.\n\nYour request       :  " + qty + "\n\nConfirmed funds :  " + balance;
            alert(msg);
            e.preventDefault();
            return false;
@@ -492,7 +492,11 @@ function clicked(e) {
        if (toadd){
            msg += "To address :  " + toadd + "\n";
        } else if (toagn){
+           {% if request.user.is_staff %}
            msg += "To agent :  " + toagn + " ("+toagid+")\n";
+           {% else %}
+           msg += "To agent :  " + toagn + "\n";
+           {% endif %}
        }
        msg += "\nThis action is irreversible and can not be undone.";
 
