@@ -3130,6 +3130,7 @@ def create_unit_types(**kwargs):
         if c:
             print "- created Ocp_Record_Type: "+str(ocpext)
 
+
     gen_gifts = Ocp_Record_Type.objects.filter(name__icontains="Gift Economy")
     if gen_gifts:
         gen_gift = gen_gifts[0]

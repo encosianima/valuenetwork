@@ -76,7 +76,7 @@ def manage_faircoin_account(request, resource_id):
                 confirmed_balance = "Not accessible now"
                 unconfirmed_balance = "Not accessible now"
         else:
-            wallet = False
+            #wallet = False
             if resource.is_address_requested(): is_wallet_address = True
 
     netfee = faircoin_utils.network_fee_fairs()
@@ -216,9 +216,10 @@ def faircoin_history(request, resource_id):
         if ev.exchange:
             if ev.to_agent == owner.parent() and not ev.from_agent == owner:
                 print "-- change exchange agent to parent? ev:"+str(ev.id)+" ca:"+str(ev.exchange.context_agent)+" from:"+str(ev.from_agent)+" ex:"+str(ev.exchange.id)+" et:"+str(ev.exchange.exchange_type)
+                logger.debug("-- change exchange agent to parent? ev:"+str(ev.id)+" ca:"+str(ev.exchange.context_agent)+" from:"+str(ev.from_agent)+" ex:"+str(ev.exchange.id)+" et:"+str(ev.exchange.exchange_type))
             if ev.from_agent == owner.parent() and not ev.to_agent == owner:
                 print "-- change exchange agent from parent? ev:"+str(ev.id)+" ca:"+str(ev.exchange.context_agent)+" to:"+str(ev.to_agent)+" ex:"+str(ev.exchange.id)+" et:"+str(ev.exchange.exchange_type)
-
+                logger.debug("-- change exchange agent from parent? ev:"+str(ev.id)+" ca:"+str(ev.exchange.context_agent)+" to:"+str(ev.to_agent)+" ex:"+str(ev.exchange.id)+" et:"+str(ev.exchange.exchange_type))
 
         ev.list_name = ev.show_name(resource.owner()).split(' ')[0]
     init = {"quantity": resource.quantity,}

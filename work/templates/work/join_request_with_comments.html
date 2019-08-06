@@ -198,6 +198,14 @@ a.more-link {
                              style="display:inline; position:relative; top:-1px;" >Resend Password</a> {% endif %}
                         {% endif %}
                       {% endif %}
+                    {% elif not req.agent and user_agent in req.project.agent.managers %}
+                      &nbsp; <form class="action-form"
+                                   id="create-form{{ req.id }}"
+                                   action="{% url "confirm_request" join_request_id=req.id %}"
+                                   method="POST" >
+                               {% csrf_token %}
+                               <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Confirm Email" %}' /> <span class="help-text">{% trans "sends random pass and creates user+agent" %}</span>
+                             </form>
                     {% endif %}
                 </td>
             </tr>
@@ -275,7 +283,7 @@ a.more-link {
                       {% endif %}
                     {% endif %}
                   {% else %}
-                    {% if user_agent in req.project.agent.managers and req.exchange_type %} &nbsp; &nbsp;
+                    {% if user_agent in req.project.agent.managers and req.exchange_type and req.agent %} &nbsp; &nbsp;
                         <form
                               class="action-form"
                               id="status-form{{ req.id }}"

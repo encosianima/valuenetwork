@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+from django.db.models.functions import Lower
 
 from valuenetwork.valueaccounting.models import EconomicAgent
 
@@ -21,7 +22,7 @@ class SendFairCoinsForm(forms.Form):
         queryset=EconomicAgent.objects.filter(
             agent_resource_roles__role__is_owner=True,
             agent_resource_roles__resource__resource_type__behavior="dig_acct",
-            agent_resource_roles__resource__faircoin_address__address__isnull=False).distinct(),
+            agent_resource_roles__resource__faircoin_address__address__isnull=False).distinct().order_by(Lower('nick').asc()),
         widget=forms.Select(
             attrs={'class': 'chzn-select'}),
             label=_("If you send to an OCP agent, choose it here to get the address:"),
@@ -41,7 +42,7 @@ class SendFairCoinsForm(forms.Form):
                 id__in=ag_ids,
                 agent_resource_roles__role__is_owner=True,
                 agent_resource_roles__resource__resource_type__behavior="dig_acct",
-                agent_resource_roles__resource__faircoin_address__address__isnull=False).distinct()
+                agent_resource_roles__resource__faircoin_address__address__isnull=False).distinct().order_by(Lower('nick').asc())
         self.fields['minus_fee'].initial  = False
 
     def clean(self):
@@ -49,10 +50,18 @@ class SendFairCoinsForm(forms.Form):
         if data["to_address"]:
             data["to_address"] = data["to_address"].strip()
         data["quantity"] = Decimal(data["quantity"])
-        if data["to_user"] and not data["to_address"]:
-           touser = data["to_user"]
-           if touser and touser.faircoin_address():
-               data["to_address"] = touser.faircoin_address()
+        if data["to_user"]:
+            touser = data["to_user"]
+            touseraddr = touser.faircoin_address()
+            if touser and touseraddr:
+                if data["to_address"] and not data["to_address"] == touseraddr:
+                    self.add_error('to_address', _("The destination address is not the destination agent's address!"))
+                else:
+                    data["to_address"] = touseraddr
+        if not data["to_address"]:
+            self.add_error('to_address', _("The destination fair account is missing"))
+        if data['quantity'] <= 0:
+            self.add_error('quantity', _("The amount must be positive"))
 
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
