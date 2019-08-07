@@ -104,7 +104,7 @@ def manage_faircoin_account(request, resource_id):
                 if not can_pay:
                     pending_amount = round(share_price - confirmed_balance, 8)
             break
-        elif request.user.is_superuser:
+        elif request.user.is_superuser and req.project.agent.need_faircoins():
             logger.warning("(debug) pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
             messages.warning(request, "(debug) pro:"+str(req.project.agent)+" fair_account:"+str(faircoin_account)+" wallet:"+str(wallet)+" obj:"+str(obj)+" shares_account_type:"+str(shacct))
 
