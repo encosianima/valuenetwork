@@ -30,6 +30,8 @@ class ChipChapAuthConnection(object):
             self.url_client = cdata['url_client']
             self.url_history = cdata['url_history']
             self.url_balance = cdata['url_balance']
+
+            self.ocp_api_key = cdata['ocp_api_key']
         else:
             self.able_to_connect = False
             self.logger.critical("Invalid configuration data to connect.")
@@ -143,4 +145,40 @@ class ChipChapAuthConnection(object):
             msg = balance.text + ' and ' + tx_list.text
             self.logger.critical("Balance and history requests have returned "
                                  + error + " status codes. Error: " + msg)
+            raise ChipChapAuthError('Error ' + error, msg)
+
+    def wallet_balance(self, access_key, access_secret):
+        if not self.able_to_connect:
+            raise ChipChapAuthError('Connection Error', 'No data to connect')
+        headers = ChipChapAuthConnection.chipchap_x_signature(
+            access_key, access_secret)
+
+        balance = requests.get(self.url_balance, headers=headers)
+        if int(balance.status_code) == 200:
+            return balance.json()
+        else:
+            error = str(balance.status_code)
+            msg = balance.text
+            self.logger.critical("Balance request have returned "
+                                 + error + " status code. Error: " + msg)
+            raise ChipChapAuthError('Error ' + error, msg)
+
+    def send_w2w(self, access_key, access_secret, unit, amount, username, scale):
+        if not self.able_to_connect:
+            raise ChipChapAuthError('Connection Error', 'No data to connect')
+        headers = ChipChapAuthConnection.chipchap_x_signature(
+            access_key, access_secret)
+
+        params = {
+            'username': username,
+            'amount': amount,
+        }
+        payment = requests.get(self.url_w2w+(unit), headers=headers, params=params)
+        if int(payment.status_code) == 200:
+            return payment.json()
+        else:
+            error = str(payment.status_code)
+            msg = payment.text
+            self.logger.critical("Payment w2w request have returned "
+                                 + error + " status code. Error: " + msg)
             raise ChipChapAuthError('Error ' + error, msg)

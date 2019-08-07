@@ -2742,7 +2742,10 @@ def project_login(request, form_slug = False):
 
 import simplejson as json
 from django.utils.html import escape, escapejs
+from django.views.decorators.csrf import csrf_exempt
+from django.template.defaultfilters import striptags
 
+@csrf_exempt
 def joinaproject_request(request, form_slug = False):
     if form_slug and form_slug == 'freedom-coop':
         pass #return redirect('membership_request')
@@ -2797,6 +2800,40 @@ def joinaproject_request(request, form_slug = False):
         #    fobi_form, form_element_entries,
         #)
 
+        wallet_user = None
+        api_key = None
+        try:
+          jdata = json.loads(request.body.decode("utf-8"))
+          if 'ocp_api_key' in jdata and jdata['ocp_api_key']:
+            POST = {}
+            for key, val in jdata.items():
+                POST[ key ] = val
+            wallet_user = jdata['wallet_user']
+            api_key = jdata['ocp_api_key']
+            if api_key:
+                if 'multicurrency' in settings.INSTALLED_APPS:
+                    from multicurrency.models import MulticurrencyAuth
+                    from multicurrency.utils import ChipChapAuthConnection
+                else:
+                    raise ValidationError("The multicurrency app is not installed")
+                connection = ChipChapAuthConnection.get()
+                if not connection.ocp_api_key:
+                    raise ValidationError("The multicurrency connection has not an ocp_api_key!")
+                if not api_key == connection.ocp_api_key:
+                    loger.error("The api_key don't match ?? ")
+                    raise ValidationError("The api_key don't match ?? ")
+            else:
+                loger.error("The request have not api_key ?? ")
+                raise ValidationError("The request have not api_key ?? ")
+
+            fobi_form = FormClass(POST, request.FILES)
+            join_form = JoinRequestForm(data=POST, project=project, api_key=True)
+            #import pdb; pdb.set_trace()
+          else:
+            pass #loger.error("Can't find the ocp_api_key in sent data!")
+            #raise ValidationError("Can't find the ocp_api_key in sent data!")
+        except:
+            pass
         if join_form.is_valid():
             human = True
             data = join_form.cleaned_data
@@ -2913,7 +2950,7 @@ def joinaproject_request(request, form_slug = False):
                     join_url = get_url_starter(request) + "/work/project-feedback/" + str(jn_req.project.agent.id) +"/"+str(jn_req.id)
                     context_agent = jn_req.project.agent
 
-                    if jn_req.payment_url(): # its a credit card payment, create the user and the agent
+                    if jn_req.payment_url() or jn_req.multiwallet_user(): # its a credit card payment (or botc multiwallet), create the user and the agent
 
                         password = jn_req.create_useragent_randompass(request or None)
                         description = "Check the automatically created Agent and User for the Join Request of "
@@ -2969,27 +3006,55 @@ def joinaproject_request(request, form_slug = False):
                                 }
                             )
 
-                    return render(request, "work/joinaproject_thanks.html", {
-                        "project": project,
-                        "jn_req": jn_req,
-                        #"existuser": existuser,
-                        #"existemail": existemail,
-                        #"login_form": login_form
-                        #"fobi_form": fobi_form,
-                        #"field_map": field_name_to_label_map,
-                        #"post": escapejs(json.dumps(request.POST)),
-                    })
+                    if api_key:
+                        # return json to the botc call
+                        return HttpResponse('{"join_request_id": '+str(jn_req.id)
+                                            +', "ocp_agent_id": '+str(jn_req.agent.id if jn_req.agent else 0)
+                                            +', "multiwallet_username": "'+str(wallet_user)+'"}', content_type="application/json")
+                    else:
+                        return render(request, "work/joinaproject_thanks.html", {
+                            "project": project,
+                            "jn_req": jn_req,
+                            #"existuser": existuser,
+                            #"existemail": existemail,
+                            #"login_form": login_form
+                            #"fobi_form": fobi_form,
+                            #"field_map": field_name_to_label_map,
+                            #"post": escapejs(json.dumps(request.POST)),
+                        })
                 else:
                     # no fobi data?
+                    if api_key:
+                        errs = '"missing_fields": "The custom fields are not found ??"'
+                        return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
                     pass
               else:
                 # fobi errors
+                # send errors as json if api_key call
+                if api_key:
+                    errs = ''
+                    for err in fobi_form.errors.iteritems():
+                        errs += '"'+striptags(err[0])+'": "'+striptags(err[1])+'"'
+                    #import pdb; pdb.set_trace()
+                    return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
                 pass
 
             else:
-              # no slug?
-              pass
-
+                # no slug?
+                if api_key:
+                    errs = '"missing_slug": "The custom form slug is not found ??"'
+                    return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
+                pass
+        else:
+            # form not valid
+            # send errors as json if api_key call
+            if api_key:
+                errs = ''
+                for err in join_form.errors.iteritems():
+                    errs += '"'+striptags(err[0])+'": "'+striptags(err[1])+'"'
+                #import pdb; pdb.set_trace()
+                return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
+            pass
     else:
         kwargs = {'initial': {'fobi_initial_data':form_slug} }
         fobi_form = FormClass(**kwargs)
@@ -3229,7 +3294,7 @@ def edit_form_field_data(request, joinrequest_id):
             val = request.POST['value']
             if ';' in val:
                 val = val.split(';')
-            loger.debug(request, "Key:"+str(key)+" Val:"+str(val))
+            loger.debug("Key:"+str(key)+" Val:"+str(val))
             if req.fobi_data and req.fobi_data.pk:
                 req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
@@ -3238,7 +3303,17 @@ def edit_form_field_data(request, joinrequest_id):
                     old = req.data[key]
                 req.data[key] = val
                 entry.saved_data = json.dumps(req.data)
+
+                req.headers = json.loads(entry.form_data_headers)
+                if not key in req.headers:
+                    print "Fix fobi header! "+key
+                    for elm in entry.form_entry.formelemententry_set.all():
+                        pdata = json.loads(elm.plugin_data)
+                        if key == pdata['name']:
+                            req.headers[key] = pdata['label']
+                entry.form_data_headers = json.dumps(req.headers)
                 entry.save()
+                #import pdb; pdb.set_trace()
                 return HttpResponse("Ok", content_type="text/plain")
     return HttpResponse("Fail", content_type="text/plain")
 
@@ -3299,7 +3374,87 @@ def project_total_shares(request, project_slug=None):
         "total_holders": project.share_holders(),
     })
 
-from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def member_total_shares(request):
+    # needs a custom fobi text field (optional) in the form, like 'multiwallet_user', to store the botc username string
+    if 'multicurrency' in settings.INSTALLED_APPS:
+        from multicurrency.models import MulticurrencyAuth
+        from multicurrency.utils import ChipChapAuthConnection
+    else:
+        raise ValidationError("The multicurrency app is not installed")
+    connection = ChipChapAuthConnection.get()
+    if not connection.ocp_api_key:
+        raise ValidationError("The multicurrency connection has not an ocp_api_key!")
+    if not request.method == 'POST':
+        raise ValidationError("The call has no POST data?")
+    data = json.loads(request.body)
+    api_key = data['ocp_api_key']
+    if not api_key or not connection.ocp_api_key == api_key:
+        raise ValidationError("The given api-key is not valid!! "+str(api_key))
+    project_slug = data['project_slug']
+    wallet_user = data['wallet_user']
+    agent_id = data['ocp_agent_id']
+    project = False
+    if project_slug:
+        project = get_object_or_404(Project, fobi_slug=project_slug.strip('/'))
+    else:
+        loger.warning("Can't find the project with slug: "+str(project_slug))
+        return HttpResponse('{"error": "not found the project with this slug"}', content_type='application/json')
+    if wallet_user:
+        if project.is_moderated() and project.fobi_slug:
+            fobi_form = project.fobi_form()
+            shrtyp = project.shares_type()
+            texplug = SavedFormDataEntry.objects.filter(form_entry__id=fobi_form.id, saved_data__contains='"'+wallet_user+'"')
+            jnreq = None
+            if len(texplug) == 1:
+                jnreq = texplug[0].join_request
+                if agent_id and jnreq.agent and not str(jnreq.agent.id) == agent_id:
+                    loger.error("The agent id not match the join_request agent? "+str(agent_id))
+                    #return HttpResponse('{"error": "The agent id not match the join_request agent?"}', content_type='application/json')
+                    raise ValidationError("The agent id not match the join_request agent? "+str(agent_id))
+            elif not texplug:
+                multiauth = MulticurrencyAuth.objects.filter(auth_user=wallet_user)
+                if multiauth:
+                    if len(multiauth) == 1:
+                        jnreq = JoinRequest.objects.filter(project=project, agent=multiauth.agent)
+                        if jnreq:
+                            if len(jnreq) == 1:
+                                # TODO update fobi field 'multiwallet_user' with auth_user
+                                jnreq = jnreq[0] #return HttpResponse('{"owned_shares": '+str(jnreq[0].total_shares())+', "requested_shares": '+str(jnreq[0].payment_amount())+'}', content_type='application/json')
+                            else:
+                                loger.error("More than one jnreq for this agent ?? "+str(jnreq))
+                                raise ValidationError("More than one jnreq for this agent ?? "+str(jnreq))
+                    else:
+                        loger.error("More than one multiauth for this agent ?? "+str(multiauth))
+                        raise ValidationError("More than one multiauth for this agent ?? "+str(multiauth))
+            else:
+                loger.warning("There's more than one request with wallet_user: "+str(wallet_user))
+                return HttpResponse('{"error": "more than one request with this wallet_user"}', content_type='application/json')
+            #import pdb; pdb.set_trace()
+
+            if not jnreq:
+                return HttpResponse('{"error": "join_request not found"}', content_type='application/json')
+
+            return HttpResponse('{"owned_shares": '+str(jnreq.total_shares())
+                                +', "requested_shares": '+str(jnreq.payment_amount())
+                                +', "wallet_user": "'+str(wallet_user)
+                                +'", "gateway": "'+str(jnreq.payment_gateway())
+                                +'", "share_model": {"price": '+str(shrtyp.price_per_unit)
+                                +', "price_unit": "'+str(shrtyp.unit_of_price.abbrev)
+                                +'", "name": "'+str(shrtyp.unit.name)
+                                +'", "abbrev": "'+str(shrtyp.unit.abbrev)
+                                +'"}}', content_type='application/json')
+
+
+        else:
+            loger.warning("The project is not moderated or has no fobi_slug: "+str(project))
+            return HttpResponse('{"error": "the project is not moderated or has no fobi_slug"}', content_type='application/json')
+    else:
+        loger.warning("The wallet_user string is required! project: "+str(project_slug))
+        return HttpResponse('{"error": "the wallet_user string is required"}', content_type='application/json')
+
 
 @csrf_exempt
 def project_update_payment_status(request, project_slug=None):
@@ -3973,6 +4128,8 @@ def project_feedback(request, agent_id, join_request_id):
     fobi_headers = []
     fobi_keys = []
 
+    out_text = ''
+
     if fobi_slug:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
         #req = jn_req
@@ -4045,6 +4202,42 @@ def project_feedback(request, agent_id, join_request_id):
     if jn_req.agent and not jn_req.check_user_pass():
         auto_resource = create_user_accounts(request, jn_req.agent, jn_req.project)
 
+    wallet_form = None
+    oauth_form = None
+    pay_form = None
+    if 'multicurrency' in settings.INSTALLED_APPS and agent.need_multicurrency():
+        from multicurrency.forms import MulticurrencyAuthCreateForm, MulticurrencyAuthForm, PaySharesForm
+        walletuser = jn_req.multiwallet_user()
+        if jn_req.agent:
+            other = None
+            auth = None
+            for oauth in jn_req.agent.multicurrencyauth_set.all():
+                if oauth.auth_user == walletuser:
+                    auth = oauth
+                    break
+                else:
+                    other = oauth
+            if other and not walletuser:
+                # switch for real auth_user
+                walletuser = other.auth_user
+                auth = other
+            if not walletuser:
+                walletuser = jn_req.agent.nick
+            if auth and jn_req.pending_shares():
+
+                out_text, reqdata = auth.pay_shares_html(jn_req, request.user)
+                pay_form = PaySharesForm(initial=reqdata)
+
+            else:
+                wallet_form = MulticurrencyAuthCreateForm(initial={
+                    'username': walletuser,
+                    'email': jn_req.agent.email,
+                })
+                oauth_form = MulticurrencyAuthForm(initial={
+                    'loginname': walletuser,
+                    'wallet_password': '',
+                })
+
     if hasattr(agent, 'project') and agent.project.is_moderated() and not agent.email and user_agent in agent.managers():
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
 
@@ -4055,6 +4248,10 @@ def project_feedback(request, agent_id, join_request_id):
         "agent": agent,
         "fobi_headers": fobi_headers,
         "auto_resource": auto_resource,
+        "wallet_form": wallet_form,
+        "oauth_form": oauth_form,
+        "out_text": out_text,
+        "pay_form": pay_form,
     })
 
 

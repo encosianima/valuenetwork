@@ -646,6 +646,35 @@ class JoinRequest(models.Model):
                             balance = int(rs.price_per_unit) # TODO: update the price_per_unit with wallet balance
         return balance
 
+    def multiwallet_user(self, username=None):
+        answer = ''
+        mkey = "multiwallet_username" # fieldname specially defined in the fobi form
+
+        if self.project.is_moderated() and self.fobi_data and self.project.agent.need_multicurrency():
+            self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
+            entry = self.entries[0]
+            self.data = json.loads(entry.saved_data)
+            if mkey in self.data:
+                answer = self.data.get(mkey)
+            #import pdb; pdb.set_trace()
+            if username:
+                if not username == answer:
+                    if self.fobi_data.pk:
+                        self.data[mkey] = username
+                        entry.saved_data = json.dumps(self.data)
+
+                        headers = json.loads(entry.form_data_headers)
+                        if not mkey in headers:
+                            print "Update fobi header! "+mkey+": "+username
+                            for elm in entry.form_entry.formelemententry_set.all():
+                                pdata = json.loads(elm.plugin_data)
+                                if mkey == pdata['name']:
+                                    headers[mkey] = pdata['label']
+                        entry.form_data_headers = json.dumps(headers)
+                        entry.save()
+                        answer = username
+        return answer
+
     def payment_option(self):
         answer = {}
         data2 = None
@@ -873,6 +902,9 @@ class JoinRequest(models.Model):
         if pendamo < 0:
             pendamo = 0
         return round(pendamo, 8)
+
+    def payment_pending_to_pay(self):
+        return self.pending_shares() * self.share_price()
 
 
     def payment_account_type(self):
@@ -3065,34 +3097,40 @@ def create_unit_types(**kwargs):
         incfairet = incfairets[0]
     else:
         incfairet, c = ExchangeType.objects.get_or_create(
-            use_case=inc_usecase,
-            name="Receive Faircoins"
-        )
+            name="Receive Faircoins",
+            use_case=inc_usecase)
         if c:
             print "- created ExchangeType: "+str(incfairet)
     incfairet.name = "Receive Faircoins"
     incfairet.use_case = inc_usecase
     incfairet.save()
 
-    genrec = Artwork_Type.objects.get(clas='Record')
-    ocprec, c = Ocp_Record_Type.objects.get_or_create(
-        name="OCP Record",
-        clas="ocp_record",
-        parent=genrec)
-    if c:
-        print "- created Ocp_Record_Type: "+str(ocprec)
+
+    genrec = Artwork_Type.objects.get(clas="Record")
+    ocprecs = Ocp_Record_Type.objects.filter(clas='ocp_record')
+    if ocprecs:
+        ocprec = ocprecs[0]
+    else:
+        ocprec, c = Ocp_Record_Type.objects.get_or_create(
+            name="OCP Record",
+            clas="ocp_record",
+            parent=genrec)
+        if c:
+            print "- created Ocp_Record_Type: "+str(ocprec)
+
+
     ocpexts = Ocp_Record_Type.objects.filter(clas='ocp_exchange')
     if ocpexts:
         ocpext = ocpexts[0]
     else:
         ocpext, c = Ocp_Record_Type.objects.get_or_create(
-            clas="ocp_exchange",
             name="OCP ExchangeType",
-            parent=ocprec
-        )
+            clas="ocp_exchange",
+            parent=ocprec)
         if c:
             print "- created Ocp_Record_Type: "+str(ocpext)
-    ocpext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
+
+
     gen_gifts = Ocp_Record_Type.objects.filter(name__icontains="Gift Economy")
     if gen_gifts:
         gen_gift = gen_gifts[0]
