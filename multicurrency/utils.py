@@ -7,6 +7,7 @@ from random import randint
 from base64 import b64decode
 
 from django.conf import settings
+from django.forms import ValidationError
 
 
 class ChipChapAuthError(Exception):
@@ -30,8 +31,12 @@ class ChipChapAuthConnection(object):
             self.url_client = cdata['url_client']
             self.url_history = cdata['url_history']
             self.url_balance = cdata['url_balance']
-
-            self.ocp_api_key = cdata['ocp_api_key']
+            if not hasattr(cdata, 'ocp_api_key'):
+                #raise ValidationError("Is needed the API key given by BotC wallet to this platform (settings).")
+                print "WARN: Multiwallet Read-Only! To make payments is needed the API key given by BotC wallet to this platform (in local_settings)."
+                self.logger.error("WARN: Multiwallet Read-Only! To make payments is needed the API key given by BotC wallet to this platform (in local_settings).")
+            else:
+                self.ocp_api_key = cdata['ocp_api_key']
         else:
             self.able_to_connect = False
             self.logger.critical("Invalid configuration data to connect.")
