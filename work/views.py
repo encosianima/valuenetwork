@@ -1348,7 +1348,7 @@ def migrate_fdc_shares(request, jr):
                         ev.to_agent = fdc
                         ev.save()
                     if ev.from_agent == fdc.parent():
-                        print "- found event related fdc parent! change from_agent to fdc... "+str(ev)
+                        print "- found event related fdc parent! change from_agent to fdc... SKIP!"+str(ev)
                         loger.info("- found event related fdc parent! change from_agent to fdc... SKIP! "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address))
                         ev.from_agent = fdc
                         #ev.save()
@@ -2494,6 +2494,8 @@ def create_user_accounts(request, agent, project=None):
                             auto_resource += _("There's a problem with the naming of the account: ")+str(res)+"<br>"
                             break
                         """
+              elif rt.name == "Faircoin Ocp Account" and rt.context_agent.nick == "OCP":
+                pass
               else:
                 print "- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent)
                 loger.info("- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent))
