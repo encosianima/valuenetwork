@@ -47,6 +47,7 @@ class MembershipRequestTestCase(LiveServerTestCase):
 
     # This is the membership request test.
     def test_membership_request(self):
+        print "------- JoinRequest Test 1 (start) -------"
         objects_for_work_tests.initial_test_data()
 
         theurl = self.live_server_url
@@ -128,7 +129,8 @@ class MembershipRequestTestCase(LiveServerTestCase):
         print 't- 5: '+s.title
         #import pdb; pdb.set_trace()
         self.assertIn("Thank you", s.title)
-        print "JoinRequest form Submitted! test_membership_request completed the first part."
+        print "t- JoinRequest form Submitted! "
+        print "------- join-request test 1 completed -------"
         print
         # TODO: add freedom-coop project to objects_for_work_test.py
         '''
