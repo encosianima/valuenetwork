@@ -929,7 +929,7 @@ class JoinRequest(models.Model):
                     obj = gates[self.project.fobi_slug][payopt['key']]
                 except:
                     pass
-            if obj and obj['secret']:
+            if obj and 'secret' in obj:
                 return obj['secret']
         return False
 
@@ -943,7 +943,7 @@ class JoinRequest(models.Model):
                     obj = gates[self.project.fobi_slug][payopt['key']]
                 except:
                     pass
-            if obj and obj['tokenorder']:
+            if obj and 'tokenorder' in obj:
                 return obj['tokenorder']
         return False
 
@@ -957,7 +957,7 @@ class JoinRequest(models.Model):
                     obj = gates[self.project.fobi_slug][payopt['key']]
                 except:
                     pass
-            if obj and obj['algorithm']:
+            if obj and 'algorithm' in obj:
                 return obj['algorithm']
         return False
 
