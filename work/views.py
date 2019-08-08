@@ -4209,7 +4209,7 @@ def project_feedback(request, agent_id, join_request_id):
     wallet_form = None
     oauth_form = None
     pay_form = None
-    if 'multicurrency' in settings.INSTALLED_APPS and agent.need_multicurrency():
+    if 'multicurrency' in settings.INSTALLED_APPS and jn_req.project.agent.need_multicurrency():
         from multicurrency.forms import MulticurrencyAuthCreateForm, MulticurrencyAuthForm, PaySharesForm
         walletuser = jn_req.multiwallet_user()
         if jn_req.agent:
