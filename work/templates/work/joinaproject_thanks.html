@@ -62,7 +62,7 @@
         {% endif %}
     </h2>
     <div class="row-fluid">
-        {% if not jn_req.payment_url %}<p style="text-align:center">{% trans "You will receive an initial password in your email, to log in the system and confirm the email address. Please change your password the first time you enter the system to ensure total security." %}</p>{% endif %}
+        {% if not jn_req.payment_url %}<p style="text-align:center">{% trans "You will receive an initial password in your email, to log in the system and confirm the email address.\nPlease change your password the first time you enter the system to ensure total security." %}</p>{% endif %}
         <p> &nbsp; </p>
         {% if project.payment_options and jn_req.pending_shares %}
             <p style="text-align:center; font-size:120%; ">
