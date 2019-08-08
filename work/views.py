@@ -3620,7 +3620,7 @@ def join_requests(request, agent_id):
             else:
               req.entries = []
 
-            # calucate the actions table cell to speedup the template
+            # calculate the actions table cell to speedup the template
             req.actions = ''
             chekpass = req.check_user_pass()
             payamount = req.payment_amount()
@@ -3720,6 +3720,8 @@ def join_requests(request, agent_id):
                             req.actions += 'action="'+reverse("delete_request_agent_and_user", args=(req.id,))+' " method="POST" >'
                             req.actions += csrf_token_field
                             req.actions += '<button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >'+str(_("Delete all"))+'</button></form>'
+                        elif request.user.is_superuser:
+                            req.actions += ' &nbsp; (agent no deletable)'
                     else:
                         req.actions += declineform
 

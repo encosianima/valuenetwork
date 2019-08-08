@@ -2127,7 +2127,18 @@ class EconomicAgent(models.Model):
         if self.commitments.filter(quantity__gt=0):
             return False
         if self.is_associate_of.all():
-            return False
+            if self.is_associate_of.filter(state='active'):
+                return False
+            else:
+                rels = self.is_associate_of.all()
+                reqs = self.project_join_requests.filter(state='new')
+                if len(rels) == 1:
+                    if len(reqs) == 1:
+                        pass
+                    else:
+                        return False
+                else:
+                    return False
         if self.has_associates.all():
             return False
         return True
