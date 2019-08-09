@@ -1848,7 +1848,7 @@ class EconomicAgent(models.Model):
         for rs in self.owned_resources():
             if res_type and rs.resource_type == res_type:
                 return [rs]
-            if rs.resource_type in EconomicResourceType.objects.share_accounts_types():
+            if not res_type and rs.resource_type in EconomicResourceType.objects.share_accounts_types():
                 shares.append(rs)
         return shares
 
