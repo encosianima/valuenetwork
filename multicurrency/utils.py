@@ -33,10 +33,11 @@ class ChipChapAuthConnection(object):
             self.url_balance = cdata['url_balance']
             if not hasattr(cdata, 'ocp_api_key'):
                 #raise ValidationError("Is needed the API key given by BotC wallet to this platform (settings).")
-                print "WARN: Multiwallet Read-Only! To make payments is needed the API key given by BotC wallet to this platform (in local_settings)."
-                self.logger.error("WARN: Multiwallet Read-Only! To make payments is needed the API key given by BotC wallet to this platform (in local_settings).")
+                print "WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings)."
+                self.logger.error("WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings).")
             else:
                 self.ocp_api_key = cdata['ocp_api_key']
+                self.logger.info("Connected with an OCP api-key for safe access.")
         else:
             self.able_to_connect = False
             self.logger.critical("Invalid configuration data to connect.")
@@ -50,7 +51,7 @@ class ChipChapAuthConnection(object):
         logger = logging.getLogger("multicurrency")
         logger.setLevel(logging.WARNING)
         fhpath = "/".join(
-            [settings.PROJECT_ROOT, "multicurrency/multicurrency.log", ])
+            [settings.PROJECT_ROOT, "../../log/multicurrency.log", ])
         fh = logging.handlers.TimedRotatingFileHandler(
             fhpath, when="d", interval=1, backupCount=7)
         fh.setLevel(logging.DEBUG)
