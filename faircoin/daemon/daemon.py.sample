@@ -27,7 +27,7 @@ password = config.get('electrum', 'password')
 
 stopping = False
 
-logging.basicConfig(level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
 
 def do_stop(password):
     global stopping
@@ -116,7 +116,8 @@ def make_transaction_from_address(address_origin, address_end, amount, minus_fee
             logging.debug("Estimated fee: %s" %fee)
             if not fee:
                  logging.error("Insufficient funds")
-                 return "ERROR: Insufficient funds"
+                 logging.warning("Trying to resend the tx substracting the fee.")
+                 msg = make_transaction_from_address(address_origin, address_end, amount, True)
             tx = build_tx(address_origin, address_end, amount - fee)
         else:
             tx = build_tx(address_origin, address_end, amount)
@@ -128,7 +129,7 @@ def make_transaction_from_address(address_origin, address_end, amount, minus_fee
         msg = ("ERROR: Can not build the tx")
         logging.error(msg)
         if not minus_fee:
-            logging.warning("Trying to resend the tx substracting the fee.")
+            logging.warning("Trying build tx minus fee")
             msg = make_transaction_from_address(address_origin, address_end, amount, True)
         return msg
     # Broadcast tx
