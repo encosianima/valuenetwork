@@ -4,7 +4,7 @@ from random import randint
 from django.conf import settings
 
 url = "http://localhost:8069"
-timeout = 60
+timeout = 300
 logger = logging.getLogger('ocp')
 
 # Send command to the daemon.
