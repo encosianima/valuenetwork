@@ -248,6 +248,14 @@ class AssociationForm(forms.Form):
 
 
 
+class ValidateNameForm(forms.Form):
+    agent = forms.ModelChoiceField(
+        queryset=EconomicAgent.objects.all(),
+        required=False
+        )
+    name = forms.CharField()
+    surname = forms.CharField(required=False)
+    typeofuser = forms.CharField()
 
 
 #     J O I N   R E Q U E S T S
@@ -278,25 +286,77 @@ class JoinRequestForm(forms.ModelForm):
             self.add_error('requested_username', _("This field is required."))
             return
         username = data["requested_username"]
+        typeofuser = data["type_of_user"]
         email = data["email_address"]
         nome = data["name"]
+        surname = data["surname"]
         projid = data["project"]
-        exist_name = EconomicAgent.objects.filter(name=nome)
-        exist_user = EconomicAgent.objects.filter(nick=username)
-        exist_email = EconomicAgent.objects.filter(email=email)
-        if len(exist_name) > 0:
-            self.add_error('name', _("The name is already used by user: ")+str(exist_name[0].nick))
-        if len(exist_user) > 0:
-            self.add_error('requested_username', _("The username already exists. Please login before filling this form or choose another username."))
+        if not projid:
+            self.add_error('project', _("The project is missing??"))
+            raise ValidationError("The project is missing??")
         else:
-            exist_request = JoinRequest.objects.filter(requested_username=username) #, project=projid)
+            proj = Project.objects.get(id=projid)
+
+        if typeofuser == 'individual':
+            if not surname:
+                self.add_error('surname', _("Please put your Surname if you are an individual."))
+                return
+            exist_name = EconomicAgent.objects.filter(name__iexact=nome+' '+surname)
+            if not exist_name:
+                exist_name = User.objects.filter(first_name__iexact=nome, last_name__iexact=surname)
+            if len(exist_name) > 0:
+                self.add_error('name', _("This name and surname is already used by another user, do you want to differentiate anyhow?"))
+                self.add_error('surname', _("This name and surname is already used by another user, do you want to differentiate anyhow?"))
+        elif typeofuser == 'collective':
+            exist_name = EconomicAgent.objects.filter(name__iexact=nome)
+            if len(exist_name) > 0:
+                self.add_error('name', _("This name is already used by another agent, do yo want to diferentiate anyhow? "))
+        else:
+            self.add_error('type_of_user', _("Bad type of user??"))
+
+        exist_user = EconomicAgent.objects.filter(nick__iexact=username)
+
+        #+str(exist_name[0].nick))
+        if len(exist_user) > 0:
+            if not exist_user[0].nick == username:
+                self.add_error('requested_username', _("A too similar username already exists. Please login here with your OCP credentials or choose another username."))
+            else:
+                self.add_error('requested_username', _("The username already exists. Please login here to join this project or choose another username."))
+        else:
+            exist_request = JoinRequest.objects.filter(requested_username__iexact=username) #, project=projid)
             if len(exist_request) > 0:
                 self.add_error('requested_username', _("This username is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(len(exist_request))+' pro:'+str(projid))
 
+        exist_email = EconomicAgent.objects.filter(email__iexact=email)
+        similreq = None
+        similusr = None
+        if not exist_email:
+            exist_email = JoinRequest.objects.filter(email_address__iexact=email)
+            if exist_email:
+                similreq = exist_email[0]
+        if not exist_email:
+            exist_email = User.objects.filter(email__iexact=email)
+            if exist_email:
+                similusr = exist_email[0]
+
         if len(exist_email) > 0:
-            self.add_error('email_address', _("The email address is already registered in the system for the username: ")+str(exist_email[0].nick))
+            similuser = None
+            if not exist_user[0].nick == username:
+                similuser = EconomicAgent.objects.filter(nick__iexact=username, email__iexact=email)
+            if similuser:
+                self.add_error('email_address', _("The email address is already registered in the system for a similar username. To join this project please login with the username: ")+str(similuser[0].nick))
+            else:
+                if similreq:
+                    if similreq.project.id == projid:
+                        self.add_error('email_address', _("The email address is already registered in the system as a request to join this same project. Please wait for an answer before applying again."))
+                    else:
+                        self.add_error('email_address', _("The email address is already registered in the system as a request to join another project: ")+str(similreq.project))
+                elif similusr:
+                    self.add_error('email_address', _("The email address is already registered in the system for another user. To join this project please login with the username: ")+str(similusr.username))
+                else:
+                    self.add_error('email_address', _("The email address is already registered in the system."))
         else:
-            exist_request = JoinRequest.objects.filter(email_address=email, project__id=projid)
+            exist_request = JoinRequest.objects.filter(email_address__iexact=email, project=projid)
             if len(exist_request) > 0:
                 self.add_error('email_address', _("This email address is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(len(exist_request))+' pro:'+str(projid))
 
