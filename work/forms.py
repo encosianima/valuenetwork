@@ -341,8 +341,13 @@ class JoinRequestForm(forms.ModelForm):
 
         if len(exist_email) > 0:
             similuser = None
-            if not exist_user[0].nick == username:
-                similuser = EconomicAgent.objects.filter(nick__iexact=username, email__iexact=email)
+            if similreq and not similreq.requested_username == username:
+                self.add_error('email_address', _("The email address is already registered in the system for a similar requested username."))
+            elif similusr and not similusr.username == username:
+                self.add_error('email_address', _("The email address is already registered in the system for a similar user without agent ??"))
+            elif not similusr and not similreq:
+                if not exist_email[0].nick == username:
+                    similuser = EconomicAgent.objects.filter(nick__iexact=username, email__iexact=email)
             if similuser:
                 self.add_error('email_address', _("The email address is already registered in the system for a similar username. To join this project please login with the username: ")+str(similuser[0].nick))
             else:
