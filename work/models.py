@@ -1415,7 +1415,7 @@ class JoinRequest(models.Model):
             elif reqs:
                 return False
             else:
-                raise ValidationError("This join_request is wrong! req:"+str(self.id)+" name:"+str(self.requested_username))
+                raise ValidationError("This join_request is wrong! req:"+str(self.id)+" requested_username:"+str(self.requested_username)+" name:"+str(self.name)+" email:"+str(self.email_address)+" date:"+str(self.request_date)+" pro:"+str(self.project))
 
 
 class NewFeature(models.Model):
