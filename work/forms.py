@@ -328,38 +328,29 @@ class JoinRequestForm(forms.ModelForm):
                 self.add_error('requested_username', _("This username is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(len(exist_request))+' pro:'+str(projid))
 
         exist_email = EconomicAgent.objects.filter(email__iexact=email)
-        similreq = None
-        similusr = None
-        if not exist_email:
-            exist_email = JoinRequest.objects.filter(email_address__iexact=email)
-            if exist_email:
-                similreq = exist_email[0]
-        if not exist_email:
-            exist_email = User.objects.filter(email__iexact=email)
-            if exist_email:
-                similusr = exist_email[0]
 
-        if len(exist_email) > 0:
-            similuser = None
-            if not exist_user[0].nick == username:
-                similuser = EconomicAgent.objects.filter(nick__iexact=username, email__iexact=email)
-            if similuser:
-                self.add_error('email_address', _("The email address is already registered in the system for a similar username. To join this project please login with the username: ")+str(similuser[0].nick))
-            else:
-                if similreq:
-                    if similreq.project.id == projid:
+        if not exist_email:
+            exist_request = JoinRequest.objects.filter(email_address__iexact=email) #, project=projid)
+            if exist_request:
+                for req in exist_request:
+                    if req.project.id == projid:
                         self.add_error('email_address', _("The email address is already registered in the system as a request to join this same project. Please wait for an answer before applying again."))
                     else:
-                        self.add_error('email_address', _("The email address is already registered in the system as a request to join another project: ")+str(similreq.project))
-                elif similusr:
-                    self.add_error('email_address', _("The email address is already registered in the system for another user. To join this project please login with the username: ")+str(similusr.username))
-                else:
-                    self.add_error('email_address', _("The email address is already registered in the system."))
-        else:
-            exist_request = JoinRequest.objects.filter(email_address__iexact=email, project=projid)
-            if len(exist_request) > 0:
-                self.add_error('email_address', _("This email address is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(len(exist_request))+' pro:'+str(projid))
+                        pass #self.add_error('email_address', _("The email address is already registered in the system as a request to join another project: ")+str(req.project))
 
+            exist_user = User.objects.filter(email__iexact=email)
+            if exist_user:
+                for usr in exist_user:
+                    self.add_error('email_address', _("The email address is already registered in the system for another user without agent?? ")) #+str(usr.username))
+        else:
+            if len(exist_email) > 1:
+                self.add_error('email_address', _("The email address is already registered in the system for various agents! Please login here and we'll try to solve this:"))
+                print "DUPLICATE email agent: "+str(exist_email)
+            else:
+                if not exist_email[0].nick == username:
+                    self.add_error('email_address', _("The email address is already registered in the system for another username. To join this project please login here with your existent OCP username:")) #+str(exist_email[0].nick))
+                else:
+                    self.add_error('email_address', _("The email address is already registered in the system with same username. To join this project please login here:"))
 
 
         #print "- projid: "+str(projid)

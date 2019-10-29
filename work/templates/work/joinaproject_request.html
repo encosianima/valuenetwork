@@ -112,8 +112,8 @@
                         },
                     },
                 },
-                /*name: {
-                    //required: true,
+                name: {
+                    required: true,
                     minlength: 2, /*{
                         param: 3,
                         depends: function(element){
@@ -126,27 +126,12 @@
                             return $("#id_type_of_user").val() == "individual";
                         },
                     },*/
-                    /*remote: {
-                        url: "{% url 'validate_name' %}",
-                        type: "post",
-                        data: {
-                            typeofuser: function(){
-                                return $("#id_type_of_user").val();
-                            },
-                            name: function(){
-                                return $("#id_name").val();
-                            },
-                            csrfmiddlewaretoken: function(){
-                                return $("[name='csrfmiddlewaretoken']").val();
-                            },
-                        }
-                    }
-                },*/
+
+                },
                 requested_username: {
                     required: true,
                     maxlength: 32,
                     minlength: 3,
-                    //remote: "{% url 'validate_nick' %}",
                 },
                 email_address: {
                     required: true,
