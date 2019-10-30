@@ -50,8 +50,11 @@ class ChipChapAuthConnection(object):
     def init_logger(cls):
         logger = logging.getLogger("multicurrency")
         logger.setLevel(logging.WARNING)
-        fhpath = "/".join(
-            [settings.PROJECT_ROOT, "../../log/multicurrency.log", ])
+        if 'log_file' in settings.MULTICURRENCY:
+            fhpath = settings.MULTICURRENCY["log_file"]
+        else:
+            fhpath = "/".join(
+                [settings.PROJECT_ROOT, "multicurrency.log", ])
         fh = logging.handlers.TimedRotatingFileHandler(
             fhpath, when="d", interval=1, backupCount=7)
         fh.setLevel(logging.DEBUG)
