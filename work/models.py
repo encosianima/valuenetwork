@@ -3107,18 +3107,20 @@ def create_unit_types(**kwargs):
 
 
     genrec = Artwork_Type.objects.get(clas="Record")
-    ocprecs = Ocp_Record_Type.objects.filter(clas='ocp_record')
+    ocprecs = Artwork_Type.objects.filter(clas='ocp_record')
     if not ocprecs:
-        ocprecs = Ocp_Record_Type.objects.filter(name='OCP Record')
+        ocprecs = Artwork_Type.objects.filter(name='OCP Record')
+        print "- found OCP Record as an Artwork_Type by name"
+
     if ocprecs:
         ocprec = ocprecs[0]
     else:
-        ocprec, c = Ocp_Record_Type.objects.get_or_create(
+        ocprec, c = Artwork_Type.objects.get_or_create(
             name="OCP Record",
             clas="ocp_record",
             parent=genrec)
         if c:
-            print "- created Ocp_Record_Type: "+str(ocprec)
+            print "- created Artwork_Type: "+str(ocprec)
     ocprec.clas = 'ocp_record'
     ocprec.name = "OCP Record"
     ocprec.parent = genrec
