@@ -305,8 +305,8 @@ class JoinRequestForm(forms.ModelForm):
             if not exist_name:
                 exist_name = User.objects.filter(first_name__iexact=nome, last_name__iexact=surname)
             if len(exist_name) > 0:
-                self.add_error('name', _("This name and surname is already used by another user, do you want to differentiate anyhow?"))
-                self.add_error('surname', _("This name and surname is already used by another user, do you want to differentiate anyhow?"))
+                pass #self.add_error('name', _("This name and surname is already used by another user, do you want to differentiate anyhow?"))
+                #self.add_error('surname', _("This name and surname is already used by another user, do you want to differentiate anyhow?"))
         elif typeofuser == 'collective':
             exist_name = EconomicAgent.objects.filter(name__iexact=nome)
             if len(exist_name) > 0:
@@ -323,9 +323,9 @@ class JoinRequestForm(forms.ModelForm):
             else:
                 self.add_error('requested_username', _("The username already exists. Please login here to join this project or choose another username."))
         else:
-            exist_request = JoinRequest.objects.filter(requested_username__iexact=username) #, project=projid)
+            exist_request = JoinRequest.objects.filter(requested_username__iexact=username, project=projid)
             if len(exist_request) > 0:
-                self.add_error('requested_username', _("This username is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(len(exist_request))+' pro:'+str(projid))
+                self.add_error('requested_username', _("This username is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(exist_request[0].project)) #+' pro:'+str(projid))
 
         exist_email = EconomicAgent.objects.filter(email__iexact=email)
 
@@ -348,7 +348,7 @@ class JoinRequestForm(forms.ModelForm):
                 print "DUPLICATE email agent: "+str(exist_email)
             else:
                 if not exist_email[0].nick == username:
-                    self.add_error('email_address', _("The email address is already registered in the system for another username. To join this project please login here with your existent OCP username:")) #+str(exist_email[0].nick))
+                    self.add_error('email_address', _("The email address is already registered in the system for another username. To join this project please login here with your existent OCP username.")) #+str(exist_email[0].nick))
                 else:
                     self.add_error('email_address', _("The email address is already registered in the system with same username. To join this project please login here:"))
 
