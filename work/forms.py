@@ -188,13 +188,18 @@ class ProjectCreateForm(forms.ModelForm):
     # fields for Project model
     joining_style = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'chzn-select'}))
+    auto_create_pass = forms.BooleanField(
+        required = False,
+        label = _("&nbsp;Auto create user+agent and confirm email:"),
+        help_text="For 'moderated' joining style:<br>- If you want to manually control which requests don't seem spam (recommended) before creating their user+agent and confirm the email, leave this unchecked. <br>- If you don't expect spam registers, check this to speed up the process.",
+    )
     visibility = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'chzn-select'}))
-    resource_type_selection = forms.ChoiceField(label=_("Resource type visibility"), widget=forms.Select(
+    resource_type_selection = forms.ChoiceField(label=_("Resource type visibility:"), widget=forms.Select(
         attrs={'class': 'chzn-select'}))
     fobi_slug = forms.CharField(
         required = False,
-        label = _("Custom project url slug"),
+        label = _("Custom project url slug:"),
         help_text = _("Used to reach your custom join form, but after the custom fields has been defined by you and configured by OCP Admins. Only works if the project has a 'moderated' joining style."),
         )
 
@@ -224,7 +229,7 @@ class ProjectCreateForm(forms.ModelForm):
     class Meta: #(AgentCreateForm.Meta):
         model = Project #EconomicAgent
         #removed address and is_context
-        fields = ('joining_style', 'visibility', 'resource_type_selection', 'fobi_slug')
+        fields = ('joining_style', 'visibility', 'resource_type_selection', 'fobi_slug', 'auto_create_pass')
         #exclude = ('is_context',)
 
 

@@ -1969,14 +1969,16 @@ def members_agent(request, agent_id):
             #agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
             if agn_form.is_valid() and pro_form.is_valid():
                 project = pro_form.save(commit=False)
+                prodata = pro_form.cleaned_data
                 agent = agn_form.save(commit=False)
                 project.agent = agent
+                if not prodata["auto_create_pass"]:
+                    project.auto_create_pass = False
                 project.save()
                 data = agn_form.cleaned_data
                 nick = data['nick']
                 name = data['name']
                 agent.is_context = True
-                prodata = pro_form.cleaned_data
                 #print "- pro data: "+str(prodata)
                 #print "- form nick "+str(nick)
                 #print "- form name "+str(name)
@@ -2000,6 +2002,7 @@ def members_agent(request, agent_id):
                         rs.save()
                     else:
                         print "- ERROR, resource with strange name? "+str(rs)
+                        loger.warning("- ERROR, resource with strange name? "+str(rs))
 
             rss = EconomicResource.objects.filter(identifier__icontains=' '+oldnick)
             if rss:
@@ -2012,6 +2015,7 @@ def members_agent(request, agent_id):
                         rs.save()
                     else:
                         print "- ERROR, resource with strange name? "+str(rs)
+                        loger.warning("- ERROR, resource with strange name? "+str(rs))
         agent.name = name
         agent.nick = nick
         agent.save()

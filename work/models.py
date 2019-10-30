@@ -132,6 +132,11 @@ class Project(models.Model):
     joining_style = models.CharField(_('joining style'),
         max_length=12, choices=JOINING_STYLE_CHOICES,
         default="autojoin")
+    auto_create_pass = models.BooleanField(_('auto create users'),
+        #null=True,
+        #verbose_name=_("auto create user+agents and confirm email"),
+        default=False
+    )
     visibility = models.CharField(_('visibility'),
         max_length=12, choices=VISIBILITY_CHOICES,
         default="FCmembers")
@@ -3660,11 +3665,11 @@ def create_unit_types(**kwargs):
     fdc_share.ocp_unit = ocp_share
     fdc_share.save()
 
-    ocp_share_rts = EconomicResourceType.objects.filter(name='Share')
+    ocp_share_rts = EconomicResourceType.objects.filter(name='FreedomCoop Share')
     if not ocp_share_rts:
         ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
     if not ocp_share_rts:
-        ocp_share_rts = EconomicResourceType.objects.filter(name='FreedomCoop Share')
+        ocp_share_rts = EconomicResourceType.objects.filter(name='Share')
     if ocp_share_rts:
         if len(ocp_share_rts) > 1:
             raise ValidationError("There's more than one 'FreedomCoop Share' ?? "+str(ocp_share_rts))
@@ -3678,6 +3683,7 @@ def create_unit_types(**kwargs):
     share_rt.unit = ocp_share
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
+    share_rt.context_agent = fdc_ag
     if not share_rt.price_per_unit:
         print "- Added first FdC share price to 30 eur"
         share_rt.price_per_unit = 30
@@ -3945,7 +3951,7 @@ def check_new_rt_price(rt=None, **kwargs):
 
 
     if not sht == rt:
-        print ":: rt is not the share_type of the project? "
+        print ":: rt is not the share_type of the project? rt:"+str(rt)+" <> "+str(sht)+" pro:"+str(pro)+" rt.ca:"+str(rt.context_agent)
         return
     #exs = rt.context_agent.exchanges.all()
     for ex in exs:
