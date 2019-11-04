@@ -4,6 +4,7 @@
 from django.db import models, connection
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.contrib import messages
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 
@@ -1622,7 +1623,7 @@ class JoinRequest(models.Model):
                                             rs.save()
                                             print "Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs)
                                             loger.info("Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs))
-                                            #messages.info(request, "Transfered new shares to the agent's shares account: "+str(amount)+" "+str(rs))
+                                            messages.info(request, "Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs))
                           else: # not pending_shares and not share events
                             date = agshac.created_date
                             print "No pending shares and no events related shares. REPAIR! total_shares:"+str(self.total_shares())+" date:"+str(date)
@@ -1901,18 +1902,87 @@ class JoinRequest(models.Model):
                         #users = User.objects.filter(is_staff=True)
                         if users:
                             site_name = project.agent.nick #get_site_name(request)
-                            notification.send_now(
-                                users,
-                                "work_new_account",
-                                {"name": name,
-                                "username": username,
-                                "password": password,
-                                "site_name": site_name,
-                                "context_agent": project.agent,
-                                "request_host": request.get_host(),
-                                "current_site": request.get_host(),
-                                }
-                            )
+                            try:
+                                notification.send_now(
+                                    users,
+                                    "work_new_account",
+                                    {"name": name,
+                                    "username": username,
+                                    "password": password,
+                                    "site_name": site_name,
+                                    "context_agent": project.agent,
+                                    "request_host": request.get_host(),
+                                    "current_site": request.get_host(),
+                                    }
+                                )
+                            except:
+                                if request:
+                                    messages.error(request, _("Email failed! The destination address seems not real (or there's another email error): ")+str(email))
+                                loger.error("Email failed! The destination address seems not real (or there's another email error): "+str(email))
+
+                                aa.delete()
+                                self.agent = None
+                                self.save()
+                                au.delete()
+                                comm.delete()
+                                coms = Comment.objects.filter(object_pk=self.id)
+                                if coms:
+                                    for com in coms:
+                                        pass #print "delete other comment? "+str(com)
+                                        #com.delete()
+                                if agent.user():
+                                    if agent.user().user:
+                                        print "x Deleted user: "+str(agent.user().user)
+                                        if request and request.user.is_staff:
+                                            messages.info(request, "x Deleted user: "+str(agent.user().user))
+                                        agent.user().user.delete()
+                                    else:
+                                        print "there's no user? "+str(agent.user())
+                                else:
+                                    usrs = User.objects.filter(email=email)
+                                    if usrs:
+                                        if len(usrs) > 1:
+                                            print("WARN! There are multiple User's with the email: "+str(email)+" usrs:"+str(usrs))
+                                            if request and request.user.is_staff:
+                                                messages.info(request, "WARN! There are multiple User's with the email: "+str(email))
+                                            for us in usrs:
+                                                if us.username == self.requested_username:
+                                                    #import pdb; pdb.set_trace()
+                                                    if not hasattr(us, 'agent') or not us.agent:
+                                                        print("DELETED user "+str(us))
+                                                        if request and request.user.is_staff:
+                                                            messages.info(request, "x Deleted User: "+str(us))
+                                                        us.delete()
+                                                    else:
+                                                        print("WARNING! the user has an agent? "+str(us.agent))
+                                                else:
+                                                    print("SKIP, User with same wrong email but different username: "+str(us))
+                                                    if request:
+                                                        messages.info(request, "SKIP, User with same wrong email but different username: "+str(us))
+                                        else:
+                                            usr = usrs[0]
+                                            print("Delete this user? "+str(usr))
+                                            if not hasattr(usr, 'agent') or not usr.agent:
+                                                print("DELETED User "+str(usr))
+                                                if request and request.user.is_staff:
+                                                    messages.info(request, "x Deleted User: "+str(usr))
+                                                usr.delete()
+                                    else:
+                                        print("There's no User with such email? ")
+
+                                if agent.is_deletable():
+                                    print "x Deleted agent: "+str(agent)
+                                    if request and request.user.is_staff:
+                                        messages.info(request, "x Deleted Agent: "+str(agent))
+                                    agent.delete()
+                                else:
+                                    if request:
+                                        messages.warning(request, _("The agent can't be deleted! ")+str(agent))
+
+                                    raise ValidationError("agent cant be deleted: "+str(agent))
+
+                                return None
+
                         else:
                             raise ValidationError("There are no users to send the work_new_account details? "+str(username))
                     else:
@@ -3242,7 +3312,7 @@ def create_unit_types(**kwargs):
     gen_fairout.exchange_type = extfairet
     gen_fairout.save()
 
-    gen_receives = Ocp_Record_Type.objects.filter(name__icontains="Receive gift")
+    gen_receives = Ocp_Record_Type.objects.filter(name__contains="Receive gift")
     if gen_receives:
         if len(gen_receives) > 1:
             print "WARNING: There is more than one gen_receives: "+str(gen_receives)
