@@ -2514,6 +2514,7 @@ def create_user_accounts(request, agent, project=None):
 
 
 def check_duplicate_agents(request, agent):
+    loger.info("------ check_duplicate_agents (start) ------")
     repair_duplicate_agents(request, agent)
     ags = agent.all_has_associates()
     user_agent = request.user.agent.agent
@@ -2590,6 +2591,7 @@ def check_duplicate_agents(request, agent):
                                 print "Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa)
                                 loger.warning("Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa))
 
+        loger.info("------ check_duplicate_agents (end) ------")
         if copis: #len(copis) > 1:
             return copis
     return None
