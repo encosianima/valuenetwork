@@ -2410,6 +2410,7 @@ def change_your_project(request, agent_id):
 
 @login_required
 def create_user_accounts(request, agent, project=None):
+    loger.info("------ create_user_accounts (start) ------")
     auto_resource = ''
     user_agent = get_agent(request)
     user_is_agent = False
@@ -2510,6 +2511,7 @@ def create_user_accounts(request, agent, project=None):
         else:
           pass # no project
 
+    loger.info("------ create_user_accounts (end) ------")
     return auto_resource
 
 
