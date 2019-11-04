@@ -2956,9 +2956,20 @@ def joinaproject_request(request, form_slug = False):
                     join_url = get_url_starter(request) + "/work/project-feedback/" + str(jn_req.project.agent.id) +"/"+str(jn_req.id)
                     context_agent = jn_req.project.agent
 
-                    if jn_req.payment_url() or jn_req.multiwallet_user(): # its a credit card payment (or botc multiwallet), create the user and the agent
+                    if jn_req.payment_url() or jn_req.multiwallet_user() or jn_req.project.auto_create_pass: # its a credit card payment (or botc multiwallet), create the user and the agent
 
                         password = jn_req.create_useragent_randompass(request or None)
+                        if not password:
+
+                            join_form.add_error('email_address', "Seems like the address don't exist?")
+                            return render(request, "work/joinaproject_request.html", {
+                                "help": get_help("work_join_request"),
+                                "join_form": join_form,
+                                "fobi_form": fobi_form,
+                                "project": project,
+                                #"post": escapejs(json.dumps(request.POST)),
+                            })
+
                         description = "Check the automatically created Agent and User for the Join Request of "
                         description += name+' '
                         description += "with random password: "+password
@@ -3879,8 +3890,15 @@ def confirm_request(request, join_request_id):
     if not user_agent in jn_req.project.agent.managers():
         raise ValidationError("You don't have permission to do this !!!")
     jn_req.create_useragent_randompass(request)
-    return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/agent', jn_req.project.agent.id, 'join-requests'))
+    if request.POST['next']:
+        slug = request.POST['next']
+        if slug == 'project':
+            slug = ''
+    else:
+        slug = 'join-requests'
+
+    return HttpResponseRedirect('/%s/%s/%s'
+        % ('work/agent', jn_req.project.agent.id, slug))
 
 @login_required
 def accept_request(request, join_request_id):
@@ -7036,7 +7054,7 @@ def create_project_shares(request, agent_id):
     else:
         share_rt, created = EconomicResourceType.objects.get_or_create(
             name=nome+' Share',
-            unit=ocp_each,
+            unit=ocpboc_share,
             inventory_rule='yes',
             behavior='other'
         )
