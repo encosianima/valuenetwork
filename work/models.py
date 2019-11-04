@@ -826,15 +826,15 @@ class JoinRequest(models.Model):
                     if not balance or not amount:
                       txt = "<span class='error'>"+txt+"</span>"
 
-                    amtopay = "<br>Amount to pay: <b> "+str(round(amount, 8))+" ƒ "
+                    amtopay = u"<br>Amount to pay: <b> "+str(round(amount, 8))+u" ƒ "
                     amispay = self.payment_payed_amount()
                     if amispay > 0:
                       if amopend:
-                        amtopay += "- "+str(amispay)+" ƒ payed = "+str(round(amopend, 8))+' ƒ pending'
+                        amtopay += "- "+str(amispay)+u" ƒ payed = "+str(round(amopend, 8))+u' ƒ pending'
                       else:
-                        amtopay += " (payed "+str(amispay)+" ƒ)"
+                        amtopay += " (payed "+str(amispay)+u" ƒ)"
                     amtopay += "</b>"
-                    return obj['html']+str(amtopay)+"<br>"+txt
+                    return obj['html']+amtopay+"<br>"+txt
 
                   else:
                     # don't need internal faircoin

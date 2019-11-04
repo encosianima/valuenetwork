@@ -310,8 +310,8 @@ a.more-link {
                             <input type="hidden" name="last_name" id="last_name" value="{{ req.surname }}" />
                             <input type="hidden" name="lang" id="lang" value="en" />
                             <input type="hidden" name="token" id="token" value="{{ req.payment_token }}" />
-                            <input type="submit" value="{% if req.payment_html %}{{ req.payment_html }}{% else %}{% trans "Pay your Shares" %}{% endif %}" class="btn btn-primary" />
-                        </form> <!-- <a href="{% url 'payment_url' paymode=req.payment_option.key join_request_id=req.id %}" target="ocp_pay" class="btn btn-primary">{% if req.payment_html %}{{ req.payment_html }}{% else %}{% trans "Pay your Shares" %}{% endif %}</a> -->
+                            <input type="submit" value="{% if req.payment_html %}{{ req.payment_html|safe }}{% else %}{% trans "Pay your Shares" %}{% endif %}" class="btn btn-primary" />
+                        </form> <!-- <a href="{% url 'payment_url' paymode=req.payment_option.key join_request_id=req.id %}" target="ocp_pay" class="btn btn-primary">{% if req.payment_html %}{{ req.payment_html|safe }}{% else %}{% trans "Pay your Shares" %}{% endif %}</a> -->
                     {% elif req.payment_html %}
                         <div id="payment_html">{{ req.payment_html|safe }}
                             {% if req.agent.need_faircoins and not req.agent.faircoin_resource %} &nbsp;

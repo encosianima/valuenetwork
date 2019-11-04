@@ -1912,6 +1912,7 @@ def members_agent(request, agent_id):
         return render(request, 'work/no_permission.html')
 
     print "--------- start members_agent ----------"
+    loger.info("--------- start members_agent ----------")
     if agent.nick == "Freedom Coop": run_fdc_scripts(request, agent)
 
     user_is_agent = False
@@ -2186,6 +2187,7 @@ def members_agent(request, agent_id):
 
 
     print "--------- end members_agent ----------"
+    loger.info("--------- end members_agent ----------")
 
     return render(request, "work/members_agent.html", {
         "agent": agent,
