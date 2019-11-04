@@ -3952,7 +3952,7 @@ def update_share_payment(request, join_request_id):
         if not next:
             next = "project_feedback"
         if status:
-            jn_req.update_payment_status(status, gateref, notes)
+            jn_req.update_payment_status(status, gateref, notes, request)
         else:
             raise ValidationError("Missing status ("+str(status)+") !") # or gateway reference ("+str(gateref)+") !")
     else:
@@ -7063,10 +7063,11 @@ def create_project_shares(request, agent_id):
             loger.info("- created EconomicResourceType: '"+nome+" Share'")
             messages.info(request, "- created EconomicResourceType: '"+nome+" Share'")
     share_rt.name = nome+" Share"
-    if share_rt.unit and not share_rt.unit == ocpboc_share:
-        print "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share)
-        loger.info("- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
-        messages.info(request, "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
+    if hasattr(share_rt, 'unit'):
+        if not share_rt.unit == ocpboc_share:
+            print "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share)
+            loger.info("- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
+            messages.info(request, "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
     share_rt.unit = ocpboc_share #ocp_each
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'

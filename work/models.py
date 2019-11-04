@@ -1322,7 +1322,7 @@ class JoinRequest(models.Model):
         return ex
 
 
-    def update_payment_status(self, status=None, gateref=None, notes=None):
+    def update_payment_status(self, status=None, gateref=None, notes=None, request=None):
         account_type = self.payment_account_type()
         balance = 0
         amount = self.payment_amount()
@@ -1623,7 +1623,8 @@ class JoinRequest(models.Model):
                                             rs.save()
                                             print "Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs)
                                             loger.info("Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs))
-                                            messages.info(request, "Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs))
+                                            if request:
+                                                messages.info(request, "Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs))
                           else: # not pending_shares and not share events
                             date = agshac.created_date
                             print "No pending shares and no events related shares. REPAIR! total_shares:"+str(self.total_shares())+" date:"+str(date)
