@@ -3543,19 +3543,69 @@ def create_unit_types(**kwargs):
         cash.general_unit_type = gen_euro_typ
         cash.save()
 
+
+
+    print "- "+str(digi_rt)+" FV's: "+str([fv.facet_value.value+', ' for fv in digi_rt.facets.all()])
+    print "- "+str(cash_rt)+" FV's: "+str([fv.facet_value.value+', ' for fv in cash_rt.facets.all()])
+
+    # euro digi FV
+    for fv in digi_rt.facets.all():
+        if not fv.facet_value == fiatfv and not fv.facet_value == fvmoney:
+            print "- deleted: "+str(fv)
+            fv.delete()
+    digi_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=digi_rt,
+        facet_value=fiatfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(digi_rtfv)
+
+    digi_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=digi_rt,
+        facet_value=fvmoney)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(digi_rtfv)
+
+    # euro cash FV
+    for fv in cash_rt.facets.all():
+        if not fv.facet_value == fiatfv and not fv.facet_value == fvmoney:
+            print "- deleted: "+str(fv)
+            fv.delete()
+    cash_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=cash_rt,
+        facet_value=fiatfv)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(cash_rtfv)
+
+    cash_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
+        resource_type=cash_rt,
+        facet_value=fvmoney)
+    if created:
+        print "- created ResourceTypeFacetValue: "+str(cash_rtfv)
+
+
+
     # Check UnitRatio eur-fair
-    urs = UnitRatio.objects.filter(in_unit=fair, out_unit=euro)
+    urs = UnitRatio.objects.filter(in_unit=euro, out_unit=fair)
     if not urs:
-        urs = UnitRatio.objects.filter(in_unit=euro, out_unit=fair)
+        urs = UnitRatio.objects.filter(in_unit=fair, out_unit=euro)
     if not urs:
         ur, c = UnitRatio.objects.get_or_create(
-            in_unit=fair,
-            out_unit=euro,
+            in_unit=euro,
+            out_unit=fair,
             rate=Decimal('1.2')
         )
         if c:
             print "- created UnitRatio: "+str(ur)
             #loger.info("- created UnitRatio: "+str(ur))
+    elif len(urs) == 1:
+        ur = urs[0]
+    else:
+        print("x More than one UnitRatio with euro and fair? "+str(urs))
+        loger.warning("x More than one UnitRatio with euro and fair? "+str(urs))
+    ur.in_unit = euro
+    ur.out_unit = fair
+    ur.rate = Decimal('1.2')
+    ur.save()
 
 
 
