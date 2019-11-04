@@ -784,6 +784,7 @@
                         action="{% url "confirm_request" join_request_id=req.id %}"
                         method="POST" >
                         {% csrf_token %}
+                        <input type="hidden" name="next" value="project">
                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "confirm email" %}' />
                       </form>
                   </li>
