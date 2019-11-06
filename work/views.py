@@ -719,6 +719,7 @@ def membership_discussion(request, membership_request_id):
                     print "- created JoinRequest for FdC migration: "+str(jn_req)
                     loger.info("- created JoinRequest for FdC migration: "+str(jn_req))
                 jn_req.created_date = mbr_req.request_date
+                jn_req.request_date = mbr_req.request_date
                 jn_req.state = mbr_req.state
 
 
@@ -2630,9 +2631,12 @@ def repair_duplicate_agents(request, agent):
                     if len(res): #len(txt) > 0 and not txt == '>': # and not str(met) in tps:
                         its = []
                         for rs in res:
-                            its.append(str(rs.id))
+                            txt = u''+str(rs.id)
+                            if att == "is_associate_of":
+                                txt += u" to "+rs.has_associate.nick+" ("+str(rs.state)+")"
+                            its.append(txt)
                         its = ', '.join(its)
-                        tps.append('- <em>'+att+'</em>: '+str(len(res))+' - ids('+str([str(rs.id) for rs in res])+')') #+str(txt)+' Res:')
+                        tps.append('- <em>'+att+'</em>: '+str(len(res))+' - ids['+its+']') #+str(txt)+' Res:')
                         obs += len(res)
                 except:
                     #if not att[0] == '_' and len(txt) > 1:
