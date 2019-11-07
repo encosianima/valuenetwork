@@ -131,6 +131,9 @@ urlpatterns = [
     url(r'^share-payment/(?P<agent_id>\d+)/$', work.views.share_payment, name="share_payment"),
     url(r"^validate-nick/$", work.views.validate_nick, name="validate_nick"),
     url(r"^validate-username/$", work.views.validate_username, name="validate_username"),
+    #url(r"^validate-email/$", work.views.validate_email, name="validate_email"),
+    url(r"^validate-name/$", work.views.validate_name, name="validate_name"),
+
     url(r'^new-features/$', work.views.new_features, name='new_features'),
 
     url(r"^invoice-number/$", work.views.invoice_number, name="invoice_number"),
