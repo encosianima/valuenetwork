@@ -4397,7 +4397,7 @@ def validate_name(request):
                 if surname:
                     error = "Name and Surname already known. Do you want to differentiate anyhow?"
                 else:
-                    error = "Name of individual already known. Do you want yo differentiate anyhow?"
+                    error = "Name of individual already known. Do you want to differentiate anyhow?"
         else:
             ags = EconomicAgent.objects.filter(name__iexact=name)
             if agid:
