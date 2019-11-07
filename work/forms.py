@@ -254,10 +254,7 @@ class AssociationForm(forms.Form):
 
 
 class ValidateNameForm(forms.Form):
-    agent = forms.ModelChoiceField(
-        queryset=EconomicAgent.objects.all(),
-        required=False
-        )
+    agent_id = forms.IntegerField()
     name = forms.CharField()
     surname = forms.CharField(required=False)
     typeofuser = forms.CharField()

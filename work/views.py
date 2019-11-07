@@ -4321,7 +4321,10 @@ def validate_nick(request):
             username = nick
             try:
                 user = User.objects.get(username=username)
-                error = "Username already taken"
+                if user.agent.agent.id == int(agent_id):
+                    pass
+                else:
+                    error = "Username already taken" #+str(user.agent.agent)
             except User.DoesNotExist:
                 pass
             if not error:
@@ -4367,6 +4370,41 @@ def validate_username(request):
                 error = val(username)
             except ValidationError:
                 error = "Error: May only contain letters, numbers, and @/./+/-/_ characters."
+    if error:
+        answer = error
+    response = simplejson.dumps(answer, ensure_ascii=False)
+    return HttpResponse(response, content_type="text/json-comment-filtered")
+
+
+def validate_name(request):
+    answer = True
+    error = ""
+    form = ValidateNameForm(request.POST)
+    if form.is_valid():
+        data = form.cleaned_data
+        agid = data["agent_id"] or None
+        name = data["name"] #values[0]
+        surname = data["surname"] or None
+        typeofuser = data["typeofuser"]
+        if typeofuser == 'individual':
+            if surname:
+                ags = EconomicAgent.objects.filter(name__iexact=name+' '+surname)
+            else:
+                ags = EconomicAgent.objects.filter(name__iexact=name)
+            if agid:
+                ags = ags.exclude(id=int(agid))
+            if ags:
+                if surname:
+                    error = "Name and Surname already known. Do you want to differentiate anyhow?"
+                else:
+                    error = "Name of individual already known. Do you want yo differentiate anyhow?"
+        else:
+            ags = EconomicAgent.objects.filter(name__iexact=name)
+            if agid:
+                ags = ags.exclude(id=agid)
+            if ags:
+                error = "Name of collective already known. Do you want to differentiate anyhow?"
+    #import pdb; pdb.set_trace()
     if error:
         answer = error
     response = simplejson.dumps(answer, ensure_ascii=False)
