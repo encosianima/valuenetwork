@@ -1821,14 +1821,17 @@ class JoinRequest(models.Model):
 
         at = None
         password = None
+        name = self.name
         if self.type_of_user == 'individual':
             at = get_object_or_404(AgentType, party_type='individual', is_context=False)
+            if self.surname:
+                name += u' '+self.surname
         elif self.type_of_user == 'collective':
             at = get_object_or_404(AgentType, party_type='team', is_context=True)
         else:
             raise ValidationError("The 'type_of_user' field is not understood for this request: "+str(self))
 
-        reqdata = {'name':self.name,
+        reqdata = {'name':name,
                    'email':self.email_address,
                    'nick':self.requested_username,
                    'password':randpass,
