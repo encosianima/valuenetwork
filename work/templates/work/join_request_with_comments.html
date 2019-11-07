@@ -418,7 +418,7 @@ a.more-link {
                         <b>{{ req.multiwallet_user }}</b> &nbsp;
                         <a href="#connect-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Connect BotC-Wallet account" %}</a> &nbsp;
                     {% endif %}
-                    {% if not req.multiwallet_user %}
+                    {% if not req.multiwallet_user and not req.check_user_pass %}
                         <a href="#create-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create new BotC-Wallet account" %}</a>
 
                         <div class="modal hide fade" id="create-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
