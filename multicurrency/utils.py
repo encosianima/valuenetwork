@@ -32,12 +32,19 @@ class ChipChapAuthConnection(object):
             self.url_history = cdata['url_history']
             self.url_balance = cdata['url_balance']
             if not hasattr(cdata, 'ocp_api_key'):
+                self.ocp_api_key = None
                 #raise ValidationError("Is needed the API key given by BotC wallet to this platform (settings).")
                 print "WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings)."
                 self.logger.error("WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings).")
             else:
                 self.ocp_api_key = cdata['ocp_api_key']
                 self.logger.info("Connected with an OCP api-key for safe access.")
+            if not hasattr(cdata, "url_w2w"):
+                self.url_w2w = None
+                print("WARN: Multiwallet without W2W permissions! Can't let users pay the shares...")
+                self.logger.error("WARN: Multiwallet without W2W permissions! Can't let users pay the shares...")
+            else:
+                self.url_w2w = cdata['url_w2w']
         else:
             self.able_to_connect = False
             self.logger.critical("Invalid configuration data to connect.")
