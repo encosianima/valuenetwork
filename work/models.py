@@ -1955,14 +1955,14 @@ class JoinRequest(models.Model):
                                                     if not hasattr(us, 'agent') or not us.agent:
                                                         print("DELETED user "+str(us))
                                                         if request and request.user.is_staff:
-                                                            messages.info(request, "x Deleted User: "+str(us))
+                                                            messages.info(request, "x Deleted one of the users: "+str(us))
                                                         us.delete()
                                                     else:
                                                         print("WARNING! the user has an agent? "+str(us.agent))
                                                 else:
                                                     print("SKIP, User with same wrong email but different username: "+str(us))
                                                     if request:
-                                                        messages.info(request, "SKIP, User with same wrong email but different username: "+str(us))
+                                                        messages.info(request, "SKIP! User with same wrong email but different username: "+str(us))
                                         else:
                                             usr = usrs[0]
                                             print("Delete this user? "+str(usr))

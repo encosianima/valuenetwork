@@ -203,10 +203,18 @@ a.more-link {
                                    id="create-form{{ req.id }}"
                                    action="{% url "confirm_request" join_request_id=req.id %}"
                                    method="POST" >
-                               {% csrf_token %}
-                               <input type="hidden" name="next" value="feedback" />
-                               <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Confirm Email" %}' /> <span class="help-text">{% trans "sends random pass and creates user+agent" %}</span>
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="feedback" />
+                                <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Confirm Email" %}' /> <span class="help-text">{% trans "sends random pass and creates user+agent" %}</span>
                              </form>
+                      &nbsp; <form class="action-form" style="display:none;"
+                                   id="delete-form{{ req.id }}"
+                                   action="{% url "delete_request" join_request_id=req.id %}"
+                                   method="POST" >
+                                {% csrf_token %}
+                                <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete Request" %}' />
+                             </form>
+
                     {% endif %}
                 </td>
             </tr>
