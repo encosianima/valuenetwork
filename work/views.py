@@ -2097,7 +2097,7 @@ def members_agent(request, agent_id):
     elif agent.is_context_agent():
         try:
           fobi_name = get_object_or_404(FormEntry, slug=agent.project.fobi_slug)
-          entries = agent.project.join_requests.filter(agent__isnull=True, state='new')
+          entries = agent.project.join_requests.filter(agent__isnull=True, state='new').order_by('request_date')
         except:
           entries = []
 
