@@ -3900,8 +3900,10 @@ def confirm_request(request, join_request_id):
     user_agent = get_agent(request)
     if not user_agent in jn_req.project.agent.managers():
         raise ValidationError("You don't have permission to do this !!!")
+
     jn_req.create_useragent_randompass(request)
-    if request.POST['next']:
+
+    if 'next' in request.POST and request.POST['next']:
         slug = request.POST['next']
         if slug == 'project':
             slug = ''
