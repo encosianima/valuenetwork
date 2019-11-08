@@ -2964,7 +2964,7 @@ def joinaproject_request(request, form_slug = False):
 
 
                     event_type = EventType.objects.get(relationship="todo")
-                    join_url = get_url_starter(request) + "/work/project-feedback/" + str(jn_req.project.agent.id) +"/"+str(jn_req.id)
+                    join_url = get_url_starter(request) + "/work/" + str(jn_req.project.agent.id) +"/feedback/"+str(jn_req.id)
                     context_agent = jn_req.project.agent
 
                     if jn_req.payment_url() or jn_req.multiwallet_user() or jn_req.project.auto_create_pass: # its a credit card payment (or botc multiwallet), create the user and the agent
@@ -3907,6 +3907,8 @@ def confirm_request(request, join_request_id):
         slug = request.POST['next']
         if slug == 'project':
             slug = ''
+        if slug == 'feedback':
+            slug = 'feedback/'+str(jn_req.id)
     else:
         slug = 'join-requests'
 
@@ -3942,8 +3944,9 @@ def accept_request(request, join_request_id):
     association.save()
     messages.info(request, "Modified agent association to 'active': "+str(association))
 
-    return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/project-feedback', mbr_req.project.agent.id, join_request_id))
+    return redirect('project_feedback', agent_id=mbr_req.project.agent.id, join_request_id=join_request_id)
+    #HttpResponseRedirect('/%s/%s/%s/'
+    #    % ('work/project-feedback', mbr_req.project.agent.id, join_request_id))
 
 @login_required
 def update_share_payment(request, join_request_id):
