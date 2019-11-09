@@ -78,5 +78,7 @@ class MulticurrencyAuth(models.Model):
         elif balobj:
             out_text = _("Not enough balance in your wallet for the chosen currency:")+' <b>'+str(punit)+'</b>'
         else:
-            out_text = _("Error retrieving balance: ")+str(balance['status'])
+            out_text = _("Error retrieving your balance... ")
+            if user and user.is_superuser:
+                out_text += "(punit: "+str(punit) #balance['status'])
         return out_text, reqdata
