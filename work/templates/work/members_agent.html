@@ -793,6 +793,7 @@
                             action="{% url "delete_request" join_request_id=req.id %}"
                             method="POST" >
                           {% csrf_token %}
+                          <input type="hidden" name="next" value="project">
                           <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "x" %}' />
                       </form>
 

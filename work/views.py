@@ -3855,8 +3855,17 @@ def delete_request(request, join_request_id):
       pass # delete user and agent?
     mbr_req.delete()
 
-    return HttpResponseRedirect('/%s/%s/%s/'
-        % ('work/agent', mbr_req.project.agent.id, 'join-requests'))
+    if 'next' in request.POST and request.POST['next']:
+        slug = request.POST['next']
+        if slug == 'project':
+            slug = ''
+        if slug == 'feedback':
+            slug = 'feedback/'+str(jn_req.id)
+    else:
+        slug = 'join-requests'
+
+    return HttpResponseRedirect('/%s/%s/%s'
+        % ('work/agent', mbr_req.project.agent.id, slug))
 
 @login_required
 def delete_request_agent_and_user(request, join_request_id):
