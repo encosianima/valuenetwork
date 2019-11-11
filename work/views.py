@@ -1912,8 +1912,8 @@ def members_agent(request, agent_id):
     if not user_agent or not user_agent.is_participant: # or not agent in user_agent.related_all_agents(): # or not user_agent.is_active_freedom_coop_member:
         return render(request, 'work/no_permission.html')
 
-    print "--------- start members_agent ----------"
-    loger.info("--------- start members_agent ----------")
+    print "--------- start members_agent ("+str(agent)+") ----------"
+    loger.info("--------- start members_agent ("+str(agent)+") ----------")
     if agent.nick == "Freedom Coop": run_fdc_scripts(request, agent)
 
     user_is_agent = False
@@ -2188,8 +2188,8 @@ def members_agent(request, agent_id):
                 ag.newshares = int(acc[0].price_per_unit)
 
 
-    print "--------- end members_agent ----------"
-    loger.info("--------- end members_agent ----------")
+    print "--------- end members_agent ("+str(agent)+") ----------"
+    loger.info("--------- end members_agent ("+str(agent)+") ----------")
 
     return render(request, "work/members_agent.html", {
         "agent": agent,
@@ -2518,7 +2518,7 @@ def create_user_accounts(request, agent, project=None):
 
 
 def check_duplicate_agents(request, agent):
-    loger.info("------ check_duplicate_agents (start) ------")
+    loger.info("------ start check_duplicate_agents ("+str(agent)+") ------")
     repair_duplicate_agents(request, agent)
     ags = agent.all_has_associates()
     user_agent = request.user.agent.agent
@@ -2595,7 +2595,7 @@ def check_duplicate_agents(request, agent):
                                 print "Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa)
                                 loger.warning("Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa))
 
-        loger.info("------ check_duplicate_agents (end) ------")
+        loger.info("------ end check_duplicate_agents ("+str(agent)+") ------")
         if copis: #len(copis) > 1:
             return copis
     return None
@@ -3579,8 +3579,8 @@ def join_requests(request, agent_id):
         pass
     else:
         raise ValidationError("User not allowed to see this page.")
-    print "-------------- start join_requests ----------------"
-    loger.debug("-------------- start join_requests ----------------")
+    print "-------------- start join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------"
+    loger.debug("-------------- start join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------")
     state = "new"
     state_form = RequestStateForm(
         initial={"state": "new",},
@@ -3774,8 +3774,8 @@ def join_requests(request, agent_id):
     if project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
 
-    print "-------------- end join_requests ----------------"
-    loger.debug("-------------- end join_requests ----------------")
+    print "-------------- end join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------"
+    loger.debug("-------------- end join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------")
 
     return render(request, "work/join_requests.html", {
         "help": get_help("join_requests"),
