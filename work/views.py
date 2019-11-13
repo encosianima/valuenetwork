@@ -1513,7 +1513,8 @@ def run_fdc_scripts(request, agent):
         raise ValidationError("This is only intended for Freedom Coop agent migration")
     fdc = agent
     if not hasattr(fdc, 'project'): return
-    print "............ start run_fdc_scripts ............."
+    #print "............ start run_fdc_scripts ............."
+    loger.info("............ start run_fdc_scripts ("+str(agent)+") .............")
     acctyp = fdc.project.shares_account_type()
     shrtyp = fdc.project.shares_type()
     oldshr = EconomicResourceType.objects.membership_share()
@@ -1700,8 +1701,8 @@ def run_fdc_scripts(request, agent):
                             )
                             if created:
                                 #print "- Created new association as FdC candidate (no shares found): "+str(agas)
-                                loger.info("- Created new association as FdC candidate (no shares found): "+str(agas))
-                                messages.info(request, "- Created new association as FdC candidate (no shares found): "+str(agas))
+                                loger.info("- Created new association as FdC candidate (no shares found): "+str(agas.is_associate.nick))
+                                messages.info(request, "- Created new association as FdC candidate (no shares found): "+str(agas.is_associate.nick))
                             req.state = 'new'
                             req.save()
                         elif req.state == 'declined':
@@ -1790,7 +1791,8 @@ def run_fdc_scripts(request, agent):
     if pend and request.user.agent.agent in fdc.managers():
         messages.error(request, "Membership Requests pending to MIGRATE to the new generic JoinRequest system: <b>"+str(pend)+"</b>", extra_tags='safe')
 
-    print "............ end run_fdc_scripts ............."
+    #print "............ end run_fdc_scripts ............."
+    loger.info("............ end run_fdc_scripts ("+str(agent)+") .............")
 
 
 
