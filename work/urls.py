@@ -89,6 +89,8 @@ urlpatterns = [
         name="project_feedback_old"),
     url(r'^agent/(?P<agent_id>\d+)/feedback/(?P<join_request_id>\d+)/$', work.views.project_feedback,
         name="project_feedback"),
+    url(r'^(?P<agent_id>\d+)/feedback/(?P<join_request_id>\d+)/$', work.views.project_feedback,
+        name="project_feedback_bad"),
     url(r'^joinaproject/(?P<agent_id>\d+)/(?P<join_request_id>\d+)/$', work.views.project_feedback,
         name="joinaproject"),
     url(r'^agent/(?P<agent_id>\d+)/project_joinform/$', work.views.joinaproject_request_internal,
