@@ -542,10 +542,8 @@ class EconomicAgent(models.Model):
                 au.delete()
         super(EconomicAgent, self).delete(*args, **kwargs)
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('agent', (),
-        { 'agent_id': str(self.id),})
+        return reverse('agent', kwargs={'agent_id': str(self.id),})
 
     @property #ValueFlows
     def image(self):
@@ -2863,10 +2861,8 @@ class EconomicResourceType(models.Model):
         else:
             return self.description
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('resource_type', (),
-            { 'resource_type_id': str(self.id),})
+        return reverse('resource_type', kwargs={'resource_type_id': str(self.id),})
 
     @property #ValueFlows
     def image(self):
@@ -4533,10 +4529,8 @@ class Order(models.Model):
                 answer = ex.is_deletable()
         return answer
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('order_schedule', (),
-            { 'order_id': str(self.id),})
+        return reverse('order_schedule', {'order_id': str(self.id),})
 
     @property #ValueFlows
     def planned(self):
@@ -5616,10 +5610,8 @@ class EconomicResource(models.Model):
             id_str,
         ])
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('resource', (),
-            { 'resource_id': str(self.id),})
+        return reverse('resource', kwargs={'resource_id': str(self.id),})
 
     @property #ValueFlows
     def image(self):
@@ -7577,10 +7569,8 @@ class Process(models.Model):
     def class_label(self):
         return "Process"
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('process_details', (),
-            { 'process_id': str(self.id),})
+        return reverse('process_details', kwargs={'process_id': str(self.id),})
 
     def get_notification_url(self):
         if 'work.apps.WorkAppConfig' in settings.INSTALLED_APPS:
@@ -9038,12 +9028,11 @@ class Exchange(models.Model):
             self.start_date.strftime('%Y-%m-%d'),
             ])
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('exchange_logging', (),{
+        return reverse('exchange_logging', kwargs={
             'exchange_type_id': "0",
             'exchange_id': str(self.id),
-            })
+        })
 
     def save(self, *args, **kwargs):
         ext_name = ""
@@ -12447,10 +12436,8 @@ class ValueEquation(models.Model):
     def __unicode__(self):
         return self.name
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('edit_value_equation', (),
-            { 'value_equation_id': str(self.id),})
+        return reverse('edit_value_equation', {'value_equation_id': str(self.id),})
 
     def is_deletable(self):
         if self.distributions.all() or self.live:
