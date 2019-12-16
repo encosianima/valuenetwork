@@ -778,7 +778,7 @@
               <ul>
                 {% for req in form_entries %}
                   <li>
-                    {{ req.name }} ({{ req.requested_username }}): <b>{{ req.email_address }}</b> &nbsp;
+                    {{ req.name }} (<a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">{{ req.requested_username }}</a>): <b>{{ req.email_address }}</b> ({{ req.request_date }}) &nbsp;
                       <form class="action-form"
                         id="create-form{{ req.id }}"
                         action="{% url "confirm_request" join_request_id=req.id %}"
@@ -787,6 +787,16 @@
                         <input type="hidden" name="next" value="project">
                         <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "confirm email" %}' />
                       </form>
+                      &nbsp;
+                      <form class="action-form" style=""
+                            id="delete-form{{ req.id }}"
+                            action="{% url "delete_request" join_request_id=req.id %}"
+                            method="POST" >
+                          {% csrf_token %}
+                          <input type="hidden" name="next" value="project">
+                          <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "x" %}' />
+                      </form>
+
                   </li>
                 {% endfor %}
               </ul>

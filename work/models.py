@@ -207,6 +207,9 @@ class Project(models.Model):
             else:
                 print "ERROR: The at: "+str(at)+" has no 'ocp_artwork_type' !"
                 loger.error("ERROR: The at: "+str(at)+" has no 'ocp_artwork_type' !")
+        else:
+            print("ERROR: The project has no shares_account_type? pro:"+str(self.agent.nick))
+            loger.error("ERROR: The project has no shares_account_type? pro:"+str(self.agent.nick))
         return st
 
     def share_types(self):
@@ -1821,14 +1824,17 @@ class JoinRequest(models.Model):
 
         at = None
         password = None
+        name = self.name
         if self.type_of_user == 'individual':
             at = get_object_or_404(AgentType, party_type='individual', is_context=False)
+            if self.surname:
+                name += u' '+self.surname
         elif self.type_of_user == 'collective':
             at = get_object_or_404(AgentType, party_type='team', is_context=True)
         else:
             raise ValidationError("The 'type_of_user' field is not understood for this request: "+str(self))
 
-        reqdata = {'name':self.name,
+        reqdata = {'name':name,
                    'email':self.email_address,
                    'nick':self.requested_username,
                    'password':randpass,
@@ -1952,14 +1958,14 @@ class JoinRequest(models.Model):
                                                     if not hasattr(us, 'agent') or not us.agent:
                                                         print("DELETED user "+str(us))
                                                         if request and request.user.is_staff:
-                                                            messages.info(request, "x Deleted User: "+str(us))
+                                                            messages.info(request, "x Deleted one of the users: "+str(us))
                                                         us.delete()
                                                     else:
                                                         print("WARNING! the user has an agent? "+str(us.agent))
                                                 else:
                                                     print("SKIP, User with same wrong email but different username: "+str(us))
                                                     if request:
-                                                        messages.info(request, "SKIP, User with same wrong email but different username: "+str(us))
+                                                        messages.info(request, "SKIP! User with same wrong email but different username: "+str(us))
                                         else:
                                             usr = usrs[0]
                                             print("Delete this user? "+str(usr))
@@ -4063,9 +4069,15 @@ def check_new_rt_price(rt=None, **kwargs):
                 if jr.exchange:
                     #print " : : ex:"+str(jr.exchange)
                     exs.append(jr.exchange)
+    else:
+        print("check_new_rt_price: No rt.context_agent?? rt:"+str(rt))
+        loger.error("check_new_rt_price: No rt.context_agent?? rt:"+str(rt))
 
     if pro:
         sht = pro.shares_type()
+    else:
+        print("check_new_rt_price: No Project?? rt:"+str(rt))
+        loger.error("check_new_rt_price: No Project?? rt:"+str(rt))
 
     print "check_new_rt_price: rt:"+str(rt.id)+" "+str(rt)+", price_per_unit:"+str(rt.price_per_unit)+" coms:"+str(len(coms))+" evts:"+str(len(evts))+" ca:"+str(rt.context_agent)+" sht:"+str(sht)
     loger.info("check_new_rt_price... rt:"+str(rt.id)+" "+str(rt)+", price_per_unit:"+str(rt.price_per_unit)+" coms:"+str(len(coms))+" evts:"+str(len(evts))+" ca:"+str(rt.context_agent)+" sht:"+str(sht))

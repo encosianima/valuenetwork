@@ -52,6 +52,7 @@ def auth(request, agent_id):
             if acs:
                 messages.error(request, _("This login name already exists."))
                 return redirect('multicurrency_auth', agent_id=agent_id)
+
             password = form.cleaned_data['wallet_password']
             oauth = None
             connection = ChipChapAuthConnection.get()
