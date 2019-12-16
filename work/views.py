@@ -3632,11 +3632,12 @@ def join_requests(request, agent_id):
         csrf_token_field = '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf_token+'"> '
 
         for req in requests:
-            if not req.agent and req.requested_username:
-              try:
-                req.possible_agent = EconomicAgent.objects.get(nick=req.requested_username)
-              except:
-                req.possible_agent = False
+            req.possible_agent = False
+            if not hasattr(req, 'agent') and req.requested_username:
+                try:
+                    req.possible_agent = EconomicAgent.objects.get(nick=req.requested_username)
+                except:
+                    pass
             if hasattr(req, 'fobi_data') and hasattr(req.fobi_data, 'pk'):
               req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
               entry = req.entries[0]
