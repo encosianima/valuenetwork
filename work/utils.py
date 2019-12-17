@@ -1,7 +1,8 @@
 from work.models import Ocp_Skill_Type, Ocp_Artwork_Type
 from general.models import Artwork_Type, Job, UnitRatio
-
 from django.forms import ValidationError
+import decimal
+import requests
 import logging
 logger = logging.getLogger("ocp")
 
@@ -80,31 +81,65 @@ def set_user_notification_by_type(user, notification_type="work_new_account", se
     return sett
 
 
-def convert_price(amount, shunit, unit):
+def convert_price(amount, shunit, unit, deci=4):
     if not amount: raise ValidationError("Convert_price without amount? unit1:"+str(shunit)+" unit2:"+str(unit))
     if not shunit: raise ValidationError("Convert_price without unit1? amount:"+str(amount)+" unit2:"+str(unit))
-    if not amount: raise ValidationError("Convert_price without unit2? amount:"+str(amount)+" unit1:"+str(shunit))
+    if not unit: raise ValidationError("Convert_price without unit2? amount:"+str(amount)+" unit1:"+str(shunit))
+    ratio = None
+    price = None
     if amount and shunit and unit:
         if not shunit == unit:
             try:
                 ratio = UnitRatio.objects.get(in_unit=shunit.gen_unit, out_unit=unit.gen_unit).rate
                 price = amount/ratio
             except:
-                print "No UnitRatio with in_unit '"+str(shunit.gen_unit)+"' and out_unit: "+str(unit.gen_unit)+". Trying reversed..."
+                print "No UnitRatio with in_unit '"+str(shunit.gen_unit.name)+"' and out_unit: "+str(unit.gen_unit.name)+". Trying reversed..."
                 #logger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
                 try:
                     ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=shunit.gen_unit).rate
                     price = amount*ratio
                 except:
-                    print "No UnitRatio with out_unit '"+str(shunit.gen_unit)+"' and in_unit: "+str(unit.gen_unit)+". Aborting..."
-                    logger.info("No UnitRatio with out_unit '"+str(shunit.gen_unit)+"' and in_unit: "+str(unit.gen_unit)+". Aborting...")
-                    raise ValidationError("Can't find the UnitRatio to convert the price to "+str(unit.gen_unit)+" from "+str(shunit))
+                    print "No UnitRatio with out_unit '"+str(shunit.gen_unit.name)+"' and in_unit: "+str(unit.gen_unit.name)+". Trying via botc api..."
+                    logger.info("No UnitRatio with out_unit '"+str(shunit.gen_unit.name)+"' and in_unit: "+str(unit.gen_unit.name)+". Trying via botc api...")
 
-            amount = round(price, 4)
+                    if 'multicurrency' in settings.INSTALLED_APPS:
+                        if 'url_ticker' in settings.MULTICURRENCY:
+                            url = settings.MULTICURRENCY['url_ticker']+shunit.abbrev
+                            key = unit.abbrev.upper()+'x'+shunit.abbrev.upper()
+                            print("KEY: "+key+" URL:"+url)
+                            deci = settings.CRYPTO_DECIMALS
+                            ticker = requests.get(url)
+                            if int(ticker.status_code) == 200:
+                              json = ticker.json()
+                              #print(str(json))
+
+                              if 'data' in json: #.status == "ok":
+                                if key in json['data']:
+                                    decimal.getcontext().prec = deci
+                                    ratio = decimal.Decimal(str(json['data'][key]))
+                                    price = amount/ratio
+                                else:
+                                    print("no key in ticker? "+key+" data:"+str(json['data']))
+                              else:
+                                print("No ticker.data?? json:"+str(json))
+                            else:
+                                error = str(ticker.status_code)
+                                msg = ticker.text
+                                print("Ticker request have returned "+error+" status code. Error: "+msg)
+                                logger.error("Ticker request have returned "+error+" status code. Error: "+msg)
+                        else:
+                            print("No url for the Ticker?")
+                            logger.error("No url for the Ticker?")
+
+            if not ratio or not price:
+                print("ERROR: ratio:"+str(ratio)+" price:"+str(price))
+                raise ValidationError("Can't find the UnitRatio to convert the price to "+str(unit.gen_unit)+" from "+str(shunit))
+
+            amount = round(price, deci)
             print "Convert_price: ratio:"+str(ratio)+" price:"+str(price)+" shunit:"+str(shunit)+" unit:"+str(unit)+" amount:"+str(amount)
         else:
             print "Skip convert price, same unit: "+str(unit)
-        return amount
+        return amount, ratio
     else:
         raise ValidationError("Convert_price without amount, unit1 or unit2 ??")
         return False

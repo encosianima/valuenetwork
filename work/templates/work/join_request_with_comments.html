@@ -340,7 +340,14 @@ a.more-link {
                     {% else %}
                         <span class="error">{% trans "ERROR: request without a payment option!" %}</span>
                     {% endif %}
-
+                    {% if req.payment_pending_amount and req.ratio %}
+                      {% with req.payment_unit as uni %}
+                        ({% trans "aprox." %} {{ req.payment_pending_amount }} {{ uni.abbrev.upper }} {% trans "at exchange rate" %}:
+                        {{ req.ratio }} {{ req.project.shares_type.unit_of_price.symbol }}/{% if uni.symbol %}{{ uni.symbol }}{% else %}{{ uni.abbrev }}{% endif %})
+                      {% endwith %}
+                    {% else %}
+                        ({{ req.payment_pending_amount }} {{ req.payment_unit.abbrev.upper }})
+                    {% endif %}
                   {% endif %}
                 </td>
               </tr>

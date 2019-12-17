@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 
-from decimal import Decimal
+import decimal # import Decimal
 from django.utils.translation import ugettext_lazy as _
 
 from easy_thumbnails.fields import ThumbnailerImageField
@@ -723,7 +723,8 @@ class JoinRequest(models.Model):
         amount = price
         if not requnit == unit and price:
             from work.utils import convert_price
-            amount = convert_price(price, unit, requnit)
+            amount, ratio = convert_price(price, unit, requnit)
+            self.ratio = ratio
         if not amount == price:
             pass #print "Changed the price!"
         return amount
@@ -738,10 +739,21 @@ class JoinRequest(models.Model):
         return txt
 
     def total_price(self):
-        return round(Decimal(self.payment_amount() * self.share_price()), 8)
+        #decimal.getcontext().prec = settings.CRYPTO_DECIMALS
+        shunit = self.project.shares_type().unit_of_price
+        unit = self.payment_unit()
+        amount = amountpay = self.payment_amount()
+        if not unit == shunit and amount: #unit.abbr == 'fair':
+            #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
+            from work.utils import convert_price
+            amountpay, ratio = convert_price(amount, shunit, unit)
+            self.ratio = ratio
+        return amountpay
 
     def show_total_price(self):
-        txt = str(self.payment_amount() * self.share_price())+' '+self.show_payment_unit()
+        txt = str(self.total_price())+' '+self.show_payment_unit()
+        if self.is_flexprice():
+            txt = 'aprox. '+txt
         return txt
 
     def payment_url(self):
@@ -793,8 +805,8 @@ class JoinRequest(models.Model):
                     addr = self.agent.faircoin_address()
                     wallet = WALLET
                     price = faircoin_utils.share_price_in_fairs(self)
-                    amount = Decimal(self.pending_shares() * price)
-                    amopend = Decimal(self.payment_pending_amount())
+                    amount = decimal.Decimal(self.pending_shares() * price)
+                    amopend = decimal.Decimal(self.payment_pending_amount())
                     netfee = faircoin_utils.network_fee_fairs()
 
                     if fairrs:
@@ -805,10 +817,10 @@ class JoinRequest(models.Model):
                             if is_wallet_address:
                               balance = fairrs.faircoin_address.balance()
                               if balance != None:
-                                if round(balance, 8) < round(amopend, 8):
+                                if round(balance, settings.CRYPTO_DECIMALS) < round(amopend, settings.CRYPTO_DECIMALS):
                                     txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br/>"
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
-                                                      {'f':"<span class='error'>"+str(round(Decimal(amopend - balance), 8))+" fair</span>", 'ac':' </b> '+addr+' <b> '})
+                                                      {'f':"<span class='error'>"+str(round(decimal.Decimal(amopend - balance), settings.CRYPTO_DECIMALS))+" fair</span>", 'ac':' </b> '+addr+' <b> '})
                                 elif amopend:
                                     txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
                                     txt += "</b> &nbsp;<a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
@@ -829,11 +841,11 @@ class JoinRequest(models.Model):
                     if not balance or not amount:
                       txt = "<span class='error'>"+txt+"</span>"
 
-                    amtopay = u"<br>Amount to pay: <b> "+str(round(amount, 8))+u" ƒ "
+                    amtopay = u"<br>Amount to pay: <b> "+str(round(amount, settings.CRYPTO_DECIMALS))+u" ƒ "
                     amispay = self.payment_payed_amount()
                     if amispay > 0:
                       if amopend:
-                        amtopay += "- "+str(amispay)+u" ƒ payed = "+str(round(amopend, 8))+u' ƒ pending'
+                        amtopay += "- "+str(amispay)+u" ƒ payed = "+str(round(amopend, settings.CRYPTO_DECIMALS))+u' ƒ pending'
                       else:
                         amtopay += " (payed "+str(amispay)+u" ƒ)"
                     amtopay += "</b>"
@@ -902,19 +914,25 @@ class JoinRequest(models.Model):
         amountpay = amount2
         from work.utils import convert_price
         if not shunit == unit and amount2: #unit.abbr == 'fair':
-            amountpay = convert_price(amount2, shunit, unit)
+            amountpay, ratio = convert_price(amount2, shunit, unit)
+            self.ratio = ratio
 
         amispay = self.payment_payed_amount()
         pendamo = amountpay
         if amispay > 0 and amountpay:
-            pendamo = Decimal(amountpay) - amispay
+            pendamo = decimal.Decimal(amountpay) - amispay
         if pendamo < 0:
             pendamo = 0
-        return round(pendamo, 8)
+        return round(pendamo, settings.CRYPTO_DECIMALS)
 
     def payment_pending_to_pay(self):
         return self.pending_shares() * self.share_price()
 
+    def is_flexprice(self):
+        unit = self.payment_unit()
+        if unit.abbrev in settings.CRYPTOS:
+            return True
+        return False
 
     def payment_account_type(self):
         account_type = None
@@ -1129,7 +1147,7 @@ class JoinRequest(models.Model):
                         for an in ancs:
                             if an.clas == 'fiat_economy':
                                 recs.append(rec)
-                    elif payopt['key'] == 'btc':
+                    elif payopt['key'] in settings.CRYPTOS:
                         for an in ancs:
                             if an.clas == 'crypto_economy':
                                 recs.append(rec)
@@ -1155,6 +1173,7 @@ class JoinRequest(models.Model):
             raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
         else: # no payopt
             raise ValidationError("no payment option key? "+str(payopt))
+        #et.crypto = self.crypto
         return et
 
 
@@ -1340,9 +1359,9 @@ class JoinRequest(models.Model):
         amountpay = amount2
         from work.utils import convert_price
         if not shunit == unit and amount2: #unit.abbr == 'fair':
-            amountpay = convert_price(amount2, shunit, unit)
+            amountpay, ratio = convert_price(amount2, shunit, unit)
         if not amountpay:
-            amountpay = convert_price(amount, shunit, unit)
+            amountpay, ratio = convert_price(amount, shunit, unit)
 
         if amount2 and status == 'pending':
           if not amount == amountpay:
@@ -1351,7 +1370,8 @@ class JoinRequest(models.Model):
             #raise ValidationError("Can't deal yet with partial payments... "+str(amount)+" <> "+str(amount2)+" amountpay:"+str(amountpay))
             #amount = amountpay
         elif not amount2 and status == 'complete':
-            print "No pending shares but something is missing, recheck! "+str(self)
+            print("No pending shares but something is missing, recheck! "+str(self))
+            loger.info("No pending shares but something is missing, recheck! "+str(self))
 
         pendamo = self.payment_pending_amount()
         if not pendamo == amountpay:
@@ -3599,7 +3619,7 @@ def create_unit_types(**kwargs):
         ur, c = UnitRatio.objects.get_or_create(
             in_unit=euro,
             out_unit=fair,
-            rate=Decimal('1.2')
+            rate=decimal.Decimal('1.2')
         )
         if c:
             print "- created UnitRatio: "+str(ur)
@@ -3611,7 +3631,7 @@ def create_unit_types(**kwargs):
         loger.warning("x More than one UnitRatio with euro and fair? "+str(urs))
     ur.in_unit = euro
     ur.out_unit = fair
-    ur.rate = Decimal('1.2')
+    ur.rate = decimal.Decimal('1.2')
     ur.save()
 
 

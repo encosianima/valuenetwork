@@ -359,7 +359,7 @@ h3.trtheading {
                                   {% if slot.total_unit.symbol %}{{ slot.total_unit.symbol }}{% else %}{{ slot.total_unit.abbrev }}{% endif %}
                                 {% endif %}
                                 {% if exchange.join_request.payment_pending_amount and not slot.is_share %} &nbsp; &nbsp;
-                                  <b class="error">{% trans "Pending:" %} {{ exchange.join_request.payment_pending_amount }}
+                                  <b class="error">{% trans "Pending:" %} {% if exchange.join_request.is_flexprice %} aprox. {% endif %}{{ exchange.join_request.payment_pending_amount }}
                                   {{ exchange.join_request.show_payment_unit }}
                                   </b>
                                 {% endif %}
@@ -911,7 +911,7 @@ h3.trtheading {
                                   {% if slot.total_unit.symbol %}{{ slot.total_unit.symbol }}{% else %}{{ slot.total_unit.abbrev }}{% endif %}
                                 {% endif %}
                                 {% if exchange.join_request.payment_pending_amount and not slot.is_share %} &nbsp; &nbsp;
-                                  <b class="error">{% trans "Pending:" %} {{ exchange.join_request.payment_pending_amount }}
+                                  <b class="error">{% trans "Pending:" %} {% if exchange.join_request.is_flexprice %} aprox. {% endif %}{{ exchange.join_request.payment_pending_amount }}
                                   {{ exchange.join_request.show_payment_unit }}
                                   </b>
                                 {% endif %}

@@ -10919,10 +10919,16 @@ class Commitment(models.Model):
             quantity_string = str(self.quantity)
             if self.unit_of_quantity:
                 abbrev = self.unit_of_quantity.abbrev
+                if self.exchange:
+                    if self.exchange.join_request:
+                        if self.exchange.join_request.is_flexprice():
+                            quantity_string = "?" #+str(self.quantity)
         resource_name = ""
         process_name = ""
         if self.resource_type:
             resource_name = self.resource_type.name
+            if self.unit_of_quantity.name == resource_name:
+                abbrev = ''
         if self.process:
             process_name = self.process.name
         if self.order:

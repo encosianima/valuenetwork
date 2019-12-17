@@ -356,7 +356,7 @@ def share_payment(request, agent_id):
             raise ValidationError("Can't find the candidate share's account of type: "+str(pro_agent.shares_account_type()))
       if not wallet:
             messages.error(request, 'Sorry, payment with faircoin is not available now. Try later.')
-      elif round(Decimal(share_price), 8) <= round(balance, 8):
+      elif round(Decimal(share_price), settings.CRYPTO_DECIMALS) <= round(balance, settings.CRYPTO_DECIMALS):
         #pay_to_id = settings.SEND_MEMBERSHIP_PAYMENT_TO
         pay_to_agent = pro_agent #EconomicAgent.objects.get(nick=pay_to_id)
         pay_to_account = pay_to_agent.faircoin_resource()
@@ -7670,7 +7670,7 @@ def create_shares_exchange_types(request, agent_id):
                 slug = 'fair'
                 nome = 'Fair'
                 title = 'Faircoin'
-            elif ob == 'btc' or ob == 'eth':
+            elif ob in settings.CRYPTOS:
                 slug = 'crypto'
                 nome = 'Crypto'
                 title = 'Cryptocoins'
