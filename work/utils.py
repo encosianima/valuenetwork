@@ -144,6 +144,15 @@ def convert_price(amount, shunit, unit, deci=4):
         raise ValidationError("Convert_price without amount, unit1 or unit2 ??")
         return False
 
+
+def remove_exponent(num):
+    if not isinstance(num, float):
+      if '.' in str(num):
+        return num.to_integral() if num == num.to_integral() else num.normalize()
+    return num
+
+
+
 """
 def init_resource_types():
   news = ['news:']

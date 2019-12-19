@@ -753,7 +753,7 @@ class JoinRequest(models.Model):
     def show_total_price(self):
         txt = str(self.total_price())+' '+self.show_payment_unit()
         if self.is_flexprice():
-            txt = 'aprox. '+txt
+            txt = u'\u2248 '+txt
         return txt
 
     def payment_url(self):

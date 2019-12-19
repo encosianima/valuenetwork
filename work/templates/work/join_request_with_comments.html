@@ -342,7 +342,7 @@ a.more-link {
                     {% endif %}
                     {% if req.payment_pending_amount and req.ratio %}
                       {% with req.payment_unit as uni %}
-                        ({% trans "aprox." %} {{ req.payment_pending_amount }} {{ uni.abbrev.upper }} {% trans "at exchange rate" %}:
+                        ({% if req.is_flexprice %}≈ {% endif %}{{ req.payment_pending_amount }} {{ uni.abbrev.upper }} {% trans "at exchange rate" %}:
                         {{ req.ratio }} {{ req.project.shares_type.unit_of_price.symbol }}/{% if uni.symbol %}{{ uni.symbol }}{% else %}{{ uni.abbrev }}{% endif %})
                       {% endwith %}
                     {% else %}

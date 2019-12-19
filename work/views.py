@@ -5634,7 +5634,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             to['income'] = (to['income']*1) + (transfer.value()*1)
                         else:
                             to['income'] = (to['income']*1) + (transfer.quantity()*1)
-                      for com in transfer.commitments.all():
+                      for com in transfer.commitments.all_give():
                         if com.unfilled_quantity() > 0:
                           if uv:
                             to['incommit'] = (to['incommit']*1) + (transfer.value()*1)
@@ -5648,7 +5648,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             to['outgo'] = (to['outgo']*1) + (transfer.value()*1)
                         else:
                             to['outgo'] = (to['outgo']*1) + (transfer.quantity()*1)
-                      for com in transfer.commitments.all():
+                      for com in transfer.commitments.all_give():
                         if com.unfilled_quantity() > 0:
                           if uv:
                             to['outcommit'] = (to['outcommit']*1) + (transfer.value()*1)
@@ -5683,7 +5683,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                                 if sign == '>':
                                   ttr['outgo'] = (ttr['outgo']*1) + (transfer.quantity()*1)
                                 #ttr['balance'] = (ttr['income']*1) - (ttr['outgo']*1)
-                              for com in transfer.commitments.all():
+                              for com in transfer.commitments.all_give():
                                 if com.unfilled_quantity() > 0:
                                   if sign == '<':
                                     ttr['incommit'] = (ttr['incommit']*1) + (com.unfilled_quantity()*1)
@@ -5763,7 +5763,24 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         #    unit = Unit.objects.get(id=to['unit'])
         #    print ":: unit:"+str(unit)
 
-        to['balance'] = str(to['balance'])
+        if not isinstance(to['balance'], str):
+            to['balance'] = remove_exponent(to['balance'])
+        if not isinstance(to['balnote'], str):
+            to['balnote'] = remove_exponent(to['balnote'])
+        to['income'] = remove_exponent(to['income'])
+        to['incommit'] = remove_exponent(to['incommit'])
+        if to['incommit']:
+            if to['abbr'] in settings.CRYPTOS:
+                to['incommit'] = (u'\u2248 ')+str(to['incommit'])
+            else:
+                to['incommit'] = '+'+str(to['incommit'])
+        to['outgo'] = remove_exponent(to['outgo'])
+        to['outcommit'] = remove_exponent(to['outcommit'])
+        if to['outcommit']:
+            if to['abbr'] in settings.CRYPTOS:
+                to['outcommit'] = (u'\u2248 ')+str(to['outcommit'])
+            else:
+                to['outcommit'] = '-'+str(to['outcommit'])
 
         # change shares names for shorter version
         if to['name'] and shr_pros:
