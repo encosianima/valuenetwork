@@ -36,6 +36,13 @@ http://global.ihs.com/doc_detail.cfm?item_s_key=00495115&item_key_date=920616
 
 FAIRCOIN_DIVISOR = Decimal("100000000.00")
 
+#from work.utils import remove_exponent
+def remove_exponent(num):
+    if not isinstance(num, float):
+      if '.' in str(num):
+        return num.to_integral() if num == num.to_integral() else num.normalize()
+    return num
+
 def unique_slugify(instance, value, slug_field_name='slug', queryset=None,
                    slug_separator='-'):
     """
@@ -9274,6 +9281,11 @@ class Exchange(models.Model):
 
             #print "ex:"+str(self.id)+" slot:"+str(slot.id)+" is_income:"+str(slot.is_income)+" reci:"+str(slot.is_reciprocal)+" memslot:"+str(memslot)
 
+            slot.total = remove_exponent(slot.total)
+            slot.total_com = remove_exponent(slot.total_com)
+            if slot.total_com_unit and isinstance(slot.total_com_unit, Unit) and slot.total_com_unit.abbrev in settings.CRYPTOS:
+                slot.total_com = (u'\u2248 ')+str(slot.total_com)
+
             memslot = slot
             pend = []
             for xf in slot.xfers:
@@ -10890,7 +10902,7 @@ class Commitment(models.Model):
         verbose_name=_('context agent'), related_name='commitments')
     description = models.TextField(_('description'), null=True, blank=True)
     url = models.CharField(_('url'), max_length=255, blank=True)
-    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2)
+    quantity = models.DecimalField(_('quantity'), max_digits=20, decimal_places=9)
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="commitment_qty_units")
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
@@ -10916,19 +10928,23 @@ class Commitment(models.Model):
         if self.event_type.relationship == "cite":
             quantity_string = ""
         else:
-            quantity_string = str(self.quantity)
+            quantity_string = str(remove_exponent(self.quantity))
             if self.unit_of_quantity:
                 abbrev = self.unit_of_quantity.abbrev
-                if self.exchange:
-                    if self.exchange.join_request:
+                if hasattr(self, 'exchange') and self.exchange:
+                    if hasattr(self.exchange, 'join_request') and self.exchange.join_request:
                         if self.exchange.join_request.is_flexprice():
                             quantity_string = "?" #+str(self.quantity)
         resource_name = ""
         process_name = ""
         if self.resource_type:
             resource_name = self.resource_type.name
-            if self.unit_of_quantity.name == resource_name:
-                abbrev = ''
+            if self.unit_of_quantity:
+                if self.unit_of_quantity.name == resource_name:
+                    abbrev = ''
+                elif self.unit_of_quantity.is_currency():
+                    resource_name = ''
+                    abbrev = self.unit_of_quantity.name
         if self.process:
             process_name = self.process.name
         if self.order:
@@ -10959,10 +10975,10 @@ class Commitment(models.Model):
         else:
             name1 = 'from ?'
             if self.from_agent:
-                name1 = 'from '+unicode(self.from_agent.nick)
+                name1 = 'from '+unicode(self.from_agent.name)
             name2 = 'to ?'
             if self.to_agent:
-                name2 = 'to '+unicode(self.to_agent.nick)
+                name2 = 'to '+unicode(self.to_agent.name)
 
             return ' '.join([
                 process_name,
@@ -12907,7 +12923,7 @@ class EconomicEvent(models.Model):
         on_delete=models.SET_NULL)
     url = models.CharField(_('url'), max_length=255, blank=True)
     description = models.TextField(_('description'), null=True, blank=True)
-    quantity = models.DecimalField(_('quantity'), max_digits=8, decimal_places=2)
+    quantity = models.DecimalField(_('quantity'), max_digits=20, decimal_places=9)
     unit_of_quantity = models.ForeignKey(Unit, blank=True, null=True,
         verbose_name=_('unit'), related_name="event_qty_units")
     quality = models.DecimalField(_('quality'), max_digits=3, decimal_places=0, default=Decimal("0"))
@@ -12942,9 +12958,9 @@ class EconomicEvent(models.Model):
 
     def __unicode__(self):
         if self.unit_of_quantity:
-            quantity_string = " ".join([str(self.quantity), self.unit_of_quantity.abbrev])
+            quantity_string = " ".join([str(remove_exponent(self.quantity)), self.unit_of_quantity.abbrev])
         else:
-            quantity_string = str(self.quantity)
+            quantity_string = str(remove_exponent(self.quantity))
         from_agt = 'Unassigned'
         if self.from_agent:
             from_agt = self.from_agent.name
@@ -12953,7 +12969,18 @@ class EconomicEvent(models.Model):
             to_agt = self.recipient().name
         resource_string = self.resource_type.name
         if self.resource:
-            resource_string = self.resource.__unicode__()
+            if self.resource.resource_type.is_account():
+                resource_string = ''
+                if self.unit_of_quantity:
+                    quantity_string = " ".join([str(remove_exponent(self.quantity)), self.unit_of_quantity.name])
+                if self.quantity > 1:
+                    quantity_string += 's'
+            else:
+                resource_string = self.resource.__unicode__()
+        if self.unit_of_quantity and self.unit_of_quantity.is_currency():
+            resource_string = ''
+            quantity_string = " ".join([str(remove_exponent(self.quantity)), self.unit_of_quantity.name])
+
         event_name = self.event_type.name
         #if self.exchange_type_item_type:
         #    event_name = self.exchange_type_item_type.name
