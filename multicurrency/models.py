@@ -255,9 +255,10 @@ class BlockchainTransaction(models.Model):
                                 else:
                                     raise ValidationError("not tx totals? total_in:"+str(total_in)+" total_out:"+str(total_out))
 
-                                self.from_address = ' '.join(inputs)
-                                self.to_address = ' '.join(outputs)
-                                #self.save()
+                                if self.event:
+                                    self.from_address = ' '.join(inputs)
+                                    self.to_address = ' '.join(outputs)
+                                    self.save()
                                 #import pdb; pdb.set_trace()
 
                                 return mesg

@@ -3976,11 +3976,13 @@ def update_share_payment(request, join_request_id):
         status = request.POST.get("status")
         gateref = request.POST.get("reference")
         notes = request.POST.get("notes")
+        realamount = request.POST.get("real_amount")
+        txid = request.POST.get("tx_id")
         next = request.POST.get("next")
         if not next:
             next = "project_feedback"
         if status:
-            jn_req.update_payment_status(status, gateref, notes, request)
+            jn_req.update_payment_status(status, gateref, notes, request, realamount, txid)
         else:
             raise ValidationError("Missing status ("+str(status)+") !") # or gateway reference ("+str(gateref)+") !")
     else:

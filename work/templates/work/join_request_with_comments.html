@@ -272,7 +272,7 @@ a.more-link {
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
                   {% if req.exchange %}
                     &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
-                    {% if user_agent in req.project.agent.managers and not req.is_flexprice %}
+                    {% if user_agent in req.project.agent.managers %}
                       {% if not req.project.agent.need_faircoins or not req.payment_pending_amount %} &nbsp; &nbsp;
                         <form
                               class="action-form"
@@ -280,6 +280,12 @@ a.more-link {
                               action="{% url "update_share_payment" join_request_id=req.id %}"
                               method="POST" >
                             {% csrf_token %}
+                            {% if req.payment_pending_amount and req.is_flexprice %}
+                                <label class="control-label required-field" for="real_amount">{{ req.payment_unit.abbrev|upper }} {% trans "Received Amount" %}:</label>
+                                <input type="text" id="real_amount" name="real_amount" required=""><br>
+                                <label class="control-label required-field" for="tx_id">{{ req.payment_unit.abbrev|upper }} {% trans "Transaction Hash" %}:</label>
+                                <input type="text" id="tx_id" name="tx_id" required=""><br>
+                            {% endif %}
                             <input type="hidden" name="status" value="complete">
                             <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
                             <br/><span class="help-text" style="font-size:0.8em">

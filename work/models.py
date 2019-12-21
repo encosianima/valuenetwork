@@ -723,7 +723,7 @@ class JoinRequest(models.Model):
         amount = price
         if not requnit == unit and price:
             from work.utils import convert_price
-            amount, ratio = convert_price(price, unit, requnit)
+            amount, ratio = convert_price(price, unit, requnit, self)
             self.ratio = ratio
         if not amount == price:
             pass #print "Changed the price!"
@@ -746,7 +746,7 @@ class JoinRequest(models.Model):
         if not unit == shunit and amount: #unit.abbr == 'fair':
             #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
             from work.utils import convert_price
-            amountpay, ratio = convert_price(amount, shunit, unit)
+            amountpay, ratio = convert_price(amount, shunit, unit, self)
             self.ratio = ratio
         return amountpay
 
@@ -912,10 +912,15 @@ class JoinRequest(models.Model):
         shunit = shtype.unit_of_price
         amount2 = shtype.price_per_unit * self.pending_shares()
         amountpay = amount2
-        from work.utils import convert_price
-        if not shunit == unit and amount2: #unit.abbr == 'fair':
-            amountpay, ratio = convert_price(amount2, shunit, unit)
-            self.ratio = ratio
+        if hasattr(self, 'pending_amount'):
+            amountpay = self.pending_amount
+            print("Using CACHED pending_amount!! ")
+        else:
+            from work.utils import convert_price
+            if not shunit == unit and amount2: #unit.abbr == 'fair':
+                amountpay, ratio = convert_price(amount2, shunit, unit, self)
+                self.ratio = ratio
+                self.pending_amount = amountpay
 
         amispay = self.payment_payed_amount()
         pendamo = amountpay
@@ -1239,10 +1244,8 @@ class JoinRequest(models.Model):
             if not ex.use_case == et.use_case:
                 print "- CHANGE exchange USE_CASE ? from "+str(ex.use_case)+" to "+str(et.use_case)
                 loger.info("- CHANGE exchange USE_CASE ? from "+str(ex.use_case)+" to "+str(et.use_case))
-            if ex.name:
-                if not ex.name == et.name:
-                    print "- exchange with a custom name! REPAIRED to et.name, for ex:"+str(ex.name)
-                    ex.name = et.name
+
+            ex.name = ag.nick+' '+et.name
             ex.use_case = et.use_case
             ex.context_agent = pro
 
@@ -1344,7 +1347,7 @@ class JoinRequest(models.Model):
         return ex
 
 
-    def update_payment_status(self, status=None, gateref=None, notes=None, request=None):
+    def update_payment_status(self, status=None, gateref=None, notes=None, request=None, realamount=None, txid=None):
         account_type = self.payment_account_type()
         balance = 0
         amount = self.payment_amount()
@@ -1357,26 +1360,33 @@ class JoinRequest(models.Model):
         amount2 = shtype.price_per_unit * self.pending_shares()
 
         amountpay = amount2
-        from work.utils import convert_price
-        if not shunit == unit and amount2: #unit.abbr == 'fair':
-            amountpay, ratio = convert_price(amount2, shunit, unit)
-        if not amountpay:
-            amountpay, ratio = convert_price(amount, shunit, unit)
-
-        if amount2 and status == 'pending':
-          if not amount == amountpay:
-            print "Repair amount! "+str(amount)+" -> "+str(amount2)+" -> "+str(amountpay)
-            loger.info("Repair amount! "+str(amount)+" -> "+str(amount2)+" -> "+str(amountpay))
-            #raise ValidationError("Can't deal yet with partial payments... "+str(amount)+" <> "+str(amount2)+" amountpay:"+str(amountpay))
-            #amount = amountpay
-        elif not amount2 and status == 'complete':
-            print("No pending shares but something is missing, recheck! "+str(self))
-            loger.info("No pending shares but something is missing, recheck! "+str(self))
 
         pendamo = self.payment_pending_amount()
-        if not pendamo == amountpay:
-            print "WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id)
-            loger.info("WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id))
+
+        if not txid:
+            from work.utils import convert_price
+            if not shunit == unit and amount2: #unit.abbr == 'fair':
+                amountpay, ratio = convert_price(amount2, shunit, unit, self)
+                self.ratio = ratio
+            if not amountpay:
+                amountpay, ratio = convert_price(amount, shunit, unit, self)
+                self.ratio = ratio
+
+            if amount2 and status == 'pending':
+              if not amount == amountpay:
+                print "Repair amount! "+str(amount)+" -> "+str(amount2)+" -> "+str(amountpay)
+                loger.info("Repair amount! "+str(amount)+" -> "+str(amount2)+" -> "+str(amountpay))
+                #raise ValidationError("Can't deal yet with partial payments... "+str(amount)+" <> "+str(amount2)+" amountpay:"+str(amountpay))
+                #amount = amountpay
+            elif not amount2 and status == 'complete':
+                print("No pending shares but something is missing, recheck! "+str(self))
+                loger.info("No pending shares but something is missing, recheck! "+str(self))
+
+            if not pendamo == amountpay:
+                print "WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id)
+                loger.info("WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id))
+        if realamount:
+            amountpay = realamount
 
         if status:
             if self.agent:
@@ -1418,6 +1428,7 @@ class JoinRequest(models.Model):
                     xfer_pay.notes += str(datetime.date.today())+' '+str(self.payment_gateway())+': '+status+'. '
                     xfer_pay.save()
 
+                msg = ''
                 if amount and xfer_pay:
                     evts = xfer_pay.events.all()
                     coms = xfer_pay.commitments.all()
@@ -1436,6 +1447,8 @@ class JoinRequest(models.Model):
         #       C O M P L E T E
 
                         if len(evts):
+                            if txid:
+                                raise ValidationError("complete with txid a xfer_pay with existent events?? evts:"+str(evts))
                             print ("The payment transfer already has events! "+str(len(evts)))
                             loger.warning("The payment transfer already has events! "+str(len(evts)))
                             for evt in evts:
@@ -1461,6 +1474,36 @@ class JoinRequest(models.Model):
                                 else:
                                     event_res = self.agent.faircoin_resource()
                                     event_res2 = self.project.agent.faircoin_resource()
+                            elif self.is_flexprice:
+                                if txid:
+                                    if 'multicurrency' in settings.INSTALLED_APPS:
+                                        from multicurrency.models import BlockchainTransaction
+                                    else:
+                                        raise ValidationError("Can't manage blockchain txs without the multicurrency app installed!")
+                                    if realamount:
+                                        amountpay = decimal.Decimal(realamount)
+                                        gateref = txid
+                                        if commit_pay:
+                                            if not commit_pay.quantity == amountpay:
+                                                print("Changed quantity of the payment commit_pay for the real amount! "+str(commit_pay.quantity)+" -> "+str(amountpay))
+                                                loger.info("Changed quantity of the payment commit_pay for the real amount! "+str(commit_pay.quantity)+" -> "+str(amountpay))
+                                            commit_pay.quantity = amountpay
+                                            commit_pay.save()
+                                        if commit_pay2 and not commit_pay2 == commit_pay:
+                                            if not commit_pay2.quantity == amountpay:
+                                                print("Changed quantity of the payment commit_pay2 for the real amount! "+str(commit_pay2.quantity)+" -> "+str(amountpay))
+                                                loger.info("Changed quantity of the payment commit_pay2 for the real amount! "+str(commit_pay2.quantity)+" -> "+str(amountpay))
+                                            commit_pay2.quantity = amountpay
+                                            commit_pay2.save()
+                                    else:
+                                        print("Update payment for is_flexprice without the real_amount! "+str(self))
+                                        loger.error("Update payment for is_flexprice without the real_amount! "+str(self))
+                                        return False
+                                else:
+                                    print("Update payment for is_flexprice without a txid! "+str(self))
+                                    loger.error("Update payment for is_flexprice without a txid! "+str(self))
+                                    return False
+
                             evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
                                 event_date = datetime.date.today(),
@@ -1485,6 +1528,19 @@ class JoinRequest(models.Model):
                             if created:
                                 print " created Event: "+str(evt)
                                 loger.info(" created Event: "+str(evt))
+
+                            if txid:
+                                tx, created = BlockchainTransaction.objects.get_or_create(
+                                    tx_hash = txid,
+                                    event = evt)
+                                if created:
+                                    print("- created BlockchainTransaction: "+str(tx))
+                                    loger.info("- created BlockchainTransaction: "+str(tx))
+                                msg = tx.update_data(realamount)
+                                if not msg == '':
+                                    evt.delete()
+                                    messages.error(request, msg)
+                                    return False
 
 
                             evt2, created = EconomicEvent.objects.get_or_create(
@@ -1512,6 +1568,19 @@ class JoinRequest(models.Model):
                                 print " created Event2: "+str(evt2)
                                 loger.info(" created Event2: "+str(evt2))
 
+                            if txid:
+                                tx, created = BlockchainTransaction.objects.get_or_create(
+                                    tx_hash = txid,
+                                    event = evt2)
+                                if created:
+                                    print("- created BlockchainTransaction: "+str(tx))
+                                    loger.info("- created BlockchainTransaction: "+str(tx))
+                                msg = tx.update_data(realamount)
+                                if not msg == '':
+                                    evt2.delete()
+                                    messages.error(request, msg)
+                                    return False
+
                         if xfer_share:
                             evts = xfer_share.events.all()
                             coms = xfer_share.commitments.all()
@@ -1527,6 +1596,7 @@ class JoinRequest(models.Model):
                         else:
                             print "ERROR: Can't find xfer_share!! "+str(self)
                             loger.error("ERROR: Can't find xfer_share!! "+str(self))
+                            messages.error(request, "ERROR: Can't find xfer_share!! "+str(self))
 
                         # create commitments for shares
                         if not commit_share and self.pending_shares() and not evts:
@@ -1578,7 +1648,7 @@ class JoinRequest(models.Model):
 
 
                         # create share events
-                        if not evts:
+                        if not evts and msg == '':
                           if self.pending_shares():
                             sh_evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
@@ -1642,12 +1712,12 @@ class JoinRequest(models.Model):
                                                 rs.notes += note
                                             else:
                                                 rs.notes = note
-                                            rs.price_per_unit += self.pending_shares() # update the price_per_unit with payment amount
+                                            rs.price_per_unit += sh_evt.quantity # update the price_per_unit with payment amount
                                             rs.save()
-                                            print "Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs)
-                                            loger.info("Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs))
+                                            print "Transfered new shares to the agent's shares account: "+str(sh_evt.quantity)+" "+str(rs)
+                                            loger.info("Transfered new shares to the agent's shares account: "+str(sh_evt.quantity)+" "+str(rs))
                                             if request:
-                                                messages.info(request, "Transfered new shares to the agent's shares account: "+str(self.pending_shares())+" "+str(rs))
+                                                messages.info(request, "Transfered new shares to the agent's shares account: "+str(sh_evt.quantity)+" "+str(rs))
                           else: # not pending_shares and not share events
                             date = agshac.created_date
                             print "No pending shares and no events related shares. REPAIR! total_shares:"+str(self.total_shares())+" date:"+str(date)
