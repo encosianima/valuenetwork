@@ -1331,7 +1331,7 @@ h3.trtheading {
                                         <span class="event-label">{% trans "Transfer" %}: </span>
                                         {{ evt|show_name:context_agent|safe }} {% if request.user.is_superuser %}<em>(tx:{{ xfer.id }} ev:{{ evt.id }} co:{{ evt.commitment.id }})</em>{% endif %}
                                         {% if evt.faircoin_transaction %}&nbsp; <b><a href="{{ evt.faircoin_transaction.chain_link }}" target="_blank">FairTx</a></b>{% endif %}
-                                        {% if evt.chain_transaction %}&nbsp; <b><a href="{{ evt.chain_transaction.chain_link }}" target="_blank">CryptoTx</a></b> {% if not evt.chain_transaction.tx_fee %}+ {{ evt.chain_transaction.update_data }}{% endif %} {% elif evt.event_reference %} {{ evt.event_reference }} ?{% endif %}
+                                        {% if evt.chain_transaction %}&nbsp; <b><a href="{{ evt.chain_transaction.chain_link }}" target="_blank">CryptoTx</a></b> {% if not evt.chain_transaction.tx_fee %}+ {{ evt.chain_transaction.update_data }}{% endif %} {% endif %}
                                         {% if logger or evt.created_by == request.user or evt.from_agent == agent or evt.from_agent in agent.managed_projects  %}
                                           {% if logger and not exchange.join_request and not exchange.join_request.agent == agent %}
                                             <a href="#xferModal{{ evt.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
