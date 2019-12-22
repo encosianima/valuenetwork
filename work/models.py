@@ -740,9 +740,11 @@ class JoinRequest(models.Model):
 
     def total_price(self):
         #decimal.getcontext().prec = settings.CRYPTO_DECIMALS
-        shunit = self.project.shares_type().unit_of_price
+        shtype = self.project.shares_type()
+        shunit = shtype.unit_of_price
+        shprice = shtype.price_per_unit
         unit = self.payment_unit()
-        amount = amountpay = self.payment_amount()
+        amount = amountpay = self.payment_amount() * shprice
         if not unit == shunit and amount: #unit.abbr == 'fair':
             #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
             from work.utils import convert_price

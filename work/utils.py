@@ -125,6 +125,7 @@ def convert_price(amount, shunit, unit, obj=None, deci=4):
                               if int(ticker.status_code) == 200:
                                 json = ticker.json()
                                 print("Retrieved the ticker JSON! "+str(json))
+                                logger.info("Retrieved the ticker JSON! ") #+str(json))
                                 if 'data' in json: #.status == "ok":
                                     if key in json['data']:
                                         decimal.getcontext().prec = deci
@@ -143,6 +144,7 @@ def convert_price(amount, shunit, unit, obj=None, deci=4):
                             else:
                               ratio = obj.ratio
                               print("Using CACHED ratio!!")
+                              logger.info("Using CACHED ratio!!")
 
                             if ratio:
                                 price = amount/ratio
