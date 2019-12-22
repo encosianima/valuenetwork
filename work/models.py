@@ -722,9 +722,10 @@ class JoinRequest(models.Model):
         requnit = self.payment_unit()
         amount = price
         if not requnit == unit and price:
-            from work.utils import convert_price
+            from work.utils import convert_price, remove_exponent
             amount, ratio = convert_price(price, unit, requnit, self)
             self.ratio = ratio
+            amount = remove_exponent(amount)
         if not amount == price:
             pass #print "Changed the price!"
         return amount
@@ -747,9 +748,10 @@ class JoinRequest(models.Model):
         amount = amountpay = self.payment_amount() * shprice
         if not unit == shunit and amount: #unit.abbr == 'fair':
             #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
-            from work.utils import convert_price
+            from work.utils import convert_price, remove_exponent
             amountpay, ratio = convert_price(amount, shunit, unit, self)
             self.ratio = ratio
+            amountpay = remove_exponent(amountpay)
         return amountpay
 
     def show_total_price(self):
@@ -917,6 +919,7 @@ class JoinRequest(models.Model):
         if hasattr(self, 'pending_amount'):
             amountpay = self.pending_amount
             print("Using CACHED pending_amount!! ")
+            loger.info("Using CACHED pending_amount!! ")
         else:
             from work.utils import convert_price
             if not shunit == unit and amount2: #unit.abbr == 'fair':
