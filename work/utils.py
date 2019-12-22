@@ -165,7 +165,9 @@ def convert_price(amount, shunit, unit, obj=None, deci=4):
                 elif isinstance(price, int):
                     amount = price
                 else:
-                    amount = price.quantize(DECIMALS) #round(price, deci)
+                    #decs = decimal.getcontext().prec
+                    amount = price #.quantize(decs) #round(price, deci)
+
                 print "Convert_price: ratio:"+str(ratio)+" price:"+str(price)+" shunit:"+str(shunit)+" unit:"+str(unit)+" amount:"+str(amount)
         else:
             print "Skip convert price, same unit: "+str(unit)

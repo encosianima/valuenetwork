@@ -2,7 +2,7 @@ from __future__ import unicode_literals, division
 from decimal import Decimal
 import requests
 import logging
-loger = logging.getLogger("ocp")
+loger = logging.getLogger("multicurrency")
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
