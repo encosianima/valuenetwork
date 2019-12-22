@@ -160,8 +160,11 @@ def convert_price(amount, shunit, unit, obj=None, deci=4):
             else:
                 if not isinstance(price, decimal.Decimal) and not isinstance(price, int):
                     raise ValidationError("the price is not a decimal nor int? "+str(type(price)))
-            amount = price.quantize(DECIMALS) #round(price, deci)
-            print "Convert_price: ratio:"+str(ratio)+" price:"+str(price)+" shunit:"+str(shunit)+" unit:"+str(unit)+" amount:"+str(amount)
+                elif isinstance(price, int):
+                    amount = price
+                else:
+                    amount = price.quantize(DECIMALS) #round(price, deci)
+                print "Convert_price: ratio:"+str(ratio)+" price:"+str(price)+" shunit:"+str(shunit)+" unit:"+str(unit)+" amount:"+str(amount)
         else:
             print "Skip convert price, same unit: "+str(unit)
         return amount, ratio
