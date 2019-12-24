@@ -936,7 +936,7 @@ class JoinRequest(models.Model):
         return round(pendamo, settings.CRYPTO_DECIMALS)
 
     def payment_pending_to_pay(self):
-        return self.pending_shares() * self.share_price()
+        return round((self.pending_shares() * self.share_price()), settings.CRYPTO_DECIMALS)
 
     def is_flexprice(self):
         unit = self.payment_unit()
@@ -1543,7 +1543,8 @@ class JoinRequest(models.Model):
                                     loger.info("- created BlockchainTransaction: "+str(tx))
                                 msg = tx.update_data(realamount)
                                 if not msg == '':
-                                    evt.delete()
+                                    if evt.id:
+                                        evt.delete()
                                     messages.error(request, msg)
                                     return False
 
@@ -1582,7 +1583,8 @@ class JoinRequest(models.Model):
                                     loger.info("- created BlockchainTransaction: "+str(tx))
                                 msg = tx.update_data(realamount)
                                 if not msg == '':
-                                    evt2.delete()
+                                    if evt2.id:
+                                        evt2.delete()
                                     messages.error(request, msg)
                                     return False
 

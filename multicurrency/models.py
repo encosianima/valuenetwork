@@ -21,7 +21,13 @@ else:
 if hasattr(settings, 'MARGIN'):
     MARGIN = settings.MARGIN
 else:
-    MARGIN = Decimal("0.00001")
+    MARGIN = Decimal("0.000001")
+
+if 'faircoin' in settings.INSTALLED_APPS:
+    from faircoin.models import FC2_TX_URL
+    if not 'url_fair_tx' in settings.MULTICURRENCY:
+        settings.MULTICURRENCY['url_fair_tx'] = FC2_TX_URL
+        #settings.MULTICURRENCY['url_fair_tx_json'] = FC2_TX_URL
 
 class MulticurrencyAuth(models.Model):
     agent = models.ForeignKey(EconomicAgent, on_delete=models.CASCADE)
@@ -118,9 +124,16 @@ class BlockchainTransaction(models.Model):
     #include_fee = models.BooleanField('Quantity includes fee', default=False) # comparing events qty we see which is lower due the fee
     # will be true for sender give event, and false for receiver event
 
+    def unit(self):
+        if self.event.unit_of_quantity:
+            return self.event.unit_of_quantity
+        else:
+            raise ValidationError("There's no unit_of_quantity in the related event: "+str(self.event))
+
     def chain_link(self):
-        if self.event.unit_of_quantity and self.event.unit_of_quantity.abbrev:
-            key = 'url_'+self.event.unit_of_quantity.abbrev+'_tx'
+        unit = self.unit()
+        if unit.abbrev:
+            key = 'url_'+unit.abbrev+'_tx'
             url = ''
             if key in settings.MULTICURRENCY:
                 url = settings.MULTICURRENCY[key]
@@ -128,7 +141,7 @@ class BlockchainTransaction(models.Model):
             else:
                 raise ValidationError("The settings haven't any key like: "+key)
         else:
-            raise ValidationError("There's no unit_of_quantity or abbrev in the related event: "+str(self.event))
+            raise ValidationError("There's no abbrev in the related unit: "+str(unit))
 
     def update_data(self, realamount=None):
         url = None
@@ -142,14 +155,24 @@ class BlockchainTransaction(models.Model):
         if realamount:
             realamount = Decimal(realamount)
         if not self.tx_fee:
-            if self.event.unit_of_quantity and self.event.unit_of_quantity.abbrev:
-                key = 'url_'+self.event.unit_of_quantity.abbrev+'_tx_json'
+            unit = self.unit()
+            if unit and unit.abbrev:
+                key = 'url_'+unit.abbrev+'_tx_json'
                 if key in settings.MULTICURRENCY:
                     url = settings.MULTICURRENCY[key]+self.tx_hash
                     #print("URL: "+url)
                     txobj = requests.get(url)
                     if int(txobj.status_code) == 200:
-                        json = txobj.json()
+                        try:
+                            json = txobj.json()
+                        except:
+                            mesg += ("Can't decode tx request as json! txobj:"+str(txobj))
+                            for prop in txobj:
+                                mesg += "<br>"+str(prop)
+                            self.event.delete()
+                            self.delete()
+                            return mesg
+
                         if 'hash' in json: #.status == "ok":
                             if json['hash'] == self.tx_hash:
                                 if 'inputs' in json:

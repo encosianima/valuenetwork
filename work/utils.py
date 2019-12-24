@@ -89,7 +89,7 @@ def set_user_notification_by_type(user, notification_type="work_new_account", se
     return sett
 
 
-def convert_price(amount, shunit, unit, obj=None, deci=4):
+def convert_price(amount, shunit, unit, obj=None, deci=9):
     if not amount: raise ValidationError("Convert_price without amount? unit1:"+str(shunit)+" unit2:"+str(unit))
     if not shunit: raise ValidationError("Convert_price without unit1? amount:"+str(amount)+" unit2:"+str(unit))
     if not unit: raise ValidationError("Convert_price without unit2? amount:"+str(amount)+" unit1:"+str(shunit))
@@ -166,7 +166,7 @@ def convert_price(amount, shunit, unit, obj=None, deci=4):
                     amount = price
                 else:
                     #decs = decimal.getcontext().prec
-                    amount = price #.quantize(decs) #round(price, deci)
+                    amount = round(price, deci)
 
                 print "Convert_price: ratio:"+str(ratio)+" price:"+str(price)+" shunit:"+str(shunit)+" unit:"+str(unit)+" amount:"+str(amount)
         else:
