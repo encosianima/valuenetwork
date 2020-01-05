@@ -9104,8 +9104,12 @@ class Exchange(models.Model):
                     default_from_agent = transfer.from_agent()
         ttpay = self.ttpay()
         jn_req = None
+        receive = False
         if hasattr(self, 'join_request') and self.join_request:
             jn_req = self.join_request
+            if context_agent:
+                if jn_req.project.agent == context_agent:
+                    receive = True
 
         self.statuss = 'complete'
         for slot in slots:
@@ -9124,9 +9128,9 @@ class Exchange(models.Model):
                     rt = transfer.resource_type()
                     slot.xfers.append(transfer)
                     slot.last_date = transfer.last_date()
-                    acval = transfer.actual_value()
+                    acval = transfer.actual_value(receive)
                     valunit = transfer.unit_of_value()
-                    acqua = transfer.actual_quantity()
+                    acqua = transfer.actual_quantity(receive)
                     quaunit = transfer.unit_of_quantity()
 
                     if acval:
@@ -9135,16 +9139,22 @@ class Exchange(models.Model):
                     elif acqua:
                         slot.total += acqua
                         slot.total_unit = quaunit
-                    val = transfer.value()
+                    val = transfer.value(receive)
                     if val:
                         if slot.is_currency:
+                            if acval > val:
+                                val = acval
+                                print("- changed val for acval!")
                             slot.total_com += val
                             slot.total_com_unit = valunit
                         else:
                             print "-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
                             loger.info("-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
-                    qua = transfer.quantity()
+                    qua = transfer.quantity(receive)
                     if qua and not slot.total_com_unit:
+                        if acqua > qua:
+                            qua = acqua
+                            print("- changed qua for acqua!")
                         slot.total_com += qua
                         slot.total_com_unit = quaunit
                         if not slot.total_com_unit:
@@ -9179,7 +9189,9 @@ class Exchange(models.Model):
                             if not prt == rt:
                                 #print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
                                 rt = prt
-                            slot.total_com = jn_req.payment_amount()
+                            if not receive:
+                                print("get the to payment_amount for the slot.total_com")
+                                slot.total_com = jn_req.payment_amount()
                             slot.total_com_unit = '' # unit is set later because rt is defined
                     if not fro and jn_req:
                         if ttpay.name == slot.name:
@@ -9196,7 +9208,9 @@ class Exchange(models.Model):
                             if not prt == rt:
                                 print "x shr from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
                                 rt = prt
-                            slot.total_com = jn_req.payment_amount()
+                            if not receive:
+                                print("get the fro payment_amount for the slot.total_com")
+                                slot.total_com = jn_req.payment_amount()
                             slot.total_com_unit = ''
 
                     if not to in slot.agents_to:
@@ -9284,7 +9298,8 @@ class Exchange(models.Model):
             slot.total = remove_exponent(slot.total)
             slot.total_com = remove_exponent(slot.total_com)
             if slot.total_com_unit and isinstance(slot.total_com_unit, Unit) and slot.total_com_unit.abbrev in settings.CRYPTOS:
-                slot.total_com = (u'\u2248 ')+str(slot.total_com)
+                if not self.status() == 'complete':
+                    slot.total_com = (u'\u2248 ')+str(slot.total_com)
 
             memslot = slot
             pend = []
@@ -10372,8 +10387,11 @@ class Transfer(models.Model):
         except Commitment.DoesNotExist:
             return None
 
-    def quantity(self):
-        events = self.events.all()
+    def quantity(self, receive=False):
+        if receive:
+            events = self.events.filter(event_type__name="Receive")
+        else:
+            events = self.events.all()
         if events:
             return events[0].quantity
         else:
@@ -10382,8 +10400,11 @@ class Transfer(models.Model):
                 return commits[0].quantity
         return Decimal("0.0")
 
-    def actual_quantity(self):
-        events = self.events.all_give()
+    def actual_quantity(self, receive=False):
+        if receive:
+            events = self.events.filter(event_type__name="Receive")
+        else:
+            events = self.events.all_give()
         if events:
             qty = Decimal("0.0")
             for ev in events:
@@ -10406,8 +10427,11 @@ class Transfer(models.Model):
                         return com.unit_of_quantity
         return None
 
-    def value(self):
-        events = self.events.all()
+    def value(self, receive=False):
+        if receive:
+            events = self.events.filter(event_type__name="Receive")
+        else:
+            events = self.events.all()
         if events:
             return events[0].value
         else:
@@ -10416,8 +10440,11 @@ class Transfer(models.Model):
                 return commits[0].value
         return None
 
-    def actual_value(self):
-        events = self.events.all_give()
+    def actual_value(self, receive=False):
+        if receive:
+            events = self.events.filter(event_type__name="Receive")
+        else:
+            events = self.events.all_give()
         if events:
             val = Decimal("0.0")
             for ev in events:
@@ -12841,7 +12868,7 @@ class EconomicEventManager(models.Manager):
     def contributions(self):
         return EconomicEvent.objects.filter(is_contribution=True)
 
-    def all_give(self):
+    def all_give(self, agent=None):
         #print "event all_give"
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
@@ -12856,6 +12883,10 @@ class EconomicEventManager(models.Manager):
                 print "WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp)
                 loger.info("WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp))
             return bkp
+        if agent:
+            givin = bkp.filter(to_agent=agent)
+            if not givin:
+                filtered = bkp.filter(event_type__name="Receive")
         return filtered
 
     def related_agent(self, agent=None):
@@ -12995,12 +13026,35 @@ class EconomicEvent(models.Model):
             resource_string,
         ])
 
+    def mirror_event(self):
+        mirr = None
+        if not hasattr(self, 'mirror'):
+            mir = EconomicEvent.objects.filter(
+                from_agent=self.from_agent,
+                to_agent=self.to_agent,
+                resource_type=self.resource_type,
+                resource=self.resource,
+                event_date=self.event_date,
+                unit_of_quantity=self.unit_of_quantity,
+                unit_of_value=self.unit_of_value)
+            for mi in mir:
+                if not mi == self:
+                    self.mirror = mi
+                    mirr = mi
+            return mirr
+        else:
+            return self.mirror
+
     def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
         newname = name
         if agent:
             gives = self.from_agent == agent
             takes = self.to_agent == agent
+            mirr = self.mirror_event()
+            if takes and mirr:
+                name = mirr.__unicode__()
+                newname = name
             if not hasattr(self, 'exchange') or not self.exchange:
                 if not hasattr(self.transfer, 'exchange') or not self.transfer.exchange:
                     loger.info("error showing name: not self.exchange? ev:"+str(self.id))

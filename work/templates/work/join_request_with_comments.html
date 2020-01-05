@@ -87,7 +87,19 @@ a.more-link {
 
 {% block body_base %}
     <div class="container">
-        {% include "_messages.html" %}
+        {% if messages %}
+            {% regroup messages|dictsort:"tags" by tags as messags %}
+            {% for message in messags %}
+                <div class="alert fade in alert-{{ message.grouper }}">
+                    <a class="close" href="#" data-dismiss="alert">×</a>
+                        {% for messa in message.list|dictsort:"message" %}
+                          {% ifchanged messa.message %}
+                            <p{% if message.grouper %} class="{{ message.grouper }}"{% endif %}>{% if 'safe' in messa.extra_tags %}{{ messa|safe }}{% else %}{{ messa }}{% endif %}</p>
+                          {% endifchanged %}
+                        {% endfor %}
+                </div>
+            {% endfor %}
+        {% endif %}
     <div>
         <legend>
           {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}

@@ -5647,9 +5647,9 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                       sign = '>'
                       if transfer.events.all():
                         if uv:
-                            to['outgo'] = (to['outgo']*1) + (transfer.value()*1)
+                            to['outgo'] = (to['outgo']*1) + (transfer.actual_value()*1)
                         else:
-                            to['outgo'] = (to['outgo']*1) + (transfer.quantity()*1)
+                            to['outgo'] = (to['outgo']*1) + (transfer.actual_quantity()*1)
                       for com in transfer.commitments.all_give():
                         if com.unfilled_quantity() > 0:
                           if uv:

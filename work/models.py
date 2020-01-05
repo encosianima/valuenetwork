@@ -684,6 +684,25 @@ class JoinRequest(models.Model):
                         answer = username
         return answer
 
+    def multiwallet_auth(self): # not used yet, is for checking payments via botc-wallet (which requires auth) but still not works so step back to blockchain.com json service.
+        auth = None
+        if self.project.agent.need_multicurrency() and self.agent:
+            if 'multicurrency' in settings.INSTALLED_APPS:
+                from multicurrency.models import MulticurrencyAuth
+                try:
+                    oauths = MulticurrencyAuth.objects.filter(agent=self.agent)
+                except MulticurrencyAuth.DoesNotExist:
+                    raise PermissionDenied
+                if len(oauths) > 1:
+                    print("More than one oauth for this agent! return only the first. Agent:"+str(self.agent))
+                    loger.warning("More than one oauth for this agent! return only the first. Agent:"+str(self.agent))
+                if oauths:
+                    auth = oauths[0]
+                else:
+                    print("Not found any oauth for agent: "+str(self.agent))
+                    loger.error("Not found any oauth for agent: "+str(self.agent))
+        return auth
+
     def payment_option(self):
         answer = {}
         data2 = None
@@ -918,8 +937,8 @@ class JoinRequest(models.Model):
         amountpay = amount2
         if hasattr(self, 'pending_amount'):
             amountpay = self.pending_amount
-            print("Using CACHED pending_amount!! ")
-            loger.info("Using CACHED pending_amount!! ")
+            print("Using CACHED pending_amount!! "+str(amountpay))
+            loger.info("Using CACHED pending_amount!! "+str(amountpay))
         else:
             from work.utils import convert_price
             if not shunit == unit and amount2: #unit.abbr == 'fair':
@@ -1541,11 +1560,11 @@ class JoinRequest(models.Model):
                                 if created:
                                     print("- created BlockchainTransaction: "+str(tx))
                                     loger.info("- created BlockchainTransaction: "+str(tx))
-                                msg = tx.update_data(realamount)
+                                msg = tx.update_data(realamount) #, self.multiwallet_auth())
                                 if not msg == '':
                                     if evt.id:
                                         evt.delete()
-                                    messages.error(request, msg)
+                                    messages.error(request, msg, extra_tags='safe')
                                     return False
 
 
@@ -1581,7 +1600,7 @@ class JoinRequest(models.Model):
                                 if created:
                                     print("- created BlockchainTransaction: "+str(tx))
                                     loger.info("- created BlockchainTransaction: "+str(tx))
-                                msg = tx.update_data(realamount)
+                                msg = tx.update_data(realamount) #, self.multiwallet_auth())
                                 if not msg == '':
                                     if evt2.id:
                                         evt2.delete()
