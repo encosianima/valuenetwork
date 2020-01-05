@@ -223,6 +223,11 @@ class BlockchainTransaction(models.Model):
                                 self.event.delete()
                                 self.delete()
                                 return mesg
+                        else:
+                            mesg += ("Error retrieving the txobj: "+str(txobj)+"<br>")
+                    else:
+                        mesg += ("The key is not in settings: "+str(key)+"<br>")
+
 
                     """from multicurrency.utils import ChipChapAuthConnection
                     connection = ChipChapAuthConnection.get()
