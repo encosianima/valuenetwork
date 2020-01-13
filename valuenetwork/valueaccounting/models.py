@@ -823,6 +823,9 @@ class EconomicAgent(models.Model):
     def my_user(self):
         users = self.users.all()
         if users:
+            if len(users) > 1:
+                loger.error("The agent has more than one user? ag:"+str(self.id)+" users:"+str(users))
+                raise ValidationError("The agent has more than one user? ag:"+str(self.id)+" users:"+str(users))
             return users[0].user
         return None
 
