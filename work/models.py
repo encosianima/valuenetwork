@@ -674,7 +674,8 @@ class JoinRequest(models.Model):
 
                         headers = json.loads(entry.form_data_headers)
                         if not mkey in headers:
-                            print "Update fobi header! "+mkey+": "+username
+                            #print "Update fobi header! "+mkey+": "+username
+                            loger.warning("Update fobi header! "+mkey+": "+username)
                             for elm in entry.form_entry.formelemententry_set.all():
                                 pdata = json.loads(elm.plugin_data)
                                 if mkey == pdata['name']:
