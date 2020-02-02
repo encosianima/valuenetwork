@@ -56,6 +56,7 @@ class ChipChapAuthTest(TestCase):
     @patch.object(ChipChapAuthConnection, 'new_client', fake_new_client)
     @patch.object(ChipChapAuthConnection, 'wallet_history', fake_wallet_history)
     def test_create_multicurrency_auth(self):
+        print "-------- Multicurrency Test (readonly) --------"
         self.client.login(username='test_user', password='test_user_passwd')
 
         url = reverse('multicurrency_auth', args=[self.agent.id])
@@ -64,19 +65,22 @@ class ChipChapAuthTest(TestCase):
 
         # Authenticate ChipChap user
         data = {
-            "name": "auth_user",
-            "password": "auth_user_passwd",
+            "loginname": "auth_user",
+            "wallet_password": "auth_user_passwd",
         }
         response = self.client.post(url, data=data)
+        #import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, 302)
 
         auth = MulticurrencyAuth.objects.filter(agent=self.agent)
         self.assertEqual(auth.count(), 1)
+        print "t- authenticated!"
 
         # Visit tx list of agent/user
         url = reverse('multicurrency_history', args=[self.agent.id, auth[0].id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        print "t- multicurrency history loaded!"
 
         # Logout ChipChap user
         url = reverse('multicurrency_deleteauth', args=[self.agent.id, auth[0].id])
@@ -85,3 +89,6 @@ class ChipChapAuthTest(TestCase):
 
         auth = MulticurrencyAuth.objects.all()
         self.assertEqual(auth.count(), 0)
+        print "t- deleted auth!"
+
+        print "------- end multicurrency test -------"

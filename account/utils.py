@@ -3,6 +3,9 @@ import hashlib
 import importlib
 import random
 import urlparse
+import string
+import random
+
 
 from django.core import urlresolvers
 from django.core.exceptions import ImproperlyConfigured, SuspiciousOperation
@@ -109,3 +112,6 @@ def load_path_attr(path):
     except AttributeError:
         raise ImproperlyConfigured("Module '%s' does not define a '%s'" % (module, attr))
     return attr
+
+def password_generator(size=20, chars=string.ascii_letters + string.digits):
+    return ''.join(random.choice(chars) for i in range(size))

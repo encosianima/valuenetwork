@@ -4,14 +4,24 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 {% load comments %}
+{% load filters %}
 
-{% block head_title %}{% trans "Project Join Request for " %} {{ jn_req.name }}{% endblock %}
+{% block head_title %}
+    {% if jn_req.agent %}{{ jn_req.agent.name }}{% else %}{{ jn_req.name }}{% endif %}
+    {% trans "join request to" %} {{ jn_req.project.agent.nick }}
+{% endblock %}
 
 {% block extra_head %}
 
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
 
 <style>
+
+form.action-form {
+    display: inline-block;
+    margin: 0 0 0 10px;
+    float: right;
+}
 
 .description {
     margin-top: 0;
@@ -38,16 +48,36 @@
 .agents li {
     margin-left: 3em;
 }
-.btn {
-    margin-left: 2em;
-}
+/*.btn {
+    margin-left: 0.5em;
+}*/
 .modal {
     width: 600px;
 }
-th
+/*th
 {
     background-color:#C8D6E8;
+}*/
+
+
+tr.fobi td em {
+    opacity: 0.5;
+    float: right;
 }
+tr.fobi td form textarea {
+    max-width: 99%;
+}
+tr.fobi td form button {
+    margin: 0px 10px;
+}
+tr.fobi td form select {
+    margin: 5px 0px;
+}
+
+a.more-link {
+    z-index: 9999;
+}
+
 #id_honeypot{display:none;}
 </style>
 
@@ -57,38 +87,68 @@ th
 
 {% block body_base %}
     <div class="container">
-        {% include "_messages.html" %}
+        {% if messages %}
+            {% regroup messages|dictsort:"tags" by tags as messags %}
+            {% for message in messags %}
+                <div class="alert fade in alert-{{ message.grouper }}">
+                    <a class="close" href="#" data-dismiss="alert">×</a>
+                        {% for messa in message.list|dictsort:"message" %}
+                          {% ifchanged messa.message %}
+                            <p{% if message.grouper %} class="{{ message.grouper }}"{% endif %}>{% if 'safe' in messa.extra_tags %}{{ messa|safe }}{% else %}{{ messa }}{% endif %}</p>
+                          {% endifchanged %}
+                        {% endfor %}
+                </div>
+            {% endfor %}
+        {% endif %}
     <div>
         <legend>
-          {% if jn_req.agent.is_active_freedom_coop_member or user_agent.is_participant %}
-            {% trans "Feedback with" %} {{ agent.name }}
-          {% elif user_agent in agent.managers or user_agent == agent %}
-            <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a> >
-            {% if agent.project.fobi_slug and agent.project.join_requests %}
-              <a class="indent" href="{% url 'join_requests' agent_id=agent.id %}">{% trans "Join Requests" %}</a> >
+          {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
+            <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">{{ jn_req.project.agent.name }}</a> >
+            {% if jn_req.project.fobi_slug and jn_req.project.join_requests %}
+              <a class="indent" href="{% url 'join_requests' agent_id=jn_req.project.agent.id %}">{% trans "Join Requests" %}</a> >
             {% endif %}
             {{ jn_req.agent.name }}
           {% else %}
-            {% trans "Your joining request for " %}<a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>
+            {% if jn_req.agent %}<a class="indent" href="{% url 'members_agent' agent_id=jn_req.agent.id %}">{{ jn_req.agent.name }}</a> > {% endif %}
+            {% trans "Feedback with" %} <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">{{ jn_req.project.agent.name }}</a>
           {% endif %}
-           &nbsp; <span style="font-weight:normal; font-size:80%;">
+           &nbsp; &nbsp;
+          <span style="font-weight:normal; font-size:90%;">
           {% if jn_req.agent %}
-            ({% if jn_req.state == 'new' %}{% trans "pending" %}{% else %}{{ jn_req.state }}{% endif %})
+            {% if jn_req.project.shares_type %}{% trans "Membership" %}{% else %}{% trans "Join" %}{% endif %} request:
+              <b>{% if jn_req.state == 'new' %}{% trans "Pending" %}{% else %}{{ jn_req.state|title }}{% endif %}</b>
           {% else %}
             <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span>
           {% endif %}
+
+          {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
+            {% if jn_req.duplicated %} &nbsp;
+              <span class="error">{% trans "DUPLICATED!" %}
+                <form
+                        style="display:inline;"
+                        id="delete-form{{ jn_req.id }}"
+                        action="{% url "delete_request" join_request_id=jn_req.id %}"
+                        method="POST" >
+                        {% csrf_token %}
+                        <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete this" %}' />
+                </form> {% trans "or see the other" %}
+                <a href="{% url 'project_feedback' agent_id=jn_req.project.agent.id join_request_id=jn_req.duplicated.id %}">
+                    {% trans "join request" %}</a>
+              </span>
+            {% endif %}
+          {% endif %}
           </span>
           <div class="subnav">
-            {% if user_agent in agent.managers or user_agent == agent %}
+            {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
               {% if user_agent.need_projects %}
                   <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
               {% endif %}
             {% else %}
-              {% if jn_req.agent.is_active_freedom_coop_member %}
-                <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{% trans "View Project" %}</a>
+              <!-- {% if jn_req.agent.is_active_freedom_coop_member %}
+                <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">{% trans "View Project" %}</a>
               {% endif %}
-              <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a>
-              {% if user_agent.faircoin_resource %}
+              <a class="indent" href="{% url "profile" %}">{% trans "Your Profile" %}</a> -->
+              {% if user_agent.faircoin_resource and jn_req.project.agent.need_faircoins %}
                 <a class="indent" href="{% url "manage_faircoin_account" resource_id=user_agent.faircoin_resource.id %}"
                           title="{% trans 'Your personal faircoin wallet in OCP' %}"
                           >{% trans 'Faircoin Account' %}</a>
@@ -98,10 +158,28 @@ th
           </div>
         </legend>
 
+      {% if auto_resource or request.auto_resource %}<div class="alert">
+            {{ auto_resource|safe }}{{ request.auto_resource|safe }}
+            </div>
+      {% endif %}
       <div id="member-request-block">
         {% with jn_req as req %}
         <table style="/*display:block; max-width:1024px; width:100%;*/" class="table table-bordered table-hover table-condensed" >
           <tbody style="display:block;">
+            {% if request.user.is_superuser %}
+              <tr>
+                <th><em>(debug)</em></th>
+                <td><em>req.id: {{ req.id }} &nbsp; unit:<b>{{ req.payment_unit }}</b>&nbsp;
+                    unit_rt:<b>{{ req.payment_unit_rt }}</b>&nbsp;
+                    is_currency:<b>{{ req.payment_unit_rt.ocp_artwork_type.is_currency }}</b>&nbsp;
+                    AT: <b>{{ req.payment_account_type }}</b>&nbsp;
+                    Total Shares: <b>{{ req.total_shares }}</b>&nbsp;
+                    Payment Amount: <b>{{ req.payment_amount }}</b>&nbsp;
+                    ShareUnit: <b>{{ req.payment_account_type.unit_of_price }}</b>&nbsp;
+                    AgentAssociation: <b>{{ req.agent_relation.association_type }} ({{ req.agent_relation.state }})</b>
+                </em></td>
+              </tr>
+            {% endif %}
             <tr>
                 <th>{% trans "Date" %}:</th>
                 <td>{{ req.request_date }}</td>
@@ -120,7 +198,37 @@ th
             </tr>
             <tr>
                 <th>{% trans "Email" %}:</th>
-                <td>{% if req.email_address %} {{ req.email_address }} {% else %} {{ req.agent.email }} {% endif %}</td>
+                <td>{% if req.email_address %} {{ req.email_address }} {% else %} {{ req.agent.email }} {% endif %}
+                    {% if req.check_user_pass %}&nbsp; <span class="error">{{ req.check_user_pass }}</span>
+                      {% if user_agent == req.agent %}<em class="error">{% trans "Please change your password now" %}:</em>
+                        &nbsp; <a class="btn btn-primary" href="{% url "work_account_password" %}"
+                           style="display:inline; position:relative; top:-1px;" >{% trans "Change Password" %}</a>
+                      {% else %}<em>{% trans "This user has not verified the email yet and still has the initial random password." %}</em>
+                        {% if user_agent is req.project.agent or user_agent in req.project.agent.managers %} {% if not messages %}
+                          &nbsp; <a id="resend" class="btn btn-primary btn-mini"
+                             href="{% url "resend_candidate_credentials" joinrequest_id=req.id %}"
+                             style="display:inline; position:relative; top:-1px;" >{% trans "Resend Password" %}</a> {% endif %}
+                        {% endif %}
+                      {% endif %}
+                    {% elif not req.agent and user_agent in req.project.agent.managers %}
+                      &nbsp; <form class="action-form"
+                                   id="create-form{{ req.id }}"
+                                   action="{% url "confirm_request" join_request_id=req.id %}"
+                                   method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="feedback" />
+                                <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Confirm Email" %}' /> <span class="help-text">{% trans "sends random pass and creates user+agent" %}</span>
+                             </form>
+                      &nbsp; <form class="action-form" style="display:none;"
+                                   id="delete-form{{ req.id }}"
+                                   action="{% url "delete_request" join_request_id=req.id %}"
+                                   method="POST" >
+                                {% csrf_token %}
+                                <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete Request" %}' />
+                             </form>
+
+                    {% endif %}
+                </td>
             </tr>
             {% if req.phone_number or req.agent.phone_primary %}
               <tr>
@@ -144,7 +252,28 @@ th
               {% for obj in req.items_data %}
                 <tr class="fobi">
                   <th>{{ obj.key }}:</th>
-                  <td>{{ obj.val }}</td>
+                  {% if user_agent in req.project.agent.managers or user_agent == req.project.agent %}
+                    <td class='edit'
+                      id='{{ obj.ky }}'
+                      typ='{{ obj.typ }}'
+                      {% if obj.opts %}data='{{ obj.opts }}'
+                      {% elif obj.val %}data="{{ obj.val }}"
+                      {% endif %}>
+                  {% else %}
+                    <td>
+                  {% endif %}
+                    {% if obj.val %}
+                      {% if obj.typ == 'select_multiple' %}
+                        {% for v in obj.val %}
+                          {{ v }}
+                          {% if v == obj.val|last %}{% else %}, {% endif %}
+                        {% endfor %}
+                      {% else %}
+                        {{ obj.val|linebreaks }}
+                      {% endif %}
+                    {% else %}
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
             {% else %}
@@ -153,25 +282,91 @@ th
             {% if req.pending_shares %}
               <tr><th>{% trans "Shares Pending" %}:</th>
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
-                {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
+                  {% if req.exchange %}
+                    &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
+                    {% if user_agent in req.project.agent.managers %}
+                      {% if not req.project.agent.need_faircoins or not req.payment_pending_amount %} &nbsp; &nbsp;
+                        <form
+                              class="action-form"
+                              id="status-form{{ req.id }}"
+                              action="{% url "update_share_payment" join_request_id=req.id %}"
+                              method="POST" >
+                            {% csrf_token %}
+                            {% if req.payment_pending_amount and req.is_flexprice %}
+                                <label class="control-label required-field" for="real_amount">{{ req.payment_unit.abbrev|upper }} {% trans "Received Amount" %}:</label>
+                                <input type="text" id="real_amount" name="real_amount" required=""><br>
+                                <label class="control-label required-field" for="tx_id">{{ req.payment_unit.abbrev|upper }} {% trans "Transaction Hash" %}:</label>
+                                <input type="text" id="tx_id" name="tx_id" required=""><br>
+                            {% endif %}
+                            <input type="hidden" name="status" value="complete">
+                            <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                            <br/><span class="help-text" style="font-size:0.8em">
+                            {% if not req.payment_pending_amount %}
+                                {% trans "(The payment is done, this will only transfer the pending shares)" %}
+                            {% else %}
+                                {% trans "(This will set the payment as done and transfer the shares)" %}
+                            {% endif %}</span>
+                        </form>
+                      {% endif %}
+                    {% endif %}
+                  {% else %}
+                    {% if user_agent in req.project.agent.managers and req.exchange_type and req.agent %} &nbsp; &nbsp;
+                        <form
+                              class="action-form"
+                              id="status-form{{ req.id }}"
+                              action="{% url "update_share_payment" join_request_id=req.id %}"
+                              method="POST" >
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="pending">
+                            <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                            <br/><span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
+                        </form>
+                    {% endif %}
+                  {% endif %}
+                  {% if user_agent in req.agent.managers or user_agent == req.agent or request.user.is_superuser %}
                     {% if req.payment_url %}
-                        <form action="{{ req.payment_url }}" method="POST" style="display:inline">
+                        {% if req.payment_fees and req.payment_fees_payer == req.agent %}
+                           (+ {{ req.payment_fees }} {{ req.payment_unit_rt.unit.symbol }} {% trans "gateway fees" %})
+                        {% endif %} &nbsp; &nbsp;
+                        <form action="{{ req.payment_url }}" method="POST" style="display:inline" target="_blank">
                             {% csrf_token %}
                             <input type="hidden" name="order_id" id="order_id" value="{{ req.pk }}" />
-                            <input type="hidden" name="amount" id="amount" value="{{ req.pending_shares }}" />
+                            <input type="hidden" name="amount" id="amount" value="{{ req.payment_total_with_fees }}" />
                             <input type="hidden" name="email" id="email" value="{{ req.email_address }}" />
                             <input type="hidden" name="first_name" id="first_name" value="{{ req.name }}" />
                             <input type="hidden" name="last_name" id="last_name" value="{{ req.surname }}" />
                             <input type="hidden" name="lang" id="lang" value="en" />
                             <input type="hidden" name="token" id="token" value="{{ req.payment_token }}" />
-                            <input type="submit" value="{% if req.payment_html %}{{ req.payment_html }}{% else %}{% trans "Pay your Shares" %}{% endif %}" class="btn btn-primary" />
-                        </form> <!-- <a href="{% url 'payment_url' paymode=req.payment_option.key join_request_id=req.id %}" target="ocp_pay" class="btn btn-primary">{% if req.payment_html %}{{ req.payment_html }}{% else %}{% trans "Pay your Shares" %}{% endif %}</a> -->
+                            <input type="submit" value="{% if req.payment_html %}{{ req.payment_html|safe }}{% else %}{% trans "Pay your Shares" %}{% endif %}" class="btn btn-primary" />
+                        </form> <!-- <a href="{% url 'payment_url' paymode=req.payment_option.key join_request_id=req.id %}" target="ocp_pay" class="btn btn-primary">{% if req.payment_html %}{{ req.payment_html|safe }}{% else %}{% trans "Pay your Shares" %}{% endif %}</a> -->
                     {% elif req.payment_html %}
-                        <br /> {{ req.payment_html|safe }}
+                        <div id="payment_html">{{ req.payment_html|safe }}
+                            {% if req.project.agent.need_faircoins and not req.agent.faircoin_resource %} &nbsp;
+                              <form
+                                style="display: inline;"
+                                action="{% url "request_faircoin_address" agent_id=req.agent.id %}"
+                                method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="feedback">
+                                <input type="hidden" name="jn_req" value="{{ req.id }}">
+                                <button style="display: inline;"  class="btn btn-primary" title="Create FairCoin Address" >
+                                    {% trans "Request FairCoin Address" %}
+                                </button>
+                              </form>
+                            {% endif %}
+                        </div>
                     {% else %}
                         <span class="error">{% trans "ERROR: request without a payment option!" %}</span>
                     {% endif %}
-                {% endif %}
+                    {% if req.payment_pending_amount and req.ratio %}
+                      {% with req.payment_unit as uni %}
+                        ({% if req.is_flexprice %}≈ {% endif %}{{ req.payment_pending_amount }} {{ uni.abbrev.upper }} {% trans "at exchange rate" %}:
+                        {{ req.ratio }} {{ req.project.shares_type.unit_of_price.symbol }}/{% if uni.symbol %}{{ uni.symbol }}{% else %}{{ uni.abbrev }}{% endif %})
+                      {% endwith %}
+                    {% else %}
+                        ({{ req.payment_pending_amount }} {{ req.payment_unit.abbrev.upper }})
+                    {% endif %}
+                  {% endif %}
                 </td>
               </tr>
             {% endif %}
@@ -179,7 +374,142 @@ th
               <tr><th>{% trans "Total owned Shares" %}:</th>
                   <td>
                       <b>{{ req.total_shares }}</b>
+                      {% if not req.pending_shares and not req.check_user_pass and not req.state == "accepted" %}
+                          {% if not req.payment_option.key == 'ccard' and req.agent and req.exchange_type %}
+                              {% if request.user.agent.agent in req.project.agent.managers %} &nbsp; &nbsp;
+                                  <form
+                                      class="action-form"
+                                      id="accept-form{{ req.id }}"
+                                      action="{% url "accept_request" join_request_id=req.id %}"
+                                      method="POST" >
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Accept Member" %}' />
+                                  </form>
+                              {% endif %}
+                          {% endif %}
+                      {% endif %}
+                      {% if req.exchange and not req.pending_shares %}
+                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">
+                              {{ req.exchange|show_name:user_agent|safe }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
+                        {% if user_agent in req.project.agent.managers or user_agent == req.project.agent %}
+                          {% if not req.project.agent.need_faircoins and not req.exchange.status == 'complete' and not req.is_flexprice %} &nbsp; &nbsp;
+                            <form
+                                  class="action-form"
+                                  id="status-form{{ req.id }}"
+                                  action="{% url "update_share_payment" join_request_id=req.id %}"
+                                  method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="complete">
+                                <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                                <br/><span class="help-text" style="font-size:0.8em">{% trans "(This will only set the shares as transfered)" %}</span>
+                            </form>
+                          {% endif %}
+                        {% endif %}
+                      {% elif not req.pending_shares %}
+                        {% if user_agent in req.project.agent.managers and req.exchange_type %} &nbsp; &nbsp;
+                            <form
+                                  class="action-form"
+                                  id="status-form{{ req.id }}"
+                                  action="{% url "update_share_payment" join_request_id=req.id %}"
+                                  method="POST" >
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="pending">
+                                <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Pending" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
+                                <br/><span class="help-text" style="font-size:0.8em">({{ req.exchange_type }})</span>
+                            </form>
+                        {% endif %}
+                      {% endif %}
                   </td>
+              </tr>
+            {% endif %}
+
+            {% if req.project.agent.need_multicurrency %}
+              <tr><th>{% trans "Multicurrency Account" %}:</th>
+                <td>
+                {% if req.agent %}
+                  {% if req.check_user_pass %}
+                      <span class="warning">{% trans "Change your password first..." %}</span>
+                  {% else %}
+                    {% if req.agent.multicurrencyauth_set.all %}
+                        {% for mauth in req.agent.multicurrencyauth_set.all %}
+                          {% if mauth.auth_user == req.multiwallet_user %}
+                            <a href="{% url 'multicurrency_history' agent_id=req.agent.id oauth_id=mauth.id %}"
+                               class="btn btn-info btn-mini">{% trans "Read '" %}{{ mauth.auth_user }}{% trans "' Multiwallet" %}</a>
+                            &nbsp; <span class="help-text">{{ out_text|safe }}</span>
+                            {% if pay_form %} &nbsp; &nbsp;
+                                <form id="payForm" action="{% url 'authpayment' agent_id=req.agent.id %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    {{ pay_form|as_bootstrap }}
+                                    <input type="submit" class="btn btn-primary" name="submit" value="{% trans "Transfer" %} {{ req.payment_pending_to_pay }} {{ req.payment_unit.symbol }} {% trans "to" %} {{ req.project.agent.nick }}" />
+                                </form>
+                            {% endif %}
+                          {% elif req.multiwallet_user %}
+                            <b>{{ req.multiwallet_user }}</b> &nbsp;
+                            <span class="error">&lt;- ERROR?</span> &nbsp; {{ mauth.auth_user }}
+                          {% endif %}
+                        {% endfor %}
+                    {% elif req.multiwallet_user %}
+                        <b>{{ req.multiwallet_user }}</b> &nbsp;
+                        <a href="#connect-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Connect BotC-Wallet account" %}</a> &nbsp;
+                    {% endif %}
+                    {% if not req.multiwallet_user and not req.check_user_pass %}
+                        <a href="#create-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create new BotC-Wallet account" %}</a>
+
+                        <div class="modal hide fade" id="create-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h3 id="agent-label">{% trans "Create New BotC-Wallet User" %}</h3>
+                            </div>
+                            <div class="modal-body">
+                                <form id="createForm" class="createMe" action="{% url 'multicurrency_createauth' agent_id=req.agent.id %}" method="POST" onsubmit="return validateRepassword()">
+                                    {% csrf_token %}
+                                    {{ wallet_form|as_bootstrap }}
+                                    <div id="div_id_repassword" class="control-group ">
+                                      <label class="control-label required-field" for="id_repassword">{% trans "Confirm password" %}</label>
+                                      <div class="controls">
+                                        <input id="id_repassword" name="repassword" required="" maxlength="32" type="password">
+                                      </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create BotC-Wallet User" %}' />
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        &nbsp;{% trans "or" %}&nbsp;
+                        <a href="#connect-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Connect existent BotC-Wallet account" %}</a> &nbsp;
+                    {% endif %}
+
+                    <div class="modal hide fade" id="connect-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 id="agent-label">{% trans "Authenticate BotC-Wallet User" %}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <form id="oauthForm" class="validateMe" action="{% url 'multicurrency_auth' agent_id=req.agent.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ oauth_form|as_bootstrap }}
+
+                                <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" />
+                                <p>
+                                    <small class="muted">
+                                        {% trans "By submitting your BotC-Wallet user/password you give permission to this site to access (read-only) to your wallet." %}<br />
+                                        {% trans "Your password won't be stored, it's just necessary to check your identity in BotC-Wallet system." %}
+                                    </small>
+                                </p>
+                            </form>
+                        </div>
+                    </div>
+
+                    {% if request.user.is_superuser %}
+                       &nbsp; <a href="{% url "multicurrency_auth" agent_id=req.agent.id %}"
+                                 class="btn btn-info btn-mini" style="float:right;"> + </a>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+                </td>
               </tr>
             {% endif %}
             <!-- <tr>
@@ -206,10 +536,13 @@ th
 
     <div id="member-request-comments">
       <legend>
-        {% if request.user.agent.agent in agent.managers %}
+        {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
           {% trans "Talk with " %} {% if jn_req.agent %}<a class="indent" href="{% url 'members_agent' agent_id=jn_req.agent.id %}">{{ jn_req.agent.name }}</a> ({{ jn_req.agent.nick }}) {% else %} {{ jn_req.name }} ¿? {% endif %}
         {% else %}
-          {% trans "Talk with coordinators of " %} <a class="indent" href="{% url 'members_agent' agent_id=agent.id %}">{{ agent.name }}</a>  ({{ agent.nick }})
+          {% trans "Talk with coordinators of " %}
+          <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">
+              {{ jn_req.project.agent.name }}</a>  {% if not jn_req.project.agent.nick == jn_req.project.agent.name %}
+              ({{ jn_req.project.agent.nick }}) {% endif %}
         {% endif %}
       </legend>
 
@@ -218,7 +551,17 @@ th
         {% if num_comm > 0 %}
           <div class="row-fluid">
             {% trans "You have " %} {{ num_comm }} {% trans " comments:" %}
-            {% render_comment_list for jn_req %}
+            {% get_comment_list for jn_req as comment_list %}
+              <dl id="comments">
+                {% for comment in comment_list %}
+                  <dt id="c{{ comment.id }}">
+                      {{ comment.submit_date }} - {{ comment.name }}
+                  </dt>
+                  <dd>
+                      {{ comment.comment|linebreaks }}
+                  </dd>
+                  {% endfor %}
+              </dl>
           </div>
         {% endif %}
         <div class="row-fluid">
@@ -248,12 +591,20 @@ th
 
 {% block extra_body %}
     {{ block.super }}
-    <script src="{% static "js/jquery.expander.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.expander.min.js" %}"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jeditable.js/2.0.6/jquery.jeditable.js"></script>
+    <!-- <script type="text/javascript" src="{% static "js/jquery.jeditable.mini.js" %}"></script> -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jeditable.js/2.0.6/jquery.jeditable.checkbox.js"></script>
     <script type="text/javascript">
 
     $(document).ready(function(){
 
-      $('th, td').each(function(e) {
+      $('#resend').click(function(){
+          $(this).text(' S e n d i n g . . . ');
+          $('body').attr('style', 'pointer-events:none; opacity:0.5; width:100%;');
+      });
+
+      /*$('th, td').each(function(e) {
         $(this).expander({
             slicePoint: 350,  // default is 100
             expandSpeed: 0,
@@ -264,7 +615,187 @@ th
             expandText:       '[...]', // default is 'read more'
             userCollapseText: '[^]'  // default is 'read less'
         });
-    });
+      });*/
+
+      {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent or request.user.is_superuser %}
+        $('.fobi td[typ="text"]').add('.fobi td[typ="integer"]').each(function(){
+            $(this).editable(
+                function(value, settings) {
+                   var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                       {id:$(this).attr('id'), value:value}
+                   );
+                   posting.done(function(data){
+                       if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                       } else {
+                           location = location;
+                       };
+                   }).fail(function(data) {
+                       console.log(data['statusText']);
+                       out = '';
+                       for(var d in data){
+                         out += d+': '+data[d]+' \n';
+                       };
+                       alert( "ERROR out: "+out );
+                   });
+                   return(value);
+                }
+                , {
+                  //submit : 'OK',
+                  type : 'text',
+                  tooltip : '<em>Click to edit...</em>',
+                  placeholder : '<em>...click to write</em>',
+                  data: $(this).attr('data'),
+                }
+            );
+        });
+        $('.fobi td[typ="select"]').editable(
+            function(value, settings) {
+               var dr = JSON.parse($(this).attr('data').split("u'").join('"').split("'").join('"'));
+               var labl = dr[value];
+               //alert('type:'+typeof(labl)+' labl: '+labl);
+
+               var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                   {id:$(this).attr('id'), value:labl}
+               );
+               posting.done(function(data){
+                   if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                   } else {
+                       location = location;
+                   };
+               }).fail(function(data) {
+                   console.log(data['statusText']);
+                   out = '';
+                   for(var d in data){
+                     out += d+': '+data[d]+' \n';
+                   };
+                   alert( "ERROR out: "+out );
+               });
+               return(labl);
+            }
+            , {
+              submit : 'save',
+              type : 'select',
+              data : function(value, settings) {
+                  var d = $(this).attr('data');
+                  d = d.split("u'").join('"').split("'").join('"');
+                  /*var darr = d.split('", "');
+                  for(var da in darr){
+                      var dr = darr[da].split('": "');
+                      for(var r in dr){
+                          if(dr[r].split('"}').join('') == value.split('<p>').join('').split('</p>').join('')){
+                              //dr[0] = 'selected';
+                              d = d.split(dr[0]).join('selected');
+                              break;
+                              //alert(dr);
+                          }
+                      }
+                      //alert(value);
+                  };*/
+                  //alert('d:'+d+' value:'+value);
+                  return d; //JSON.parse(d); //decodeURIComponent(JSON.parse(d));
+                },
+              tooltip : '<em>Click to edit...</em>',
+              //placeholder : '<em>...click to write</em>',
+            }
+        );
+        $('.fobi td[typ="textarea"]').attr('class','edit_area').each(function(){
+            $(this).editable(
+                function(value, settings) {
+                   var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                       {id:$(this).attr('id'), value:value}
+                   );
+                   posting.done(function(data){
+                       if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                       } else {
+                           location = location;
+                       };
+                   }).fail(function(data) {
+                       console.log(data['statusText']);
+                       out = '';
+                       for(var d in data){
+                         out += d+': '+data[d]+' \n';
+                       };
+                       alert( "ERROR out: "+out );
+                   });
+                   return(value.split('\n').join('<br>'));
+                }
+                , {
+                  submit : 'save',
+                  type : 'textarea',
+                  tooltip : '<em>Click to edit...</em>',
+                  placeholder : '<em>...click to write</em>',
+                  data: $(this).attr('data'),
+                }
+            );
+        });
+
+        $('.fobi td[typ="select_multiple"]').editable(
+            function(value, settings) {
+               //var dr = JSON.parse($(this).attr('data').split("u'").join('"').split("'").join('"'));
+               var labl = "";
+               for(val in value){
+                   labl += value[val]+";";
+               };
+               labl = labl.slice(0, -1);
+               //alert('type:'+typeof(labl)+' labl: '+labl+' value:'+value);
+
+               var posting = $.post('{% url "edit_form_field_data" joinrequest_id=jn_req.id %}',
+                   {id:$(this).attr('id'), value:labl}
+               );
+               posting.done(function(data){
+                   if(data !== 'Ok'){ alert('Error saving the new field data. '+data);
+                   } else {
+                       location = location;
+                   };
+               }).fail(function(data) {
+                   console.log(data['statusText']);
+                   out = '';
+                   for(var d in data){
+                     out += d+': '+data[d]+' \n';
+                   };
+                   alert( "ERROR out: "+out );
+               });
+               return(value.join(', '));
+            }
+            , {
+              submit : 'save',
+              type : 'select',
+              multiple : true,
+              data : function(value, settings) {
+                  var d = $(this).attr('data');
+                  d = d.split("u'").join('"').split("'").join('"');
+                  //alert('d:'+d+' value:'+value);
+                  return d; //JSON.parse(d); //decodeURIComponent(JSON.parse(d));
+                },
+              tooltip : '<em>Click to edit...</em>',
+              //placeholder : '<em>...click to write</em>',
+              //onblur: function() { return true; },
+              // use intercept to display the results as we want it
+              intercept: function(result, status) {
+                  return "You selected: " + result + ". ";
+              },
+              onerror: function(settings, self, xhr) {
+                  console.log("Error with status code: " + xhr.status);
+              },
+              submitdata: function(revert, settings, result) {
+                  console.log("User selected values: " + result.value);
+              },
+              onedit: function(){ //alert($(this).parent().html()); //find('option').length);
+                window.setTimeout(function(){ //alert($('.fobi td[typ="select_multiple"]').html());
+                    $('.fobi td[typ="select_multiple"]').find("option").each(function(){
+                        var txt = $(this).text();
+                        if(txt.indexOf(":selected") != -1){
+                            $(this).text(txt.split(':selected').join('')).attr('selected','selected');
+                        };
+                    });
+                }, 100);
+              },
+              select: true,
+            }
+        );
+
+        $('.fobi th').css('background-color','#f9f9e2');
+       {% endif %}
 
     }); // end document.ready
 

@@ -7,6 +7,7 @@ from random import randint
 from base64 import b64decode
 
 from django.conf import settings
+from django.forms import ValidationError
 
 
 class ChipChapAuthError(Exception):
@@ -30,6 +31,26 @@ class ChipChapAuthConnection(object):
             self.url_client = cdata['url_client']
             self.url_history = cdata['url_history']
             self.url_balance = cdata['url_balance']
+            if not hasattr(cdata, 'ocp_api_key'):
+                self.ocp_api_key = None
+                #raise ValidationError("Is needed the API key given by BotC wallet to this platform (settings).")
+                print "WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings)."
+                self.logger.error("WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings).")
+            else:
+                self.ocp_api_key = cdata['ocp_api_key']
+                self.logger.info("Connected with an OCP api-key for safe access.")
+            if not hasattr(cdata, "url_w2w"):
+                self.url_w2w = None
+                print("WARN: Multiwallet without W2W permissions! Can't let users pay the shares...")
+                self.logger.error("WARN: Multiwallet without W2W permissions! Can't let users pay the shares...")
+            else:
+                self.url_w2w = cdata['url_w2w']
+            if not "url_ticker" in cdata:
+                self.url_ticker = None
+                print("WARN: Multicurrency without Ticker! Can't process crypto prices (except faircoin)")
+                self.logger.error("WARN: Multicurrency without Ticker! Can't process crypto prices (except faircoin)")
+            else:
+                self.url_ticker = cdata['url_ticker']
         else:
             self.able_to_connect = False
             self.logger.critical("Invalid configuration data to connect.")
@@ -42,8 +63,11 @@ class ChipChapAuthConnection(object):
     def init_logger(cls):
         logger = logging.getLogger("multicurrency")
         logger.setLevel(logging.WARNING)
-        fhpath = "/".join(
-            [settings.PROJECT_ROOT, "multicurrency/multicurrency.log", ])
+        if 'log_file' in settings.MULTICURRENCY:
+            fhpath = settings.MULTICURRENCY["log_file"]
+        else:
+            fhpath = "/".join(
+                [settings.PROJECT_ROOT, "multicurrency.log", ])
         fh = logging.handlers.TimedRotatingFileHandler(
             fhpath, when="d", interval=1, backupCount=7)
         fh.setLevel(logging.DEBUG)
@@ -144,3 +168,40 @@ class ChipChapAuthConnection(object):
             self.logger.critical("Balance and history requests have returned "
                                  + error + " status codes. Error: " + msg)
             raise ChipChapAuthError('Error ' + error, msg)
+
+    def wallet_balance(self, access_key, access_secret):
+        if not self.able_to_connect:
+            raise ChipChapAuthError('Connection Error', 'No data to connect')
+        headers = ChipChapAuthConnection.chipchap_x_signature(
+            access_key, access_secret)
+
+        balance = requests.get(self.url_balance, headers=headers)
+        if int(balance.status_code) == 200:
+            return balance.json()
+        else:
+            error = str(balance.status_code)
+            msg = balance.text
+            self.logger.critical("Balance request have returned "
+                                 + error + " status code. Error: " + msg)
+            raise ChipChapAuthError('Error ' + error, msg)
+
+    def send_w2w(self, access_key, access_secret, unit, amount, username, scale):
+        if not self.able_to_connect:
+            raise ChipChapAuthError('Connection Error', 'No data to connect')
+        headers = ChipChapAuthConnection.chipchap_x_signature(
+            access_key, access_secret)
+
+        params = {
+            'username': username,
+            'amount': amount,
+        }
+        payment = requests.get(self.url_w2w+(unit), headers=headers, params=params)
+        if int(payment.status_code) == 200:
+            return payment.json()
+        else:
+            error = str(payment.status_code)
+            msg = payment.text
+            self.logger.critical("Payment w2w request have returned "
+                                 + error + " status code. Error: " + msg)
+            raise ChipChapAuthError('Error ' + error, msg)
+

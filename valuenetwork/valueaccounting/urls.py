@@ -549,12 +549,13 @@ urlpatterns += [
     url(r'^undecline-suggestion/(?P<suggestion_id>\d+)/$', valuenetwork.valueaccounting.views.undecline_suggestion,
         name="undecline_suggestion"),
     url(r"^validate-resource-type-name/$", valuenetwork.valueaccounting.views.validate_resource_type_name, name="validate_resource_type_name"),
+    url(r"^send-fdc-welcome/(?P<agent_id>.*)/$", valuenetwork.valueaccounting.views.send_fdc_welcome, name="send_fdc_welcome"),
 ]
 
 if 'faircoin' in settings.INSTALLED_APPS:
     urlpatterns += [
-        url(r"^request-faircoin-address/(?P<agent_id>\d+)/$", valuenetwork.valueaccounting.views.request_faircoin_address,
-            name="request_faircoin_address"),
+        #url(r"^request-faircoin-address/(?P<agent_id>\d+)/$", valuenetwork.valueaccounting.views.request_faircoin_address,
+        #    name="request_faircoin_address"),
         url(r"^send-faircoins/(?P<resource_id>\d+)/$", valuenetwork.valueaccounting.views.send_faircoins,
             name="send_faircoins"),
         url(r"^validate-faircoin-address/$", valuenetwork.valueaccounting.views.validate_faircoin_address,

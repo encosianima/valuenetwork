@@ -86,6 +86,13 @@
 
         </legend>
 
+        <form class="" id="search_project" action="." method="POST" >{% csrf_token %}
+            <input type="text" class="" name="project_name" />
+            <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Search" %}' />
+        </form>
+        {% if not roots %}{% trans "No results found. Try another search." %}{% endif %}
+        {% include "valueaccounting/paginator.html" %}
+
         {% for root in roots %}
 
             {% for node in root.nodes %}

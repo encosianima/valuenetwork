@@ -14,4 +14,9 @@ urlpatterns = [
         name="validate_faircoin_address_for_worker"),
     url(r"^edit_event_notes/(?P<resource_id>\d+)/$", faircoin.views.edit_faircoin_event_description,
         name="edit_faircoin_event_description"),
+    url(r"^faircoin-checking/$", faircoin.views.watch_fair_accounts,
+        name="faircoin_checking"),
+    url(r"^request-faircoin-address/(?P<agent_id>\d+)/$", faircoin.views.request_faircoin_address,
+        name="request_faircoin_address"),
+
 ]

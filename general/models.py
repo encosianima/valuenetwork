@@ -554,24 +554,46 @@ class Relation(Art):	# Create own ID's (TREE)
 
 @python_2_unicode_compatible
 class Job(Art):		# Create own ID's (TREE)
-	#art = models.OneToOneField('Art', primary_key=True, parent_link=True)
-	clas = models.CharField(blank=True, verbose_name=_(u"Class"), max_length=50,
-													help_text=_(u"Django model or python class associated to the Job'"))
+    #art = models.OneToOneField('Art', primary_key=True, parent_link=True)
+    clas = models.CharField(blank=True, verbose_name=_(u"Clas"), max_length=50, help_text=_(u"Django model or python class associated to the Job"))
+    jobs = models.ManyToManyField(
+        'self',
+        through='rel_Job_Jobs',
+        through_fields=('job1', 'job2'),
+        symmetrical=False,
+        blank=True,
+        verbose_name=_("related Skills"))
 
+    class Meta:
+        verbose_name= _(u'Skill')
+        verbose_name_plural= _(u'a- Skills')
+    def __str__(self):
+        if self.clas is None or self.clas == '':
+            return self.name#+', '+self.verb
+        else:
+            return self.name+' ('+self.clas+')'
+
+
+@python_2_unicode_compatible
+class rel_Job_Jobs(models.Model):
+	job1 = models.ForeignKey('Job', on_delete=models.CASCADE, related_name="rel_jobs1")
+	job2 = TreeForeignKey('Job', on_delete=models.CASCADE, related_name="rel_jobs2") #, verbose_name=_(u"related Jobs")
+	relation = TreeForeignKey('Relation', related_name='jo_job+', blank=True, null=True)
 	class Meta:
-		verbose_name= _(u'Skill')
-		verbose_name_plural= _(u'a- Skills')
+		verbose_name = _(u"J_job")
+		verbose_name_plural = _(u"Related jobs")
 	def __str__(self):
-		if self.clas is None or self.clas == '':
-			return self.name#+', '+self.verb
+		if self.relation.gerund is None or self.relation.gerund == '':
+			return self.job1.__str__()
 		else:
-			return self.name+' ('+self.clas+')'
-
-
+			return '('+self.job1.name+') '+self.relation.gerund+' > '+self.job2.__str__()
 
 #rel_tit = Relation.objects.get(clas='holder')
 
+
+
 #	 S P A C E S - (Regions, Places, Addresses...)
+
 @python_2_unicode_compatible
 class Space(models.Model):	# Abstact
 	name = models.CharField(verbose_name=_(u"Name"), max_length=100, help_text=_(u"The name of the Space"))
@@ -934,20 +956,27 @@ class Asset(Material):
 
 # - - - - - U N I T S
 
+from valuenetwork.valueaccounting.models import Unit as Ocp_Unit
+
 @python_2_unicode_compatible
 class Unit(Artwork):	# Create own ID's
-	unit_type = TreeForeignKey('Unit_Type', blank=True, null=True, verbose_name=_(u"Type of Unit"))
-	code = models.CharField(max_length=4, verbose_name=_(u"Code or Symbol"))
+    unit_type = TreeForeignKey('Unit_Type', blank=True, null=True, verbose_name=_(u"Type of Unit"))
+    code = models.CharField(max_length=4, verbose_name=_(u"Code or Symbol"))
 
-	region = TreeForeignKey('Region', blank=True, null=True, verbose_name=_(u"related use Region"))
-	#human = models.ForeignKey('Human', blank=True, null=True, verbose_name=_(u"related Entity"))
+    region = TreeForeignKey('Region', blank=True, null=True, verbose_name=_(u"related use Region"))
+    #human = models.ForeignKey('Human', blank=True, null=True, verbose_name=_(u"related Entity"))
 
-	class Meta:
-		verbose_name= _(u'Unit')
-		verbose_name_plural= _(u'o- Units')
+    ocp_unit = models.OneToOneField(Ocp_Unit, blank=True, null=True, verbose_name=_(u"OCP Unit"), related_name="gen_unit")
 
-	def __str__(self):
-		return self.unit_type.name+': '+self.name
+    class Meta:
+    	verbose_name= _(u'Unit')
+    	verbose_name_plural= _(u'o- Units')
+
+    def __str__(self):
+        if hasattr(self, 'ocp_unit') and self.ocp_unit:
+            return self.name+' <'
+        else:
+            return self.unit_type.name+': '+self.name
 
 class Unit_Type(Artwork_Type):
 	unitType_artwork_type = models.OneToOneField('Artwork_Type', primary_key=True, parent_link=True, on_delete=models.CASCADE)
@@ -1061,56 +1090,98 @@ class AccountCrypto(Record):
 #   B A S I C   D B   R E C O R D S  ##
 
 from django.db.models.signals import post_migrate
+#from general.apps import GeneralAppConfig
 
 def create_general_types(**kwargs):
-	sep = ", "
-	out = "Initial basic types created: <br>"
-	being, created = Type.objects.get_or_create(name='Being', clas='Being')
-	if created: out += str(being)+sep
-	artwork, created = Type.objects.get_or_create(name='Artwork', clas='Artwork')
-	if created: out += str(artwork)+sep
-	space, created = Type.objects.get_or_create(name='Space', clas='Space')
-	if created: out += str(space)+'<br>'
+    sep = ", "
+    out = "Initial basic types created: <br>"
+    being, created = Type.objects.get_or_create(name='Being', clas='Being')
+    if created: out += str(being)+sep
+    artwork, created = Type.objects.get_or_create(name='Artwork', clas='Artwork')
+    if created: out += str(artwork)+sep
+    space, created = Type.objects.get_or_create(name='Space', clas='Space')
+    if created: out += str(space)+'<br>'
 
-	human, created = Being_Type.objects.get_or_create(name='Human', clas='Human', parent=being)
-	if created: out += str(human)+": "
-	person, created = Being_Type.objects.get_or_create(name='Person', clas='Person', parent=human)
-	if created: out += str(person)+sep
-	project, created = Being_Type.objects.get_or_create(name='Project', clas='Project', parent=human)
-	if created: out += str(project)+sep
-	company, created = Being_Type.objects.get_or_create(name='Company', clas='Company', parent=human)
-	if created: out += str(company)+'<br>'
+    """human, created = Being_Type.objects.get_or_create(name='Human', clas='Human', parent=being)
+    if created: out += str(human)+": "
 
-	material, created = Artwork_Type.objects.get_or_create(name='Material', clas='Material', parent=artwork)
-	if created: out += str(material)+sep
-	nonmaterial, created = Artwork_Type.objects.get_or_create(name='Non-material', clas='Nonmaterial', parent=artwork)
-	if created: out += str(nonmaterial)+sep
-	record, created = Artwork_Type.objects.get_or_create(name='Record', clas='Record', parent=artwork)
-	if created: out += str(record)+sep
-	unit, created = Artwork_Type.objects.get_or_create(name='Unit', clas='Unit', parent=artwork)
-	if created: out += str(unit)+sep
-	currency, created = Unit_Type.objects.get_or_create(name='Currency', parent=unit)
-	if created: out += str(currency)+sep
-	social, created = Unit_Type.objects.get_or_create(name='MutualCredit currency', parent=currency)
-	if created: out += str(social)+sep
-	crypto, created = Unit_Type.objects.get_or_create(name='Cryptocurrency', parent=currency)
-	if created: out += str(crypto)+sep
-	fiat, created = Unit_Type.objects.get_or_create(name='Fiat currency', parent=currency)
-	if created: out += str(crypto)+'<br>'
+    persons = Being_Type.objects.filter(name="Person")
+    if persons:
+        if len(persons) > 1:
+            out += "ERROR there's more than one 'Person' as a Being_Type ?"+'<br>'
+            return out
+        else:
+            person = persons[0]
+    else:
+        person, created = Being_Type.objects.get_or_create(name='Person', parent=human)
+        if created: out += str(person)+sep
+    person.clas = 'Person'
+    person.parent = human
+    person.save()
 
-	region, created = Space_Type.objects.get_or_create(name='Region', clas='Region', parent=space)
-	if created: out += str(region)+sep
-	address, created = Space_Type.objects.get_or_create(name='Address', clas='Address', parent=space)
-	if created: out += str(address)+'<br>'
+    projects = Being_Type.objects.filter(name="Project")
+    if projects:
+        if len(projects) > 1:
+            out += "ERROR there's more than one 'Project' as a Being_Type ?"+'<br>'
+            return out
+        else:
+            project = projects[0]
+    else:
+        project, created = Being_Type.objects.get_or_create(name='Project', parent=human)
+        if created: out += str(project)+sep
+    project.clas = 'Project'
+    project.parent = human
+    project.save()
 
-	unitratio, created = Record_Type.objects.get_or_create(name='Unit Ratio', clas='UnitRatio', parent=record)
-	if created: out += str(unitratio)+sep
-	ces, created = Record_Type.objects.get_or_create(name='Account Ces', clas='AccountCes', parent=record)
-	if created: out += str(ces)+sep
-	bank, created = Record_Type.objects.get_or_create(name='Account Bank', clas='AccountBank', parent=record)
-	if created: out += str(bank)+sep
+    companys = Being_Type.objects.filter(name="Company")
+    if companys:
+        if len(companys) > 1:
+            out += "ERROR there's more than one 'Company' as a Being_Type ?"+'<br>'
+            return out
+        else:
+            company = companys[0]
+    else:
+        company, created = Being_Type.objects.get_or_create(name='Company', parent=human)
+        if created: out += str(company)+'<br>'
+    company.clas = 'Company'
+    company.parent = human
+    company.save()
 
-	print(out)
-	return out
+    material, created = Artwork_Type.objects.get_or_create(name='Material', clas='Material', parent=artwork)
+    if created: out += str(material)+sep
 
-#post_migrate.connect(create_general_types)
+    nonmaterial, created = Artwork_Type.objects.get_or_create(name='Non-material', clas='Nonmaterial', parent=artwork)
+    if created: out += str(nonmaterial)+sep"""
+
+    record, created = Artwork_Type.objects.get_or_create(name='Record', clas='Record', parent=artwork)
+    if created: out += str(record)+sep
+
+    unit, created = Artwork_Type.objects.get_or_create(name='Unit', clas='Unit', parent=artwork)
+    if created: out += str(unit)+sep
+
+    """currency, created = Unit_Type.objects.get_or_create(name='Currency', parent=unit)
+    if created: out += str(currency)+sep
+    social, created = Unit_Type.objects.get_or_create(name='MutualCredit currency', parent=currency)
+    if created: out += str(social)+sep
+    crypto, created = Unit_Type.objects.get_or_create(name='Cryptocurrency', parent=currency)
+    if created: out += str(crypto)+sep
+    fiat, created = Unit_Type.objects.get_or_create(name='Fiat currency', parent=currency)
+    if created: out += str(crypto)+'<br>'
+    """
+
+    region, created = Space_Type.objects.get_or_create(name='Region', clas='Region', parent=space)
+    if created: out += str(region)+sep
+    address, created = Space_Type.objects.get_or_create(name='Address', clas='Address', parent=space)
+    if created: out += str(address)+'<br>'
+
+    unitratio, created = Record_Type.objects.get_or_create(name='Unit Ratio', clas='UnitRatio', parent=record)
+    if created: out += str(unitratio)+sep
+    """ces, created = Record_Type.objects.get_or_create(name='Account Ces', clas='AccountCes', parent=record)
+    if created: out += str(ces)+sep
+    bank, created = Record_Type.objects.get_or_create(name='Account Bank', clas='AccountBank', parent=record)
+    if created: out += str(bank)+sep"""
+
+    print(out)
+    return out
+
+#post_migrate.connect(create_general_types, sender=GeneralAppConfig)

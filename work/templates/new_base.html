@@ -5,7 +5,8 @@
 
 <html lang="{{ LANGUAGE_CODE }}">
     <head>
-        <meta charset="utf-8" />
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <!--<meta charset="utf-8" />-->
         <title>{% block head_title_base %}{% if SITE_NAME %}{{ SITE_NAME }} | {% endif %}{% block head_title %}{% endblock %}{% endblock %} </title>
         {% block viewport %}
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -76,7 +77,7 @@
                         {% if request.user.agent.agent.joinaproject_requests|length == 1 %}
                             {% with request.user.agent.agent.joinaproject_requests|first as req %}
                                 <li id="join-project">
-                                     <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">{% trans "Joining Process" %}</a>
+                                     <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}">{% trans "Joining Process" %}</a>
                                 </li>
                             {% endwith %}
                         {% else %}
@@ -87,7 +88,7 @@
                                 {% if req.project %}
 
                                   <li class="joinaproject" >
-                                    <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"
+                                    <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}"
                                       title="{% trans 'Your join-a-project process' %}"
                                       >{{ req.project.agent.name }} {% trans 'Feedback' %}</a>
                                   </li>
@@ -229,7 +230,7 @@
                             </li> -->
                           </ul>
                         </li>
-                      {% else %} <li>projects?</li>
+                      {% else %} <!-- <li>projects?</li> solved by the single Feedback menu below -->
                       {% endif %}
                     {% endif %}
                     {% if request.user.agent.agent.related_contexts|length == 1 %}
@@ -313,7 +314,7 @@
                       {% if request.user.agent.agent.joinaproject_requests|length == 1 %}
                         {% with request.user.agent.agent.joinaproject_requests|first as req %}
                           <li id="feedback" >
-                            <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"
+                            <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}"
                                   title="{% trans 'Feedback page with' %} {{ req.project.agent.name }}" >{% trans "Feedback" %}</a>
                           </li>
                         {% endwith %}
@@ -321,10 +322,10 @@
                         <li id="feedback" class="dropdown">
 		                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans "Feedback" %} <b class="caret"></b></a>
 		                    <ul class="subnav dropdown-menu" id="feedback-menu">
-                          {% with request.user.agent.agent.membership_request.id as id %}
-                            {% if id %}
+                          {% with request.user.agent.agent.membership_request.fdc as fdc %}
+                            {% if request.user.agent.agent.membership_request.id and not fdc.project in request.user.agent.agent.joinaproject_requests_projects %}
                               <li id="membership" >
-                                <a href="{% url 'membership_discussion' membership_request_id=id %}"
+                                <a href="{% url 'membership_discussion' membership_request_id=request.user.agent.agent.membership_request.id %}"
                                   title="{% trans 'Your membership process' %}"
                                   >{% trans 'FreedomCoop Feedback' %}</a>
                               </li>
@@ -333,7 +334,7 @@
                           {% for req in request.user.agent.agent.joinaproject_requests %}
                             {% if req.project %}
                               <li class="joinaproject" >
-                                <a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}"
+                                <a href="{% url 'project_feedback' agent_id=req.agent.id join_request_id=req.id %}"
                                   title="{% trans 'Your join-a-project process' %}"
                                   >{{ req.project.agent.name }} {% trans 'Feedback' %}</a>
                               </li>
@@ -405,7 +406,14 @@
 
         {% block body_base %}
             <div class="container">
-                {% include "_messages.html" %}
+                {% if messages %}
+                <a class="close" href="#" data-dismiss="alert">×</a>
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
                 {% block body %}
                 {% endblock %}
             </div>

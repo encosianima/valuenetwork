@@ -4,6 +4,7 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 {% load mptt_tags %}
+{% load filters %}
 
 {% block head_title %}{% trans "Exchanges" %}{% endblock %}
 
@@ -17,43 +18,65 @@
 ul, li {
   min-height: 23px;
 }
+ul.xlist {
+  list-style: none;
+  margin-left: 0;
+}
+ul.tlist {
+  list-style: none;
+  margin-left: 1.4em;
+}
+span.pending, span.complete, span.empty {
+  display: inline;
+  /*float: left;*/
+  padding: 0 0.1em 0 0;
+}
+h3 {
+    font-size: 19.5px;
+}
 
 .totals {
     /*border: solid 2px firebrick;
     background-color: oldlace;
     margin-bottom: 12px;
-    padding-left: 1em;*/
-  padding-bottom: 16px;
+    padding-left: 1em;
   padding-top: 16px;
+  padding-bottom: 16px;
   max-width: 323px;
-  float: left;
-  /*width: 295px;*/
-  margin-right: 13px;
+  float: right;
+  width: 310px;
+  margin-left: 16px;*/
+  display: inline-block;
 }
 .totals table {
   position: relative;
 }
-.totals table thead {
+/*.totals table thead {
   border-bottom: 1px solid #ddd;
+}*/
+.totals table tbody tr {
+  border-top: 1px solid #ddd;
 }
-.totals table tr {
-  border-bottom: 1px solid #ddd;
-}
-.totals table tr:last-child {
-  border-bottom: none;
+.totals table tbody tr:first-child {
+  border-top: none;
 }
 .totals table tr td {
   border-left: 1px solid #ddd;
-  padding: 5px;
+  padding: 5px 10px;
   text-align: right;
   /*font-weight: bold;*/
 }
 .totals table tr th {
   text-align: right;
-  padding: 5px;
+  padding: 5px 10px;
   color: #476B6B;
   border-right: 1px solid #ddd;
   font-weight: normal;
+}
+.totals table tr:first-child th {
+  border-right: none;
+  padding: 0 10px;
+  text-align: left;
 }
 .totals table tr th:last-child {
   border-right: none;
@@ -75,6 +98,30 @@ span.total {
     font-weight: bold;
   color: #476B6B;
 }
+.table thead th {
+    vertical-align: top;
+}
+.table thead th .sub-th {
+    font-size: 90%;
+    color: grey;
+}
+.exlist table.dataTable.table-condensed .sorting::after, .exlist table.dataTable.table-condensed .sorting_asc::after, .exlist table.dataTable.table-condensed .sorting_desc::after {
+    top: 24px;
+    /*right: 6px;*/
+}
+div.dataTables_filter {
+    float: right;
+}
+div.dataTables_length {
+    float: right;
+    margin-right: 4em;
+}
+td.qty {
+    text-align: right;
+}
+th.give {
+    background-color: #F5F5F0;
+}
 
 small {
   font-size: 90%;
@@ -85,9 +132,10 @@ small {
 }
 
 #new_exchange {
-  float: left;
-  /*margin-left: 13px;*/
-  max-width: 797px;
+  /*float: left;
+  margin-left: 13px;
+  max-width: 797px;*/
+  width: 100%;
   /*text-align: right;*/
 }
 
@@ -139,7 +187,7 @@ hr {
 }
 .miniform {
   margin-left: 0px;
-  float: left;
+  /*float: left;*/
 }
 #exchangeForm p {
   margin: 0 0 5px;
@@ -276,7 +324,7 @@ hr {
 {% block body_class %}exchange{% endblock %}
 
 {% block body_base %}
-    <div class="container">
+<div class="container">
         {% include "_messages.html" %}
 		<legend>
         <a class="indent" href="{% url 'members_agent' agent_id=context_agent.id %}">{{ context_agent.name }}</a> > {% trans "Exchanges" %}
@@ -286,18 +334,27 @@ hr {
                   <a class="indent" href="{% url "manage_faircoin_account" resource_id=context_agent.faircoin_resource.id %}">{% trans "Wallet" %}</a>
                 {% endif %}
                 <a class="indent" href="{% url "project_resources" agent_id=context_agent.id %}">{% trans "Resources" %}</a>
+                {% if request.user.agent.agent in context_agent.managers %}
+                    {% if context_agent.project.fobi_slug and context_agent.project.join_requests %}
+                      <a class="indent" href="{% url 'join_requests' agent_id=context_agent.id %}">{% trans "Join Requests" %}</a>
+                    {% endif %}
+                {% endif %}
               {% endif %}
               {% if request.user.agent.agent.need_projects %}
                   <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
               {% endif %}
             </div>
         </legend>
-        <div class="span12">
-          {% if request.user.agent.agent in context_agent.managers or request.user.is_staff %}
-            <div class="totals infobox"><h3>
+
+    <div class="span12">
+        <div class="span8" style="margin-left:0;">
+          {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent or request.user.is_superuser %}
+            <div class="totals infobox" style="min-width:320px; padding-bottom:13px;">
+              <span class="showhide" id="sh-totals" style="float:right;">(SHOW)</span>
+              <h3>
               {% trans "Totals:" %}
               </h3>
-              {% if not exchanges %}
+              {% if not exchanges_by_type %}
                 <p>
                   {% trans "There are no exchanges to count..." %}
                 </p>
@@ -306,41 +363,65 @@ hr {
                 <thead>
                   <tr>
                     <th>{% trans "" %} &nbsp; </th>
-                    <th>
-                      <b>{% trans "Incoming:" %}</b>
-                    </th>
-                    <th>
-                      <b>{% trans "Outgoing:" %}</b>
-                    </th>
-                    <th>
-                      <b style="font-size:110%">{% trans "Balance:" %}</b>
-                    </th>
-                    {% if request.user.is_superuser %}
-                      <th>
-                         <!-- {% trans "(superusers debug)" %} -->
-                      </th>
-                    {% endif %}
+
+                    {% for tt in total_transfers %}
+                      {% if tt.name %}
+                        <th>
+                              <b style="font-size:110%">{{ tt.name }}:</b>
+                        </th>
+                      {% endif %}
+                    {% endfor %}
                   </tr>
                 </thead>
                 <tbody>
-                  {% for tt in total_transfers %}
-                    {% if tt.name %}
-                      {% if tt.clas == 'each' %}
-
-                      {% else %}
-                          <tr>
-                            <th><b>{{ tt.name }}:</b><br/><small>{% trans "commited" %}</small></th>
-
-                            <td>{{ tt.income }}<br/>{% if tt.incommit %}(+{{ tt.incommit }}){% else %}&nbsp;{% endif %}</td>
-                            <td>{{ tt.outgo }}<br/>{% if tt.outcommit %}(-{{ tt.outcommit }}){% else %}&nbsp;{% endif %}</td>
-                            <td><b>{{ tt.balance }}</b><br/>{% if tt.balnote %}¿{{ tt.balnote }}?{% else %}&nbsp;{% endif %}</td>
-                            {% if request.user.is_superuser %}
-                              <td><small>{{ tt.debug }}</small></td>
-                            {% endif %}
-                          </tr>
+                  <tr>
+                    <th style="min-width: 65px;">
+                      &nbsp; <span class="list" id="list-totals_B"><b style="font-size:110%">{% trans "Balance:" %}</b></span>
+                    </th>
+                    {% for tt in total_transfers %}
+                      {% if tt.name %}
+                          <td>&nbsp; &nbsp; <b style="">{{ tt.balance|safe }}</b>
+                              {% if tt.balnote %}<br/>? {{ tt.balnote }} {{ tt.abbr }}
+                              {% elif not tt.balance|first == '<' %} <b>{{ tt.abbr }}</b> {% elif '' == '>' %}
+                              {% endif %}</td>
                       {% endif %}
-                    {% endif %}
-                  {% endfor %}
+                    {% endfor %}
+                  </tr>
+                  <tr id="list-totals1" class="list">
+                    <th>
+                      <b>{% trans "Incoming:" %}</b><br/><small>{% trans "commited" %}:</small>
+                    </th>
+                    {% for tt in total_transfers %}
+                      {% if tt.name %}
+                        <td>&nbsp; + {{ tt.income }} {{ tt.abbr }}<br/>{% if tt.incommit %}({{ tt.incommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
+                      {% endif %}
+                    {% endfor %}
+                  </tr>
+                  <tr id="list-totals2" class="list">
+                    <th>
+                      <b>{% trans "Outgoing:" %}</b><br/><small>{% trans "commited" %}:</small>
+                    </th>
+                    {% for tt in total_transfers %}
+                      {% if tt.name %}
+                          <td>&nbsp; - {{ tt.outgo }} {{ tt.abbr }}<br/>{% if tt.outcommit %}({{ tt.outcommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
+                      {% endif %}
+                    {% endfor %}
+                  </tr>
+                  {% if request.user.is_superuser %}
+                  <tr id="list-totals3" class="list">
+                    <th style="background:none; text-align:left;">
+                        (debug:)
+                    </th>
+                    {% for tt in total_transfers %}
+                      {% if tt.name %}
+                          <td style="text-align:left;"><small>{{ tt.debug }}</small></td>
+                      {% endif %}
+                    {% endfor %}
+
+                  </tr>
+                  {% endif %}
+
+
                 </tbody>
               </table>
               {% endif %}
@@ -350,10 +431,447 @@ hr {
               <br />{% trans "* Note these totals are meaningful only if the events selected all use the same currency. <br/>(We'll do a multi total per unit-type box soon)" %} -->
 
             </div>
+            <br/><br/>
           {% endif %}
-          {% if request.user.agent.agent in context_agent.managers or request.user.is_staff %}
-          <div id="new_exchange" class="miniform span8">
-            <form id="exchangeForm" style="margin:0;" method="POST" action="">
+        </div>
+
+        <div class="span4">
+
+          <div class="filter miniform">
+            {% comment %}
+            {% if exchanges %}
+                <div>
+                    <a href=" {% url "exchange_events_csv" %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
+                </div>
+            {% endif %}
+            {% endcomment %}
+            <h3 style="margin-bottom:8px;">{% trans "Filters:" %}</h3>
+            <form id="filter-form" action="." method="POST" style="margin-bottom:6px;">
+	            {% csrf_token %}
+                <div id="div_id_start_date" class="control-group" style="display:inline-block; margin-bottom:0;" >
+                    <label for="id_start_date" class="control-label required-field" style="display:inline-block;" >
+                        {% trans "Start:" %}
+                    </label>
+                    <div class="controls" style="display: inline-flex;" >
+                        {{ dt_selection_form.start_date }}
+                    </div> &nbsp;
+                </div>
+                <div id="div_id_end_date" class="control-group" style="display:inline-block; margin-bottom:0;" >
+                    <label for="id_end_date" class="control-label required-field" style="display:inline-block;" >
+                        {% trans "End:" %}
+                    </label>
+                    <div class="controls" style="display: inline-flex;" >
+                        {{ dt_selection_form.end_date }}
+                    </div>
+                </div>
+	            <div class="list" id="list-filter_by_type" style="display:none;">
+                <p><span class="title"> {% trans "Filter by Type" %}:</span>
+                </p>
+                <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
+                {% for x in exchanges_by_type %}
+                  {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent in x.related_agents %}
+                    {% with x.exchange_type as et %}
+                      {% with et.ocp_record_type.get_ancestors|slice:"5:6"|first as useca %}
+                        {% ifchanged useca %}
+                          <h5>{{ useca.name }}</h5>
+                        {% endifchanged %}
+                      {% endwith %}
+                      {% ifchanged et.ocp_record_type and et.ocp_record_type.name %}
+                        <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {% if not et.ocp_record_type %}{{ et }} (!){% else %}{{ et.ocp_record_type.name }}{% endif %}</p>
+                      {% endifchanged %}
+                    {% endwith %}
+                  {% endif %}
+                {% endfor %}
+                </div>
+
+{% comment %}
+                {% if references %}
+	            <p class="title"> {% trans "Accounting Reference" %} </p>
+	            {% for ar in references %}
+	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
+	            {% endfor %}
+	            {% endif %}
+{% endcomment %}
+
+                <div style="float:right; margin-top:5px;">
+                    <span class="title"> {% trans "by type:" %}</span> &nbsp; <span class="showhide" id="sh-filter_by_type" >(SHOW)</span>
+                </div>
+	            <input type="hidden" id="categories" name="categories" value=" {{ selected_values }} " />
+	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}"
+                       style="float:left; margin-bottom:5px;"/>
+            </form>
+          </div>
+        </div>
+    </div>
+    <div class="span12">
+
+      <!-- </div> -->
+      <div class="exlist" style="">
+      {% if exchanges_by_type %}
+        <h3>
+          {% trans "List of Exchanges" %}{% if not user.is_staff and not request.user.agent.agent in context_agent.managers and not request.user.agent.agent == context_agent %}
+            <span>({% trans "related to you" %})</span>
+            {% endif %}: &nbsp;<span style="font-size:80%" class="small">({% trans "listing" %} {{ exchanges.count }} of {{ exchanges_by_type.count }})</span>
+        </h3>
+        <table id="exchanges" style="width: 100%;" class="table table-bordered table-hover table-condensed cell-border order-column stripe" >
+        <thead>
+            <th>{% trans "State" %}</th>
+            <th>{% trans "Date" %}</th>
+            <th>{% trans "Action" %}</th>
+            <th>{% trans "Agent" %}</th>
+            <th class="give">{% trans "Give" %}<br/>
+                <span class="sub-th">{% trans "Qty" %}</span>
+            </th>
+            <th class="give"><br/><span class="sub-th">{% trans "Resource" %}</span></th>
+            <th class="give"><br/><span class="sub-th">{% trans "Last date" %}</span></th>
+            <th class="receive">{% trans "Receive" %}<br/>
+                <span class="sub-th">{% trans "Qty" %}</span>
+            </th>
+            <th class="receive"><br/><span class="sub-th">{% trans "Resource" %}</span></th>
+            <th class="receive"><br/><span class="sub-th">{% trans "Last date" %}</span></th>
+        </thead>
+        <tbody>
+        {% for x in exchanges %}
+            {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent or request.user.is_superuser %}
+                <tr>
+                    <td>
+
+                            <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"
+                               class="{{ x.statuss }}" >
+                                {{ x.statuss|title }}
+                            </a>
+
+                        {% if user == x.created_by or user.is_superuser%}
+                            <!-- <a class="btn btn-info btn-mini" href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a> -->
+                            {% if x.is_deletable %}
+                                <form
+                                    style="display: inline;"
+                                    class="delete-form"
+                                    id="deleteForm{{ exchange.id }}"
+                                    action="{% url "delete_exchange" exchange_id=x.id %}"
+                                    method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" id="next" name="next" value="exchanges-all" />
+                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >{% trans "X" %}</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ x.start_date|date:"Y-m-d" }}
+                    </td>
+                    <td>
+                        {{ x.exchange_type|show_name:context_agent|safe }}
+                        {% if x.join_request %}
+                            {% trans "shares" %}
+                            <a href="{% url "project_feedback" agent_id=context_agent.id join_request_id=x.join_request.id %}"
+                               style="font-weight:bold;">
+                            {% trans "Request" %}
+                            </a>
+                        {% else %}
+
+                        {% endif %}
+                    </td>
+                    <td class="agent">
+                        {% if x.join_request %}
+                            {% if context_agent == x.join_request.project.agent %}
+                                <a href="{% url "members_agent" agent_id=x.join_request.agent.id %}" style="font-weight:bold;">
+                                    {{ x.join_request.agent.name }}
+                                </a>
+                            {% else %}
+                                <a href="{% url "members_agent" agent_id=x.join_request.project.agent.id %}"
+                                   style="font-weight:bold;">
+                                    {{ x.join_request.project.agent.name }}</a>
+                            {% endif %}
+
+                        {% else %}
+                            {% if x.txpay %}
+                                {% if x.txpay.to_agent == context_agent %}
+                                  {% if x.txpay.from_agent %}
+                                    <a href="{% url "members_agent" agent_id=x.txpay.from_agent.id %}" style="font-weight:bold;">
+                                        {{ x.txpay.from_agent }}</a>
+                                  {% else %}
+                                    {% trans "?" %}
+                                  {% endif %}
+                                {% elif x.txpay.to_agent %}
+                                    <a href="{% url "members_agent" agent_id=x.txpay.to_agent.id %}" style="font-weight:bold;">
+                                        {{ x.txpay.to_agent }}</a>
+                                {% else %}
+                                    {% trans "?" %}
+                                {% endif %}
+                            {% else %}
+                                {% for ag in x.related_agents %}
+                                    {% if ag and not ag == context_agent %}
+                                        <a href="{% url "members_agent" agent_id=ag.id %}" style="font-weight:bold;">
+                                                    {{ ag }}</a>
+                                        {% if ag and not forloop.last %}<br/>{% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endif %}
+
+                    </td>
+                    <td class="give qty">
+                        {% if x.slots %}
+                            {% for slot in x.slots %}
+                                {% if context_agent in slot.agents_from %}
+                                    {% if slot.total_com_unit %}
+                                        {{ slot.total_com }}
+                                    {% else %}
+                                        z
+                                    {% endif %}
+                                {% elif not slot.agents_from %}
+                                  {% if x.join_request %}
+                                    {% if context_agent == x.join_request.agent %}
+                                        jr:{{ x.join_request }}
+                                    {% elif context_agent == x.join_request.project.agent %}
+                                        {{ x.join_request.payment_amount }}
+                                    {% else %}
+                                        jr?:{{ x.join_request }}
+                                    {% endif %}
+                                  {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                          ?
+                        {% endif %}
+                    </td>
+                    <td class="give">
+                        {% if x.slots %}
+                            {% for slot in x.slots %}
+                                {% if context_agent in slot.agents_from %}
+                                    {% if slot.total_com_unit %}
+                                        {{ slot.total_com_unit|safe }}
+                                    {% else %}
+                                        z
+                                    {% endif %}
+                                {% elif not slot.agents_from %}
+                                  {% if x.join_request %}
+                                    {% if context_agent == x.join_request.agent %}
+                                        jr:{{ x.join_request }}
+                                    {% elif context_agent == x.join_request.project.agent %}
+                                        {{ x.join_request.project.shares_type }}
+                                    {% else %}
+                                        jr?:{{ x.join_request }}
+                                    {% endif %}
+                                  {% elif x.transfers.all|length == 1 %}
+                                    {% with x.transfers.all|first as tx %}
+                                      {% if tx.from_agent == context_agent %}
+                                        <span class="{{ tx.status }}">&#9679;</span>
+                                        {% if tx.quantity %}
+                                            {{ tx.quantity }}
+                                            {% if tx.actual_quantity and not tx.actual_quantity == tx.quantity %}({{ tx.actual_quantity }}){% endif %}
+                                        {% elif tx.value %}
+                                            {{ tx.value }}
+                                            {% if tx.actual_value and not tx.actual_value == tx.value %}({{ tx.actual_value }}){% endif %}
+                                        {% else %}
+                                            n
+                                        {% endif %}
+                                      {% else %}
+                                        <!-- tx:{{ tx }} -->
+                                      {% endif %}
+                                    {% endwith %}
+                                  {% elif x.transfers.all|length > 1 %}
+                                    <!-- txs:{{ x.transfers.all }} -->
+                                  {% endif %}
+                                {% else %}
+
+                                {% endif %}
+                            {% endfor %}
+                        {% elif x.transfers.all %} tr!
+                            {% for tx in x.transfers.all %}
+                                {% if tx.from_agent == context_agent or x.join_request.project.agent == context_agent and not tx.from_agent %}
+                                    <span class="{{ tx.status }}">&#9679;</span>
+                                        {% if tx.quantity %}
+                                            {{ tx.quantity }}
+                                            {% if tx.actual_quantity and not tx.actual_quantity == tx.quantity %}({{ tx.actual_quantity }}){% endif %}
+                                        {% elif tx.value %}
+                                            {{ tx.value }}
+                                            {% if tx.actual_value and not tx.actual_value == tx.value %}({{ tx.actual_value }}){% endif %}
+                                        {% elif x.join_request %}
+                                            {{ x.join_request.payment_amount }}
+                                        {% else %}
+                                            x
+                                        {% endif %}
+                                        {% if tx.resource %}
+                                            {% if tx.resource.resource_type.ocp_artwork_type.is_account %}
+                                                {% if tx.resource.resource_type.unit.name == 'Each' %}
+                                                    {{ tx.resource.resource_type.unit_of_price }}
+                                                {% else %}
+                                                    {{ tx.resource.resource_type.unit }}
+                                                {% endif %}
+                                            {% else %}
+                                                {{ tx.resource }}
+                                            {% endif %}
+                                        {% elif tx.resource_type %}
+                                            {{ tx.resource_type }}
+                                        {% else %}
+                                            {% if tx.unit_of_quantity %}
+                                                u:{{ tx.unit_of_quantity }}
+                                            {% elif tx.transfer_type.is_share %}
+                                                {{ tx.transfer_type.is_share.resource_type }}
+                                            {% else %}
+                                                ? {{ tx }}
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if tx and not forloop.last %}<br/>{%  endif %}
+                                {% elif x.transfers.all|length == 1 %}
+                                    <!-- <span class="{{ transfer.status }}">&#9679;</span>
+                                        {{ transfer }} -->
+                                {% endif %}
+                                <!--({{ x.transfers.all|length }})-->
+
+                            {% endfor %}
+                        {% else %} empty
+                        {% endif %}
+                        {% if x.work_events %}
+                            {% for event in x.work_events %}
+                                {% if event.from_agent == context_agent %}
+                                    {{ event }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td class="give date">
+                        {% if x.slots %}
+                            {% for slot in x.slots %}
+                                {% if context_agent in slot.agents_from %}
+                                    <span class="{{ slot.status }}">&#9679;</span> {{ slot.last_date }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td class="receive qty">
+                        {% if x.slots %}
+                            {% for slot in x.slots %}
+                                {% if context_agent in slot.agents_to %}
+                                    {% if slot.total_com_unit %}
+                                        {{ slot.total_com }}
+                                    {% else %}
+                                        z
+                                    {% endif %}
+                                {% elif not slot.agents_to %}
+                                  {% if x.join_request %}
+                                    {% if context_agent == x.join_request.agent %}
+                                        jr:{{ x.join_request.payment_amount }} {{ x.join_request.project.shares_type }}
+                                    {% elif context_agent == x.join_request.project.agent %}
+                                        {{ x.join_request.total_price }}
+                                    {% endif %}
+                                  {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td class="receive">
+                        {% if x.slots %}
+                            {% for slot in x.slots %}
+                                {% if context_agent in slot.agents_to %}
+                                    {% if slot.total_com_unit %}
+                                        {{ slot.total_com_unit|safe }}
+                                    {% else %}
+                                        z
+                                    {% endif %}
+                                {% elif not slot.agents_to %}
+                                  {% if x.join_request %}
+                                    {% if context_agent == x.join_request.agent %}
+                                        jr:{{ x.join_request.payment_amount }} {{ x.join_request.project.shares_type }}
+                                    {% elif context_agent == x.join_request.project.agent %}
+                                        {{ x.join_request.payment_unit }}
+                                    {% endif %}
+                                  {% elif x.transfers.all|length == 1 and slot.agents_from %}
+                                    {% with x.transfers.all|first as tx %}
+                                      {% if tx.to_agent == context_agent %}
+                                        {% if tx.quantity %}
+                                            {{ tx.quantity }}
+                                            {% if tx.actual_quantity and not tx.actual_quantity == tx.quantity %}({{ tx.actual_quantity }}){% endif %}
+                                        {% elif tx.value %}
+                                            {{ tx.value }}
+                                            {% if tx.actual_value and not tx.actual_value == tx.value %}({{ tx.actual_value }}){% endif %}
+                                        {% else %}
+                                            n
+                                        {% endif %}
+                                      {% else %}
+                                        tx:{{ tx }}
+                                      {% endif %}
+                                    {% endwith %}
+                                  {% elif x.transfers.all|length > 1 %}
+                                    <!-- txs:{{ x.transfers.all }} -->
+                                  {% endif %}
+                                {% else %}
+
+                                {% endif %}
+                            {% endfor %}
+                        {% elif x.transfers.all %} tr!
+                            {% for tx in x.transfers.all %}
+                                {% if tx.to_agent == context_agent or x.join_request.agent == context_agent and not tx.to_agent %}
+                                    <span class="{{ tx.status }}">&#9679;</span>
+                                    {% if tx.quantity %}
+                                        {{ tx.quantity }}
+                                        {% if tx.actual_quantity and not tx.actual_quantity == tx.quantity %}({{ tx.actual_quantity }}){% endif %}
+                                    {% elif tx.value %}
+                                        {{ tx.value }}
+                                        {% if tx.actual_value and not tx.actual_value == tx.value %}({{ tx.actual_value }}){% endif %}
+                                    {% elif x.join_request %}
+                                        {{ x.join_request.payment_amount }}
+                                    {% else %}
+                                        x
+                                    {% endif %}
+
+                                    {% if tx.resource %}
+                                        {% if tx.resource.resource_type.ocp_artwork_type.is_account %}
+                                            {% if tx.resource.resource_type.unit.name == 'Each' %}
+                                                {{ tx.resource.resource_type.unit_of_price }}
+                                            {% else %}
+                                                {{ tx.resource.resource_type.unit }}
+                                            {% endif %}
+                                        {% else %}
+                                            {{ tx.resource }}
+                                        {% endif %}
+                                    {% elif tx.resource_type %}
+                                        {{ tx.resource_type }}
+                                    {% else %}
+                                        {% if tx.unit_of_quantity %}
+                                            u:{{ tx.unit_of_quantity }}
+                                        {% elif tx.transfer_type.is_share %}
+                                            {{ tx.transfer_type.is_share.resource_type }}
+                                        {% else %}
+                                            ? {{ tx }}
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if tx and not forloop.last %}<br/>{%  endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %} empty
+                        {% endif %}
+                        {% if x.work_events %}
+                            {% for event in x.work_events %}
+                                {% if event.to_agent == context_agent %}
+                                    {{ event }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td class="receive date">
+                        {% if x.slots %}
+                            {% for slot in x.slots %}
+                                {% if context_agent in slot.agents_to %}
+                                    <span class="{{ slot.status }}">&#9679;</span> {{ slot.last_date }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endif %}
+		{% endfor %}
+        </tbody>
+        </table>
+      {% endif %}
+      </div>
+
+      {% if False and request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent and request.user.is_superuser %}
+            <p> &nbsp; </p>
+            <div id="new_exchange" class="miniform">
+            <form id="exchangeForm" style="margin:0; padding-bottom:11px;" method="POST" action="">
                 <h3 style="display:inline-block;">{% trans "Create a new Exchange" %}:</h3> &nbsp;
 
                 <br/>
@@ -472,12 +990,12 @@ hr {
                                     var R_{{ node.id }}_obj = {
                                       "name":"{% if node.resource_type %}{{ node.resource_type.name }}{% else %}{{ node.name }}{% endif %}",
                                       "parent":"{{ node.parent.id }}",
-                                      "description":"{{ node.resource_type.description }}",
+                                      "description":"{{ node.resource_type.description_str|safe }}",
                                       "context":"{{ node.resource_type.context_agent.id }}",
                                       "substi":"{{ node.resource_type.substitutable }}",
                                       "unit":"{{ node.resource_type.unit.ocp_unit_type.id }}",
                                       "price":"{% if node.resource_type.price_per_unit %}{{ node.resource_type.price_per_unit }}{% endif %}",
-                                      "related":"{% if node.ocpArtworkType_material_type %}{{ node.ocpArtworkType_material_type.id }}{% elif node.ocpArtworkType_nonmaterial_type %}{{ node.ocpArtworkType_nonmaterial_type.id }}{% endif %}",
+                                      "related":"{% if node.rel_material_type %}{{ node.rel_material_type.id }}{% elif node.rel_nonmaterial_type %}{{ node.rel_nonmaterial_type.id }}{% endif %}",
                                       "parentrecipe":"{{ node.resource_type.parent.id }}",
                                       "url":"{{ node.resource_type.url }}",
                                       "photo_url":"{{ node.resource_type.photo_url }}",
@@ -536,7 +1054,7 @@ hr {
                                     var S_{{ node.id }}_obj = {
                                       "name":"{% if node.resource_type %}{{ node.resource_type.name }}{% else %}{{ node.name }}{% endif %}",
                                       "parent":"{{ node.parent.id }}",
-                                      "description":"{{ node.resource_type.description }}",
+                                      "description":"{{ node.resource_type.description_str|safe }}",
                                       "context":"{{ node.resource_type.context_agent.id }}",
                                       //"substi":"{{ node.resource_type.substitutable }}",
                                       "unit":"{{ node.resource_type.unit.ocp_unit_type.id }}",
@@ -588,8 +1106,11 @@ hr {
                     {% endif %}
                 </div> <!-- end tabs -->
               </div>
-              {% if False and request.user.is_superuser %}<span style="font-size:0.8em;color:#666;">(debug) <b>Contexts:</b>
-                {% for ag in context_agent.related_all_agents %} {{ ag.name }} {% if not ag.nick == ag.name %}({{ ag.nick }}){% endif %}, {% endfor %}
+              {% if request.user.is_superuser %}<span style="font-size:0.8em;color:#666;">(debug) <b>RelAgents:</b> ({{ context_agent.related_contexts|length }}) <b>Contexts:</b> ({{ context_agent.related_all_agents|length }}) <span class="showhide" id="sh-debug_contexts" >SHOW</span>
+                <div id="list-debug_contexts" class="list">
+                    <b>Contexts:</b> {% for ag in context_agent.related_contexts %} {{ ag.name }} {% if not ag.nick == ag.name %}({{ ag.nick }}){% endif %}, {% endfor %}<br>
+                    <b>Agents:</b> {% for ag in context_agent.related_all_agents %} {{ ag.name }} {% if not ag.nick == ag.name %}({{ ag.nick }}){% endif %}, {% endfor %}
+                </div>
               </span>{% endif %}
               <span id="new_name"></span>
               &nbsp; <input style="display:inline; vertical-align:top; float:right; margin: 0px 0px 7px 5px;" type="submit" name="new_exchange" value="{% trans 'New Exchange' %}" class="btn btn-primary" />
@@ -608,7 +1129,7 @@ hr {
                 <h3><span id="name_action">{% trans "Add a new " %}</span> {% trans "Resource Type:" %}</h3>
               </div>
               <div class="modal-body">
-                <form class="validateMe" id="resourceForm" enctype="multipart/form-data" action="" method="POST" >
+                <form class="validateMe" id="resourceForm" enctype="multipart/form-data" action="{% url "new_resource_type" agent_id=context_agent.id %}" method="POST" >
                   {% csrf_token %}
                   {% for fil in Rtype_form %}
                     <div class="modal-field">
@@ -687,113 +1208,7 @@ hr {
           {% endif %}
 
       </div>
-      <div class="span8">
-		  {% if exchanges %}
-        <h3>
-          {% trans "List of Exchanges" %}{% if not user.is_staff and not request.user.agent.agent in context_agent.managers %}
-            <span>({% trans "related to you" %}):</span>
-          {% else %}: &nbsp;<span style="font-size:80%">{{ exchanges.count }}</span>{% endif %}
-        </h3>
-			  <ul>
-			    {% for x in exchanges %}
-
-            {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent in x.related_agents %}
-                    <li>
-                        <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"><b>{{ x }}</b></a>  {% trans "created by" %} {{ x.created_by }}
-                        {% if user == x.created_by or user.is_superuser%}
-                            <a class="btn btn-info btn-mini" href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a>
-                            {% if x.is_deletable %}
-                                <form
-                                    style="display: inline;"
-                                    class="delete-form"
-                                    id="deleteForm{{ exchange.id }}"
-                                    action="{% url "delete_exchange" exchange_id=x.id %}"
-                                    method="POST" >
-                                    {% csrf_token %}
-                                    <input type="hidden" id="next" name="next" value="exchanges-all" />
-                                    <button style="display: inline;"  class="btn btn-warning btn-mini" title="Delete contribution" >{% trans "Delete" %}</button>
-                                </form>
-                            {% endif %}
-                        {% endif %}
-                    </li>
-                    {% if x.transfers.all %}
-                        <ul>
-                            {% for transfer in x.transfers.all %}
-                                <li>{{ transfer }} </li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                    {% if x.work_events %}
-                        <ul>
-                            {% for event in x.work_events %}
-                                <li>{{ event }} </li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-          {% endif %}
-				{% endfor %}
-			</ul>
-		  {% endif %}
-        </div>
-        <div class="span3 filter miniform">
-{% comment %}
-            {% if exchanges %}
-                <div>
-                    <a href=" {% url "exchange_events_csv" %}?event-ids={{ event_ids }}" id="btn-export" class="btn btn-primary" title="Export filtered list to csv (comma separated value) format" >{% trans "Export CSV File" %}</a>
-                </div>
-            {% endif %}
-{% endcomment %}
-            <h3>{% trans "Filter the List" %}</h3>
-            <form id="filter-form" action="." method="POST">
-	            {% csrf_token %}
-                <div id="div_id_start_date" class="control-group" style="display: inline;" >
-                    <label for="id_start_date" class="control-label required-field" style="display: inline; vertical-align: text-bottom;" >
-                        {% trans "Start date " %}
-                    </label>
-                    <div class="controls" style="display: inline;" >
-                        {{ dt_selection_form.start_date }}
-                    </div>
-                </div>
-                <div id="div_id_end_date" class="control-group" >
-                    <label for="id_end_date" class="control-label required-field" style="display: inline;  vertical-align: text-bottom; " >
-                        {% trans "End date  " %}
-                    </label>
-                    <div class="controls" style="display: inline;" >
-                        {{ dt_selection_form.end_date }}
-                    </div>
-                </div>
-	            <p><input type="checkbox" class="category" id="all" name="all" value="all" {% if select_all %}checked="yes"{% endif %} /> {% trans "All in the date range" %}</p>
-                <p class="title"> {% trans "Filter by Type" %} </p>
-
-                {% for x in exchanges_by_type %}
-                  {% if user.is_staff or request.user.agent.agent in context_agent.managers or request.user.agent.agent in x.related_agents %}
-                    {% with x.exchange_type as et %}
-                      {% with et.ocp_record_type.get_ancestors|slice:"5:6"|first as useca %}
-                        {% ifchanged useca %}
-                          <h5>{{ useca.name }}</h5>
-                        {% endifchanged %}
-                      {% endwith %}
-                      {% ifchanged et.ocp_record_type and et.ocp_record_type.name %}
-                        <p><input type="checkbox" class="category" id="{{ et.id }}" name="{{ et.id }}" value="{{ et.id }}" /> {% if not et.ocp_record_type %}{{ et }} (!){% else %}{{ et.ocp_record_type.name }}{% endif %}</p>
-                      {% endifchanged %}
-                    {% endwith %}
-                  {% endif %}
-
-                {% endfor %}
-{% comment %}
-                {% if references %}
-	            <p class="title"> {% trans "Accounting Reference" %} </p>
-	            {% for ar in references %}
-	                <p><input type="checkbox" class="category" id="{{ ar.code }}" name="{{ ar.code }}" value="{{ ar.code }}" /> {{ ar.name }}</p>
-	            {% endfor %}
-	            {% endif %}
-{% endcomment %}
-	            <input type="hidden" id="categories" name="categories" value=" {{ selected_values }} " />
-	            <input type="submit" id="btn-filter" name="submit" class="btn btn-info" value="{% trans 'Filter' %}" />
-            </form>
-        </div>
-
-    </div>
+</div>
 {% endblock %}
 
 {% block extra_script %}
@@ -803,14 +1218,61 @@ hr {
   <script src="{% static 'js/chosen.jquery.js' %}"></script>
   <script src="{% static 'js/jquery.fancytree-all.min.js' %}"></script>
   <script src="{% static 'js/ocp-trees.js' %}"></script>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.css"/>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.js"></script>
+
 {% endblock %}
 
 {% block extra_body %}
 	{{ block.super }}
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
-	$(document).ready(function(){
+  $(document).ready(function(){
+
+    $("#exchanges").DataTable({
+        stateSave: true,
+        autoWidth: true,
+        order: [[1, 'desc']],
+        dom: 'rfltBip', //'B<"clear">lfrtip',
+        buttons: [
+            'colvis',
+            {
+                extend: 'pdf',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+            {
+                extend: 'csv',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            },
+        ],
+        "columnDefs": [
+            {
+                // The `data` parameter refers to the data for the cell (defined by the
+                // `data` option, which defaults to the column being worked with, in
+                // this case `data: 0`.
+                "render": function ( data, type, row ) {
+                    //arr = data.split(', ');
+                    //if (arr.length == 2){
+                    //    return arr[1]+', '+arr[0];
+                    //} else {
+                    //    return data +' ('+ row+')';
+                    //}
+                    return data
+                },
+                "targets": 1
+            }
+        ]
+    });
+
 
     $( "#help" ).toggle( function(){
         $('#help-content').show("slide", { direction: "right" }, "slow" );
@@ -857,8 +1319,8 @@ hr {
     $(".list").hide();
     $(".showhide").click(function(event){
       var id = event.target.id;
-      var listId = '#list-' + id.split('-')[1];
-      $(listId).slideToggle(200);
+      var listId = 'list-' + id.split('-')[1];
+      $("[id^="+listId+"]").slideToggle(200);
       $(this).text($(this).text() == '(SHOW)' ? '(HIDE)' : '(SHOW)');
     });
 
@@ -917,7 +1379,7 @@ hr {
 		});
 
 
-	}); // end document.ready
-    </script>
+  }); // end document.ready
+</script>
 
 {% endblock %}

@@ -21,7 +21,8 @@ urlpatterns = [
     url(r"^accounting/", include("valuenetwork.valueaccounting.urls")),
     url(r"^admin/", include(admin.site.urls)),
     url(r"^account/", include("account.urls")),
-    url(r"^notification/", include("pinax.notifications.urls")),
+    #url(r"^notification/", include("pinax.notifications.urls")),
+    url(r"^notifications/", include("pinax.notifications.urls", namespace="pinax_notifications")),
     url(r"^equipment/", include("valuenetwork.equipment.urls")),
     url(r"^board/", include("valuenetwork.board.urls")),
     url(r"^work/", include("work.urls")),
@@ -39,6 +40,8 @@ urlpatterns = [
     #url(r'^joinaproject/(?P<form_slug>.+)/thanks/$', work.views.joinaproject_thanks, name='joinaproject_thanks'), # TemplateView.as_view(template_name='work/joinaproject_thanks.html')),
 
     url(r"^total-shares/(?P<project_slug>[-\w]+)/$", work.views.project_total_shares, name="project_total_shares"),
+    url(r"^update-share-payment/(?P<project_slug>[-\w]+)/$", work.views.project_update_payment_status, name="project_update_payment_status"),
+    url(r"^member-shares/$", work.views.member_total_shares, name="member_total_shares"),
 
     # View URLs
     url(r'^fobi/', include('fobi.urls.view')),

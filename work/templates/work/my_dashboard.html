@@ -202,9 +202,40 @@ th, td {
         {% trans "As an <b>active participant</b> in a project, you can collaborate doing tasks." %}
       </p> -->
     {% elif agent.is_participant_candidate %}
-      <p>
-        {% trans "As a <b>participant candidate</b> in a project, you should be accepted by the project coordinators before you can collaborate doing project tasks." %}
-      </p>
+        {% for req in agent.project_join_requests.all %}
+          {% if req.state == "new" %}
+            <div style="margin-bottom: 13px;">{% trans "As a participant <b>candidate</b> in the" %}
+                <a href="{% url 'members_agent' agent_id=req.project.agent.id %}"><b>{{ req.project.agent.name }}</b></a>
+            {% if 'faircoins' in req.project.services %}
+              {% if not agent.faircoin_resource %}
+                    {% trans "project, you need an internal Faircoin Account to fill it and pay your shares:" %}
+                    <form class="action-form" style="display: inline-block;"
+                          action="{% url "request_faircoin_address" agent_id=req.agent.id %}"
+                          method="POST" >
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="feedback">
+                        <input type="hidden" name="jn_req" value="{{ req.id }}">
+                        <button class="btn btn-primary" title="Create FairCoin Address" >
+                            {% trans "Request FairCoin Address" %}
+                        </button>
+                    </form>
+              {% elif req.pending_shares %}
+                {% trans "project, you still have" %} {{ req.pending_shares }} {% trans "pending shares to buy with your new" %}
+                <a href="{% url "manage_faircoin_account" resource_id=agent.faircoin_resource.id %}"
+                   class="btn btn-primary">{% trans "Faircoin Account" %}</a>
+              {% else %}
+                {% trans "project, you should be accepted by its coordinators before you can use all the project tools." %}
+                <a href="{% url "project_feedback" agent_id=agent.id join_request_id=req.id %}"
+                   class="btn btn-primary">{{ req.project.abbrev_name }} {% trans "Feedback" %}</a>
+              {% endif %}
+            {% else %}
+                {% trans "project, you should be accepted by its coordinators before you can use all the project tools." %}
+                <a href="{% url "project_feedback" agent_id=agent.id join_request_id=req.id %}"
+                   class="btn btn-primary">{{ req.project.abbrev_name }} {% trans "Feedback" %}</a>
+            {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
     {% endif %}
     <p>
       {% trans "The options you already have in OCP are:" %}
@@ -221,6 +252,7 @@ th, td {
         <li><h3><a href="{% url 'your_projects' %}">{% trans 'Your projects' %}</a></h3>
           {% trans "Here you can see the projects you are involved in and their structure. If you are a project coordinator you can manage your project also here." %}
         </li>
+        {% if agent.need_tasks and agent.is_participant %}
         <li><h3><a href="{% url 'project_work' %}">{% trans 'Your project tasks' %}</a></h3>
           {% trans "A complete list of tasks related to the projects you are involved in." %}
         </li>
@@ -230,7 +262,7 @@ th, td {
           <li><h3><a href="{% url "plan_work" rand=1 %}">{% trans 'Plan project proceses' %}</a> </h3>
             {% trans "Here you can define a work plan for your managed project and setup the needed process with work orders and tasks." %}
           </li>
-        {% endif %}
+        {% endif %}{% endif %}
         <li><h3><a href="#">{% trans "OCP project's tutorial" %}</a> <small><em>{% trans "(coming soon)" %}</em></small></h3>
           {% trans "To learn how to use OCP and structure your project and create process plans for it" %}
         </li>
@@ -266,9 +298,14 @@ th, td {
         </h3>
         <ul>
         {% for req in agent.joinaproject_requests %}
-          <li><h4><a href="{% url 'project_feedback' agent_id=req.project.agent.id join_request_id=req.id %}">
+          <li><h4><a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
             {% trans "Feedback with" %} {{ req.project.agent.name }}</a>
-          </h4></li>
+          </h4><span class="normal">
+              {% if not req.state == "accepted" %}({{ req.state }}) {% endif %}
+            {% get_comment_count for req as comment_count %}
+            {% if comment_count %}
+              &nbsp; {{ comment_count }} {% trans "comment" %}{% if comment_count > 1 %}s {% endif %}
+            {% endif %}</span></li>
         {% endfor %}
         </ul>
       </div>
@@ -283,7 +320,7 @@ th, td {
   {% endif %}
 
     {% with request.user.agent.agent.membership_request as mreq %}
-    {% if mreq %}
+    {% if False and mreq %}
     <div id="home-membership" class="home-block" >
       <h3>
             <a href="{% url 'membership_discussion' membership_request_id=mreq.id %}">{% trans "Membership" %}</a>

@@ -1,0 +1,1 @@
+{% autoescape off %}{% load i18n %}{% blocktrans %}[{{ site_name }}] Welcome to FreedomCoop{% endblocktrans %}{% endautoescape %}

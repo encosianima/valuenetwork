@@ -363,31 +363,35 @@ class ValueEquationTest(TestCase):
                 serialized_filters[bucket.id] = serialized_filter
             dist_date = datetime.date.today()
             pattern = self.pattern
-            fc_unit = Unit(
+            fc_unit, c = Unit.objects.get_or_create(
                 unit_type="value",
-                abbrev="FairCoin",
+                abbrev="fair",
                 name="FairCoin",
                 )
-            fc_unit.save()
-            faircoin_rt = EconomicResourceType(
+            if c: print "t- created Unit: 'FairCoin'"
+            #fc_unit.save()
+            faircoin_rt, c = EconomicResourceType.objects.get_or_create(
                 name="FairCoin",
                 unit_of_price=fc_unit,
                 price_per_unit=Decimal('1'),
                 behavior='dig_curr',
                 )
-            faircoin_rt.save()
-            faircoin_address_rt = EconomicResourceType(
+            if c: print "t- created EconomicResourceType: 'FairCoin'"
+            #faircoin_rt.save()
+            faircoin_address_rt, c = EconomicResourceType.objects.get_or_create(
                 name="FairCoin Address",
                 unit_of_price=fc_unit,
                 price_per_unit=Decimal('1'),
                 behavior='dig_acct',
                 )
-            faircoin_address_rt.save()
-            owner_role = AgentResourceRoleType(
-                name="owner",
+            if c: print "t- created EconomicResourceType: 'FairCoin Address'"
+            #faircoin_address_rt.save()
+            owner_role, c = AgentResourceRoleType.objects.get_or_create(
+                name="Owner",
                 is_owner=True,
                 )
-            owner_role.save()
+            if c: print "t- created AgentResourceRoleType: "+str(owner_role)
+            #owner_role.save()
             if testing:
                 address = context_agent.create_fake_faircoin_address()
             else:

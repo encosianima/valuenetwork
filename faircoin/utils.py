@@ -1,11 +1,14 @@
 import requests, json, logging, time
 from random import randint
+from decimal import Decimal
 
 from django.conf import settings
 
 url = "http://localhost:8069"
-timeout = 60
+timeout = 300
 logger = logging.getLogger('ocp')
+
+FAIRCOIN_DIVISOR = Decimal("100000000.00")
 
 # Send command to the daemon.
 def send_command(cmd, params = [] ):
@@ -54,6 +57,14 @@ def network_fee():
         return response
     """
     return 1000000
+
+def network_fee_fairs():
+    return Decimal(network_fee()) / FAIRCOIN_DIVISOR
+
+def estimate_fee(address_origin, address_end, amount):
+    format_dict = [address_origin, address_end, amount]
+    response = send_command('estimate_fee', format_dict)
+    return response
 
 # A mock function for tests in valueaccounting app.
 def send_fake_faircoins(address_origin, address_end, amount):
@@ -142,3 +153,34 @@ def get_unused_addresses():
 
 def get_address_index(address):
     return send_command('get_address_index', [address])
+
+
+def faircoin_rt():
+    from valuenetwork.valueaccounting.models import EconomicResourceType
+    fc = EconomicResourceType.objects.get(name='FairCoin')
+    return fc
+
+
+def share_price_in_fairs(jn_req):
+    from valuenetwork.valueaccounting.models import Unit
+    from general.models import UnitRatio
+    unitFc = Unit.objects.get(abbrev='fair')
+    unit = jn_req.project.shares_type().unit_of_price
+    if not unit == unitFc:
+        try:
+            ratio = UnitRatio.objects.get(in_unit=unitFc.gen_unit, out_unit=unit.gen_unit).rate
+            price = jn_req.project.shares_type().price_per_unit*ratio
+        except:
+            #print "No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed..."
+            #logger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
+            try:
+                ratio = UnitRatio.objects.get(in_unit=unit.gen_unit, out_unit=unitFc.gen_unit).rate
+                price = jn_req.project.shares_type().price_per_unit/ratio
+            except:
+                print "No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting..."
+                logger.info("No UnitRatio with out_unit 'faircoin' and in_unit: "+str(unit.gen_unit)+". Aborting...")
+                raise ValidationError("Can't find the UnitRatio to convert the price to faircoin from "+str(unit))
+        amount = round(price, 4)
+    else:
+        amount = jn_req.project.shares_type().price_per_unit
+    return amount

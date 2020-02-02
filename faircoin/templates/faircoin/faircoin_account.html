@@ -55,6 +55,13 @@
     margin: 2px;
 }
 
+.table-transparent th {
+    background: none;
+    text-align: right;
+    padding: 4px 8px;
+    width: 40%;
+}
+
 </style>
 
 {% endblock %}
@@ -134,20 +141,12 @@
                     {% if resource.owner == request.user.agent.agent or resource.owner in request.user.agent.agent.managed_projects %}
 	                  <tr>
                         <th style="text-align: right;">{% trans "Balance" %}</th>
-                        {% if wallet %}
-                          {% if confirmed_balance and unconfirmed_balance %}
+                        {% if wallet and is_wallet_address %}
                             {% if not confirmed_balance == unconfirmed_balance %}
                                 <td>{{ confirmed_balance }} (-> {{ unconfirmed_balance }}) {{ resource.unit_of_quantity }}</td>
                             {% else %}
                                 <td>{{ confirmed_balance }} {{ resource.unit_of_quantity }}</td>
                             {% endif %}
-                          {% else %}
-                            {% if not confirmed_balance == unconfirmed_balance %}
-                                <td>{{ confirmed_balance }} (-> {{ unconfirmed_balance }}) {{ resource.unit_of_quantity }}</td>
-                            {% else %}
-                                <td>{{ confirmed_balance }} {{ resource.unit_of_quantity }}</td>
-                            {% endif %}
-                          {% endif %}
                         {% else %}
                             <td><span class="error">{% trans "Not available now" %}</span></td>
                         {% endif %}
@@ -242,41 +241,58 @@
 
 	        </div>
 
-	        <div id="coins" class="span6 info">
+	        <div id="coins" class="span6">
 
                 {% if payment_due %}
                     <div class="share-explanation">
                         <h3>{% trans "Get your membership shares:"  %}</h3>
-                        <p>{% trans "You've requested to initially contribute buying" %} <b>{{ number_of_shares }}
+                        <p>{% trans "You've requested to buy" %} <b>{{ number_of_shares }}
                         {% if number_of_shares == 1 %}{% trans "Share" %}{% else %}{% trans "Shares" %}{% endif %}</b>
-                        {% trans "in the Freedom Coop's membership form. This means"  %} <b>{{ share_price }} ƒ</b> {% trans "(faircoins)." %}
-                        {% trans "As soon as you have this amount here in your Faircoin account at OCP, you'll see below the <b>button to pay your shares</b>, click on it and you'll become a full member of Freedom Coop." %}
+                        {% trans "in the" %} {{ project.agent.name }}
+                            <b><a href="{% url 'project_feedback' agent_id=resource.owner.id join_request_id=jn_req.id %}">{% trans "membership request" %}</a></b>.<br />
+                            {% trans "This means"  %}: <b>{{ share_price }} ƒ</b>
+                        <!-- {% trans "As soon as you have this amount here in your Faircoin account at OCP, you'll see below the <b>button to pay your shares</b>, click on it and you'll become a full member of" %} {{ project.agent.name }}. -->
 
-                        {% if can_pay %}
-                            <form
-                                class="pay_for_shares"
-                                id="sharePaymentForm"
-                                action="{% url "share_payment" agent_id=agent.id %}"
-                                method="POST" >
-                                {% csrf_token %}
-                                <button style="display: inline;"  class="btn btn-primary" title="Pay for shares" >
-                                    {% trans "Pay your shares with" %} {{ share_price }} ƒ
-                                </button>
-                            </form>
+                        {% if jn_req.check_user_pass %}
+                            <br/><b class="error">{% trans "You need to change your initial random password!" %}</b>
+                            &nbsp; <a class="btn btn-primary" href="{% url "work_account_password" %}"
+                            style="display:inline; position:relative; top:-1px;" >{% trans "Change Password" %}</a>
                         {% else %}
-                            <br/>
-                            <p><em><b>
-                            {% blocktrans %}
-                                Your FairCoin account balance of {{ confirmed_balance }} ƒ
-                                is too low to pay {{ share_price }} ƒ now.
-                                If you transfer enough Faircoins into your account, you'll see here the button to pay your shares.
-                            {% endblocktrans %}
-                            </em></b></p>
+                            {% if project.agent.faircoin_resource.faircoin_address.is_mine %}
+                                {% if can_pay %}
+                                    <form
+                                        class="pay_for_shares"
+                                        id="sharePaymentForm"
+                                        action="{% url "share_payment" agent_id=agent.id %}"
+                                        method="POST" >
+                                        {% csrf_token %}
+                                        <input type="hidden" name="join_request" value="{{ jn_req.id }}">
+                                        <button style="display: inline;"  class="btn btn-primary" title="Pay for shares" >
+                                            {% trans "Pay your shares with" %} {{ share_price }} ƒ
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <br/>
+                                    <p><em><b>
+                                    {% blocktrans %}
+                                        Your FairCoin account balance of {{ confirmed_balance }} ƒ
+                                        is too low to pay {{ share_price }} ƒ now.<br>
+                                        If you transfer <span class="error">{{ pending_amount }} ƒ</span> into your account, you'll see here the button to pay your shares.
+                                    {% endblocktrans %}
+                                    </em></b></p>
+                                {% endif %}
+                            {% else %}
+                                <br/><b class="error">{% trans "The project's faircoin address is not of this wallet?" %}</b>
+                            {% endif %}
                         {% endif %}
                     </div>
                 {% endif %}
 
                 {% if send_coins_form %}
+                  <div class="miniform">
+                    <h3>
+                        {% trans "Send Faircoins:" %}
+                    </h3>
                     <form id="sendCoinsForm" method="POST" action={% if payment_due %}"#" class="disabled" style="color:#888;" {% else %}"{% url "transfer_faircoins" resource_id=resource.id %}" {% endif %}>
                         {% if payment_due %}
                           {{ send_coins_form|as_bootstrap }}
@@ -289,26 +305,31 @@
                           <em>{% trans "(sorry, the wallet is not available now, try later)" %}</em>
                         {% else %}
                           {% csrf_token %}
-                      <div class="span6 resource">
-                        <table class="table table-bordered" >
+
+                        <table class="table-transparent" >
                           {% for field in send_coins_form  %}
                             <tr>
-                              <th style="text-align:left;">{{ field.label_tag }}</th>
+                              <th>{{ field.label_tag }}</th>
                               <td>{{ field }}</td>
                             <tr>
                           {% endfor %}
-                        </table>
-                      </div>
                           {% if not confirmed_balance == "Not accessible now" %}
-                              <br/>	
-                              <span><input id="id_send_all" type="checkbox" name="send_all" style="float:left;"/></span>
-                              <span style="float:left;">{% trans "Send all funds" %}</span>
-                              <span><button class="btn btn-primary" style="float:right;" name="sendCoins" value="coins" onclick="clicked(event)" id="id_send_button">{% trans "Send" %}</button></span>
+                            <tr>
+                              <th><label>{% trans "Send all funds" %}</label></th>
+                              <td><input id="id_send_all" type="checkbox" name="send_all" style="float:left;"/></td>
+                            </tr>
+                            <tr><td colspan=2 >
+                                <button class="btn btn-primary" style="float:right;" name="sendCoins" value="coins" onclick="clicked(event)" id="id_send_button">{% trans "Send" %}</button></td>
+                            </tr>
                           {% else %}
+                            <tr><td clospan=2 >
                               <button class="btn btn-danger disabled" disabled><b>{% trans "Not available now" %}</b></button>
+                            </td></tr>
                           {% endif %}
+                        </table>
                         {% endif %}
                     </form>
+                  </div>
                 {% endif %}
 
 	        </div>
@@ -388,9 +409,12 @@
         jQuery.validator.addMethod("quantity",
             function(value, element) {
                 var isValidQuantity = /^\d{0,6}(\.\d{0,4})?$/.test(value);
+                if (isValidQuantity && parseFloat(value) <= 0){
+                    isValidQuantity = false;
+                }
                 return this.optional(element) || isValidQuantity;
             },
-            "Please enter a number less than 1000000 with no more than 4 decimal places"
+            "Please enter a positive number less than 1000000 with no more than 4 decimal places"
         );
 
         $.validator.addClassRules("quantity", { quantity: true });
@@ -455,15 +479,30 @@ function clicked(e) {
        FormObject = document.forms['sendCoinsForm'];
        var qty = FormObject.elements["quantity"].value;
        var toadd = FormObject.elements["to_address"].value;
+       var toagind = FormObject.elements["to_user"].selectedIndex;
+       var toagopts = FormObject.elements["to_user"].options;
+       var toagid = FormObject.elements["to_user"].value;
+       var toagn = toagopts[toagind].text;
        var balance = "{{ confirmed_balance }}";
        balance = balance.replace(',', '.');
        if ( parseFloat(qty) > parseFloat(balance) ) {
-           msg = "Insufficient funds confirmed.\n\nYour request       :  " + qty + "\n\nConfirmed funds :  " + balance;   
+           var msg = "Insufficient funds confirmed.\n\nYour request       :  " + qty + "\n\nConfirmed funds :  " + balance;
            alert(msg);
            e.preventDefault();
-           return false; 
-       } 
-       var msg = "Please confirm the transaction:\n\n  Send :  " + qty + "  FairCoins\n  To address :  " + toadd + "\n\nThis action is irreversible and can not be undone.";
+           return false;
+       }
+       var msg = "Please confirm the transaction:\n\n  Send :  " + qty + "  FairCoins\n  ";
+       if (toadd){
+           msg += "To address :  " + toadd + "\n";
+       } else if (toagn){
+           {% if request.user.is_staff %}
+           msg += "To agent :  " + toagn + " ("+toagid+")\n";
+           {% else %}
+           msg += "To agent :  " + toagn + "\n";
+           {% endif %}
+       }
+       msg += "\nThis action is irreversible and can not be undone.";
+
        if (confirm(msg)) {
            return true;
        } else {

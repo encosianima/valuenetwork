@@ -16,6 +16,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost'] # Set the allowed host domains list at local_settings.py
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -230,12 +232,17 @@ REST_FRAMEWORK = {
 
 # valueaccounting settings
 # Set this with your specific data in local_settings.py
-MAIN_ORGANIZATION = "FreedomCoop"
+MAIN_ORGANIZATION = "Freedom Coop"
 USE_WORK_NOW = True
 SUBSTITUTABLE_DEFAULT = True
 MAP_LATITUDE = 45.5601062
 MAP_LONGITUDE = -73.7120832
 MAP_ZOOM = 11
+
+RANDOM_PASSWORD_LENGHT = 20
+
+ACCOUNT_EMAIL_UNIQUE = True
+ACCOUNT_NOTIFY_ON_PASSWORD_CHANGE = False
 
 # multicurrency settings
 MULTICURRENCY = {} #Fill the dict in local_settings.py with private data.
@@ -243,10 +250,13 @@ MULTICURRENCY = {} #Fill the dict in local_settings.py with private data.
 # payment gateways settings
 PAYMENT_GATEWAYS = {} # Fill the object in local_settings.py with custom gateways data by project
 
+CRYPTOS = () # Fill the list in local_settings.py with flexible price crypto units
+CRYPTO_DECIMALS = 9
+
 
 PINAX_NOTIFICATIONS_QUEUE_ALL = True
 PINAX_NOTIFICATIONS_BACKENDS = [
-        ("email", "pinax.notifications.backends.email.EmailBackend", 1),
+        ("email", "work.email.EmailBackend", 1), # pinax.notifications.backends.email.EmailBackend
     ]
 
 THUMBNAIL_DEBUG = True
@@ -289,10 +299,10 @@ LOGGING = {
         },
         'applogfile': {
             'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': '/home/ocp/logs/ocp_debug.log',
-            'maxBytes': 1024*1024*15, # 15MB
-            'backupCount': 10,
+            'class':'logging.FileHandler', # was logging.handlers.RotatingFileHandler
+            'filename': 'ocp_debug.log', # put the log file in your desired directory
+            #'maxBytes': 1024*1024*15, # 15MB
+            #'backupCount': 10,
             'formatter': 'verbose'
         }
     },
@@ -343,7 +353,7 @@ CORS_ALLOW_CREDENTIALS = True
 BROADCAST_FAIRCOINS_LOCK_WAIT_TIMEOUT = None
 
 #id of the group to send payments to
-SEND_MEMBERSHIP_PAYMENT_TO = "FC MembershipRequest"
+SEND_MEMBERSHIP_PAYMENT_TO = "Freedom Coop"
 
 import re
 IGNORABLE_404_URLS = (
@@ -385,6 +395,8 @@ CAPTCHA_NOISE_FUNCTIONS = (
   'captcha.helpers.noise_dots',
   'captcha.helpers.noise_dots',
 )
+if 'test' in sys.argv:
+    CAPTCHA_TEST_MODE = True
 
 # ----put all other settings above this line----
 try:

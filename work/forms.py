@@ -13,11 +13,12 @@ from django.utils.translation import ugettext_lazy as _
 from valuenetwork.valueaccounting.models import *
 from work.models import *
 from valuenetwork.valueaccounting.forms import *
+from account.forms import LoginForm
 from general.models import Unit_Type
 
 from django.shortcuts import get_object_or_404
 
-from general.models import Record_Type, Material_Type, Nonmaterial_Type, Artwork_Type
+#from general.models import Record_Type, Material_Type, Nonmaterial_Type, Artwork_Type
 from mptt.forms import TreeNodeChoiceField
 from work.utils import *
 
@@ -30,19 +31,29 @@ from work.utils import *
 class WorkAgentCreateForm(AgentCreateForm):
     # override fields for EconomicAgent model
     agent_type = forms.ModelChoiceField(
-        queryset=AgentType.objects.all(), #filter(is_context=True),
+        queryset=AgentType.objects.all(), #filter(is_context=False),
         empty_label=None,
         widget=forms.Select(
         attrs={'class': 'chzn-select'}))
 
     is_context = None # projects are always context_agents, hide the field
-    nick = None
+    #nick = None
     # fields for Project model
     #joining_style = forms.ChoiceField()
     #visibility = forms.ChoiceField()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, agent=None, *args, **kwargs):
         super(WorkAgentCreateForm, self).__init__(*args, **kwargs)
+        if agent:
+            #print "- agent: "+str(agent)+' - context? '+str(agent.agent_type.is_context)
+            if agent.agent_type.is_context:
+                self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=True)
+                self.fields["agent_type"].initial = agent.agent_type
+            else:
+                self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=False)
+                self.fields["agent_type"].initial = agent.agent_type
+        else:
+            self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=True)
         #self.fields["joining_style"].choices = [(js[0], js[1]) for js in JOINING_STYLE_CHOICES]
         #self.fields["visibility"].choices = [(vi[0], vi[1]) for vi in VISIBILITY_CHOICES]
 
@@ -50,8 +61,38 @@ class WorkAgentCreateForm(AgentCreateForm):
     class Meta: #(AgentCreateForm.Meta):
         model = EconomicAgent
         #removed address and is_context
-        fields = ('name', 'agent_type', 'description', 'url', 'email', 'address', 'phone_primary',)
+        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email', 'phone_primary',)
         #exclude = ('is_context',)
+
+    def clean(self):
+        data = super(WorkAgentCreateForm, self).clean()
+        nick = data["nick"]
+        name = data["name"]
+        email = data['email']
+        if nick and name and email:
+            ags = EconomicAgent.objects.filter(nick=nick).exclude(email=email).exclude(name=name)
+            if ags:
+                #print "- ERROR nick present! "
+                self.add_error('nick', _("This nickname is already present in the system."))
+            ags = EconomicAgent.objects.filter(name=name).exclude(email=email).exclude(nick=nick)
+            if ags:
+                #print "- ERROR name present! "
+                self.add_error('name', _("This name is already present in the system."))
+            ags = EconomicAgent.objects.filter(email=email).exclude(nick=nick).exclude(name=name)
+            if ags and not self.instance.is_context:
+                #print "- ERROR email present! "
+                self.add_error('email', _("This email is already present in the system."))
+        else:
+            if not email:
+                pass
+            else:
+                pass #print "- ERROR clean WorkAgentCreateForm ! data: "+str(data)
+
+
+    def _clean_fields(self):
+        super(WorkAgentCreateForm, self)._clean_fields()
+        for name, value in self.cleaned_data.items():
+            pass #self.cleaned_data[name] = bleach.clean(value)
 
 
 
@@ -133,40 +174,48 @@ class MembershipRequestForm(forms.ModelForm):
 #     P R O J E C T
 
 
-class ProjectCreateForm(AgentCreateForm):
+class ProjectCreateForm(forms.ModelForm):
     # override fields for EconomicAgent model
-    agent_type = forms.ModelChoiceField(
+    '''agent_type = forms.ModelChoiceField(
         queryset=AgentType.objects.filter(is_context=True),
         empty_label=None,
         widget=forms.Select(
         attrs={'class': 'chzn-select'}))
 
     is_context = None # projects are always context_agents, hide the field
+    '''
 
     # fields for Project model
     joining_style = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'chzn-select'}))
+    auto_create_pass = forms.BooleanField(
+        required = False,
+        label = _("&nbsp;Auto create user+agent and confirm email:"),
+        help_text="For 'moderated' joining style:<br>- If you want to manually control which requests don't seem spam (recommended) before creating their user+agent and confirm the email, leave this unchecked. <br>- If you don't expect spam registers, check this to speed up the process.",
+    )
     visibility = forms.ChoiceField(widget=forms.Select(
         attrs={'class': 'chzn-select'}))
-    resource_type_selection = forms.ChoiceField(label=_("Resource type visibility"), widget=forms.Select(
+    resource_type_selection = forms.ChoiceField(label=_("Resource type visibility:"), widget=forms.Select(
         attrs={'class': 'chzn-select'}))
     fobi_slug = forms.CharField(
         required = False,
-        label = "Custom project url slug",
+        label = _("Custom project url slug:"),
         help_text = _("Used to reach your custom join form, but after the custom fields has been defined by you and configured by OCP Admins. Only works if the project has a 'moderated' joining style."),
         )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, agent=None, *args, **kwargs):
         super(ProjectCreateForm, self).__init__(*args, **kwargs)
+        if agent:
+            self.fields["fobi_slug"].initial = str(agent.slug)
         self.fields["joining_style"].choices = [(js[0], js[1]) for js in JOINING_STYLE_CHOICES]
         self.fields["visibility"].choices = [(vi[0], vi[1]) for vi in VISIBILITY_CHOICES]
         self.fields["resource_type_selection"].choices = [(rts[0], rts[1]) for rts in SELECTION_CHOICES]
 
     def clean(self):
         data = super(ProjectCreateForm, self).clean()
-        url = data["url"]
-        if not url[0:3] == "http":
-            pass #data["url"] = "http://" + url
+        #url = data["url"]
+        #if not url[0:3] == "http":
+        #    pass #data["url"] = "http://" + url
         #if type_of_user == "collective":
             #if int(number_of_shares) < 2:
             #    msg = "Number of shares must be at least 2 for a collective."
@@ -180,7 +229,7 @@ class ProjectCreateForm(AgentCreateForm):
     class Meta: #(AgentCreateForm.Meta):
         model = Project #EconomicAgent
         #removed address and is_context
-        fields = ('name', 'nick', 'agent_type', 'description', 'url', 'email', 'joining_style', 'visibility', 'resource_type_selection', 'fobi_slug')
+        fields = ('joining_style', 'visibility', 'resource_type_selection', 'fobi_slug', 'auto_create_pass')
         #exclude = ('is_context',)
 
 
@@ -204,6 +253,12 @@ class AssociationForm(forms.Form):
 
 
 
+class ValidateNameForm(forms.Form):
+    agent_id = forms.IntegerField()
+    name = forms.CharField()
+    surname = forms.CharField(required=False)
+    typeofuser = forms.CharField()
+
 
 #     J O I N   R E Q U E S T S
 
@@ -212,7 +267,11 @@ class AssociationForm(forms.Form):
 class JoinRequestForm(forms.ModelForm):
     captcha = CaptchaField(help_text=_("Is a math operation: Please put the result (don't copy the symbols)"))
 
-    project = None
+    project = forms.CharField(
+        required=True,
+        widget=forms.HiddenInput()
+    )
+    exchange = None
     '''forms.ModelChoiceField(
         queryset=Project.objects.filter(joining_style='moderated', visibility='public'),
         empty_label=None,
@@ -221,11 +280,83 @@ class JoinRequestForm(forms.ModelForm):
 
     class Meta:
         model = JoinRequest
-        exclude = ('agent', 'project', 'fobi_data',)
+        exclude = ('agent', 'project', 'fobi_data', 'exchange')
 
     def clean(self):
         data = super(JoinRequestForm, self).clean()
-        type_of_user = data["type_of_user"]
+        if not 'requested_username' in data:
+            self.add_error('requested_username', _("This field is required."))
+            return
+        username = data["requested_username"]
+        typeofuser = data["type_of_user"]
+        email = data["email_address"]
+        nome = data["name"]
+        surname = data["surname"]
+        projid = data["project"]
+        if not projid:
+            self.add_error('project', _("The project is missing??"))
+            raise ValidationError("The project is missing??")
+        else:
+            proj = Project.objects.get(id=projid)
+
+        if typeofuser == 'individual':
+            if not surname:
+                self.add_error('surname', _("Please put your Surname if you are an individual."))
+                return
+            exist_name = EconomicAgent.objects.filter(name__iexact=nome+' '+surname)
+            if not exist_name:
+                exist_name = User.objects.filter(first_name__iexact=nome, last_name__iexact=surname)
+            if len(exist_name) > 0:
+                pass #self.add_error('name', _("This name and surname is already used by another user, do you want to differentiate anyhow?"))
+                #self.add_error('surname', _("This name and surname is already used by another user, do you want to differentiate anyhow?"))
+        elif typeofuser == 'collective':
+            exist_name = EconomicAgent.objects.filter(name__iexact=nome)
+            if len(exist_name) > 0:
+                self.add_error('name', _("This name is already used by another agent, do yo want to diferentiate anyhow? "))
+        else:
+            self.add_error('type_of_user', _("Bad type of user??"))
+
+        exist_user = EconomicAgent.objects.filter(nick__iexact=username)
+
+        #+str(exist_name[0].nick))
+        if len(exist_user) > 0:
+            if not exist_user[0].nick == username:
+                self.add_error('requested_username', _("A too similar username already exists. Please login here with your OCP credentials or choose another username."))
+            else:
+                self.add_error('requested_username', _("The username already exists. Please login here to join this project or choose another username."))
+        else:
+            exist_request = JoinRequest.objects.filter(requested_username__iexact=username, project=projid)
+            if len(exist_request) > 0:
+                self.add_error('requested_username', _("This username is already used in another request to join this same project. Please wait for an answer before applying again. ")) #+str(exist_request[0].project)) #+' pro:'+str(projid))
+
+        exist_email = EconomicAgent.objects.filter(email__iexact=email)
+
+        if not exist_email:
+            exist_request = JoinRequest.objects.filter(email_address__iexact=email) #, project=projid)
+            if exist_request:
+                for req in exist_request:
+                    if req.project.id == projid:
+                        self.add_error('email_address', _("The email address is already registered in the system as a request to join this same project. Please wait for an answer before applying again."))
+                    else:
+                        pass #self.add_error('email_address', _("The email address is already registered in the system as a request to join another project: ")+str(req.project))
+
+            exist_user = User.objects.filter(email__iexact=email)
+            if exist_user:
+                for usr in exist_user:
+                    self.add_error('email_address', _("The email address is already registered in the system for another user without agent?? ")) #+str(usr.username))
+        else:
+            if len(exist_email) > 1:
+                self.add_error('email_address', _("The email address is already registered in the system for various agents! Please login here and we'll try to solve this:"))
+                print "DUPLICATE email agent: "+str(exist_email)
+            else:
+                if not exist_email[0].nick == username:
+                    self.add_error('email_address', _("The email address is already registered in the system for another username. To join this project please login here with your existent OCP username.")) #+str(exist_email[0].nick))
+                else:
+                    self.add_error('email_address', _("The email address is already registered in the system with same username. To join this project please login here:"))
+
+
+        #print "- projid: "+str(projid)
+        #type_of_user = data["type_of_user"]
         #number_of_shares = data["number_of_shares"]
         #if type_of_user == "collective":
             #if int(number_of_shares) < 2:
@@ -237,12 +368,19 @@ class JoinRequestForm(forms.ModelForm):
         for name, value in self.cleaned_data.items():
             self.cleaned_data[name] = bleach.clean(value)
 
+    def __init__(self, project=None, api_key=None, *args, **kwargs):
+        super(JoinRequestForm, self).__init__(*args, **kwargs)
+        if project:
+            self.fields['project'].initial = project.id
+        if api_key:
+            del self.fields['captcha'] #.disabled = True #None
 
 
 class JoinRequestInternalForm(forms.ModelForm):
     captcha = None #CaptchaField()
 
     project = None
+    exchange = None
     '''forms.ModelChoiceField(
         queryset=Project.objects.filter(joining_style='moderated', visibility='public'),
         empty_label=None,
@@ -251,7 +389,7 @@ class JoinRequestInternalForm(forms.ModelForm):
 
     class Meta:
         model = JoinRequest
-        exclude = ('agent', 'project', 'fobi_data', 'type_of_user', 'name', 'surname', 'requested_username', 'email_address', 'phone_number', 'address',)
+        exclude = ('agent', 'project', 'exchange', 'fobi_data', 'type_of_user', 'name', 'surname', 'requested_username', 'email_address', 'phone_number', 'address',)
 
     def clean(self):
         data = super(JoinRequestInternalForm, self).clean()
@@ -375,16 +513,17 @@ class ExchangeNavForm(forms.Form):
         )
     )
 
-    def __init__(self, agent=None, *args, **kwargs):
+    def __init__(self, agent=None, exchanges=None, *args, **kwargs):
         super(ExchangeNavForm, self).__init__(*args, **kwargs)
         try:
             gen_et = Ocp_Record_Type.objects.get(clas='ocp_exchange')
             if agent:
-                context_ids = [c.id for c in agent.related_all_agents()]
+                contexts = agent.related_all_agents()
+                context_ids = [c.id for c in contexts]
                 if not agent.id in context_ids:
                     context_ids.append(agent.id)
                 if gen_et:
-                    self.fields["exchange_type"].label = 'Contexts: '+str(agent.related_all_agents())
+                    self.fields["exchange_type"].label = 'Contexts: '+str(contexts)
 
                     hidden_ets = Ocp_Record_Type.objects.filter( Q(exchange_type__isnull=False), Q(exchange_type__context_agent__isnull=False),  ~Q(exchange_type__context_agent__id__in=context_ids) )
                     hidden_etids = []
@@ -400,7 +539,11 @@ class ExchangeNavForm(forms.Form):
                     self.fields["resource_type"].queryset = Ocp_Artwork_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ).order_by('tree_id','lft') #| Q(resource_type__context_agent__isnull=True) )
                     self.fields["skill_type"].queryset = Ocp_Skill_Type.objects.all().exclude( Q(resource_type__isnull=False), Q(resource_type__context_agent__isnull=False), ~Q(resource_type__context_agent__id__in=context_ids) ).order_by('tree_id','lft') #| Q(resource_type__context_agent__isnull=True) )
 
-                exchanges = Exchange.objects.filter(context_agent=agent)
+                if not exchanges:
+                    #today = datetime.date.today()
+                    #end =  today
+                    #start = today - datetime.timedelta(days=365)
+                    exchanges = Exchange.objects.exchanges_by_type(agent) #date_and_context(start, end, agent) #filter(Q(context_agent=agent), Q(transfers__events__from_agent=agent), Q(transfers__events__to_agent=agent))
                 ex_types = [ex.exchange_type.id for ex in exchanges]
                 self.fields["used_exchange_type"].queryset = ExchangeType.objects.filter(id__in=ex_types)
 
@@ -1055,19 +1198,27 @@ class ContextTransferForm(forms.Form):
                 else:
                     self.fields['quantity'].label += " ERROR: this form has not ocp_resource_type field, RT:"+str(resource_type)
 
-            try:
-                self.fields["ocp_resource_type"].queryset = transfer_type.exchange_type.ocp_record_type.get_ocp_resource_types(transfer_type=transfer_type)
-                if resource_type:
-                    self.fields["ocp_resource_type"].initial = Ocp_Artwork_Type.objects.get(resource_type=resource_type)
-            except:
-                self.fields["ocp_resource_type"].label = "  Sorry, this exchange type is not yet related to any resource types..."
+            resini = self.fields["resource"].queryset.first()
+            if resini:
+                print "++ found resource initial, get rt: "+str(resini)
+                self.fields["ocp_resource_type"].queryset = Ocp_Artwork_Type.objects.filter(resource_type=resini.resource_type)
+                self.fields["ocp_resource_type"].initial = Ocp_Artwork_Type.objects.get(resource_type=resini.resource_type)
+                #self.fields["ocp_resource_type"].label = str(self.fields["ocp_resource_type"].initial)
+            else:
+                try:
+                    self.fields["ocp_resource_type"].queryset = transfer_type.exchange_type.ocp_record_type.get_ocp_resource_types(transfer_type=transfer_type)
+                    if resource_type:
+                        self.fields["ocp_resource_type"].initial = Ocp_Artwork_Type.objects.get(resource_type=resource_type)
+                except:
+                    self.fields["ocp_resource_type"].label = "  Sorry, this exchange type is not yet related to any resource types..."
 
         else: # no transfer type, rise error TODO
           pass
 
     def clean(self):
         data = super(ContextTransferForm, self).clean()
-        if not hasattr(data, 'ocp_resource_type'):
+        #import pdb; pdb.set_trace()
+        if not 'ocp_resource_type' in data:
           self.add_error('ocp_resource_type', "There's no resource_type?")
           return data
         ocp_rt = data["ocp_resource_type"]
@@ -1371,7 +1522,7 @@ class ProjectSelectionFilteredForm(forms.Form):
 
     def __init__(self, agent, *args, **kwargs):
         super(ProjectSelectionFilteredForm, self).__init__(*args, **kwargs)
-        projects = agent.related_context_queryset()
+        projects = agent.related_contexts_queryset()
         if projects:
             self.fields["context_agent"].choices = [(proj.id, proj.name) for proj in projects]
 

@@ -5,7 +5,7 @@ from valuenetwork.valueaccounting.actions import export_as_csv
 admin.site.add_action(export_as_csv, 'export_selected objects')
 
 admin.site.register(Unit)
-admin.site.register(AgentType)
+#admin.site.register(AgentType)
 #admin.site.register(CachedEventSummary)
 admin.site.register(UseCase)
 admin.site.register(AccountingReference)
@@ -15,6 +15,9 @@ admin.site.register(Location)
 admin.site.register(UseCaseEventType)
 admin.site.register(HomePageLayout)
 
+class AgentTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'party_type', 'is_context')
+admin.site.register(AgentType, AgentTypeAdmin)
 
 class HelpAdmin(admin.ModelAdmin):
     list_display = ('page',)
@@ -30,6 +33,11 @@ class ResourceClassAdmin(admin.ModelAdmin):
     list_display = ('name', 'description',)
 
 admin.site.register(ResourceClass, ResourceClassAdmin)
+
+#class ResourceStateAdmin(admin.ModelAdmin):
+#    list_display = ('name', 'description',)
+#admin.site.register(ResourceState, ResourceStateAdmin)
+
 
 class ValueEquationBucketInline(admin.TabularInline):
     model = ValueEquationBucket
@@ -207,10 +215,10 @@ class ResourceTypeFacetInline(admin.TabularInline):
     model = ResourceTypeFacetValue
 
 class EconomicResourceTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'resource_class', 'unit', 'unit_of_use', 'description', 'substitutable', 'facet_list', 'context_agent')
+    list_display = ('name', 'unit', 'unit_of_use', 'substitutable', 'facet_list', 'context_agent', 'ocp_artwork_type', 'price_per_unit', 'unit_of_price')
     list_filter = ['facets__facet_value']
     search_fields = ['name', 'context_agent__name']
-    list_editable = ['unit', 'unit_of_use', 'substitutable', 'resource_class',]
+    list_editable = ['unit', 'unit_of_use', 'substitutable', 'price_per_unit', 'unit_of_price',]
     inlines = [ ResourceTypeFacetInline, ]
 
 admin.site.register(EconomicResourceType, EconomicResourceTypeAdmin)
@@ -318,7 +326,7 @@ admin.site.register(Process, ProcessAdmin)
 
 class CommitmentAdmin(admin.ModelAdmin):
     date_hierarchy = 'due_date'
-    list_display = ('resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'finished', 'from_agent', 'to_agent', 'process', 'exchange', 'context_agent', 'order', 'independent_demand',
+    list_display = ('id', 'resource_type', 'quantity', 'unit_of_quantity', 'event_type', 'due_date', 'finished', 'from_agent', 'to_agent', 'process', 'exchange', 'context_agent', 'order', 'independent_demand',
         'description')
     list_filter = ['independent_demand', 'event_type', 'resource_type', 'from_agent', 'context_agent']
     search_fields = ['event_type__name', 'from_agent__name', 'to_agent__name', 'resource_type__name']
@@ -332,7 +340,7 @@ class ClaimEvent2Inline(admin.TabularInline):
 
 class EconomicEventAdmin(admin.ModelAdmin):
     date_hierarchy = 'event_date'
-    list_display = ('event_type', 'event_date', 'from_agent', 'to_agent', 'context_agent',
+    list_display = ('id', 'event_type', 'event_date', 'from_agent', 'to_agent', 'context_agent',
         'process', 'exchange', 'resource_type', 'quantity', 'unit_of_quantity', 'description',)
     list_filter = ['event_type', 'context_agent', 'resource_type', 'from_agent',]
     search_fields = ['description', 'process__name', 'event_type__name', 'from_agent__name', 'to_agent__name',
@@ -342,6 +350,17 @@ class EconomicEventAdmin(admin.ModelAdmin):
 
 admin.site.register(EconomicEvent, EconomicEventAdmin)
 
+class ResourceTypeFacetValueAdmin(admin.ModelAdmin):
+    list_display = ('resource_type','facet_value',)
+    list_filter = ['facet_value','resource_type',]
+
+admin.site.register(ResourceTypeFacetValue, ResourceTypeFacetValueAdmin)
+
+class FacetValueAdmin(admin.ModelAdmin):
+    list_display = ('value','facet',)
+    list_filter = ['facet',]
+
+admin.site.register(FacetValue, FacetValueAdmin)
 
 #class CompensationAdmin(admin.ModelAdmin):
 #    list_display = ('initiating_event', 'compensating_event', 'compensation_date', 'compensating_value')

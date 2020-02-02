@@ -25,6 +25,16 @@ export WORKON_HOME=~/Envs
 mkdir -p $WORKON_HOME
 source /usr/local/bin/virtualenvwrapper.sh
 
+You will need to make this permanent, 
+
+Add three lines to your shell startup file (.bashrc, .profile, etc.) to set the location where the virtual environments should live, the location of your development project directories, and the location of the script installed with this package: (where ".virtualenvs" is the name of the directory where your virtual environments live, probably "Envs")
+
+export WORKON_HOME=$HOME/.virtualenvs
+export PROJECT_HOME=$HOME/Devel
+source /usr/local/bin/virtualenvwrapper.sh
+
+After editing it, reload the startup file (e.g., run source ~/.bashrc).
+
 Step 5 assumes virtualenvwrapper
 
 * If you already have pip, virtualenv and virtualenvwrapper, 
@@ -39,7 +49,7 @@ sudo pip install -U setuptools
 (Rdflib, one of the requirements, needs
 setuptools version 18.5 or above.)
 
-4. unless you don't have it already: install git
+4. unless you have it already: install git
 sudo apt-get install git
 
 5. create a virtualenv (assuming you installed virtualenvwrapper):

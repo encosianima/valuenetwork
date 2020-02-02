@@ -1,1 +1,1 @@
-{% load i18n %}{% trans  "New join request at" %} {{ context_agent }}
+{% autoescape off %}{% load i18n %}{% blocktrans with project=context_agent.name %}New join request at {{ project }}{% endblocktrans %}{% endautoescape %}

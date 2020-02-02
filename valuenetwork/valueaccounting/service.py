@@ -1,8 +1,11 @@
-import datetime
+import datetime, logging
 from decimal import *
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models import Q, Count
+
+loger = logging.getLogger("ocp")
 
 from valuenetwork.valueaccounting.models import (
     EconomicResource,
@@ -31,13 +34,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Internal Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Transfer FairCoins")
+            name="Transfer Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Transfer FairCoins")
+                name="Transfer Faircoins")
             xt.save()
         return xt
 
@@ -49,10 +52,14 @@ class ExchangeService(object):
             name="Transfer FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Transfer FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
@@ -64,13 +71,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Outgoing Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Send FairCoins")
+            name="Send Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Send FairCoins")
+                name="Send Faircoins")
             xt.save()
         return xt
 
@@ -82,10 +89,14 @@ class ExchangeService(object):
             name="Send FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Send FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
@@ -97,13 +108,13 @@ class ExchangeService(object):
         use_case = UseCase.objects.get(name="Incoming Exchange")
         xt = ExchangeType.objects.filter(
             use_case=use_case,
-            name="Receive FairCoins")
+            name="Receive Faircoins")
         if xt:
             xt = xt[0]
         else:
             xt = ExchangeType(
                 use_case=use_case,
-                name="Receive FairCoins")
+                name="Receive Faircoins")
             xt.save()
         return xt
 
@@ -115,10 +126,14 @@ class ExchangeService(object):
             name="Receive FairCoins")
         if tt:
             tt = tt[0]
+            if tt.name != xt.name:
+                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                tt.name = xt.name
+                tt.save()
         else:
             tt = TransferType(
                 exchange_type=xt,
-                name="Receive FairCoins",
+                name=xt.name,
                 sequence=1,
                 is_currency=True,
             )
@@ -251,10 +266,21 @@ class ExchangeService(object):
             return []
 
         event_list = EconomicEvent.objects.filter(
+            Q(resource=resource) | Q(faircoin_transaction__to_address=resource.faircoin_address.address)
+            ).annotate(numev=Count("transfer__events")
+            ).exclude(numev__gt=1, event_type__name="Receive")
+        event_list = event_list.filter(
+            event_date__gt=redistribution_date,
+            faircoin_transaction__tx_hash__isnull=False
+        )
+        event_list2 = EconomicEvent.objects.filter( #
             resource=resource,
             event_date__gt=redistribution_date,
             faircoin_transaction__tx_hash__isnull=False
         )
+        if event_list2 and not len(event_list) == len(event_list2):
+            print "Different event_list counts! ;; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2))
+            loger.info("Different event_list counts! ;; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2)))
 
         tx_in_ocp = []
         for event in event_list:
@@ -270,20 +296,64 @@ class ExchangeService(object):
                     date = datetime.date.fromtimestamp(time)
                     tt = ExchangeService.faircoin_incoming_transfer_type()
                     xt = tt.exchange_type
-                    exchange = Exchange(
-                        exchange_type=xt,
-                        use_case=xt.use_case,
-                        name="Receive Faircoins",
-                        start_date=date,
-                    )
-                    exchange.save()
-                    transfer = Transfer(
-                        transfer_type=tt,
-                        exchange=exchange,
-                        transfer_date=date,
-                        name="Receive Faircoins",
-                    )
-                    transfer.save()
+                    jn_req = event = fairtx = None
+                    if hasattr(resource.owner(), 'project') and resource.owner().project:
+                        for req in resource.owner().project.join_requests.all():
+                            #print  ";; req:"+str(req)
+                            if req.exchange and req.agent.faircoin_resource():
+                                txpay = req.exchange.txpay()
+                                if txpay:
+                                    for ev in txpay.events.all():
+                                        if ev.to_agent == resource.owner() and ev.faircoin_transaction and not ev.faircoin_transaction.tx_hash:
+                                            jn_req = req
+                                            exchange = req.exchange
+                                            transfer = txpay
+                                            event = ev
+                                            fairtx = ev.faircoin_transaction
+                                            print ";;; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id)
+                                            loger.info(";;; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id))
+                                            break
+                                        #else:
+                                        #    print ";; skip ev "
+                                else:
+                                    print ";;; not found txpay in req:"+str(req.id)
+                                    loger.info(";;; not found txpay in req:"+str(req.id))
+                            else:
+                                print ";;; not req.exchange ?"
+                            if jn_req:
+                                #print ";; found"
+                                break
+                    else:
+                        print ";;; no project"
+                    for req in resource.owner().project_join_requests.all():
+                        if req.exchange: #project.shares_account_type() == resource.resource_type:
+                            for tf in req.exchange.transfers.all():
+                                for ev in tf.events.all():
+                                    if hasattr(ev, 'faircoin_transaction') and ev.faircoin_transaction:
+                                        if ev.faircoin_transaction.to_address == resource.faircoin_address.address:
+                                            jn_req = req
+                                            exchange = req.exchange
+                                            transfer = tf #req.exchange.txpay()
+                                            event = ev #transfer.events.get(faircoin_transaction__tx_hash__isnull=True)
+                                            fairtx = ev.faircoin_transaction
+                                            print ";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tf:"+str(tf.id)+" ex:"+str(exchange.id)
+                                            loger.info(";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tf:"+str(tf.id)+" ex:"+str(exchange.id))
+                                            break
+                    if not jn_req:
+                        exchange = Exchange(
+                            exchange_type=xt,
+                            use_case=xt.use_case,
+                            name="Receive Faircoins",
+                            start_date=date,
+                        )
+                        exchange.save()
+                        transfer = Transfer(
+                            transfer_type=tt,
+                            exchange=exchange,
+                            transfer_date=date,
+                            name="Receive Faircoins",
+                        )
+                        transfer.save()
 
                     et_receive = EventType.objects.get(name="Receive")
                     state = "external"
@@ -292,25 +362,35 @@ class ExchangeService(object):
                     if confirmations > 2:
                         state = "confirmed"
 
-                    event = EconomicEvent(
-                        event_type=et_receive,
-                        event_date=date,
-                        to_agent=agent,
-                        resource_type=resource.resource_type,
-                        resource=resource,
-                        quantity=qty,
-                        transfer=transfer,
-                        event_reference=faircoin_address
-                    )
+                    if not event:
+                        event = EconomicEvent(
+                            event_type=et_receive,
+                            event_date=date,
+                            to_agent=agent,
+                            resource_type=resource.resource_type,
+                            resource=resource,
+                            quantity=qty,
+                            transfer=transfer,
+                            event_reference=faircoin_address
+                        )
+                    else:
+                        event.quantity = qty
+                        event.event_reference = faircoin_address
+                        #event.event_date = date
                     event.save()
-                    fairtx = FaircoinTransaction(
-                        event=event,
-                        tx_hash=str(tx[0]),
-                        tx_state=state,
-                        to_address=faircoin_address,
-                        amount=qty,
-                        minus_fee=False,
-                    )
+                    if not fairtx:
+                        fairtx = FaircoinTransaction(
+                            event=event,
+                            tx_hash=str(tx[0]),
+                            tx_state=state,
+                            to_address=faircoin_address,
+                            amount=qty,
+                            minus_fee=False,
+                        )
+                    else:
+                        fairtx.tx_state = state
+                        fairtx.tx_hash = str(tx[0])
+                        fairtx.amount = qty
                     fairtx.save()
                     tx_included.append(str(tx[0]))
         return tx_included
@@ -323,9 +403,9 @@ class ExchangeService(object):
         if role_types:
             owner_role_type = role_types[0]
         resource_types = EconomicResourceType.objects.filter(
-            behavior="dig_acct")
+            behavior="dig_acct", name__icontains="Faircoin Ocp Account")
         if resource_types.count() == 0:
-            raise ValidationError("Cannot create digital currency resource for " + agent.nick + " because no digital currency account ResourceTypes.")
+            raise ValidationError("Cannot create digital currency resource for " + agent.nick + " because no digital currency account ResourceTypes with 'Faircoin Ocp Account' in the name.")
             return None
         if resource_types.count() > 1:
             raise ValidationError("Cannot create digital currency resource for " + agent.nick + ", more than one digital currency account ResourceTypes.")

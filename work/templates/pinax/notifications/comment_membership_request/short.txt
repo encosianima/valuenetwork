@@ -1,1 +1,1 @@
-{% load i18n %}{% trans  "New comment in membership request" %}
+{% autoescape off %}{% load i18n %}{% trans  "New comment in membership request" %}{% endautoescape %}

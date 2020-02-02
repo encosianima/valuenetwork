@@ -1,1 +1,1 @@
-{% load i18n %}{% blocktrans %}[{{ site_name }}] {{ message }}{% endblocktrans %}
+{% autoescape off %}{% load i18n %}{% blocktrans %}[{{ site_name }}] {{ message }}{% endblocktrans %}{% endautoescape %}

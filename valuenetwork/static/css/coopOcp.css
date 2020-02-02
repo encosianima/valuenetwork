@@ -1,3 +1,14 @@
+@font-face {
+    font-family: 'Glyphicons Halflings';
+    src: url('glyphicons-halflings-regular.eot');
+    src: url('glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'),
+         url('glyphicons-halflings-regular.woff2') format('woff2'),
+         url('glyphicons-halflings-regular.woff') format('woff'),
+         url('glyphicons-halflings-regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 /*  M A I N   M E N U   */
 
 .dropdown-menu a {
@@ -92,6 +103,27 @@ span.error {
 .error {
   color: #b34;
 }
+span.pending, a.pending {
+  color: #f27003;
+  font-weight: bold;
+}
+b.pending, em.pending {
+  color: #f27003;
+}
+span.complete, a.complete {
+  color: #3b4;
+  font-weight: bold;
+}
+b.complete, em.complete {
+  color: #3b4;
+}
+span.empty, a.empty {
+  color: #b34;
+  font-weight: bold;
+}
+b.empty, em.empty {
+  color: #b34;
+}
 
 .link-normal {
   font-size: 13px;
@@ -102,6 +134,9 @@ span.error {
 .pagination span.current {
   line-height: 34px;
   margin: 0px 1em;
+}
+.small {
+    font-size: 70%;
 }
 
 /*   M E M B E R S H I P   P R O C E S S   P A G E   */
@@ -186,7 +221,7 @@ div#my_tasks table, div#take-new-task table {
   color: #333;
   font-weight: normal;
   font-size: 13px;
-  line-height: 18px;
+  line-height: 19px;
   max-height: 450px;
 }
 .modal-body p.help-block {
@@ -267,7 +302,7 @@ form#stateForm {
   margin-bottom: 0;
 }
 .join_requests form.action-form {
-  margin: 5px;
+  margin: 5px 5px 5px 0;
 }
 
 /*   I N T E R N A L   J O I N   R E Q U E S T   */
