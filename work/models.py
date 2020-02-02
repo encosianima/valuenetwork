@@ -97,7 +97,8 @@ class MembershipRequest(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='membership_requests',
         blank=True, null=True,
-        help_text=_("this membership request became this EconomicAgent"))
+        help_text=_("this membership request became this EconomicAgent"),
+        on_delete=models.SET_NULL)
     state = models.CharField(_('state'),
         max_length=12, choices=REQUEST_STATE_CHOICES,
         default='new', editable=False)
