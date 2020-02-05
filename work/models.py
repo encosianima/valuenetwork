@@ -1412,6 +1412,10 @@ class JoinRequest(models.Model):
                 print "WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id)
                 loger.info("WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id))
         if realamount:
+            if isinstance(realamount, str) or isinstance(realamount, unicode):
+                if ',' in realamount:
+                    realamount = realamount.replace(',', '.')
+            realamount = decimal.Decimal(realamount)
             amountpay = realamount
 
         if status:
@@ -1507,7 +1511,9 @@ class JoinRequest(models.Model):
                                     else:
                                         raise ValidationError("Can't manage blockchain txs without the multicurrency app installed!")
                                     if realamount:
-                                        amountpay = decimal.Decimal(realamount)
+                                        if not isinstance(realamount, decimal.Decimal):
+                                            realamount = decimal.Decimal(realamount)
+                                        amountpay = realamount
                                         gateref = txid
                                         if commit_pay:
                                             if not commit_pay.quantity == amountpay:
