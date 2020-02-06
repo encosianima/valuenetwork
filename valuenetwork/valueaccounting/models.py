@@ -10177,7 +10177,7 @@ class Transfer(models.Model):
           status = 'empty'
         if hasattr(self.exchange, 'join_request') and self.exchange.join_request:
           if not self.transfer_type.is_share():
-            if self.exchange.join_request.payment_pending_to_pay():
+            if status == 'complete' and self.exchange.join_request.payment_pending_to_pay():
                 status = 'pending'
           else:
             if self.exchange.join_request.pending_shares() and status == 'complete':
