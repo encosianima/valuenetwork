@@ -33,8 +33,10 @@ def send_command(cmd, params = [] ):
             logger.debug('Response: %s' %(r['result']))
             out = r['result']
         else:
+            logger.debug('Error Response: %s' %(str(r)))
             out = 'ERROR'
     except:
+        logger.debug('Error Json: %s' %(str(response)))
         out = 'ERROR'
 
     return out
