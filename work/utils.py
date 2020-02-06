@@ -101,10 +101,16 @@ def convert_price(amount, shunit, unit, obj=None, deci=9):
                 raise ValidationError("Amount should be a Decimal or Integer! type:"+str(type(amount)))
             elif isinstance(amount, int):
                 amount = decimal.Decimal(amount)
-            try:
+            if obj and hasattr(obj, 'ratio'):
+                ratio = obj.ratio
+                price = amount/ratio
+                print("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+str(obj))
+                logger.warning("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+str(obj))
+            else:
+              try:
                 ratio = UnitRatio.objects.get(in_unit=shunit.gen_unit, out_unit=unit.gen_unit).rate
                 price = amount/ratio
-            except:
+              except:
                 print "No UnitRatio with in_unit '"+str(shunit.gen_unit.name)+"' and out_unit: "+str(unit.gen_unit.name)+". Trying reversed..."
                 #logger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
                 try:

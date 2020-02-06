@@ -743,9 +743,15 @@ class JoinRequest(models.Model):
         requnit = self.payment_unit()
         amount = price
         if not requnit == unit and price:
-            from work.utils import convert_price, remove_exponent
-            amount, ratio = convert_price(price, unit, requnit, self)
-            self.ratio = ratio
+            from work.utils import remove_exponent
+            if hasattr(self, 'ratio'):
+                amount = price / self.ratio
+                print("using CACHED ratio at share_price!")
+                loger.warning("using CACHED ratio at share_price!")
+            else:
+                from work.utils import convert_price
+                amount, ratio = convert_price(price, unit, requnit, self)
+                self.ratio = ratio
             amount = remove_exponent(amount)
         if not amount == price:
             pass #print "Changed the price!"
