@@ -1987,7 +1987,10 @@ class JoinRequest(models.Model):
             self.save()
             project = self.project
             # add relation candidate
-            ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
+            if project.shares_account_type():
+                ass_type = get_object_or_404(AgentAssociationType, identifier="member")
+            else:
+                ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
             ass = AgentAssociation.objects.filter(is_associate=self.agent, has_associate=self.project.agent)
             if ass_type and not ass:
                 aa = AgentAssociation(

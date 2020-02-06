@@ -3246,7 +3246,10 @@ def joinaproject_request_internal(request, agent_id = False):
 
             # add relation candidate
             if jn_req.agent:
-                ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
+                if jn_req.project.shares_account_type():
+                    ass_type = get_object_or_404(AgentAssociationType, identifier="member")
+                else:
+                    ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
                 ass = AgentAssociation.objects.filter(is_associate=jn_req.agent, has_associate=jn_req.project.agent)
                 if ass_type and not ass:
                   fc_aa = AgentAssociation(
