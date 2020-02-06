@@ -992,6 +992,8 @@ class Unit_Type(Artwork_Type):
 @python_2_unicode_compatible
 class Record(Artwork):    # Create own ID's
     record_type = TreeForeignKey('Record_Type', blank=True, null=True, verbose_name=_(u"Type of Record"), on_delete=models.SET_NULL)
+    changed_date = models.DateTimeField(auto_now=True, blank=True, null=True, editable=False)
+
     class Meta:
         verbose_name= _(u'Record')
         verbose_name_plural= _(u'o- Records')
@@ -1020,7 +1022,7 @@ class UnitRatio(Record):
     record = models.OneToOneField('Record', primary_key=True, parent_link=True, on_delete=models.CASCADE)
 
     in_unit = models.ForeignKey('Unit', related_name='ratio_in', verbose_name=_(u"in Unit"), on_delete=models.CASCADE)
-    rate = models.DecimalField(max_digits=10, decimal_places=4, verbose_name=_(u"Ratio multiplier"))
+    rate = models.DecimalField(max_digits=50, decimal_places=9, verbose_name=_(u"Ratio multiplier"), default=Decimal("0.0"))
     out_unit = models.ForeignKey('Unit', related_name='ratio_out', verbose_name=_(u"out Unit"), on_delete=models.CASCADE)
     class Meta:
         verbose_name = _(u"Equivalence between Units")
