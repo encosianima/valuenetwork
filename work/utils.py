@@ -140,7 +140,7 @@ def update_unitratio(in_unit, out_unit, ur=None):
     return ratio
 
 
-def convert_price(amount, shunit, unit, obj=None, deci=9):
+def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
     if not amount: raise ValidationError("Convert_price without amount? unit1:"+str(shunit)+" unit2:"+str(unit))
     if not shunit: raise ValidationError("Convert_price without unit1? amount:"+str(amount)+" unit2:"+str(unit))
     if not unit: raise ValidationError("Convert_price without unit2? amount:"+str(amount)+" unit1:"+str(shunit))
@@ -168,6 +168,8 @@ def convert_price(amount, shunit, unit, obj=None, deci=9):
                     lapsus = None
                 urs = UnitRatio.objects.filter(in_unit=shunit.gen_unit, out_unit=unit.gen_unit)
                 if urs:
+                    if len(urs) > 1:
+                        raise ValidationError("There are more than one UnitRatio with same in+out units!! "+str(urs))
                     ur = urs[0]
                     if ur.changed_date and lapsus:
                         now = datetime.datetime.now(pytz.utc)
@@ -180,7 +182,9 @@ def convert_price(amount, shunit, unit, obj=None, deci=9):
                             ratio = ur.rate
                     else:
                         ratio = ur.rate
+                    #print("ratio:"+str(ratio)+" (type:"+str(type(ratio))+") / amount:"+str(amount)+" (type:"+str(type(amount))+")")
                     price = amount/ratio
+                    #print("price:"+str(price)+" (type:"+str(type(price))+")")
                 else:
                 #except:
                     print("No UnitRatio with in_unit '"+str(shunit.gen_unit.name)+"' and out_unit: "+str(unit.gen_unit.name)+". Trying reversed...")
@@ -216,7 +220,7 @@ def convert_price(amount, shunit, unit, obj=None, deci=9):
                     amount = price
                 else:
                     #decs = decimal.getcontext().prec
-                    amount = round(price, deci)
+                    amount = price.quantize(deci) #round(price, deci)
 
                 print "Convert_price: ratio:"+str(ratio)+" price:"+str(price)+" shunit:"+str(shunit)+" unit:"+str(unit)+" amount:"+str(amount)
         else:

@@ -752,7 +752,7 @@ class JoinRequest(models.Model):
                 from work.utils import convert_price
                 amount, ratio = convert_price(price, unit, requnit, self)
                 self.ratio = ratio
-            amount = remove_exponent(amount)
+            amount = amount.quantize(settings.DECIMALS)
         if not amount == price:
             pass #print "Changed the price!"
         return amount
