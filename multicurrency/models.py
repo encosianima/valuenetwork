@@ -114,6 +114,28 @@ class MulticurrencyAuth(models.Model):
         return out_text, reqdata
 
 
+
+class MultiwalletTransaction(models.Model):
+    event = models.OneToOneField(EconomicEvent, on_delete=models.CASCADE, verbose_name=_('event'), related_name='multiwallet_transaction')
+    tx_id = models.CharField(_("Multiwallet Transaction ID"), max_length=96, editable=False) # 64 btc+fair, 66 eth
+    status = models.CharField(_('Status'), max_length=32, blank=True, null=True) # 33 btc, 34 fair, 42 eth
+    in_address = models.CharField(_('In Address'), max_length=128, blank=True, null=True) # 33 btc, 34 fair, 42 eth
+    #amount = models.DecimalField(_('Quantity'), max_digits=20, decimal_places=9, default=0) # is already in the event
+    tx_fee = models.DecimalField(_('Transaction Fee'), max_digits=20, decimal_places=9, default=0)
+
+    def unit(self):
+        if self.event.unit_of_quantity:
+            return self.event.unit_of_quantity
+        else:
+            raise ValidationError("There's no unit_of_quantity in the related event: "+str(self.event))
+
+    def amount(self):
+        return self.event.quantity
+
+    def update_data(self):
+        pass
+
+
 class BlockchainTransaction(models.Model):
     event = models.OneToOneField(EconomicEvent, on_delete=models.CASCADE, verbose_name=_('event'), related_name='chain_transaction')
     tx_hash = models.CharField(_("Transaction Hash"), max_length=96, editable=False) # 64 btc+fair, 66 eth
