@@ -97,7 +97,8 @@ class MembershipRequest(models.Model):
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='membership_requests',
         blank=True, null=True,
-        help_text=_("this membership request became this EconomicAgent"))
+        help_text=_("this membership request became this EconomicAgent"),
+        on_delete=models.SET_NULL)
     state = models.CharField(_('state'),
         max_length=12, choices=REQUEST_STATE_CHOICES,
         default='new', editable=False)
@@ -742,10 +743,16 @@ class JoinRequest(models.Model):
         requnit = self.payment_unit()
         amount = price
         if not requnit == unit and price:
-            from work.utils import convert_price, remove_exponent
-            amount, ratio = convert_price(price, unit, requnit, self)
-            self.ratio = ratio
-            amount = remove_exponent(amount)
+            from work.utils import remove_exponent
+            if hasattr(self, 'ratio'):
+                amount = price / self.ratio
+                print("using CACHED ratio at share_price!")
+                loger.warning("using CACHED ratio at share_price!")
+            else:
+                from work.utils import convert_price
+                amount, ratio = convert_price(price, unit, requnit, self)
+                self.ratio = ratio
+            amount = amount.quantize(settings.DECIMALS)
         if not amount == price:
             pass #print "Changed the price!"
         return amount
@@ -1411,6 +1418,10 @@ class JoinRequest(models.Model):
                 print "WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id)
                 loger.info("WARN diferent amountpay:"+str(amountpay)+" and pendamo:"+str(pendamo)+" ...which is better? jr:"+str(self.id))
         if realamount:
+            if isinstance(realamount, str) or isinstance(realamount, unicode):
+                if ',' in realamount:
+                    realamount = realamount.replace(',', '.')
+            realamount = decimal.Decimal(realamount)
             amountpay = realamount
 
         if status:
@@ -1506,7 +1517,9 @@ class JoinRequest(models.Model):
                                     else:
                                         raise ValidationError("Can't manage blockchain txs without the multicurrency app installed!")
                                     if realamount:
-                                        amountpay = decimal.Decimal(realamount)
+                                        if not isinstance(realamount, decimal.Decimal):
+                                            realamount = decimal.Decimal(realamount)
+                                        amountpay = realamount
                                         gateref = txid
                                         if commit_pay:
                                             if not commit_pay.quantity == amountpay:
@@ -1974,7 +1987,10 @@ class JoinRequest(models.Model):
             self.save()
             project = self.project
             # add relation candidate
-            ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
+            if project.shares_account_type():
+                ass_type = get_object_or_404(AgentAssociationType, identifier="member")
+            else:
+                ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
             ass = AgentAssociation.objects.filter(is_associate=self.agent, has_associate=self.project.agent)
             if ass_type and not ass:
                 aa = AgentAssociation(
