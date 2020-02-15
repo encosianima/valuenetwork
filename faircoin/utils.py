@@ -30,7 +30,7 @@ def send_command(cmd, params = [] ):
     try:
         r = response.json()
         if int(response.status_code) == 200:
-            logger.debug('Response: %s' %(r['result']))
+            #logger.debug('Response: %s' %(r['result']))
             out = r['result']
         else:
             logger.debug('Error Response: %s' %(str(r)))
