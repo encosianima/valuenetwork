@@ -164,10 +164,15 @@ class BlockchainTransaction(models.Model):
             unit = self.unit()
             msg = None
             if unit and unit.abbrev:
-                if unit.abbrev == 'fair' and 'faircoin' in settings.INSTALLED_APPS:
-                    from faircoin import utils as faircoin_utils
-                    wallet = faircoin_utils.is_connected()
-                    if wallet:
+                if unit.abbrev == 'fair':
+                    if self.event.to_agent.nick == "BotC":
+                        raise ValidationError("This model is not appropiate to store the Multiwallet ID! ")
+
+
+                    elif 'faircoin' in settings.INSTALLED_APPS:
+                      from faircoin import utils as faircoin_utils
+                      wallet = faircoin_utils.is_connected()
+                      if wallet:
                         trans = faircoin_utils.send_command('get_transaction', [self.tx_hash])
                         if trans != 'ERROR':
                             json = {'hash': self.tx_hash,
@@ -202,8 +207,13 @@ class BlockchainTransaction(models.Model):
                             self.event.delete()
                             self.delete()
                             return mesg
-                    else:
+                      else:
                         mesg += "There's no faircoin wallet to check the transaction."
+                        self.event.delete()
+                        self.delete()
+                        return mesg
+                    else:
+                        mesg += "Is faircoin but the faircoin app is not installed"
                         self.event.delete()
                         self.delete()
                         return mesg
@@ -228,22 +238,6 @@ class BlockchainTransaction(models.Model):
                     else:
                         mesg += ("The key is not in settings: "+str(key)+"<br>")
 
-
-                    """from multicurrency.utils import ChipChapAuthConnection
-                    connection = ChipChapAuthConnection.get()
-                    json, msg = connection.check_payment(
-                            oauth.access_key,
-                            oauth.access_secret,
-                            unit.abbrev,
-                            self.tx_hash,
-                    )
-                    if msg:
-                        mesg += ("Error checking the tx: <b>"+msg+"</b>")
-                        #for prop in txobj:
-                        #    mesg += "<br>"+str(prop)
-                        self.event.delete()
-                        self.delete()
-                        return mesg"""
 
                 if json:
                     if 'hash' in json: #.status == "ok":
