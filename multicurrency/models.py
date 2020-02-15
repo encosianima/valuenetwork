@@ -21,7 +21,7 @@ else:
 if hasattr(settings, 'MARGIN'):
     MARGIN = settings.MARGIN
 else:
-    MARGIN = Decimal("0.000001")
+    MARGIN = Decimal("0.0000001")
 
 if 'faircoin' in settings.INSTALLED_APPS:
     from faircoin.models import FC2_TX_URL
@@ -299,66 +299,109 @@ class BlockchainTransaction(models.Model):
 
                                     if self.event.event_type.name == 'Give':
                                         val = Decimal( (outval + fee) / DIVISOR).quantize(DECIMALS) #, settings.CRYPTO_DECIMALS)
-                                        if realamount and not (realamount+outfee) == val:
+                                        if realamount:
+                                          if not (realamount+outfee) == val:
                                             if (realamount+outfee) < val:
                                                 rest = val - (realamount+outfee)
                                             else:
                                                 rest = (realamount+outfee) - val
                                             if rest > MARGIN:
                                                 print("ev-give: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found+fee:"+str(val)+" (type:"+str(type(val))+") - declared+fee:"+str(realamount+outfee)+"(type:"+str(type(realamount))+")")
+                                                #loger.info("ev-give: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found+fee:"+str(val)+" (type:"+str(type(val))+") - declared+fee:"+str(realamount+outfee)+"(type:"+str(type(realamount))+")")
                                                 #mesg += ("(give event): Declared amount and chain discovered amount are too different!! fee:"+str(outfee)+", found+fee:"+str(val)+" <> declared+fee:"+str(realamount+outfee)+" (rest:"+str(remove_exponent(rest))+")") #+"(type:"+str(type(realamount))+")")
                                                 #self.event.delete()
                                                 #self.delete()
                                             else:
                                                 validval = val
-                                                print("ev-give: Declared amount and chain discovered amount are not equal but are close. Allow? rest:"+str(rest)+" fee:"+str(outfee))
+                                                print("ev-give: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
+                                                loger.info("ev-give: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
 
-                                                if not self.event.quantity == val:
-                                                    print("UPDATE ev give quantity! qty:"+str(self.event.quantity)+" val:"+str(val)+" (type:"+str(type(val))+") <> declared:"+str(realamount)+"(type:"+str(type(realamount))+")")
-                                                    loger.info("UPDATE ev give quantity! qty:"+str(self.event.quantity)+" val:"+str(val)+" type:"+str(type(val)))
-                                                    self.event.quantity = val
-                                                    self.event.save()
-                                                if self.event.commitment:
-                                                    if not self.event.commitment.quantity == val:
-                                                        print("UPDATE ev give commitment quantity! qty:"+str(self.event.commitment.quantity)+" val:"+str(val))
-                                                        loger.info("UPDATE ev give commitment quantity! qty:"+str(self.event.commitment.quantity)+" val:"+str(val))
-                                                        self.event.commitment.quantity = val
-                                                        self.event.commitment.save()
+                                          else: # same val
+                                            print("ev-give: declared exactly the same amount (+fee): "+str(val))
+                                            loger.info("ev-give: declared exactly the same amount (+fee): "+str(val))
+                                            validval = val
+                                        else: # not declared realamount
+                                            if len(outvals) > 1:
+                                                print("ev-give: Not declared amount but tx has >1 output! can't check.")
+                                                mesg += _("Sorry, the system can't check a tx with many outputs without declaring the received amount (give event). ")
+                                                #self.event.delete()
+                                                #self.delete()
                                                 break
+                                            else:
+                                                print("ev-give: Without declared amount! Do we get the unique tx output as the valid value? "+str(val))
+                                                loger.info("ev-give: Without declared amount! Do we get the unique tx output as the valid value? TODO tx.id:"+str(self.id)+" ev.id:"+str(self.event.id)+" val:"+str(val))
+                                            mesg += _("Please, set the received amount to check the transaction.")
+
+                                        if validval:
+                                            if not self.event.quantity == validval:
+                                                print("UPDATE ev give quantity! qty:"+str(self.event.quantity)+" validval:"+str(validval)+" (type:"+str(type(validval))+") <> declared:"+str(realamount)+"(type:"+str(type(realamount))+")")
+                                                loger.info("UPDATE ev give quantity! qty:"+str(self.event.quantity)+" validval:"+str(validval)+" type:"+str(type(validval)))
+                                                self.event.quantity = validval
+                                                self.event.save()
+                                            if self.event.commitment:
+                                                if not self.event.commitment.quantity == validval:
+                                                    print("UPDATE ev give commitment quantity! qty:"+str(self.event.commitment.quantity)+" validval:"+str(validval))
+                                                    loger.info("UPDATE ev give commitment quantity! qty:"+str(self.event.commitment.quantity)+" validval:"+str(validval))
+                                                    self.event.commitment.quantity = validval
+                                                    self.event.commitment.save()
+                                            break
 
                                     elif self.event.event_type.name == 'Receive':
                                         val = Decimal( outval / DIVISOR).quantize(DECIMALS) #, settings.CRYPTO_DECIMALS)
-                                        if realamount and not realamount == val:
+                                        if realamount:
+                                          if not realamount == val:
                                             if realamount < val:
                                                 rest = val - realamount
                                             else:
                                                 rest = realamount - val
                                             if rest > MARGIN:
                                                 print("ev-receive: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found:"+str(val)+" (type:"+str(type(val))+") <> declared:"+str(realamount)+"(type:"+str(type(realamount))+")")
+                                                #loger.info("ev-receive: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found:"+str(val)+" (type:"+str(type(val))+") <> declared:"+str(realamount)+"(type:"+str(type(realamount))+")")
                                                 #mesg += ("(receive event): Declared amount and chain discovered amount are too different!! fee:"+str(outfee)+", found:"+str(val)+" <> declared:"+str(realamount)+" (rest:"+str(remove_exponent(rest))+")") #+"(type:"+str(type(realamount))+")")
                                                 #self.event.delete()
                                                 #self.delete()
                                             else:
                                                 validval = val
-                                                print("ev-receive: Declared amount and chain discovered amount are not equal but are close. Allow? rest:"+str(rest)+" fee:"+str(outfee))
+                                                print("ev-receive: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
+                                                loger.info("ev-receive: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
 
-                                                if not self.event.quantity == val:
-                                                    print("UPDATE ev receive quantity! qty:"+str(self.event.quantity)+" val:"+str(val)+" (type:"+str(type(val))+") - realamount:"+str(realamount)+"(type:"+str(type(realamount))+")")
-                                                    loger.info("UPDATE ev receive quantity! qty:"+str(self.event.quantity)+" val:"+str(val))
-                                                    self.event.quantity = val
-                                                    self.event.save()
-                                                if self.event.commitment:
-                                                    if not self.event.commitment.quantity == val:
-                                                        print("UPDATE ev receive commitment quantity! qty:"+str(self.event.commitment.quantity)+" val:"+str(val))
-                                                        loger.info("UPDATE ev receive commitment quantity! qty:"+str(self.event.commitment.quantity)+" val:"+str(val))
-                                                        self.event.commitment.quantity = val
-                                                        self.event.commitment.save()
+                                          else: # same val
+                                            print("ev-receive: declared exactly the same amount (-fee): "+str(val))
+                                            loger.info("ev-receive: declared exactly the same amount (-fee): "+str(val))
+                                            validval = val
+                                        else: # not declared realamount
+                                            if len(outvals) > 1:
+                                                print("ev-receive: Not declared amount but tx has >1 output! can't check.")
+                                                mesg += _("Sorry, the system can't check a tx with many outputs without declaring the received amount.")
+                                                #self.event.delete()
+                                                #self.delete()
                                                 break
+                                            else:
+                                                print("ev-receive: Without declared amount! Do we get the unique tx output as the valid value? "+str(val))
+                                                loger.info("ev-receive: Without declared amount! Do we get the unique tx output as the valid value? TODO tx.id:"+str(self.id)+" ev.id:"+str(self.event.id)+" val:"+str(val))
+                                            mesg += _("Please, set the received amount to check the transaction.")
+
+                                        if validval:
+                                            if not self.event.quantity == validval:
+                                                print("UPDATE ev receive quantity! qty:"+str(self.event.quantity)+" val:"+str(val)+" (type:"+str(type(val))+") - realamount:"+str(realamount)+"(type:"+str(type(realamount))+")")
+                                                loger.info("UPDATE ev receive quantity! qty:"+str(self.event.quantity)+" val:"+str(val))
+                                                self.event.quantity = val
+                                                self.event.save()
+                                            if self.event.commitment:
+                                                if not self.event.commitment.quantity == val:
+                                                    print("UPDATE ev receive commitment quantity! qty:"+str(self.event.commitment.quantity)+" val:"+str(val))
+                                                    loger.info("UPDATE ev receive commitment quantity! qty:"+str(self.event.commitment.quantity)+" val:"+str(val))
+                                                    self.event.commitment.quantity = val
+                                                    self.event.commitment.save()
+                                            break
                                     else:
                                         raise ValidationError("TX event type not supported: "+str(self.event.event_type.name))
+                                # end for
 
                                 if not validval:
-                                    mesg += "Not found an output with a similar amount? "+str(outvals)
+                                    mesg += _("Not found an output with a similar amount?")+" "+str(outvals)
+                                    loger.warning("Not found an output with a similar amount? "+str(outvals))
+                                    print("Not found an output with a similar amount? "+str(outvals))
                                     self.event.delete()
                                     self.delete()
                                     return mesg
