@@ -52,12 +52,12 @@ class ChipChapAuthConnection(object):
                 self.logger.error("WARN: Multicurrency without Ticker! Can't process crypto prices (except faircoin)")
             else:
                 self.url_ticker = cdata['url_ticker']
-            if not "url_tx_json" in cdata:
-                self.url_tx_json = None
-                print("WARN: Multicurrency without url_tx_json! Can't check crypto payments")
-                self.logger.error("WARN: Multicurrency without url_tx_json! Can't check crypto payments")
-            else:
-                self.url_tx_json = cdata['url_tx_json']
+            #if not "url_tx_json" in cdata:
+            #    self.url_tx_json = None
+            #    print("WARN: Multicurrency without url_tx_json! Can't check crypto payments")
+            #    self.logger.error("WARN: Multicurrency without url_tx_json! Can't check crypto payments")
+            #else:
+            #    self.url_tx_json = cdata['url_tx_json']
             self.url_fair_tx = cdata['url_fair_tx']
         else:
             self.able_to_connect = False
@@ -212,12 +212,24 @@ class ChipChapAuthConnection(object):
     def check_payment(self, access_key, access_secret, unit, txid):
         if not self.able_to_connect:
             raise ChipChapAuthError('Connection Error', 'No data to connect')
+
+        txlist, balance = self.wallet_history(access_key, access_secret)
+        if txlist:
+            if txlist['status'] == 'ok':
+                for tx in txlist['data']['elements']:
+                    if tx['id'] == txid:
+                        return tx, tx['status']
+
+
+        return None, txlist
+
+        """
         headers = ChipChapAuthConnection.chipchap_x_signature(
             access_key, access_secret)
 
         if unit == 'fair':
             unit = 'fac'
-            url = self.url_fair_tx+txid
+            url = self.url_multi_txs # self.url_fair_tx+txid
         else:
             url = self.url_tx_json+(unit)+'/'+txid
         params = {
@@ -226,14 +238,16 @@ class ChipChapAuthConnection(object):
         }
 
         paycheck = requests.get(
-            url)#,
-            #headers=headers)
+            url,
+            headers=headers)
             #params=params)
         print("URL: "+str(url))
         #print("Headers: "+str(headers))
 
         if int(paycheck.status_code) == 200:
-            return paycheck.text #json()
+            self.logger.debug('Response (200) json:'+str(paycheck.json()))
+            print('Response (200) json:'+str(paycheck.json()))
+            return None, paycheck.json() # TODO
         else:
             error = str(paycheck.status_code)
             #msg = paycheck.json()['message'] #json.loads(paycheck.text)
@@ -242,3 +256,4 @@ class ChipChapAuthConnection(object):
             print("Payment check request have returned "+error+" status code. Error: "+msg)
             return None, msg
             #raise ChipChapAuthError('Error '+error, msg['message'])
+        """

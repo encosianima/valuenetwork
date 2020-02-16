@@ -119,7 +119,8 @@ class MultiwalletTransaction(models.Model):
     event = models.OneToOneField(EconomicEvent, on_delete=models.CASCADE, verbose_name=_('event'), related_name='multiwallet_transaction')
     tx_id = models.CharField(_("Multiwallet Transaction ID"), max_length=96, editable=False) # 64 btc+fair, 66 eth
     status = models.CharField(_('Status'), max_length=32, blank=True, null=True) # 33 btc, 34 fair, 42 eth
-    in_address = models.CharField(_('In Address'), max_length=128, blank=True, null=True) # 33 btc, 34 fair, 42 eth
+    sent_to = models.CharField(_('Sent to username'), max_length=128, blank=True, null=True) # 33 btc, 34 fair, 42 eth
+    method = models.CharField(_("Method"), max_length=128, blank=True, null=True)
     #amount = models.DecimalField(_('Quantity'), max_digits=20, decimal_places=9, default=0) # is already in the event
     tx_fee = models.DecimalField(_('Transaction Fee'), max_digits=20, decimal_places=9, default=0)
 
@@ -132,8 +133,89 @@ class MultiwalletTransaction(models.Model):
     def amount(self):
         return self.event.quantity
 
-    def update_data(self):
-        pass
+    def update_data(self, oauth, request, realamount=None):
+        url = None
+        json = None
+        inputs = []
+        input_vals = []
+        outputs = []
+        output_vals = []
+        outvals = []
+        mesg = ''
+        if realamount:
+            realamount = Decimal(realamount)
+        if not oauth:
+            mesg += "Without an oauth we can't update_data!"
+            return mesg
+
+        unit = self.unit()
+        msg = None
+        if unit and unit.abbrev:
+            if unit.abbrev == 'fair':
+                if self.event.to_agent.nick == "BotC": # now only to pay botc shares
+                    from multicurrency.utils import ChipChapAuthConnection
+                    connection = ChipChapAuthConnection.get()
+                    json, msg = connection.check_payment(
+                        oauth.access_key,
+                        oauth.access_secret,
+                        unit.abbrev,
+                        self.tx_id,
+                    )
+                    if msg and not msg == 'success':
+                        mesg += _("Error checking the Transaction:")+" <b>"+str(msg)+"</b> "
+                    if json:
+                        if not json['currency'] == 'FAC':
+                            mesg += _("The multiwallet tx found is not FairCoin?")
+                            return mesg #pass #raise ValidationError("The multiwallet tx found is not FairCoin ?? ")
+
+                        self.method = json['method']
+                        if 'data_out' in json: # exchanges don't have 'data_out'
+                            self.sent_to = json['data_out']['sent_to']
+                        self.status = json['status']
+                        divisor = Decimal(10 ** json['scale'])
+                        fees = Decimal(json['variable_fee']) + Decimal(json['fixed_fee'])
+                        if fees:
+                            self.tx_fee = remove_exponent(fees / divisor).quantize(settings.DECIMALS)
+                            print("tx fees:"+str(fees)+" fee:"+str(self.tx_fee)) #
+                        else:
+                            self.tx_fee = 0
+                        total = Decimal(json['total'] / divisor).quantize(settings.DECIMALS)
+                        if total < 0:
+                            total = total * -1
+
+                        if total == realamount:
+                            if fees:
+                                print("Found tx fees:"+str(fees)+" fee:"+str(self.tx_fee)) #+" tx:"+str(self))
+                                mesg += ("Found Fees ?? ("+str(self.tx_fee)+") abort...") #+" tx:"+str(self))
+                                loger.warning("Found Fees ?? ("+str(self.tx_fee)+") Abort... for mTx:"+str(self.id)+" ev:"+str(self.event.id)+" txid:"+str(self.tx_id))
+
+                            if not self.event.quantity == total:
+                                messages.info(request, _("Updated the event Quantity ({0}) to: {1} <br/>").format(self.event.quantity, total))
+                                self.event.quantity = total
+
+                            if not self.event.event_reference == self.tx_id:
+                                messages.info(request, _("Updated the event Reference ({0}) to: {1} <br/>").format(self.event.event_reference, self.tx_id))
+                                self.event.event_reference = self.tx_id
+
+                            if not self.event.event_date == json['created']:
+                                messages.info(request, _("Updated the event Date ({0}) to: {1} <br/>").format(self.event.event_date, json['created']))
+                                self.event.event_date = json['created']
+
+                            if mesg == '':
+                                self.event.save()
+                                self.save()
+
+                        else:
+                            mesg += _("The received amount ({0}) is not like the one found ({1}).").format(realamount, total)
+                    else: # no json
+                        mesg += "No json received ??"
+                else: # not botc
+                    mesg += "No BotC related ??"
+            else: # not fair
+                mesg += "No 'faircoin' unit ??"
+        else: # not unit
+            mesg += "No unit or abbrev ??"
+        return mesg
 
 
 class BlockchainTransaction(models.Model):
@@ -176,11 +258,6 @@ class BlockchainTransaction(models.Model):
         mesg = ''
         if realamount:
             realamount = Decimal(realamount)
-        """if not oauth:
-            mesg += "Without a oauth we can't update_data!"
-            self.event.delete()
-            self.delete()
-            return mesg"""
 
         if not self.tx_fee:
             unit = self.unit()
@@ -189,7 +266,6 @@ class BlockchainTransaction(models.Model):
                 if unit.abbrev == 'fair':
                     if self.event.to_agent.nick == "BotC":
                         raise ValidationError("This model is not appropiate to store the Multiwallet ID! ")
-
 
                     elif 'faircoin' in settings.INSTALLED_APPS:
                       from faircoin import utils as faircoin_utils
