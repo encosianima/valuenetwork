@@ -443,6 +443,24 @@ class Project(models.Model):
                 abbr = arr[0][:1]+half+arr[1][:1]
         return abbr
 
+    def multiwallet_auth(self): # not used yet, is for checking payments via botc-wallet (which requires auth) but still not works so step back to blockchain.com json service.
+        auth = None
+        if self.agent.need_multicurrency():
+            if 'multicurrency' in settings.INSTALLED_APPS:
+                from multicurrency.models import MulticurrencyAuth
+                try:
+                    oauths = MulticurrencyAuth.objects.filter(agent=self.agent)
+                except MulticurrencyAuth.DoesNotExist:
+                    raise PermissionDenied
+                if len(oauths) > 1:
+                    print("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
+                    loger.warning("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
+                if oauths:
+                    auth = oauths[0]
+                else:
+                    print("Not found any oauth for project: "+str(self.agent))
+                    loger.error("Not found any oauth for project: "+str(self.agent))
+        return auth
 
 
 
@@ -1578,7 +1596,7 @@ class JoinRequest(models.Model):
                                     if created:
                                         print("- created MultiwalletTransaction: "+str(tx))
                                         loger.info("- created MultiwalletTransaction: "+str(tx))
-                                    oauth = self.multiwallet_auth()
+                                    oauth = self.project.multiwallet_auth()
                                     msg = tx.update_data(oauth, request, realamount)
                                     if not msg == '':
                                         tx.event.delete()
@@ -1638,7 +1656,7 @@ class JoinRequest(models.Model):
                                     if created:
                                         print("- created MultiwalletTransaction (evt2): "+str(tx2))
                                         loger.info("- created MultiwalletTransaction (evt2): "+str(tx2))
-                                    oauth = self.multiwallet_auth()
+                                    oauth = self.project.multiwallet_auth()
                                     msg = tx2.update_data(oauth, request, realamount)
                                     if not msg == '':
                                         tx2.event.delete()
