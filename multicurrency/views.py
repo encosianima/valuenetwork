@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.shortcuts import render, redirect
+from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404
@@ -9,7 +10,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import ugettext_lazy as _
 
 from valuenetwork.valueaccounting.models import EconomicAgent
-from multicurrency.models import MulticurrencyAuth
+from multicurrency.models import MulticurrencyAuth, MultiwalletTransaction
 from multicurrency.forms import MulticurrencyAuthForm, \
     MulticurrencyAuthDeleteForm, MulticurrencyAuthCreateForm, PaySharesForm
 from multicurrency.utils import ChipChapAuthConnection, ChipChapAuthError
@@ -264,7 +265,7 @@ def history(request, agent_id, oauth_id):
         table_caption = "Showing " + str(tx_list['data']['start'] + 1) + " to "\
             + str(tx_list['data']['end']) + " of " + str(tx_list['data']['total'])\
             + " movements"
-        table_headers = ['Created', 'Updated', 'Concept', 'Method', 'IO', 'Account or Address', 'Amount', 'Unit']
+        table_headers = ['Created', 'Updated', 'Concept', 'Method', 'IO', 'Account or Address', 'Amount', 'Unit', "Status"]
         table_rows = []
         paginator = {}
         if tx_list['data']['total'] > 0:
@@ -303,6 +304,18 @@ def history(request, agent_id, oauth_id):
                     amount = -amount if tx['type'] == 'out' else amount
                 currency = tx['currency'] if 'currency' in tx else '--'
                 if currency == "FAC": currency = "FAIR"
+                status = str(tx['status'])
+                multitxs = MultiwalletTransaction.objects.filter(tx_id=tx['id'])
+                if multitxs:
+                    status = ''
+                    for mtx in multitxs:
+                        if hasattr(mtx.event, 'exchange'):
+                            status += "<b><a href='"+reverse("exchange_logging_work", args=(agent_id, 0, mtx.event.exchange.id))+"'>"
+                            status += mtx.event.exchange.status()
+                        elif hasattr(mtx.event, 'transfer') and hasattr(mtx.event.transfer, 'exchange'):
+                            status += "<b><a href='"+reverse("exchange_logging_work", args=(agent_id, 0, mtx.event.transfer.exchange.id))+"'>"
+                            status += mtx.event.transfer.exchange.status()
+                        status += "</a></b> "
                 table_rows.append([
                     created.strftime('%Y/%m/%d-%H:%M'),
                     updated.strftime('%Y/%m/%d-%H:%M'),
@@ -312,6 +325,7 @@ def history(request, agent_id, oauth_id):
                     address,
                     str(round(amount, scale)), #.quantize(Decimal('0.01'))),
                     currency,
+                    status
                 ])
                 if tx_list['data']['total'] > tx_list['data']['end']:
                     paginator['next'] = {
