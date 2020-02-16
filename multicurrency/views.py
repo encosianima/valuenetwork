@@ -305,6 +305,8 @@ def history(request, agent_id, oauth_id):
                 currency = tx['currency'] if 'currency' in tx else '--'
                 if currency == "FAC": currency = "FAIR"
                 status = str(tx['status'])
+                if request.user.is_superuser:
+                    status = str(tx['id'])
                 multitxs = MultiwalletTransaction.objects.filter(tx_id=tx['id'])
                 if multitxs:
                     status = ''
