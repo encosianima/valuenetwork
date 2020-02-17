@@ -207,7 +207,11 @@ class MultiwalletTransaction(models.Model):
 
                             if not self.event.event_date == json['created']:
                                 messages.info(request, _("Updated the event Date ({0}) to: {1} / ").format(self.event.event_date, json['created']))
-                                dt = datetime.strptime(json['created'], '%Y-%m-%dT%H:%M:%S+%Z')
+                                dat = json['created']
+                                pos = dat.find("+")
+                                if not pos == -1:
+                                    dat = dat[:pos]
+                                dt = datetime.strptime(dat, '%Y-%m-%dT%H:%M:%S')
                                 self.event.event_date = dt.date()
 
                             if mesg == '':
