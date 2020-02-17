@@ -16,6 +16,16 @@ from easy_thumbnails.fields import ThumbnailerImageField
 from valuenetwork.valueaccounting.models import *
 from fobi.models import FormEntry
 
+from nine.versions import DJANGO_LTE_1_5
+from fobi.contrib.plugins.form_handlers.db_store.models import SavedFormDataEntry
+import simplejson as json
+import random
+import hashlib
+
+from django_comments.models import Comment
+from general.models import UnitRatio
+from faircoin import utils as faircoin_utils
+
 from mptt.fields import TreeForeignKey
 
 if "pinax.notifications" in settings.INSTALLED_APPS:
@@ -495,15 +505,8 @@ class SkillSuggestion(models.Model):
         return SkillSuggestionResourceTypeForm(initial=init, prefix=self.form_prefix())
 
 
-from nine.versions import DJANGO_LTE_1_5
-from fobi.contrib.plugins.form_handlers.db_store.models import SavedFormDataEntry
-import simplejson as json
-import random
-import hashlib
 
-from django_comments.models import Comment
-from general.models import UnitRatio
-from faircoin import utils as faircoin_utils
+
 
 WALLET = faircoin_utils.is_connected()
 
