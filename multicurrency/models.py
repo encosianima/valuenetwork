@@ -170,7 +170,10 @@ class MultiwalletTransaction(models.Model):
 
                         self.method = json['method']
                         if 'data_out' in json: # exchanges don't have 'data_out'
-                            self.sent_to = json['data_out']['sent_to']
+                            if 'sent_to' in json['data_out']:
+                                self.sent_to = json['data_out']['sent_to']
+                            else:
+                                loger.info("No sent_to in tx data_out ?? "+str(json['data_out']))
                         self.status = json['status']
                         divisor = Decimal(10 ** json['scale'])
                         fees = Decimal(json['variable_fee']) + Decimal(json['fixed_fee'])
