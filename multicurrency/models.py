@@ -3,7 +3,7 @@ from decimal import Decimal
 import requests
 import logging
 loger = logging.getLogger("multicurrency")
-import datetime
+from datetime import datetime
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
