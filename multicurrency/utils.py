@@ -213,15 +213,22 @@ class ChipChapAuthConnection(object):
         if not self.able_to_connect:
             raise ChipChapAuthError('Connection Error', 'No data to connect')
 
-        txlist, balance = self.wallet_history(access_key, access_secret)
+        mtx = None
+        txlist, balance = self.wallet_history(access_key, access_secret, 20)
         if txlist:
-            if txlist['status'] == 'ok':
+            status = txlist['status']
+            if status == 'ok':
                 for tx in txlist['data']['elements']:
                     if tx['id'] == txid:
-                        return tx, tx['status']
+                        mtx = tx
+                if not mtx:
+                    print("Can't find the mtxid in last 20, search olders??")
+                    logger.info("Can't find the mtxid in last 20, search olders??")
+            else:
+                status = txlist['status']
+                #status = txlist
 
-
-        return None, txlist
+        return mtx, status
 
         """
         headers = ChipChapAuthConnection.chipchap_x_signature(
