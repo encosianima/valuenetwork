@@ -205,14 +205,15 @@ class MultiwalletTransaction(models.Model):
                                 messages.info(request, _("Updated the event Reference ({0}) to: {1} / ").format(self.event.event_reference, self.tx_id))
                                 self.event.event_reference = self.tx_id
 
-                            if not self.event.event_date == json['created']:
-                                messages.info(request, _("Updated the event Date ({0}) to: {1} / ").format(self.event.event_date, json['created']))
-                                dat = json['created']
-                                pos = dat.find("+")
-                                if not pos == -1:
-                                    dat = dat[:pos]
-                                dt = datetime.strptime(dat, '%Y-%m-%dT%H:%M:%S')
-                                self.event.event_date = dt.date()
+                            dat = json['created']
+                            pos = dat.find("+")
+                            if not pos == -1:
+                                dat = dat[:pos]
+                            dt = datetime.strptime(dat, '%Y-%m-%dT%H:%M:%S')
+                            dat = dt.date()
+                            if not self.event.event_date == dat:
+                                messages.info(request, _("Updated the event Date ({0}) to: {1} / ").format(self.event.event_date, dat))
+                                self.event.event_date = dat
 
                             if mesg == '':
                                 self.event.save()
