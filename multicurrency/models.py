@@ -3,6 +3,7 @@ from decimal import Decimal
 import requests
 import logging
 loger = logging.getLogger("multicurrency")
+import datetime
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -206,7 +207,7 @@ class MultiwalletTransaction(models.Model):
 
                             if not self.event.event_date == json['created']:
                                 messages.info(request, _("Updated the event Date ({0}) to: {1} / ").format(self.event.event_date, json['created']))
-                                self.event.event_date = json['created']
+                                self.event.event_date = datetime.strptime(json['created'], '%Y-%m-%d')
 
                             if mesg == '':
                                 self.event.save()
