@@ -16,6 +16,16 @@ from easy_thumbnails.fields import ThumbnailerImageField
 from valuenetwork.valueaccounting.models import *
 from fobi.models import FormEntry
 
+from nine.versions import DJANGO_LTE_1_5
+from fobi.contrib.plugins.form_handlers.db_store.models import SavedFormDataEntry
+import simplejson as json
+import random
+import hashlib
+
+from django_comments.models import Comment
+from general.models import UnitRatio
+from faircoin import utils as faircoin_utils
+
 from mptt.fields import TreeForeignKey
 
 if "pinax.notifications" in settings.INSTALLED_APPS:
@@ -443,6 +453,24 @@ class Project(models.Model):
                 abbr = arr[0][:1]+half+arr[1][:1]
         return abbr
 
+    def multiwallet_auth(self): # not used yet, is for checking payments via botc-wallet (which requires auth) but still not works so step back to blockchain.com json service.
+        auth = None
+        if self.agent.need_multicurrency():
+            if 'multicurrency' in settings.INSTALLED_APPS:
+                from multicurrency.models import MulticurrencyAuth
+                try:
+                    oauths = MulticurrencyAuth.objects.filter(agent=self.agent)
+                except MulticurrencyAuth.DoesNotExist:
+                    raise PermissionDenied
+                if len(oauths) > 1:
+                    print("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
+                    loger.warning("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
+                if oauths:
+                    auth = oauths[0]
+                else:
+                    print("Not found any oauth for project: "+str(self.agent))
+                    loger.error("Not found any oauth for project: "+str(self.agent))
+        return auth
 
 
 
@@ -477,15 +505,8 @@ class SkillSuggestion(models.Model):
         return SkillSuggestionResourceTypeForm(initial=init, prefix=self.form_prefix())
 
 
-from nine.versions import DJANGO_LTE_1_5
-from fobi.contrib.plugins.form_handlers.db_store.models import SavedFormDataEntry
-import simplejson as json
-import random
-import hashlib
 
-from django_comments.models import Comment
-from general.models import UnitRatio
-from faircoin import utils as faircoin_utils
+
 
 WALLET = faircoin_utils.is_connected()
 
@@ -773,7 +794,7 @@ class JoinRequest(models.Model):
         shprice = shtype.price_per_unit
         unit = self.payment_unit()
         amount = amountpay = self.payment_amount() * shprice
-        if not unit == shunit and amount: #unit.abbr == 'fair':
+        if not unit == shunit and amount: #unit.abbrev == 'fair':
             #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
             from work.utils import convert_price, remove_exponent
             amountpay, ratio = convert_price(amount, shunit, unit, self)
@@ -949,7 +970,7 @@ class JoinRequest(models.Model):
             loger.info("Using CACHED pending_amount!! "+str(amountpay))
         else:
             from work.utils import convert_price
-            if not shunit == unit and amount2: #unit.abbr == 'fair':
+            if not shunit == unit and amount2: #unit.abbrev == 'fair':
                 amountpay, ratio = convert_price(amount2, shunit, unit, self)
                 self.ratio = ratio
                 self.pending_amount = amountpay
@@ -1397,7 +1418,7 @@ class JoinRequest(models.Model):
 
         if not txid:
             from work.utils import convert_price
-            if not shunit == unit and amount2: #unit.abbr == 'fair':
+            if not shunit == unit and amount2: #unit.abbrev == 'fair':
                 amountpay, ratio = convert_price(amount2, shunit, unit, self)
                 self.ratio = ratio
             if not amountpay:
@@ -1513,7 +1534,10 @@ class JoinRequest(models.Model):
                             elif self.is_flexprice:
                                 if txid:
                                     if 'multicurrency' in settings.INSTALLED_APPS:
-                                        from multicurrency.models import BlockchainTransaction
+                                        if unit.abbrev == "fair" and self.project.agent.nick == "BotC":
+                                            from multicurrency.models import MultiwalletTransaction
+                                        else:
+                                            from multicurrency.models import BlockchainTransaction
                                     else:
                                         raise ValidationError("Can't manage blockchain txs without the multicurrency app installed!")
                                     if realamount:
@@ -1568,18 +1592,38 @@ class JoinRequest(models.Model):
                                 loger.info(" created Event: "+str(evt))
 
                             if txid:
-                                tx, created = BlockchainTransaction.objects.get_or_create(
-                                    tx_hash = txid,
-                                    event = evt)
-                                if created:
-                                    print("- created BlockchainTransaction: "+str(tx))
-                                    loger.info("- created BlockchainTransaction: "+str(tx))
-                                msg = tx.update_data(realamount) #, self.multiwallet_auth())
-                                if not msg == '':
-                                    if evt.id:
-                                        evt.delete()
-                                    messages.error(request, msg, extra_tags='safe')
-                                    return False
+                                if unit.abbrev == "fair" and self.project.agent.nick == "BotC":
+                                    tx, created = MultiwalletTransaction.objects.get_or_create(
+                                        tx_id = txid,
+                                        event = evt)
+                                    if created:
+                                        print("- created MultiwalletTransaction: "+str(tx))
+                                        loger.info("- created MultiwalletTransaction: "+str(tx))
+                                    oauth = self.project.multiwallet_auth()
+                                    msg = tx.update_data(oauth, request, realamount)
+                                    if not msg == '':
+                                        tx.event.delete()
+                                        tx.delete()
+                                        if evt.id:
+                                            evt.delete()
+                                        messages.error(request, msg, extra_tags='safe')
+                                        return False
+
+                                else:
+                                    tx, created = BlockchainTransaction.objects.get_or_create(
+                                        tx_hash = txid,
+                                        event = evt)
+                                    if created:
+                                        print("- created BlockchainTransaction: "+str(tx))
+                                        loger.info("- created BlockchainTransaction: "+str(tx))
+                                    msg = tx.update_data(realamount) #, self.multiwallet_auth())
+                                    if not msg == '':
+                                        tx.event.delete()
+                                        tx.delete()
+                                        if evt.id:
+                                            evt.delete()
+                                        messages.error(request, msg, extra_tags='safe')
+                                        return False
 
 
                             evt2, created = EconomicEvent.objects.get_or_create(
@@ -1608,18 +1652,37 @@ class JoinRequest(models.Model):
                                 loger.info(" created Event2: "+str(evt2))
 
                             if txid:
-                                tx, created = BlockchainTransaction.objects.get_or_create(
-                                    tx_hash = txid,
-                                    event = evt2)
-                                if created:
-                                    print("- created BlockchainTransaction: "+str(tx))
-                                    loger.info("- created BlockchainTransaction: "+str(tx))
-                                msg = tx.update_data(realamount) #, self.multiwallet_auth())
-                                if not msg == '':
-                                    if evt2.id:
-                                        evt2.delete()
-                                    messages.error(request, msg)
-                                    return False
+                                if unit.abbrev == "fair" and self.project.agent.nick == "BotC":
+                                    tx2, created = MultiwalletTransaction.objects.get_or_create(
+                                        tx_id = txid,
+                                        event = evt2)
+                                    if created:
+                                        print("- created MultiwalletTransaction (evt2): "+str(tx2))
+                                        loger.info("- created MultiwalletTransaction (evt2): "+str(tx2))
+                                    oauth = self.project.multiwallet_auth()
+                                    msg = tx2.update_data(oauth, request, realamount)
+                                    if not msg == '':
+                                        tx2.event.delete()
+                                        tx2.delete()
+                                        if evt2.id:
+                                            evt2.delete()
+                                        messages.error(request, msg, extra_tags='safe')
+                                        return False
+                                else:
+                                    tx2, created = BlockchainTransaction.objects.get_or_create(
+                                        tx_hash = txid,
+                                        event = evt2)
+                                    if created:
+                                        print("- created BlockchainTransaction: "+str(tx2))
+                                        loger.info("- created BlockchainTransaction: "+str(tx2))
+                                    msg = tx2.update_data(realamount) #, self.multiwallet_auth())
+                                    if not msg == '':
+                                        tx2.event.delete()
+                                        tx2.delete()
+                                        if evt2.id:
+                                            evt2.delete()
+                                        messages.error(request, msg)
+                                        return False
 
                         if xfer_share:
                             evts = xfer_share.events.all()
