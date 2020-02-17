@@ -310,14 +310,21 @@ def history(request, agent_id, oauth_id):
                 multitxs = MultiwalletTransaction.objects.filter(tx_id=tx['id'])
                 if multitxs:
                     status = ''
+                    exch = None
                     for mtx in multitxs:
                         if hasattr(mtx.event, 'exchange'):
-                            status += "<b><a href='"+reverse("exchange_logging_work", args=(agent_id, 0, mtx.event.exchange.id))+"'>"
-                            status += mtx.event.exchange.status()
+                            exch = mtx.event.exchange
                         elif hasattr(mtx.event, 'transfer') and hasattr(mtx.event.transfer, 'exchange'):
-                            status += "<b><a href='"+reverse("exchange_logging_work", args=(agent_id, 0, mtx.event.transfer.exchange.id))+"'>"
-                            status += mtx.event.transfer.exchange.status()
-                        status += "</a></b> "
+                            exch = mtx.event.transfer.exchange
+                        if exch:
+                            status += "<b><a href='"+reverse("exchange_logging_work", args=(agent_id, 0, exch.id))+"'>"
+                            status += _("exchange") #exch.status()
+                            status += "</a></b> "
+                            if hasattr(exch, 'join_request'):
+                                status += "<b><a href='"+reverse("project_feedback", args=(agent_id, exch.join_request.id))+"'>"
+                                status += _("feedback")
+                                status += "</a></b>"
+                            break
                 table_rows.append([
                     created.strftime('%Y/%m/%d-%H:%M'),
                     updated.strftime('%Y/%m/%d-%H:%M'),
