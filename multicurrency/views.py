@@ -318,11 +318,11 @@ def history(request, agent_id, oauth_id):
                             exch = mtx.event.transfer.exchange
                         if exch:
                             status += "<b><a href='"+reverse("exchange_logging_work", args=(agent_id, 0, exch.id))+"'>"
-                            status += _("exchange") #exch.status()
+                            status += "Exchange" #exch.status()
                             status += "</a></b> "
                             if hasattr(exch, 'join_request'):
-                                status += "<b><a href='"+reverse("project_feedback", args=(agent_id, exch.join_request.id))+"'>"
-                                status += _("feedback")
+                                status += "/ <b><a href='"+reverse("project_feedback", args=(agent_id, exch.join_request.id))+"'>"
+                                status += "Feedback"
                                 status += "</a></b>"
                             break
                 table_rows.append([
