@@ -162,8 +162,11 @@ class MultiwalletTransaction(models.Model):
                         unit.abbrev,
                         self.tx_id,
                     )
-                    if msg and not msg == 'success':
-                        mesg += _("Error checking the Transaction:")+" <b>"+str(msg)+"</b> "
+                    if msg:
+                        if msg == 'success' or msg == 'ok':
+                            pass
+                        else:
+                            mesg += _("Error checking the Transaction:")+" <b>"+str(msg)+"</b> "
                     if json:
                         if not json['currency'] == 'FAC':
                             mesg += _("The multiwallet tx found is not FairCoin?")
@@ -194,15 +197,15 @@ class MultiwalletTransaction(models.Model):
                                 loger.warning("Found Fees ?? ("+str(self.tx_fee)+") Abort... for mTx:"+str(self.id)+" ev:"+str(self.event.id)+" txid:"+str(self.tx_id))
 
                             if not self.event.quantity == total:
-                                messages.info(request, _("Updated the event Quantity ({0}) to: {1} <br/>").format(self.event.quantity, total))
+                                messages.info(request, _("Updated the event Quantity ({0}) to: {1} / ").format(self.event.quantity, total))
                                 self.event.quantity = total
 
                             if not self.event.event_reference == self.tx_id:
-                                messages.info(request, _("Updated the event Reference ({0}) to: {1} <br/>").format(self.event.event_reference, self.tx_id))
+                                messages.info(request, _("Updated the event Reference ({0}) to: {1} / ").format(self.event.event_reference, self.tx_id))
                                 self.event.event_reference = self.tx_id
 
                             if not self.event.event_date == json['created']:
-                                messages.info(request, _("Updated the event Date ({0}) to: {1} <br/>").format(self.event.event_date, json['created']))
+                                messages.info(request, _("Updated the event Date ({0}) to: {1} / ").format(self.event.event_date, json['created']))
                                 self.event.event_date = json['created']
 
                             if mesg == '':
