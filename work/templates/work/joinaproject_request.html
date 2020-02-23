@@ -33,7 +33,7 @@
 
     {% if project.custom_css %}
         <style>
-            {{ project.custom_css }}
+            {{ project.custom_css|safe }}
         </style>
     {% endif %}
 
