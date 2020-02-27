@@ -1,0 +1,43 @@
+Generate new .po files:
+
+From the repo folder, enter the virtual env and do:
+
+  ./manage.py makemessages --keep-pot
+
+
+Then move the newly generated .po files (or the .pot file if needed) in the `locale/en/LC_MESSAGES/` folder (forget the .mo) to a Translation Platform:
+
+- You can translate the strings alone in a local offline tool
+
+- You can setup your own opensource Translations Server (like Pootle) in your local machine or in a hosting server to collaborate in a team.
+
+- You can also use an online service like Transifex or alike.
+
+
+When translating please read the code lines involved to really understand the context and the intended message.
+To miss this point renders the tool totally unusable for that language.
+If there are other languages already in place and you know them, take a look how they translated some strings.
+
+
+When you have the translated .po file of a language, say `es.po` for Spanish:
+
+- paste it in the destination folder `locale/es/LC_MESSAGES/`
+
+- move to language destination folder: `cd locale/es/LC_MESSAGES`
+
+- rename the old .po: `mv django.po old-es.po`
+
+- rename the new es.po to django.po with: `mv es.po django.po`
+
+- compile the new .mo with:
+  - `msgfmt -v django.po`
+  - or with: `./../../../manage.py compilemessages -l es`
+
+- remove the old: `rm django.mo`
+
+- rename the new: `mv messages.mo django.mo`
+
+- move away or delete the 'old-es.po' file...
+
+
+Do the same for every language and restart the server. That's it!
