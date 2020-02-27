@@ -123,6 +123,7 @@ ROOT_URLCONF = "valuenetwork.urls"
 WSGI_APPLICATION = "valuenetwork.wsgi.application"
 
 INSTALLED_APPS = [
+    'modeltranslation',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -386,6 +387,9 @@ LANGUAGES = (
   ('en',  _('English')),
   ('es',  _('Spanish')),
 )
+DEFAULT_LANGUAGE = 'en'
+
+MODELTRANSLATION_AUTO_POPULATE = 'default'
 
 # Captcha settings
 CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'

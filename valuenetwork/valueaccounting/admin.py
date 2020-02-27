@@ -1,6 +1,7 @@
 from django.contrib import admin
 from valuenetwork.valueaccounting.models import *
 from valuenetwork.valueaccounting.actions import export_as_csv
+from modeltranslation.admin import TranslationAdmin
 
 admin.site.add_action(export_as_csv, 'export_selected objects')
 
@@ -197,7 +198,7 @@ class EconomicAgentContextAgentFilter(admin.SimpleListFilter):
             return queryset.filter(id__in=related_economic_agent_ids)
         return queryset
 
-class EconomicAgentAdmin(admin.ModelAdmin):
+class EconomicAgentAdmin(TranslationAdmin):
     list_display = ('nick', 'name', 'agent_type', 'url', 'address', 'email', 'slug', 'created_date')
     list_filter = ('agent_type', EconomicAgentContextAgentFilter)
     search_fields = ['name', 'address']
