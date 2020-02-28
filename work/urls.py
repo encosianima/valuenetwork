@@ -138,6 +138,8 @@ urlpatterns = [
     #url(r"^validate-email/$", work.views.validate_email, name="validate_email"),
     url(r"^validate-name/$", work.views.validate_name, name="validate_name"),
 
+    url(r"^change-language/$", work.views.change_language, name="change_language"),
+
     url(r'^new-features/$', work.views.new_features, name='new_features'),
 
     url(r"^invoice-number/$", work.views.invoice_number, name="invoice_number"),

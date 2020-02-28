@@ -112,6 +112,22 @@ def map(request):
         "help": get_help("work_map"),
     })
 
+def change_language(request):
+    agent = get_agent(request)
+    if "language" in request.POST:
+        lang = request.POST['language']
+        if lang:
+            account = request.user.account
+            account.language = lang
+            account.save()
+        else:
+            messages.warning(request, "There's no language??")
+    else:
+        messages.warning(request, "No language in post??")
+    next = request.POST['next']
+    if not next:
+        next = '/'
+    return redirect(next)
 
 
 #    P R O F I L E

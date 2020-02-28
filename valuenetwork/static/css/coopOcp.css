@@ -11,8 +11,26 @@
 
 /*  M A I N   M E N U   */
 
-.dropdown-menu a {
+.dropdown-menu a, .dropdown-menu form {
 	padding: 4px 15px 5px;
+}
+.dropdown-menu form {
+    margin: 0;
+}
+.dropdown-menu input.navlink {
+    -webkit-appearance: menulist-text;
+    padding: 2px 60px 2px 2px;
+}
+.navlink:hover, .navlink:active {
+    background-color: #0088cc;
+    font-weight: bold;
+}
+.dropdown-menu a.disabled {
+    padding-left: 17px;
+}
+.dropdown-menu a.disabled:hover {
+    background-color: #fff;
+    color: #aaa;
 }
 ul.subnavsub li {
 	list-style-type: disc;
@@ -33,6 +51,7 @@ a.disabled:hover {
 	color: #aaa;
 	background-color: #fff;
 }
+
 
 /*   G E N E R A L   */
 
