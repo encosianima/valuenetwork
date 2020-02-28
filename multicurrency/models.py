@@ -93,7 +93,7 @@ class MulticurrencyAuth(models.Model):
                 if saldo < pend:
                     out_text = str(_("The balance in your wallet needs some more "))+unit.upper()
                 else:
-                    out_text = '<b>'+str(_("You can pay the shares now!"))+'</b>'
+                    out_text = '<b>'+unicode(_("You can pay the shares now!"))+'</b>'
                     if user and user.is_superuser:
                         out_text += ' '+str(saldo)+" "+punit.symbol+" >= "+str(remove_exponent(pend))+" "+punit.symbol
                         if jn_req.payment_payed_amount():

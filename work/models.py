@@ -300,11 +300,15 @@ class Project(models.Model):
                                     gate = gates[key]
                                 except:
                                     gate = None
-                                if gate is not None:
-                                    ok = '<span style="color:#090">ok:</span>'
+                                if gate:
+                                    ok = u'<span style="color:#090">ok:</span>'
                                     if gate['html']:
-                                        ok += ' <ul><li>'+str(gate['html'])+'</li></ul>'
-                            pay_opts.append(val+' &nbsp;'+ok)
+                                        ok += u' <ul><li>'+unicode(gate['html'])+u'</li></ul>'
+                                    else:
+                                        ok = "Error: no html?"
+                                else:
+                                    ok = "Error: no gate?"
+                            pay_opts.append(u""+val+u' &nbsp;'+ok)
               return pay_opts
         return False
 
