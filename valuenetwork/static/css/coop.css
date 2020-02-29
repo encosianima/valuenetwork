@@ -35,7 +35,7 @@ form#membershipForm, form#joinForm {
 }
 .help-block {
 	color: #ddd;
-	margin-top: -5px !important;
+	margin-top: 0px !important;
 	font-size: 0.9em;
 }
 .control-label {

@@ -123,7 +123,7 @@ ROOT_URLCONF = "valuenetwork.urls"
 WSGI_APPLICATION = "valuenetwork.wsgi.application"
 
 INSTALLED_APPS = [
-    'modeltranslation',
+    'modeltranslation', # to provide translations of model fields
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -387,8 +387,10 @@ LANGUAGES = (
   ('en',  _('English')),
   ('es',  _('Spanish')),
 )
-DEFAULT_LANGUAGE = 'en'
+DEFAULT_LANGUAGE = LANGUAGE_CODE
 ACCOUNT_LANGUAGES = LANGUAGES
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en' # can be diferent
+MODELTRANSLATION_FALLBACK_LANGUAGES = ('es','en') # if empty, try 'es', then 'en'...
 
 MODELTRANSLATION_AUTO_POPULATE = 'default'
 
