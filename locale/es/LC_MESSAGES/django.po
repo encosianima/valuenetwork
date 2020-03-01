@@ -1991,7 +1991,7 @@ msgstr "Cuentas Multimoneda"
 #: multicurrency/templates/multicurrency_auth.html:16
 #: multicurrency/templates/multicurrency_history.html:25
 msgid "BotC Feedback"
-msgstr "Hablar con BotC"
+msgstr "Comunicar con BotC"
 
 #: multicurrency/templates/multicurrency_auth.html:22
 msgid "BotC-Wallet accounts for"
@@ -2005,7 +2005,7 @@ msgstr "Acceso:"
 #: valuenetwork/templates/_account_bar.html:29
 #: work/templates/_settings_bar.html:63
 msgid "Log Out"
-msgstr "Cerrar sesión"
+msgstr "Cerrar Sesión"
 
 #: multicurrency/templates/multicurrency_auth.html:46
 msgid "You don't have any BotC-Wallet authenticated access in ocp yet."
@@ -2033,7 +2033,7 @@ msgstr "Crear un nuevo usuario del BotC-Wallet"
 
 #: multicurrency/templates/multicurrency_auth.html:55
 msgid "Create new BotC-Wallet Account"
-msgstr "Crear una cuenta BotC-Wallet nueva"
+msgstr "Crear una Cuenta BotC-Wallet nueva"
 
 #: multicurrency/templates/multicurrency_auth.html:62
 #: work/templates/work/join_request_with_comments.html:470
@@ -2053,7 +2053,7 @@ msgstr "Membresía relacionada"
 #: work/templates/work/join_request_with_comments.html:113
 #: work/templates/work/my_dashboard.html:302
 msgid "Feedback with"
-msgstr "Comentarios con"
+msgstr "Comunicar con"
 
 #: multicurrency/templates/multicurrency_auth.html:92
 msgid "Authenticate an existing account in BotC-Wallet"
@@ -10751,17 +10751,17 @@ msgstr "Novedades de OCP"
 
 #: work/templates/_settings_bar.html:41
 msgid "New Features"
-msgstr "Nuevas funciones"
+msgstr "Nuevas Funciones"
 
 #: work/templates/_settings_bar.html:50
 #: work/templates/work/profile.html:87
 msgid "Your coop feedback page"
-msgstr "Tu página de respuestas sobre la cooperativa"
+msgstr "Tu página de comunicación con la cooperativa"
 
 #: work/templates/_settings_bar.html:53
 #: work/templates/work/profile.html:89
 msgid "Coop Feedback"
-msgstr "Opina sobre la cooperativa"
+msgstr "Comunica con Cooperativa"
 
 #: work/templates/_settings_bar.html:55
 #: work/templates/new_base.html:301
@@ -10799,7 +10799,7 @@ msgstr "Tu proceso de alta en un proyecto"
 #: work/templates/work/my_dashboard.html:229
 #: work/templates/work/my_dashboard.html:234
 msgid "Feedback"
-msgstr "Opina"
+msgstr "Comunica"
 
 #: work/templates/new_base.html:111
 #: work/templates/new_base.html:140
@@ -10941,19 +10941,19 @@ msgstr "Tu monedero faircoin personal en OCP"
 
 #: work/templates/new_base.html:318
 msgid "Feedback page with"
-msgstr "Página de Feedback con"
+msgstr "Página de Comunicación con"
 
 #: work/templates/new_base.html:330
 msgid "FreedomCoop Feedback"
-msgstr "Opina sobre FreedomCoop"
+msgstr "Comunica con FreedomCoop"
 
 #: work/templates/new_base.html:350
 msgid "Member Options"
-msgstr "Opciones de miembro"
+msgstr "Opciones de Miembro"
 
 #: work/templates/new_base.html:354
 msgid "Legal Tools"
-msgstr "Herramientas legales"
+msgstr "Herramientas Legales"
 
 #: work/templates/new_base.html:364
 msgid "Your personal information and skills"
@@ -11799,7 +11799,7 @@ msgstr "Esta petición:"
 #: work/templates/work/join_requests.html:176
 #: work/views.py:3736
 msgid "Feedback:"
-msgstr "Feedback:"
+msgstr "Comunica:"
 
 #: work/templates/work/join_requests.html:221
 #: work/views.py:3760
@@ -12059,7 +12059,7 @@ msgid ""
 msgstr ""
 "El formulario personalizado puede estar pendiente de configurar por un "
 "administrador. Asegurate de haber listado los campos que se necesitan ("
-"usando la página de feedback), de forma que los administradores puedan "
+"usando la página de comunicación), de forma que los administradores puedan "
 "proceder."
 
 #: work/templates/work/members_agent.html:538
@@ -12068,7 +12068,7 @@ msgid ""
 "admin using the feedback page)"
 msgstr ""
 "(estamos pendientes de hacer los campos personalizados. Lista los campos que "
-"quieres y pregunta a un admin a través de Opinar)"
+"quieres y pregunta a un admin a través de la página de Comunicación)"
 
 #: work/templates/work/members_agent.html:544
 msgid "Offered Shares:"
@@ -12278,7 +12278,7 @@ msgstr "Solicitud de membresía en FreedomCoop"
 
 #: work/templates/work/membership_request.html:46
 msgid "Request Membership at FreedomCoop:"
-msgstr "Solicitud de membresía en FreedomCoop:"
+msgstr "Solicitud de Membresía en FreedomCoop:"
 
 #: work/templates/work/membership_request.html:49
 msgid ""
@@ -12290,16 +12290,16 @@ msgstr ""
 
 #: work/templates/work/membership_request_with_comments.html:64
 msgid "Feedback with Freedom Coop"
-msgstr "Opinar sobre Freedom Coop"
+msgstr "Comunicar con Freedom Coop"
 
 #: work/templates/work/membership_request_with_comments.html:156
 msgid "Comments about the membership of "
-msgstr "Comentarios sobre la membresía de"
+msgstr "Comentarios sobre la inscripción de"
 
 #: work/templates/work/membership_thanks.html:8
 #: work/templates/work/membership_thanks.html:22
 msgid "Thank you for your membership request"
-msgstr "Gracias por su solicitud de membresía"
+msgstr "Gracias por tu solicitud de alta"
 
 #: work/templates/work/membership_thanks.html:26
 msgid "A Freedom Coop administrator will send you an email soon."
@@ -12313,11 +12313,11 @@ msgstr "Freedom Coop"
 #: work/templates/work/my_tasks.html:7
 #: work/templates/work/take_new_tasks.html:7
 msgid "My Dashboard"
-msgstr "Mi tablero de comandos"
+msgstr "Mi Tablero"
 
 #: work/templates/work/my_dashboard.html:181
 msgid "Welcome to the Open Collaborative Platform!"
-msgstr "¡Bienvenido a la Plataforma Abierta Colaborativa!"
+msgstr "¡Bienvenido a la OCP, la plataforma abierta colaborativa!"
 
 #: work/templates/work/my_dashboard.html:187
 msgid "This are the available tools for members of Freedom Coop:"
@@ -12329,8 +12329,8 @@ msgid ""
 "As you already received your login information you are currently a "
 "membership candidate:"
 msgstr ""
-"Como Ud. ya recibión su información de login Ud. ya es un candidato a "
-"miembro:"
+"Como ya recibió su información de login, ya es "
+"candidato a miembro:"
 
 #: work/templates/work/my_dashboard.html:195
 msgid ""
@@ -12905,7 +12905,7 @@ msgstr "Proyectos en los que participas"
 
 #: work/templates/work/your_projects.html:201
 msgid "Membership feedback"
-msgstr "Opinar sobre la membresía"
+msgstr "Comunicar sobre la membresía"
 
 #: work/templates/work/your_projects.html:201
 #: work/templates/work/your_projects.html:215
