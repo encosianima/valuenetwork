@@ -2879,6 +2879,41 @@ from django.db.models.signals import post_migrate
 #from work.apps import WorkAppConfig
 
 def create_unit_types(**kwargs):
+    ocp = EconomicAgent.objects.filter(nick='OCP')
+    if not ocp:
+        print("- 'OCP' nick not found, fill from nick_en!")
+        ocp = EconomicAgent.objects.get(nick_en='OCP')
+        ocp.nick = 'OCP'
+        ocp.save()
+    else:
+        ocp = ocp[0]
+        if not ocp.nick_es:
+            ocp.nick_es = ocp.nick_en
+            ocp.save()
+            print("- missing nick_es! fill it: "+ocp.nick_es)
+        if not ocp.nick_ca:
+            ocp.nick_ca = ocp.nick_en
+            ocp.save()
+            print("- missing nick_ca! fill it: "+ocp.nick_ca)
+
+
+    fdc = EconomicAgent.objects.filter(nick='Freedom Coop')
+    if not fdc:
+        print("- 'Freedom Coop' nick not found, fill from nick_en!")
+        fdc = EconomicAgent.objects.get(nick_en='Freedom Coop')
+        fdc.nick = 'Freedom Coop'
+        fdc.save()
+    else:
+        fdc = fdc[0]
+        if not fdc.nick_es:
+            fdc.nick_es = fdc.nick_en
+            fdc.save()
+            print("- missing nick_es! fill it: "+fdc.nick_es)
+        if not fdc.nick_ca:
+            fdc.nick_ca = fdc.nick_en
+            fdc.save()
+            print("- missing nick_ca! fill it: "+fdc.nick_ca)
+
     print "Analizing the unit types in the system..."
     # Each
     ocp_eachs = Unit.objects.filter(name='Each')

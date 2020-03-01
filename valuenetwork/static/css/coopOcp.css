@@ -24,6 +24,7 @@
 .navlink:hover, .navlink:active {
     background-color: #0088cc;
     font-weight: bold;
+    color: #476B6B;
 }
 .dropdown-menu a.disabled {
     padding-left: 17px;
