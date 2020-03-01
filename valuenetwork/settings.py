@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import os, sys
 from django.utils.translation import ugettext_lazy as _
 
@@ -384,8 +386,9 @@ LOCALE_PATHS = [
 ]
 LANGUAGE_CODE = 'en'
 LANGUAGES = (
-  ('en',  _('English')),
-  ('es',  _('Spanish')),
+  ('en', _('English')),
+  ('es', _('Spanish')),
+  ('ca', _('Catalan')),
 )
 DEFAULT_LANGUAGE = LANGUAGE_CODE
 ACCOUNT_LANGUAGES = LANGUAGES
