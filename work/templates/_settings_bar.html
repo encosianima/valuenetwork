@@ -6,7 +6,8 @@
         <li class="dropdown">
             {% get_current_language as LANGUAGE_CODE %}
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                {{ LANGUAGE_CODE|upper }}
+                <i class="world-icon"></i>
+
                 <b class="caret"></b>
             </a>
             <ul class="subnav dropdown-menu">
@@ -18,7 +19,9 @@
                             <form action="{% url 'change_language' %}" method="post" id="lang-switch">{% csrf_token %}
                                 <input name="next" type="hidden" value="{{ request.get_full_path }}" />
                                 <input name="language" type="hidden" value="{{ language.code }}" />
-                                <input type="submit" class="navlink" value="{{ language.name_local|title }}" />
+                                <button class="navlink">
+                                    {{ language.name_local|title }}
+                                </button>
                             </form>
                         {% else %}
                             <a href="#" data-toggle="dropdown" class="disabled">{{ language.name_local|title }}</a>
