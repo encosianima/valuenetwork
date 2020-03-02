@@ -302,8 +302,12 @@ class Project(models.Model):
                                     gate = None
                                 if gate:
                                     ok = u'<span style="color:#090">ok:</span>'
-                                    if gate['html']:
-                                        ok += u' <ul><li>'+unicode(gate['html'])+u'</li></ul>'
+                                    if 'html' in gate:
+                                        if not isinstance(gate['html'], unicode) and not isinstance(gate['html'], str):
+                                            html = gate['html'].decode('utf-8')
+                                        else:
+                                            html = gate['html']
+                                        ok += u' <ul><li>'+html+u'</li></ul>'
                                     else:
                                         ok = "Error: no html?"
                                 else:
