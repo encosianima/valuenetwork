@@ -17,6 +17,9 @@
 .dropdown-menu li > a:hover, .dropdown-menu .active > a, .dropdown-menu .active > a:hover {
     background-color: #5C8A8A;
 }
+.navbar .btn-navbar {
+    opacity: 0.4;
+}
 
 .dropdown-menu a {
 	padding: 4px 15px 5px;
