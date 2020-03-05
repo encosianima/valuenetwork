@@ -274,10 +274,7 @@
                                 {% else %}
                                     <br/>
                                     <p><em><b>
-                                    {% blocktrans %}
-                                        Your FairCoin account balance of {{ confirmed_balance }} ƒ is too low to pay {{ share_price }} ƒ now.<br>
-                                        If you transfer <span class="error">{{ pending_amount }} ƒ</span> into your account, you'll see here the button to pay your shares.
-                                    {% endblocktrans %}
+                                    {% blocktrans %}Your FairCoin account balance of {{ confirmed_balance }} ƒ is too low to pay {{ share_price }} ƒ now.<br>If you transfer <span class="error">{{ pending_amount }} ƒ</span> into your account, you'll see here the button to pay your shares.{% endblocktrans %}
                                     </em></b></p>
                                 {% endif %}
                             {% else %}

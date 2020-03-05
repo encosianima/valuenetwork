@@ -31,8 +31,7 @@
                 {% trans "The username is already in the system." %}
             </h2>
             <p style="text-align:center; font-size:120%; ">
-                {% blocktrans %} If you are <b>{{ existuser }}</b>, put your existent password to connect this request to your account.
-                {% endblocktrans %}
+                {% blocktrans %}If you are <b>{{ existuser }}</b>, put your existent password to connect this request to your account.{% endblocktrans %}
             </p>
             {% if login_form %}
                 {% csrf_token %}
