@@ -137,56 +137,6 @@ def profile(request):
     agent = get_agent(request)
     return members_agent(request, agent.id)
 
-    """change_form = WorkAgentCreateForm(instance=agent)
-    skills = EconomicResourceType.objects.filter(behavior="work")
-    et_work = EventType.objects.get(name="Time Contribution")
-    arts = agent.resource_types.filter(event_type=et_work)
-    agent_skills = []
-    user = request.user
-    suggestions = user.skill_suggestion.all()
-    suggested_skills = [sug.resource_type for sug in suggestions]
-    for art in arts:
-        agent_skills.append(art.resource_type)
-    for skill in skills:
-        skill.checked = False
-        if skill in agent_skills:
-            skill.checked = True
-        if skill in suggested_skills:
-            skill.thanks = True
-    upload_form = UploadAgentForm(instance=agent)
-    has_associations = agent.all_has_associates()
-    is_associated_with = agent.all_is_associates()
-    other_form = SkillSuggestionForm()
-    suggestions = request.user.skill_suggestion.all()
-    faircoin_account = agent.faircoin_resource()
-    balance = 0
-    if faircoin_account:
-        balance = faircoin_account.digital_currency_balance()
-
-    other_form = SkillSuggestionForm()
-    suggestions = request.user.skill_suggestion.all()
-    #balance = 2
-    candidate_membership = agent.candidate_membership()
-
-    return render(request, "work/profile.html", {
-        "agent": agent,
-        "photo_size": (128, 128),
-        "change_form": change_form,
-        "upload_form": upload_form,
-        "skills": skills,
-        "has_associations": has_associations,
-        "is_associated_with": is_associated_with,
-        "faircoin_account": faircoin_account,
-        "balance": balance,
-        #"payment_due": payment_due,
-        "candidate_membership": candidate_membership,
-        "other_form": other_form,
-        "suggestions": suggestions,
-        "help": get_help("profile"),
-        #"share_price": share_price,
-        #"number_of_shares": number_of_shares,
-        #"can_pay": can_pay,
-    }, context_instance=RequestContext(request))"""
 
 
 @login_required
@@ -334,7 +284,7 @@ def register_skills(request):
 #    M E M B E R S H I P
 
 
-
+"""
 @login_required
 def share_payment(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
@@ -405,31 +355,6 @@ def share_payment(request, agent_id):
         if evts:
             raise ValidationError("The exchange already has events? "+str(evts))
 
-        '''if not tt_fee or not tt_share:
-            raise ValidationError("Can't find some transfer types! ")
-        exchange = Exchange(
-            exchange_type=xt,
-            use_case=xt.use_case,
-            name="Transfer Faircoins",
-            start_date=date,
-            )
-        exchange.save()
-
-        transfer_fee = Transfer(
-            transfer_type=tt_fee,
-            exchange=exchange,
-            transfer_date=date,
-            name="Transfer Faircoins",
-            )
-        transfer_fee.save()
-
-        transfer_membership = Transfer(
-            transfer_type=tt_share,
-            exchange=exchange,
-            transfer_date=date,
-            name="Transfer Membership",
-            )
-        transfer_membership.save()'''
 
 
         state =  "new"
@@ -473,105 +398,7 @@ def share_payment(request, agent_id):
         messages.info(request, _("You've payed the shares with your faircoins! The exchange is now complete and the shares has been transfered."))
 
         resource = agent_account
-        '''event = EconomicEvent(
-            event_type = et_give,
-            event_date = date,
-            from_agent=from_agent,
-            to_agent=to_agent,
-            resource_type=resource.resource_type,
-            resource=resource,
-            quantity = quantity,
-            transfer=transfer_fee,
-            event_reference=address_end,
-            created_by=request.user,
-            )
-        event.save()
 
-        fairtx = FaircoinTransaction(
-            event = event,
-            tx_state = state,
-            to_address = address_end,
-            amount = quantity,
-            minus_fee = True,
-        )
-        fairtx.save()
-
-
-        event = EconomicEvent(
-            event_type = et_receive,
-            event_date = date,
-            from_agent=from_agent,
-            to_agent=to_agent,
-            resource_type=to_resource.resource_type,
-            resource=to_resource,
-            quantity = quantity,
-            transfer=transfer_fee,
-            event_reference=address_end,
-            created_by=request.user,
-            )
-        event.save()
-        fairtx = FaircoinTransaction(
-            event = event,
-            tx_state = state,
-            to_address = address_end,
-            amount = quantity,
-            minus_fee = True,
-        )
-        fairtx.save()
-
-        # update shares in account
-        quantity = Decimal(number_of_shares)
-        cand_shacc.price_per_unit += quantity
-        cand_shacc.save()
-        resource = cand_shacc
-
-        req.exchange = exchange
-        req.state = 'active'
-        req.save()
-
-
-        # transfered shares events
-
-        event = EconomicEvent(
-            event_type = et_give,
-            event_date = date,
-            from_agent=to_agent,
-            to_agent=from_agent,
-            resource_type=resource.resource_type,
-            resource=resource,
-            quantity = quantity,
-            transfer=transfer_membership,
-            created_by=request.user
-            )
-        event.save()
-
-        event = EconomicEvent(
-            event_type = et_receive,
-            event_date = date,
-            from_agent=to_agent,
-            to_agent=from_agent,
-            resource_type=resource.resource_type,
-            resource=resource,
-            quantity = quantity,
-            transfer=transfer_membership,
-            created_by=request.user
-            )
-        event.save()
-
-        # update relation
-        aa = req.agent_relation() #agent.candidate_association()
-        if aa:
-            association_type = AgentAssociationType.objects.get(name="Member")
-            if aa.association_type == association_type:
-                if aa.state == 'potential':
-                    aa.state = 'active'
-                    aa.save()
-                else:
-                    raise ValidationError("The relation is not 'potential'? "+str(aa))
-            else:
-                raise ValidationError("The relation type is not 'Member'? "+str(aa))
-        else:
-            raise ValidationError("Can't find the agent relation!")'''
 
       else:
           loger.error("No enough funds... req:"+str(req.id)+" ag:"+str(req.agent)+" pro:"+str(pro_agent)+" netfee: "+str(netfee)+" ƒ")
@@ -585,8 +412,9 @@ def share_payment(request, agent_id):
 
     return redirect('project_feedback', agent_id=req.agent.id, join_request_id=req.id) #HttpResponseRedirect('/%s/'
         #% ('work/home'))
+"""
 
-
+"""
 def membership_request(request):
     membership_form = MembershipRequestForm(data=request.POST or None)
     if request.method == "POST":
@@ -650,7 +478,7 @@ def membership_request(request):
         "help": get_help("work_membership_request"),
         "membership_form": membership_form,
     })
-
+"""
 
 def membership_discussion(request, membership_request_id):
     user_agent = get_agent(request)
