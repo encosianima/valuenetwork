@@ -1512,7 +1512,7 @@ class JoinRequest(models.Model):
 
                         if len(evts):
                             if txid:
-                                raise ValidationError("complete with txid a xfer_pay with existent events?? evts:"+str(evts))
+                                pass #raise ValidationError("complete with txid a xfer_pay with existent events?? evts:"+str(evts))
                             print ("The payment transfer already has events! "+str(len(evts)))
                             loger.warning("The payment transfer already has events! "+str(len(evts)))
                             for evt in evts:
