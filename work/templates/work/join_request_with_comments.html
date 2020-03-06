@@ -296,7 +296,7 @@ a.more-link {
                             {% if req.payment_pending_amount and req.is_flexprice %}
                                 <label class="control-label required-field" for="real_amount">{{ punit.abbrev|upper }} {% trans "Received Amount" %}:</label>
                                 <input type="text" id="real_amount" name="real_amount" required=""><br>
-                                <label class="control-label required-field" for="tx_id">{{ punit.abbrev|upper }} {% if punit.abbrev == 'fair' %} {% trans "Transaction ID" %} {% else %} {% trans "Transaction Hash" %} {% endif %}:</label>
+                                <label class="control-label required-field" for="tx_id">{{ punit.abbrev|upper }} {% if punit.abbrev == 'fair' %} {% trans "Transaction ID (BotC-Wallet)" %}{% else %} {% trans "Transaction Hash (blockchain)" %}{% endif %}:</label>
                                 <input type="text" id="tx_id" name="tx_id" required=""><br>
                             {% endif %}
                             <input type="hidden" name="status" value="complete">

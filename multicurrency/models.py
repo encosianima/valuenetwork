@@ -145,7 +145,10 @@ class MultiwalletTransaction(models.Model):
         outvals = []
         mesg = ''
         if realamount:
-            realamount = Decimal(realamount)
+            if not isinstance(realamount, Decimal):
+                realamount = Decimal(realamount)
+        else:
+            pass #mesg += "Without a realamount we can't check the payment"
         if not oauth:
             mesg += "Without an oauth we can't update_data!"
             return mesg
