@@ -223,7 +223,7 @@ class ChipChapAuthConnection(object):
                         mtx = tx
                 if not mtx:
                     print("Can't find the mtxid in last 20, search olders??")
-                    logger.info("Can't find the mtxid in last 20, search olders??")
+                    self.logger.info("Can't find the mtxid in last 20, search olders??")
             else:
                 status = txlist['status']
                 #status = txlist

@@ -2030,6 +2030,12 @@ def members_agent(request, agent_id):
 
     dups = check_duplicate_agents(request, agent)
 
+    asso_childs = []
+    asso_declin = []
+    asso_candid = []
+    asso_coords = []
+    asso_members = []
+
     if hasattr(agent, 'project') and agent.project.is_moderated():
         if not agent.email and user_agent in agent.managers():
             messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
@@ -2043,6 +2049,24 @@ def members_agent(request, agent_id):
             if acc:
                 ag.newshares = int(acc[0].price_per_unit)
 
+            if ass.state == 'inactive':
+                asso_declin.append(ass)
+            elif ass.state == 'potential':
+                asso_candid.append(ass)
+            elif ass.state == 'active':
+                if ass.association_type.association_behavior in ['manager', 'custodian'] or ass.association_type.identifier == 'manager':
+                    asso_coords.append(ass)
+                elif ass.association_type.association_behavior == 'member':
+                    asso_members.append(ass)
+                else:
+                    asso_childs.append(ass)
+
+    assobj = {'childs':asso_childs,
+              'declins':asso_declin,
+              'candids':asso_candid,
+              'coords':asso_coords,
+              'members':asso_members
+             }
 
     print "--------- end members_agent ("+str(agent)+") ----------"
     loger.info("--------- end members_agent ("+str(agent)+") ----------")
@@ -2060,6 +2084,7 @@ def members_agent(request, agent_id):
         "user_agent": user_agent,
         "user_is_agent": user_is_agent,
         "has_associations": has_associations,
+        "assobj": assobj,
         "is_associated_with": is_associated_with,
         "headings": headings,
         "member_hours_recent": member_hours_recent,

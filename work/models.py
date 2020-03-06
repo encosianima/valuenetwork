@@ -1134,7 +1134,7 @@ class JoinRequest(models.Model):
             txt = unit.abbrev
         return txt
 
-    def payment_unit(self):
+    def payment_unit(self, askmargin=None):
         payopt = self.payment_option()
         unit = None
         obj = None
@@ -1153,6 +1153,13 @@ class JoinRequest(models.Model):
                     unit = Unit.objects.get(abbrev=obj['unit'].lower())
                 except:
                     raise ValidationError("Can't find the payment Unit with abbrev = "+obj['unit'].lower())
+                if askmargin:
+                    if 'margin' in obj and obj['margin']:
+                        return unit, obj['margin']
+                    else:
+                        raise ValidationError("To ask for a margin of amount repair it must be first defined in the project settings for this gateway.")
+        if askmargin:
+            return unit, None
         return unit
 
     def payment_unit_rt(self):
@@ -1401,7 +1408,7 @@ class JoinRequest(models.Model):
         account_type = self.payment_account_type()
         balance = 0
         amount = self.payment_amount()
-        unit = self.payment_unit()
+        unit, margin = self.payment_unit(True) # arg: ask unit margin to settings obj
         unit_rt = self.payment_unit_rt()
         shtype = self.project.shares_type()
         shunit = shtype.unit_of_price
@@ -1517,7 +1524,33 @@ class JoinRequest(models.Model):
                                         loger.info("CHANGED evt:"+str(evt.id)+" qty:0 to "+str(amountpay))
                                         evt.quantity = amountpay
                                         evt.save()
-                            #return
+                                if txid and evt.unit_of_quantity.is_currency():
+                                    print("Transfer with a txid, REPAIR? unit:"+unit.abbrev+" project:"+self.project.agent.nick)
+                                    loger.info("Transfer with a txid, REPAIR? unit:"+unit.abbrev+" project:"+self.project.agent.nick)
+                                    if margin and pendamo and pendamo > margin:
+                                        print("The pending amount is larger than the defined margin! Can't repair the found event. pendamo:"+str(pendamo))
+                                        loger.warning("The pending amount is larger than the defined margin! Can't repair the found event. pendamo:"+str(pendamo)+" evt:"+str(evt))
+                                        messages.error(request, "The pending amount is larger than the defined margin! Can't repair the found event...")
+                                        return False
+                                    if unit.abbrev == "fair" and self.project.agent.nick == "BotC":
+                                        if hasattr(evt, 'multiwallet_transaction'):
+                                            tx = evt.multiwallet_transaction
+                                        else:
+                                            from multicurrency.models import MultiwalletTransaction
+                                            tx, created = MultiwalletTransaction.objects.get_or_create(
+                                                tx_id = txid,
+                                                event = evt)
+                                            if created:
+                                                print("- created MultiwalletTransaction (repair evt): "+str(tx))
+                                                loger.info("- created MultiwalletTransaction (repair evt): "+str(tx))
+                                        oauth = self.project.multiwallet_auth()
+                                        msg = tx.update_data(oauth, request, realamount)
+                                        if not msg == '':
+                                            #tx.delete()
+                                            messages.error(request, msg, extra_tags='safe')
+                                            return False
+
+
                         elif amountpay and pendamo:
                             event_res = event_res2 = None
                             if unit.abbrev == 'fair' and self.project.agent.need_faircoins():
