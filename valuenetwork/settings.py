@@ -304,7 +304,13 @@ LOGGING = {
             #'maxBytes': 1024*1024*15, # 15MB
             #'backupCount': 10,
             'formatter': 'verbose'
-        }
+        },
+        'fairlogfile': {
+            'level': 'DEBUG',
+            'class':'logging.FileHandler',
+            'filename': 'fair_debug.log',
+            'formatter': 'verbose'
+        },
     },
     'loggers': {
         'django.request': {
@@ -314,6 +320,11 @@ LOGGING = {
         },
         'ocp': {
             'handlers': ['applogfile',],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'fair': {
+            'handlers': ['fairlogfile',],
             'level': 'DEBUG',
             'propagate': True,
         },
