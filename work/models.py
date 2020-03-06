@@ -469,6 +469,7 @@ class Project(models.Model):
                     if not auth:
                         print("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
                         loger.warning("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
+                        auth = oauths[0]
                 elif oauths:
                     auth = oauths[0]
                 if not auth:
