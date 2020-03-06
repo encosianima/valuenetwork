@@ -1001,7 +1001,7 @@
                 {% endfor %}
               </ul>
               {% if has_associations %}
-                  <h4 class="hdg">{{ agent.name }} {% trans "has these associates" %}: <span class="small">{{ has_associations|length }}</span>&nbsp; &nbsp;
+                  <h4 class="hdg">{{ agent.nick }} {% trans "has these associates" %}: <span class="small">{{ has_associations|length }}</span>&nbsp; &nbsp;
                   {% if user_agent in agent.managers or user_agent == agent or user_agent.is_staff %}
                       {% if agent.is_context %}
                         <a href="#agentAssnForm" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Edit member relations" %}</a>
