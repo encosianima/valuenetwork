@@ -293,10 +293,10 @@ class Project(models.Model):
                                     if 'html' in gate:
                                         if not isinstance(gate['html'], unicode) and not isinstance(gate['html'], str):
                                             html = gate['html']
-                                            html = str(html) #.decode('utf-8')
+                                            html = str(html).decode('utf-8')
                                         else:
                                             html = gate['html']
-                                        ok += ' <ul><li>'+html+'</li></ul>'
+                                        ok += u' <ul><li>'+html+u'</li></ul>'
                                     else:
                                         ok = "Error: no html?"
                                 else:
