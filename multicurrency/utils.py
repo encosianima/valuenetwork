@@ -224,9 +224,18 @@ class ChipChapAuthConnection(object):
                 if not mtx:
                     print("Can't find the mtxid in last 20, search olders??")
                     self.logger.info("Can't find the mtxid in last 20, search olders??")
-            else:
+
+        if not mtx:
+            txlist, balance = self.wallet_history(access_key, access_secret, 200)
+            if txlist:
                 status = txlist['status']
-                #status = txlist
+                if status == 'ok':
+                    for tx in txlist['data']['elements']:
+                        if tx['id'] == txid:
+                            mtx = tx
+                    if not mtx:
+                        print("Can't find the mtxid in last 200, search olders??")
+                        self.logger.info("Can't find the mtxid in last 200, search olders??")
 
         return mtx, status
 

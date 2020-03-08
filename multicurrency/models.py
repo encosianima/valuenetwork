@@ -225,7 +225,7 @@ class MultiwalletTransaction(models.Model):
                         else:
                             mesg += _("The received amount ({0}) is not like the one found ({1}).").format(realamount, total)
                     else: # no json
-                        mesg += "No json received ??"
+                        mesg += "No transaction found with this ID."
                 else: # not botc
                     mesg += "No BotC related ??"
             else: # not fair

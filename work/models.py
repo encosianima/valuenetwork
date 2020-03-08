@@ -450,7 +450,7 @@ class Project(models.Model):
                 abbr = arr[0][:1]+half+arr[1][:1]
         return abbr
 
-    def multiwallet_auth(self): # not used yet, is for checking payments via botc-wallet (which requires auth) but still not works so step back to blockchain.com json service.
+    def multiwallet_auth(self): # is for checking payments via botc-wallet (which requires auth).
         auth = None
         if self.agent.need_multicurrency():
             if 'multicurrency' in settings.INSTALLED_APPS:
@@ -460,11 +460,16 @@ class Project(models.Model):
                 except MulticurrencyAuth.DoesNotExist:
                     raise PermissionDenied
                 if len(oauths) > 1:
-                    print("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
-                    loger.warning("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
-                if oauths:
+                    for oau in oauths:
+                        if 'wallet' in oau.auth_user:
+                            auth = oau
+                    if not auth:
+                        print("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
+                        loger.warning("More than one oauth for this project! return only the first. Agent:"+str(self.agent))
+                        auth = oauths[0]
+                elif oauths:
                     auth = oauths[0]
-                else:
+                if not auth:
                     print("Not found any oauth for project: "+str(self.agent))
                     loger.error("Not found any oauth for project: "+str(self.agent))
         return auth
@@ -1509,7 +1514,7 @@ class JoinRequest(models.Model):
 
                         if len(evts):
                             if txid:
-                                raise ValidationError("complete with txid a xfer_pay with existent events?? evts:"+str(evts))
+                                pass #raise ValidationError("complete with txid a xfer_pay with existent events?? evts:"+str(evts))
                             print ("The payment transfer already has events! "+str(len(evts)))
                             loger.warning("The payment transfer already has events! "+str(len(evts)))
                             for evt in evts:
