@@ -366,7 +366,7 @@
                       {% if agent.photo and photo_size %}
                         <img src="{% thumbnail agent.photo photo_size %}" />
                       {% elif agent.photo_url %}
-                        <img src="{{ agent.photo_url }}" width="300" />
+                        <img src="{{ agent.photo_url }}" style="width:auto;"/>
                       {% endif %}
                       {% if user_agent in agent.managers or user_is_agent %}
                         <a href="#uploadPicture" role="button" class="btn btn-primary btn-mini" data-toggle="modal" style="float:right;">{% if agent.photo or agent.photo_url %}{% trans "Change" %}{% else %}{% trans "Set" %}{% endif %}</a>
