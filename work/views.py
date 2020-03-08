@@ -3646,7 +3646,7 @@ def join_requests(request, agent_id):
                     req.actions += '<form class="action-form" id="create-form'+str(req.id)+'" '
                     req.actions += 'action="'+reverse("confirm_request", args=(req.id,))+'" method="POST" >'
                     req.actions += csrf_token_field
-                    req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Confirm Email"))+'" /> '
+                    req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+unicode(_("Confirm Email"))+'" /> '
                     req.actions += '<span class="help-text">'+str(_("sends random pass and creates user+agent"))+'</span></form>'
 
                     req.actions += deleteform

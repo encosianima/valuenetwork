@@ -738,8 +738,9 @@ class JoinRequest(models.Model):
                     entry = self.entries[0]
                     self.data = json.loads(entry.saved_data)
                     val = self.data.get(key)
+                    #import pdb; pdb.set_trace()
                     answer['val'] = val
-                    for elem in self.fobi_data.form_entry.formelemententry_set.all():
+                    for elem in self.fobi_data.form_entry.formelemententry_set.all(): #filter(plugin_data_en__isnull=False):
                         data2 = json.loads(elem.plugin_data)
                         nam = data2.get('name')
                         if nam == key:
@@ -748,13 +749,29 @@ class JoinRequest(models.Model):
                             opts = choi.split('\r\n')
                             for op in opts:
                                 opa = op.split(',')
-                                #import pdb; pdb.set_trace()
+                                #print('op:'+op)
                                 if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
-                                    answer['key'] = opa[0]
+                                    answer['key'] = opa[0].strip()
                           else:
                             raise ValidationError("The payment mode field has no choices? "+str(data2))
+                        """if not 'key' in answer and hasattr(elem, 'plugin_data_en'):
+                            #print("not key? "+str(elem.plugin_data_en))
+                            data3 = json.loads(elem.plugin_data_en)
+                            nam = data3.get('name')
+                            if nam == key:
+                              choi = data3.get('choices') # works with radio or select
+                              if choi:
+                                opts = choi.split('\r\n')
+                                for op in opts:
+                                    opa = op.split(',')
+                                    print('op1:'+op)
+                                    if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
+                                        answer['key'] = opa[0].strip()
+                        print('answer:'+str(answer))
+                        """
+
                     if not answer.has_key('key'):
-                        raise ValidationError("can't find the payment_option key! answer: "+str(data2)+' val: '+str(val))
+                        raise ValidationError(u"can't find the payment_option key! answer: "+str(data2)+u' val: '+val)
             if not answer.has_key('key') or not answer.has_key('val'):
                 pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
         return answer
@@ -903,7 +920,14 @@ class JoinRequest(models.Model):
                       else:
                         amtopay += " (payed "+str(amispay)+u" ƒ)"
                     amtopay += "</b>"
-                    return obj['html']+amtopay+"<br>"+txt
+
+                    if not isinstance(obj['html'], unicode) and not isinstance(obj['html'], str):
+                        html = obj['html']
+                        html = str(html).decode('utf-8')
+                    else:
+                        html = obj['html']
+
+                    return html+amtopay+"<br>"+txt
 
                   else:
                     # don't need internal faircoin
