@@ -927,7 +927,7 @@ class JoinRequest(models.Model):
                     else:
                         html = obj['html']
 
-                    return html+amtopay+"<br>"+txt
+                    return html+amtopay+u"<br>"+txt
 
                   else:
                     # don't need internal faircoin

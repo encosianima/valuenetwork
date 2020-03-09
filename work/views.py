@@ -3596,13 +3596,13 @@ def join_requests(request, agent_id):
             dup = req.duplicated()
             if dup:
                 req.actions += '<em class="error">'+str(_("Duplicated!"))+'</em>'
-                req.actions += '('+str(_("see the other"))+' <a href="'+reverse('project_feedback', args=(req.project.agent.id, dup.id))+'" >'
-                req.actions += str(_("request"))+'</a>) <br /> '+str(_("This request:"))+' '
+                req.actions += '('+unicode(_("see the other"))+' <a href="'+reverse('project_feedback', args=(req.project.agent.id, dup.id))+'" >'
+                req.actions += unicode(_("request"))+'</a>) <br /> '+str(_("This request:"))+' '
                 req.actions += deleteform
 
             ncom = len(Comment.objects.filter(content_type=com_content_type, object_pk=req.pk))
             req.actions += '<a class="btn btn-info btn-mini" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'"> '
-            req.actions += '<b>'+str(_("Feedback:"))+'</b> '+str(ncom)+'</a>&nbsp;'
+            req.actions += '<b>'+unicode(_("Feedback:"))+'</b> '+str(ncom)+'</a>&nbsp;'
 
             if state == "declined":
                 req.actions += '<form class="action-form" id="undecline-form'+str(req.id)+'" method="POST" '
