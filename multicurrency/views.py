@@ -265,7 +265,7 @@ def history(request, agent_id, oauth_id):
         table_caption = "Showing " + str(tx_list['data']['start'] + 1) + " to "\
             + str(tx_list['data']['end']) + " of " + str(tx_list['data']['total'])\
             + " movements"
-        table_headers = ['Created', 'Updated', 'Concept', 'Method', 'IO', 'Account or Address', 'Amount', 'Unit', "Status"]
+        table_headers = [_('Created'), _('Updated'), _('Concept'), _('Method'), _('IO'), _('Account or Address'), _('Amount'), _('Unit'), _("Status")]
         table_rows = []
         paginator = {}
         if tx_list['data']['total'] > 0:
@@ -318,11 +318,11 @@ def history(request, agent_id, oauth_id):
                             exch = mtx.event.transfer.exchange
                         if exch:
                             status += "<b><a href='"+reverse("exchange_logging_work", args=(agent_id, 0, exch.id))+"'>"
-                            status += "Exchange" #exch.status()
+                            status += _("Exchange") #exch.status()
                             status += "</a></b> "
                             if hasattr(exch, 'join_request'):
                                 status += "/ <b><a href='"+reverse("project_feedback", args=(agent_id, exch.join_request.id))+"'>"
-                                status += "Feedback"
+                                status += _("Feedback")
                                 status += "</a></b>"
                             break
                 table_rows.append([
