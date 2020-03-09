@@ -754,7 +754,7 @@ class JoinRequest(models.Model):
                                     answer['key'] = opa[0].strip()
                           else:
                             raise ValidationError("The payment mode field has no choices? "+str(data2))
-                        """if not 'key' in answer and hasattr(elem, 'plugin_data_en'):
+                        if not 'key' in answer and hasattr(elem, 'plugin_data_en'):
                             #print("not key? "+str(elem.plugin_data_en))
                             data3 = json.loads(elem.plugin_data_en)
                             nam = data3.get('name')
@@ -764,11 +764,13 @@ class JoinRequest(models.Model):
                                 opts = choi.split('\r\n')
                                 for op in opts:
                                     opa = op.split(',')
-                                    print('op1:'+op)
+                                    #print('op1:'+op)
                                     if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
                                         answer['key'] = opa[0].strip()
-                        print('answer:'+str(answer))
-                        """
+                              else:
+                                raise ValidationError("The payment mode field has no choices 2? "+str(data3))
+                        #print('answer:'+str(answer))
+
 
                     if not answer.has_key('key'):
                         raise ValidationError(u"can't find the payment_option key! answer: "+str(data2)+u' val: '+val)
