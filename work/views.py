@@ -3595,9 +3595,9 @@ def join_requests(request, agent_id):
                         #req.actions += ' <br />UT: '+str(req.payment_unit())+' RT: '+str(req.payment_unit_rt())+'</span><br />'
             dup = req.duplicated()
             if dup:
-                req.actions += '<em class="error">'+str(_("Duplicated!"))+'</em>'
-                req.actions += '('+unicode(_("see the other"))+' <a href="'+reverse('project_feedback', args=(req.project.agent.id, dup.id))+'" >'
-                req.actions += unicode(_("request"))+'</a>) <br /> '+str(_("This request:"))+' '
+                req.actions += u'<em class="error">'+unicode(_("Duplicated!"))+u'</em>'
+                req.actions += u'('+unicode(_("see the other"))+' <a href="'+reverse('project_feedback', args=(req.project.agent.id, dup.id))+'" >'
+                req.actions += unicode(_("request"))+'</a>) <br /> '+unicode(_("This request:"))+' '
                 req.actions += deleteform
 
             ncom = len(Comment.objects.filter(content_type=com_content_type, object_pk=req.pk))
@@ -3608,7 +3608,7 @@ def join_requests(request, agent_id):
                 req.actions += '<form class="action-form" id="undecline-form'+str(req.id)+'" method="POST" '
                 req.actions += 'action="'+reverse("undecline_request", args=(req.id,))+'" >'
                 req.actions += csrf_token_field
-                req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Undecline"))+'" /></form>'
+                req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+unicode(_("Undecline"))+'" /></form>'
 
                 req.actions += deleteform
 
