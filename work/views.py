@@ -3626,11 +3626,11 @@ def join_requests(request, agent_id):
 
                     if chekpass:
                         if req.agent.is_deletable():
-                            req.actions += ' &nbsp; <span class="help-text">'+str(_("Wait to confirm, or delete agent, user and request"))+':</span>'
+                            req.actions += ' &nbsp; <span class="help-text">'+unicode(_("Wait to confirm, or delete agent, user and request"))+':</span>'
                             req.actions += '<form style="display: inline;" class="delete-agent-form indent" id="delete-agent-form'+str(req.id)+'" '
                             req.actions += 'action="'+reverse("delete_request_agent_and_user", args=(req.id,))+' " method="POST" >'
                             req.actions += csrf_token_field
-                            req.actions += '<button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >'+str(_("Delete all"))+'</button></form>'
+                            req.actions += '<button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >'+unicode(_("Delete all"))+'</button></form>'
                         elif request.user.is_superuser:
                             req.actions += ' &nbsp; (agent no deletable)'
                     else:
@@ -3639,15 +3639,15 @@ def join_requests(request, agent_id):
                 else:
                     posag = req.possible_agent
                     if posag:
-                        req.actions += '<br>"<a href="'+reverse('members_agent', args=(posag.id,))+'">'+str(posag)+'</a>" '+str(_("is taken, choose this agent?"))
+                        req.actions += '<br>"<a href="'+reverse('members_agent', args=(posag.id,))+'">'+unicode(posag)+'</a>" '+unicode(_("is taken, choose this agent?"))
                         req.actions += '<a href="'+reverse("connect_agent_to_join_request", args=(posag.id, req.id))+'" class="btn btn-primary" '
-                        req.actions += 'style="margin-bottom:20px;">'+str(_("Connect to"))+' '+str(posag)+'</a> <br />'
+                        req.actions += 'style="margin-bottom:20px;">'+str(_("Connect to"))+' '+unicode(posag)+'</a> <br />'
 
                     req.actions += '<form class="action-form" id="create-form'+str(req.id)+'" '
                     req.actions += 'action="'+reverse("confirm_request", args=(req.id,))+'" method="POST" >'
                     req.actions += csrf_token_field
                     req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+unicode(_("Confirm Email"))+'" /> '
-                    req.actions += '<span class="help-text">'+str(_("sends random pass and creates user+agent"))+'</span></form>'
+                    req.actions += '<span class="help-text">'+unicode(_("sends random pass and creates user+agent"))+'</span></form>'
 
                     req.actions += deleteform
 
@@ -3659,8 +3659,8 @@ def join_requests(request, agent_id):
     if project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
 
-    print "-------------- end join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------"
-    loger.debug("-------------- end join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------")
+    print "-------------- end join_requests ("+unicode(agent)+") (user:"+unicode(user_agent)+") ----------------"
+    loger.debug("-------------- end join_requests ("+unicode(agent)+") (user:"+unicode(user_agent)+") ----------------")
 
     return render(request, "work/join_requests.html", {
         "help": get_help("join_requests"),
