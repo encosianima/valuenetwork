@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-04 02:22+0000\n"
+"POT-Creation-Date: 2020-03-09 21:58+0000\n"
 "PO-Revision-Date: 2020-03-04 03:02+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -15,7 +15,7 @@ msgstr ""
 "X-Pootle-Revision: 615\n"
 
 #: account/forms.py:24 account/forms.py:100
-#: valuenetwork/templates/valueaccounting/agent.html:228 work/models.py:532
+#: valuenetwork/templates/valueaccounting/agent.html:228 work/models.py:537
 #: work/templates/work/join_request_with_comments.html:192
 #: work/templates/work/join_requests.html:92
 #: work/templates/work/join_requests.html:353
@@ -98,7 +98,7 @@ msgstr "Escribe tu contraseña actual."
 
 #: account/forms.py:167
 msgid "Email address can not be found."
-msgstr "No encuentro la dirección de correo."
+msgstr "No encontrada la dirección de correo."
 
 #: account/forms.py:193
 msgid "Timezone"
@@ -225,7 +225,7 @@ msgid "Error"
 msgstr "Error"
 
 #: faircoin/models.py:80 multicurrency/models.py:121
-#: multicurrency/models.py:236
+#: multicurrency/models.py:239
 msgid "event"
 msgstr "evento"
 
@@ -238,7 +238,7 @@ msgid "Faircoin Transaction State"
 msgstr "Estado de la Transacción Faircoin"
 
 #: faircoin/models.py:83 faircoin/templates/faircoin/faircoin_history.html:87
-#: multicurrency/models.py:239
+#: multicurrency/models.py:242
 #: valuenetwork/templates/valueaccounting/event_history.html:88
 msgid "To Address"
 msgstr "Para la Dirección"
@@ -554,7 +554,7 @@ msgstr ""
 #: work/templates/work/members_agent.html:360
 #: work/templates/work/members_agent.html:851
 #: work/templates/work/members_agent.html:955
-#: work/templates/work/members_agent.html:1024
+#: work/templates/work/members_agent.html:1025
 #: work/templates/work/my_tasks.html:287 work/templates/work/my_tasks.html:373
 #: work/templates/work/my_tasks.html:654
 #: work/templates/work/order_delete_confirmation_work.html:58
@@ -883,7 +883,7 @@ msgstr "(disponible cuando la dirección pertenece a este monedero)"
 msgid ""
 "(please wait about a minute to have a new fair-address and refresh the page)"
 msgstr ""
-"(Por favor espera un minuto para obtener la nueva dirección Fair y refresca "
+"(espera un minuto para obtener la nueva dirección Fair y refresca "
 "la página)"
 
 #: faircoin/templates/faircoin/faircoin_account.html:302
@@ -1187,7 +1187,7 @@ msgstr "Cantidad"
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:60
 #: valuenetwork/templates/valueaccounting/workbook.html:217
 #: valuenetwork/valueaccounting/forms.py:3299 work/models.py:83
-#: work/models.py:2238 work/models.py:2257
+#: work/models.py:2302 work/models.py:2321
 #: work/templates/work/invoice_number.html:48
 #: work/templates/work/join_request_with_comments.html:522
 #: work/templates/work/members_agent.html:409
@@ -1231,7 +1231,7 @@ msgid "Process"
 msgstr "Proceso"
 
 #: faircoin/templates/faircoin/faircoin_history.html:85
-#: valuenetwork/templates/board/dhen_board.html:7
+#: multicurrency/views.py:321 valuenetwork/templates/board/dhen_board.html:7
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:7
 #: valuenetwork/templates/valueaccounting/resource.html:237
 #: valuenetwork/valueaccounting/models.py:180
@@ -1264,20 +1264,20 @@ msgstr "Cadena"
 #: work/templates/work/take_new_tasks.html:274
 #: work/templates/work/take_new_tasks.html:558
 msgid "Open"
-msgstr "Abierto"
+msgstr "Abrir"
 
 #: faircoin/templates/faircoin/faircoin_history.html:124
 #: valuenetwork/valueaccounting/models.py:2383
 #: valuenetwork/valueaccounting/models.py:9878
 #: valuenetwork/valueaccounting/models.py:10939
 #: valuenetwork/valueaccounting/models.py:12957
-#: valuenetwork/valueaccounting/models.py:14287 work/models.py:557
-#: work/models.py:2262
+#: valuenetwork/valueaccounting/models.py:14287 work/models.py:562
+#: work/models.py:2326
 msgid "exchange"
 msgstr "intercambio"
 
 #: faircoin/templates/faircoin/faircoin_history.html:127
-#: work/templates/work/join_requests.html:163 work/views.py:3575
+#: work/templates/work/join_requests.html:163 work/views.py:3600
 msgid "request"
 msgstr "petición"
 
@@ -1293,7 +1293,7 @@ msgstr "En la cadena"
 #: valuenetwork/templates/valueaccounting/agent_type.html:89
 #: valuenetwork/templates/valueaccounting/membership_request.html:91
 #: valuenetwork/templates/valueaccounting/membership_requests.html:59
-#: work/models.py:70 work/models.py:530
+#: work/models.py:70 work/models.py:535
 #: work/templates/work/join_request_with_comments.html:188
 #: work/templates/work/join_requests.html:91
 #: work/templates/work/join_requests.html:352
@@ -1307,7 +1307,7 @@ msgstr "Nombre"
 msgid "The name of the Concept"
 msgstr "El nombre del Concepto"
 
-#: general/models.py:52
+#: general/models.py:52 multicurrency/views.py:268
 msgid "Concept"
 msgstr "Concepto"
 
@@ -1582,7 +1582,7 @@ msgstr "Región de uso relacionada"
 msgid "OCP Unit"
 msgstr "Unidad OCP"
 
-#: general/models.py:972
+#: general/models.py:972 multicurrency/views.py:268
 #: valuenetwork/templates/valueaccounting/change_process.html:89
 #: valuenetwork/templates/valueaccounting/change_process.html:132
 #: valuenetwork/templates/valueaccounting/change_process.html:147
@@ -1729,7 +1729,7 @@ msgstr ""
 "contraseña y recarga tu Monedero Multimoneda de BotC con suficientes "
 "Faircoins para pagar tus participaciones."
 
-#: local_settings.py:82
+#: local_settings.py:83
 msgid ""
 "Please login with the credentials sent to your email, change your password "
 "and top-up your BotC Multicurrency Wallet with enough Bitcoin to pay the "
@@ -1739,7 +1739,7 @@ msgstr ""
 "contraseña y recarga tu Monedero Multimoneda de BotC con suficientes "
 "Bitcoins para pagar tus participaciones."
 
-#: local_settings.py:90
+#: local_settings.py:91
 msgid ""
 "Please login with the credentials sent to your email, change your password "
 "and top-up your OCP Faircoin Account with enough Faircoins to pay the shares."
@@ -1748,13 +1748,14 @@ msgstr ""
 "contraseña y recarga tu Monedero Faircoin en OCP con suficientes Faircoins "
 "para pagar tus participaciones."
 
-#: local_settings.py:97
+#: local_settings.py:98
 msgid ""
 "Thanks to support the project! <br>We'll send the payment order to your bank "
 "account, with your chosen amount and regularity."
-msgstr "Gracias pror"
+msgstr "Gracias por apoyar el proyecto! <br>Enviaremos la orden de pago a tu cuenta, "
+"con la cantidad y la regularidad que has elegido."
 
-#: local_settings.py:129
+#: local_settings.py:130
 msgid ""
 "<b>Let's shape together the world we have in our hearts!</b><br/><p><br/>As "
 "Bank of the Commons will become a European Cooperative Society, membership "
@@ -1772,7 +1773,7 @@ msgstr ""
 "todos los aspectos de su trabajo y cualquier decisión estratégica. Ofrecemos "
 "varios tipos de membresía dependiendo de tus necesidades y posibilidades.</p>"
 
-#: local_settings.py:156
+#: local_settings.py:157
 msgid ""
 "<p>This is OCP, our Open Collaborative Platform. The OCP is the key "
 "organizational tool we offer to individuals, collectives, and project "
@@ -1801,12 +1802,14 @@ msgstr ""
 "aceptar y realizar pagos.</li></ul><p>Freedom Coop, utilizará OCP para "
 "nuestra organización colectiva como un proceso cooperativo abierto."
 
-#: local_settings.py:182
+#: local_settings.py:183
 msgid ""
 "<p><b>Health and Integral Development</b> (\"Salut i Desenvolupament Integral"
 "\") is a non-profit association to foster common good, quality of life and "
 "knowledge, from an integral point of view.</p>"
-msgstr ""
+msgstr "<p><b>Salud y Desarrollo Integral</b> (\"Salut i Desenvolupament Integral"
+"\") es una asociación sin ánimo de lucro para el bien común, la calidad de "
+"vida y el conocimiento, desde un punto de vista integral.</p>"
 
 #: multicurrency/forms.py:10
 msgid "Wallet Username"
@@ -1852,7 +1855,7 @@ msgstr "Error recuperando tu balance..."
 msgid "Multiwallet Transaction ID"
 msgstr "ID Transacción Multimonedero"
 
-#: multicurrency/models.py:123
+#: multicurrency/models.py:123 multicurrency/views.py:268
 #: work/templates/work/exchange_logging_work.html:201
 msgid "Status"
 msgstr "Estado"
@@ -1861,52 +1864,51 @@ msgstr "Estado"
 msgid "Sent to username"
 msgstr "Enviado al nombre de usuario"
 
-#: multicurrency/models.py:125
+#: multicurrency/models.py:125 multicurrency/views.py:268
 msgid "Method"
 msgstr "Método"
 
-#: multicurrency/models.py:127 multicurrency/models.py:241
+#: multicurrency/models.py:127 multicurrency/models.py:244
 msgid "Transaction Fee"
 msgstr "Comisión Transacción"
 
-#: multicurrency/models.py:170
+#: multicurrency/models.py:173
 msgid "Error checking the Transaction:"
 msgstr "Error comprobando la Transacción:"
 
-#: multicurrency/models.py:173
+#: multicurrency/models.py:176
 msgid "The multiwallet tx found is not FairCoin?"
 msgstr "¿La tx multimoneda encontrada no es Faircoin?"
 
-#: multicurrency/models.py:201
+#: multicurrency/models.py:204
 #, python-brace-format
 msgid "Updated the event Quantity ({0}) to: {1} / "
 msgstr "Actualizada la Cantidad del evento ({0}) a: {1} / "
 
-#: multicurrency/models.py:205
+#: multicurrency/models.py:208
 #, python-brace-format
 msgid "Updated the event Reference ({0}) to: {1} / "
 msgstr "Actualizada la Referencia del evento ({0}) a: {1} / "
 
-#: multicurrency/models.py:215
+#: multicurrency/models.py:218
 #, python-brace-format
 msgid "Updated the event Date ({0}) to: {1} / "
 msgstr "Actualizada la Fecha del evento ({0}) a: {1} / "
 
-#: multicurrency/models.py:223
+#: multicurrency/models.py:226
 #, python-brace-format
 msgid "The received amount ({0}) is not like the one found ({1})."
 msgstr "La cantidad recibida ({0}) no es como la encontrada ({1})."
 
-#: multicurrency/models.py:237
-#: work/templates/work/join_request_with_comments.html:299
+#: multicurrency/models.py:240
 msgid "Transaction Hash"
 msgstr "Hash de la Transacción"
 
-#: multicurrency/models.py:238
+#: multicurrency/models.py:241
 msgid "From Address"
 msgstr "Dirección Origen"
 
-#: multicurrency/models.py:432
+#: multicurrency/models.py:435
 msgid ""
 "Sorry, the system can't check a tx with many outputs without declaring the "
 "received amount (give event). "
@@ -1914,11 +1916,11 @@ msgstr ""
 "Disculpa, el sistema no puede comprobar una tx con varios 'outputs' sin "
 "declarar la cantidad recibida (evento 'give')"
 
-#: multicurrency/models.py:439 multicurrency/models.py:488
+#: multicurrency/models.py:442 multicurrency/models.py:491
 msgid "Please, set the received amount to check the transaction."
 msgstr "Por favor, declara la cantidad recibida para comprobar la transacción."
 
-#: multicurrency/models.py:481
+#: multicurrency/models.py:484
 msgid ""
 "Sorry, the system can't check a tx with many outputs without declaring the "
 "received amount."
@@ -1926,7 +1928,7 @@ msgstr ""
 "Disculpa, el sistema no puede comprobar una tx con varios 'outputs' sin "
 "declarar la cantidad recibida."
 
-#: multicurrency/models.py:508
+#: multicurrency/models.py:511
 msgid "Not found an output with a similar amount?"
 msgstr "No encontrado un 'output' con un importe similar?"
 
@@ -2008,7 +2010,7 @@ msgstr "Crear Usuario de BotC-Wallet"
 
 #: multicurrency/templates/multicurrency_auth.html:82
 msgid "Related membership"
-msgstr "Membresía relacionada"
+msgstr "Alta relacionada"
 
 #: multicurrency/templates/multicurrency_auth.html:86
 #: work/templates/work/join_request_with_comments.html:113
@@ -2050,7 +2052,7 @@ msgstr ""
 
 #: multicurrency/templates/multicurrency_history.html:5
 msgid "Transactions list"
-msgstr "Lista de transacciones"
+msgstr "Lista de Transacciones"
 
 #: multicurrency/views.py:54
 msgid "This login name already exists."
@@ -2092,6 +2094,34 @@ msgstr ""
 msgid "Something was wrong connecting to BotC-wallet."
 msgstr "Algo salió mal conectando con BotC-Wallet."
 
+#: multicurrency/views.py:268
+#: valuenetwork/templates/valueaccounting/process.html:162
+#: valuenetwork/templates/valueaccounting/process_oriented_logging.html:407
+#: work/templates/work/process_logging.html:432
+msgid "Created"
+msgstr "Creado"
+
+#: multicurrency/views.py:268
+#, fuzzy
+#| msgid "moderated"
+msgid "Updated"
+msgstr "Actualizado"
+
+#: multicurrency/views.py:268
+msgid "IO"
+msgstr "IO"
+
+#: multicurrency/views.py:268
+#, fuzzy
+#| msgid "Account History for"
+msgid "Account or Address"
+msgstr "Cuenta o Dirección"
+
+#: multicurrency/views.py:268
+#: valuenetwork/templates/valueaccounting/cash_report.html:86
+msgid "Amount"
+msgstr "Monto"
+
 #: multicurrency/views.py:294
 msgid "FairPay: payed with your NFC card"
 msgstr "FairPay: pagado con tu tarjeta NFC"
@@ -2103,6 +2133,18 @@ msgstr "FairPay: cobrado con tarjeta NFC"
 #: multicurrency/views.py:298
 msgid "FairPay: charged via QR code"
 msgstr "FairPay: cobrado vía código QR"
+
+#: multicurrency/views.py:325 work/templates/new_base.html:93
+#: work/templates/new_base.html:318 work/templates/new_base.html:323
+#: work/templates/work/exchange_logging_work.html:219
+#: work/templates/work/members_agent.html:193
+#: work/templates/work/members_agent.html:987
+#: work/templates/work/members_agent.html:1072
+#: work/templates/work/members_agent.html:1112
+#: work/templates/work/my_dashboard.html:229
+#: work/templates/work/my_dashboard.html:234
+msgid "Feedback"
+msgstr "Comunica"
 
 #: multicurrency/views.py:429
 msgid "The payment is done! Transfered"
@@ -2131,7 +2173,7 @@ msgstr "Selecciona más de un lote para ser combinados"
 
 #: valuenetwork/board/forms.py:204
 msgid "Receipt Date"
-msgstr "Fecha de la Factura"
+msgstr "Fecha de la Receta"
 
 #: valuenetwork/local_settings_example.py:86
 msgid ""
@@ -2152,17 +2194,17 @@ msgstr ""
 msgid "<p>Place any html text for the custom login page.</p>"
 msgstr "<p>Pon cualquier texto html para la página de login personalizada.</p>"
 
-#: valuenetwork/settings.py:389
+#: valuenetwork/settings.py:400
 msgid "English"
 msgstr "Inglés"
 
-#: valuenetwork/settings.py:390
+#: valuenetwork/settings.py:401
 msgid "Spanish"
 msgstr "Castellano"
 
-#: valuenetwork/settings.py:391
+#: valuenetwork/settings.py:402
 msgid "Catalan"
-msgstr "Catalan"
+msgstr "Catalán"
 
 #: valuenetwork/templates/404.html:5 valuenetwork/templates/404.html:14
 #: work/templates/404.html:5 work/templates/404.html:14
@@ -2206,7 +2248,7 @@ msgstr "Ajustes"
 #: valuenetwork/templates/valueaccounting/tutorials.html:6
 #: valuenetwork/templates/valueaccounting/tutorials.html:23
 msgid "OCP Tutorials"
-msgstr "Tutoriales de PAC"
+msgstr "Tutoriales de OCP"
 
 #: valuenetwork/templates/_account_bar.html:15
 msgid "Admin"
@@ -2219,7 +2261,7 @@ msgstr "Patrones"
 #: valuenetwork/templates/_account_bar.html:17
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:144
 msgid "Exchange Types"
-msgstr "Tipos de intercambio"
+msgstr "Tipos de Intercambio"
 
 #: valuenetwork/templates/_account_bar.html:23
 msgid "Miscellaneous Pages"
@@ -2227,7 +2269,7 @@ msgstr "Páginas diversas"
 
 #: valuenetwork/templates/_account_bar.html:26
 msgid "Coop Work App"
-msgstr "Aplicación para trabajo cooperativo"
+msgstr "App Trabajo Cooperativo"
 
 #: valuenetwork/templates/_account_bar.html:43
 #: work/templates/_settings_bar.html:104
@@ -2323,7 +2365,7 @@ msgstr "Cuenta"
 
 #: valuenetwork/templates/account/base.html:11
 msgid "Account Settings"
-msgstr "Configuración de cuenta"
+msgstr "Ajustes de Cuenta"
 
 #: valuenetwork/templates/account/base.html:12
 #: valuenetwork/templates/account/work_password_change.html:15
@@ -2331,7 +2373,7 @@ msgstr "Configuración de cuenta"
 #: valuenetwork/templates/pinax/notifications/notice_settings.html:8
 #: valuenetwork/templates/pinax/notifications/notice_settings.html:14
 msgid "Notification Settings"
-msgstr "Configuración de notificaciones"
+msgstr "Ajustes de Notificaciones"
 
 #: valuenetwork/templates/account/base.html:13
 #: valuenetwork/templates/account/password_change.html:7
@@ -2351,7 +2393,7 @@ msgstr "Borrar cuenta"
 #: valuenetwork/templates/account/delete.html:6
 #: valuenetwork/templates/account/delete.html:9
 msgid "Delete Account"
-msgstr "Borrar cuenta"
+msgstr "Borrar Cuenta"
 
 #: valuenetwork/templates/account/delete.html:11
 #, python-format
@@ -2369,9 +2411,9 @@ msgstr "Borrar Mi Cuenta"
 #: valuenetwork/templates/account/email_confirm.html:6
 #: valuenetwork/templates/account/email_confirm.html:12
 #: work/templates/work/join_request_with_comments.html:220
-#: work/templates/work/join_requests.html:264 work/views.py:3624
+#: work/templates/work/join_requests.html:264 work/views.py:3649
 msgid "Confirm Email"
-msgstr "Confirmar correo electrónico"
+msgstr "Confirmar Email"
 
 #: valuenetwork/templates/account/email_confirm.html:15
 #, python-format
@@ -2412,12 +2454,12 @@ msgstr "Correo electrónico confirmado"
 #: valuenetwork/templates/account/email_confirmed.html:10
 #, python-format
 msgid "You have confirmed <b>%(email)s</b>"
-msgstr "Ha confirmado <b>%(email)s</b>"
+msgstr "Has confirmado <b>%(email)s</b>"
 
 #: valuenetwork/templates/account/login.html:9
 #: valuenetwork/templates/frontpage.html:7
 msgid "OCP: Open Collaborative Platform"
-msgstr "PAC: Plataforma Abierta Colaborativa"
+msgstr "OCP: Plataforma Abierta Colaborativa"
 
 #: valuenetwork/templates/account/login.html:59
 #: valuenetwork/templates/frontpage.html:19
@@ -2427,7 +2469,7 @@ msgstr "Freedom Coop´s"
 #: valuenetwork/templates/account/login.html:60
 #: valuenetwork/templates/frontpage.html:20
 msgid "Open Collaborative Platform (OCP)"
-msgstr "Plataforma Abierta Colaborativa (PAC)"
+msgstr "Plataforma Abierta Colaborativa (OCP)"
 
 #: valuenetwork/templates/account/login.html:64
 msgid ""
@@ -2435,7 +2477,7 @@ msgid ""
 "organizational tool we offer to individuals, collectives, and project "
 "coordinators inside Freedom Coop."
 msgstr ""
-"Esto es PAC, nuestra Plataforma Colaborativa Abierta. PAC es la herramienta "
+"Esto es OCP, nuestra Plataforma Colaborativa Abierta. OCP es la herramienta "
 "organizativa clave que ofrecemos a individuos, colectivos y coordinadores de "
 "proyecto en Freedom Coop."
 
@@ -2477,7 +2519,7 @@ msgid ""
 "distribution between Freedom Coop members."
 msgstr ""
 "Utilizar algunos servicios legales que pueden ser cubiertos con una cuota "
-"trimestral y distribución fiscal entre los miembros Freedom Coop."
+"trimestral y distribución de tasas entre los miembros Freedom Coop."
 
 #: valuenetwork/templates/account/login.html:70
 #: work/templates/work/project_login.html:83
@@ -2496,15 +2538,15 @@ msgstr ""
 #: valuenetwork/templates/frontpage.html:39
 #: work/templates/work/project_login.html:90
 msgid "Request Membership"
-msgstr "Solicitud de Membresía"
+msgstr "Solicitud de Alta"
 
 #: valuenetwork/templates/account/login.html:77
 msgid ""
 "The first step to become a member of Freedom Coop and use OCP, is to fill "
 "the following membership form:"
 msgstr ""
-"El primer paso para convertirse en miembro de Freedom Coop y usar PAC, es "
-"rellenar el siguiente formulario de inscripción:"
+"El primer paso para convertirse en miembro de Freedom Coop y usar OCP, es "
+"rellenar el siguiente formulario de alta:"
 
 #: valuenetwork/templates/account/login.html:78
 msgid "Join FreedomCoop"
@@ -2516,12 +2558,13 @@ msgstr "Iniciar sesión en OCP"
 
 #: valuenetwork/templates/account/login.html:83
 msgid "If you already did it, and have user and password, login here."
-msgstr "Si ya lo hizo, y tienen un usuario y contraseña, inicie sesión aquí."
+msgstr ""
+"Si ya lo has hecho, y tienes un usuario y contraseña, inicia sesión aquí."
 
 #: valuenetwork/templates/account/login.html:89
 #: work/templates/work/project_login.html:107
 msgid "Forgot your password?"
-msgstr "¿Olvidó su contraseña?"
+msgstr "¿Olvidaste tu contraseña?"
 
 #: valuenetwork/templates/account/login.html:90
 #: work/templates/work/joinaproject_thanks.html:39
@@ -2531,7 +2574,7 @@ msgstr "Iniciar sesión"
 
 #: valuenetwork/templates/account/logout.html:40
 msgid "Log out of OCP"
-msgstr "Cerrar sesión en PAC"
+msgstr "Cerrar sesión en OCP"
 
 #: valuenetwork/templates/account/logout.html:43
 msgid "Are you sure you want to log out?"
@@ -2666,7 +2709,7 @@ msgstr "Cerrar sesión"
 #: work/templates/work/members_agent.html:361
 #: work/templates/work/members_agent.html:852
 #: work/templates/work/members_agent.html:956
-#: work/templates/work/members_agent.html:1025
+#: work/templates/work/members_agent.html:1026
 #: work/templates/work/non_process_logging.html:96
 #: work/templates/work/order_plan.html:281
 #: work/templates/work/process_logging.html:191
@@ -2695,15 +2738,15 @@ msgstr "Guardar"
 #: valuenetwork/templates/account/password_reset.html:8
 #: valuenetwork/templates/account/password_reset.html:14
 msgid "Password reset"
-msgstr "Restablecimiento de la contraseña"
+msgstr "Restablecer contraseña"
 
 #: valuenetwork/templates/account/password_reset.html:15
 msgid ""
 "Forgotten your password? Enter your email address below, and we'll send you "
 "an email allowing you to reset it."
 msgstr ""
-"¿Olvidó su contraseña? Introduzca su dirección de correo electrónico, y le "
-"enviaremos un correo que le permitirá restablecerla."
+"¿Olvidaste tu contraseña? Introduze tu dirección de correo electrónico, y te "
+"enviaremos un correo que te permitirá restablecerla."
 
 #: valuenetwork/templates/account/password_reset.html:20
 msgid "Reset my password"
@@ -2716,8 +2759,8 @@ msgid ""
 "\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</"
 "a>."
 msgstr ""
-"Si tiene algún problema al restablecer su contraseña, póngase en contacto "
-"con nosotros mediante <a href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">"
+"Si tienes algún problema al restablecer tu contraseña, ponte en contacto con "
+"nosotros mediante <a href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">"
 "%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
 #: valuenetwork/templates/account/password_reset_sent.html:7
@@ -2732,8 +2775,8 @@ msgid ""
 "try resending or contact us at <a href=\"mailto:"
 "%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
-"Le hemos enviado un correo electrónico. Si no lo recibe dentro de unos pocos "
-"minutos, intente reenviar o póngase en contacto con nosotros mediante <a "
+"Te hemos enviado un correo electrónico. Si no lo recibes dentro de unos "
+"pocos minutos, intenta reenviar o ponte en contacto con nosotros mediante <a "
 "href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">"
 "%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
@@ -2748,14 +2791,14 @@ msgid ""
 "minutes, contact us at <a href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">"
 "%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
-"Hemos reenviado la contraseña de email. Si no la recibe dentro de unos pocos "
-"minutos, contáctse con nosotros a <a href=\"mailto:"
+"Hemos reenviado el email de la contraseña. Si no la recibes dentro de unos "
+"pocos minutos, contacta con nosotros en <a href=\"mailto:"
 "%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
 #: valuenetwork/templates/account/password_reset_token.html:7
 #: valuenetwork/templates/account/password_reset_token.html:11
 msgid "Set your new password"
-msgstr "Establezca un nueva contraseña"
+msgstr "Define tu nueva contraseña"
 
 #: valuenetwork/templates/account/password_reset_token_fail.html:7
 #: valuenetwork/templates/account/password_reset_token_fail.html:10
@@ -2768,8 +2811,8 @@ msgid ""
 "The password reset link was invalid, possibly because it has already been "
 "used.  Please request a <a href=\"%(url)s\">new password reset</a>."
 msgstr ""
-"El vínculo de restablecimiento de contraseña era no válido, posiblemente "
-"porque ya había sido usado. Por favor solicite un <a href=\"%(url)s\">nuevo "
+"El enlace de restablecimiento de contraseña era no válido, posiblemente "
+"porque ya había sido usado. Por favor solicita un <a href=\"%(url)s\">nuevo "
 "restablecimiento de contraseña</a>."
 
 #: valuenetwork/templates/account/signup_closed.html:7
@@ -2779,7 +2822,7 @@ msgstr "Registración cerrada"
 
 #: valuenetwork/templates/account/signup_closed.html:12
 msgid "The code you provided was not accepted."
-msgstr "El código que ha proporcionado no fue aceptado."
+msgstr "El código que has proporcionado no fue aceptado."
 
 #: valuenetwork/templates/account/signup_closed.html:14
 msgid "Sign up is closed to the general public."
@@ -2808,11 +2851,11 @@ msgstr "Agregar Disponible"
 #: valuenetwork/templates/board/dhen_board.html:128
 #: work/templates/work/exchanges_all.html:528
 msgid "Receive"
-msgstr "Cobrar"
+msgstr "Recibir"
 
 #: valuenetwork/templates/board/dhen_board.html:134
 msgid "Make Sale"
-msgstr "Realiza una venta"
+msgstr "Realiza una Venta"
 
 #: valuenetwork/templates/board/dhen_board.html:186
 msgid "Change Farm Availability"
@@ -2824,19 +2867,19 @@ msgstr "Combinar Lotes"
 
 #: valuenetwork/templates/board/dhen_board.html:384
 msgid "Add availability"
-msgstr "Agregar Disponibilidad"
+msgstr "Agregar disponibilidad"
 
 #: valuenetwork/templates/board/dhen_board.html:402
 msgid "Receive directly"
-msgstr "Recibir Directamente"
+msgstr "Recibir directamente"
 
 #: valuenetwork/templates/equipment/log_additional_inputs.html:6
 msgid "Log Additional Inputs"
-msgstr "Cargar entradas adicionales"
+msgstr "Anotar Entradas Adicionales"
 
 #: valuenetwork/templates/equipment/log_additional_inputs.html:85
 msgid "Log More Inputs"
-msgstr "Cargar más entradas"
+msgstr "Anotar más entradas"
 
 #: valuenetwork/templates/equipment/log_additional_inputs.html:109
 msgid "Save Citation"
@@ -2859,23 +2902,23 @@ msgstr "Terminado"
 
 #: valuenetwork/templates/equipment/log_equipment_use.html:6
 msgid "Log Equipment Use"
-msgstr "Cargar Uso de Equipamiento"
+msgstr "Anotar Uso de Equipamiento"
 
 #: valuenetwork/templates/equipment/log_equipment_use.html:83
 msgid "Log Use of "
-msgstr "Cargar Uso de"
+msgstr "Anotar Uso de"
 
 #: valuenetwork/templates/equipment/log_equipment_use.html:125
 msgid "Save and Continue"
-msgstr "Guardar y continuar"
+msgstr "Guardar y Continuar"
 
 #: valuenetwork/templates/equipment/pay_equipment_use.html:6
 msgid "Pay for Equipment Use"
-msgstr "Pagar los gastos por el uso del equipo"
+msgstr "Pagar por Uso del Equipo"
 
 #: valuenetwork/templates/equipment/pay_equipment_use.html:85
 msgid "Pay for Use of "
-msgstr "Pagar por el uso de"
+msgstr "Pagar por Uso de"
 
 #: valuenetwork/templates/equipment/pay_equipment_use.html:136
 msgid "I paid"
@@ -3560,7 +3603,7 @@ msgstr "Solicitud de una dirección FairCoin"
 #: work/templates/work/order_list.html:128
 #: work/templates/work/project_resource.html:140
 #: work/templates/work/project_work.html:490
-#: work/templates/work/value_equations_work.html:90 work/views.py:3523
+#: work/templates/work/value_equations_work.html:90 work/views.py:3548
 msgid "Delete"
 msgstr "Borrar"
 
@@ -3589,23 +3632,23 @@ msgid "Save user"
 msgstr "Guardar usuario"
 
 #: valuenetwork/templates/valueaccounting/agent.html:199
-#: work/templates/work/members_agent.html:1162
+#: work/templates/work/members_agent.html:1163
 msgid "Cumulative Time"
 msgstr "Tiempo acumulado"
 
 #: valuenetwork/templates/valueaccounting/agent.html:202
-#: work/templates/work/members_agent.html:1165
+#: work/templates/work/members_agent.html:1166
 msgid "Last 2 months"
 msgstr "Últimos 2 meses"
 
 #: valuenetwork/templates/valueaccounting/agent.html:206
 #: valuenetwork/valueaccounting/models.py:14698
-#: work/templates/work/members_agent.html:1169
+#: work/templates/work/members_agent.html:1170
 msgid "Forever"
 msgstr "Para siempre"
 
 #: valuenetwork/templates/valueaccounting/agent.html:210
-#: work/templates/work/members_agent.html:1173
+#: work/templates/work/members_agent.html:1174
 msgid "Roles"
 msgstr "Roles"
 
@@ -3728,7 +3771,7 @@ msgid "comments"
 msgstr "comentarios"
 
 #: valuenetwork/templates/valueaccounting/agent.html:413
-#: work/templates/work/members_agent.html:1153
+#: work/templates/work/members_agent.html:1154
 msgid "Cumulative Contributions"
 msgstr "Contribuciones Acumulativas"
 
@@ -3752,7 +3795,7 @@ msgid "Resource Relationships"
 msgstr "Relaciones de Recursos"
 
 #: valuenetwork/templates/valueaccounting/agent.html:452
-#: work/templates/work/members_agent.html:1133
+#: work/templates/work/members_agent.html:1134
 msgid "Active Processes"
 msgstr "Proceso Activo"
 
@@ -3761,7 +3804,7 @@ msgstr "Proceso Activo"
 #: valuenetwork/templates/valueaccounting/change_pattern.html:217
 #: valuenetwork/templates/valueaccounting/test_patterns.html:197
 #: work/templates/work/members_agent.html:538
-#: work/templates/work/members_agent.html:1143
+#: work/templates/work/members_agent.html:1144
 msgid "None"
 msgstr "Ninguno"
 
@@ -3837,7 +3880,7 @@ msgid "Save and add more"
 msgstr "Guardar y agregar más"
 
 #: valuenetwork/templates/valueaccounting/agent_associations.html:57
-#: work/templates/work/members_agent.html:1003
+#: work/templates/work/members_agent.html:1004
 msgid "has these associates"
 msgstr "tiene estos socios"
 
@@ -3862,7 +3905,7 @@ msgid "Active?"
 msgstr "¿Activo?"
 
 #: valuenetwork/templates/valueaccounting/agent_associations.html:83
-#: work/templates/work/members_agent.html:971
+#: work/templates/work/members_agent.html:972
 msgid "is associated with"
 msgstr "está asociado con"
 
@@ -4171,10 +4214,6 @@ msgstr "Informe Detallado"
 #: valuenetwork/templates/valueaccounting/cash_report.html:114
 msgid "Category"
 msgstr "Categoría"
-
-#: valuenetwork/templates/valueaccounting/cash_report.html:86
-msgid "Amount"
-msgstr "Monto"
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:97
 msgid "Total In"
@@ -4552,7 +4591,7 @@ msgstr ""
 #: valuenetwork/valueaccounting/models.py:12761
 #: valuenetwork/valueaccounting/models.py:12995
 #: valuenetwork/valueaccounting/models.py:14368
-#: valuenetwork/valueaccounting/models.py:14715 work/models.py:2263
+#: valuenetwork/valueaccounting/models.py:14715 work/models.py:2327
 #: work/templates/work/order_list.html:100
 msgid "created by"
 msgstr "creado por"
@@ -4985,11 +5024,11 @@ msgstr "Desembolso"
 
 #: valuenetwork/templates/valueaccounting/distribution_logging.html:137
 msgid "Log a disbursement"
-msgstr "Cargar un desembolso"
+msgstr "Anotar un desembolso"
 
 #: valuenetwork/templates/valueaccounting/distribution_logging.html:151
 msgid "Log a Cash Disbursement"
-msgstr "Cargar un desembolso de caja"
+msgstr "Anotar un desembolso de caja"
 
 #: valuenetwork/templates/valueaccounting/distribution_logging.html:169
 msgid "Disbursed"
@@ -5001,11 +5040,11 @@ msgstr "Cambiar Evento de Desembolso"
 
 #: valuenetwork/templates/valueaccounting/distribution_logging.html:216
 msgid "Log a distribution"
-msgstr "Cargar una distribución"
+msgstr "Anotar una distribución"
 
 #: valuenetwork/templates/valueaccounting/distribution_logging.html:229
 msgid "Log a Distribution"
-msgstr "Cargar una Distribución"
+msgstr "Anotar una Distribución"
 
 #: valuenetwork/templates/valueaccounting/distribution_logging.html:247
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:224
@@ -5197,11 +5236,11 @@ msgstr "Reclamar Valor"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:8
 msgid " Edit Recipe for "
-msgstr "Editar receta por"
+msgstr "Editar Receta por"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:120
 msgid "Edit Recipe for "
-msgstr "Editar receta por"
+msgstr "Editar Receta por"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:123
 #: valuenetwork/templates/valueaccounting/extended_bill.html:118
@@ -5210,7 +5249,7 @@ msgstr "Produce"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:137
 msgid "Change Resource Type"
-msgstr "Cambio tipo de recurso"
+msgstr "Cambiar Tipo de Recurso"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:176
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:184
@@ -5529,11 +5568,11 @@ msgstr "También se eliminarán los siguientes objetos"
 
 #: valuenetwork/templates/valueaccounting/financial_contribution.html:7
 msgid "Log Financial Contribution"
-msgstr "Cargar Contribución Financiera"
+msgstr "Anotar Contribución Financiera"
 
 #: valuenetwork/templates/valueaccounting/financial_contribution.html:61
 msgid "Log Financial Contribution for "
-msgstr "Cargar Contribución Financiera para"
+msgstr "Anotar Contribución Financiera para"
 
 #: valuenetwork/templates/valueaccounting/financial_contribution.html:67
 msgid "Financial Contribution"
@@ -6005,15 +6044,15 @@ msgstr "Otros requisitos de Trabajo"
 
 #: valuenetwork/templates/valueaccounting/log_simple.html:7
 msgid "Log Design Contributions"
-msgstr "Cargar Contribuciones de Diseño"
+msgstr "Anotar Contribuciones de Diseño"
 
 #: valuenetwork/templates/valueaccounting/log_simple.html:61
 msgid "Log Contribution for "
-msgstr "Cargar Contribución para"
+msgstr "Anotar Contribución para"
 
 #: valuenetwork/templates/valueaccounting/log_simple.html:68
 msgid "Resource Created"
-msgstr "Recurso creado"
+msgstr "Recurso Creado"
 
 #: valuenetwork/templates/valueaccounting/log_simple.html:83
 msgid "Work Done"
@@ -6021,15 +6060,15 @@ msgstr "Trabajo Realizado"
 
 #: valuenetwork/templates/valueaccounting/log_time.html:8
 msgid "Log Your Time Contributions"
-msgstr "Cargar sus Contribuciones de Tiempo"
+msgstr "Anotar tus Contribuciones de Tiempo"
 
 #: valuenetwork/templates/valueaccounting/log_time.html:37
 msgid "Log Time Contributions for "
-msgstr "Cargar Contribuciones de Tiempo para"
+msgstr "Anotar Contribuciones de Tiempo para"
 
 #: valuenetwork/templates/valueaccounting/log_time.html:39
 msgid "Contribution history for "
-msgstr "Historia de Contribicón para"
+msgstr "Historial de contribicón para"
 
 #: valuenetwork/templates/valueaccounting/maintain_patterns.html:7
 msgid "Maintain Patterns"
@@ -6042,7 +6081,7 @@ msgstr "Mantener Patrones de Procesos"
 #: valuenetwork/templates/valueaccounting/maintain_patterns.html:165
 #: valuenetwork/valueaccounting/forms.py:2508
 msgid "Select Use Case"
-msgstr "Seleccionar Cartera de Uso"
+msgstr "Seleccionar Caso de Uso"
 
 #: valuenetwork/templates/valueaccounting/maintain_patterns.html:167
 msgid "Get Patterns"
@@ -6050,15 +6089,15 @@ msgstr "Conseguir Patrones"
 
 #: valuenetwork/templates/valueaccounting/maintain_patterns.html:174
 msgid "Patterns for this Use Case"
-msgstr "Patrones para esta Cartera de Uso"
+msgstr "Patrones para este Caso de Uso"
 
 #: valuenetwork/templates/valueaccounting/maintain_patterns.html:192
 msgid "Other use cases for this pattern"
-msgstr "Otras carteras de uso para este patrón"
+msgstr "Otros casos de uso para este patrón"
 
 #: valuenetwork/templates/valueaccounting/maintain_patterns.html:213
 msgid "Create a new Pattern for this Use Case"
-msgstr "Crear un nuevo Patrón para esta Cartera de Uso"
+msgstr "Crear un nuevo Patrón para este Caso de Uso"
 
 #: valuenetwork/templates/valueaccounting/maintain_patterns.html:219
 msgid "Add an existing Pattern"
@@ -6067,7 +6106,7 @@ msgstr "Agregar un Patrón existente"
 #: valuenetwork/templates/valueaccounting/material_contributions.html:5
 #: valuenetwork/templates/valueaccounting/material_contributions.html:37
 msgid "Material Contributions"
-msgstr "Contribuciones materiales"
+msgstr "Contribuciones Materiales"
 
 #: valuenetwork/templates/valueaccounting/membership_request.html:7
 #: valuenetwork/templates/valueaccounting/membership_request.html:61
@@ -6151,9 +6190,9 @@ msgstr "Enlaces"
 
 #: valuenetwork/templates/valueaccounting/membership_requests.html:87
 #: valuenetwork/templates/valueaccounting/skill_suggestions.html:112
-#: work/templates/work/join_requests.html:186 work/views.py:3586
+#: work/templates/work/join_requests.html:186 work/views.py:3611
 msgid "Undecline"
-msgstr "Desrechazar"
+msgstr "Des-declinar"
 
 #: valuenetwork/templates/valueaccounting/membership_requests.html:96
 #: valuenetwork/templates/valueaccounting/skill_suggestions.html:72
@@ -6166,7 +6205,7 @@ msgstr "Desrechazar"
 #: work/templates/work/my_tasks.html:386 work/templates/work/my_tasks.html:607
 #: work/templates/work/project_work.html:474
 #: work/templates/work/take_new_tasks.html:318
-#: work/templates/work/take_new_tasks.html:603 work/views.py:3528
+#: work/templates/work/take_new_tasks.html:603 work/views.py:3553
 msgid "Decline"
 msgstr "Declinar"
 
@@ -6263,7 +6302,7 @@ msgstr "No tiene permisos para acceder a la página solicitada."
 #: valuenetwork/templates/valueaccounting/open_todos.html:6
 #: valuenetwork/templates/valueaccounting/open_todos.html:50
 msgid "Open Todos"
-msgstr "Abrir Para-Hacer"
+msgstr "Abrir Tareas por hacer"
 
 #: valuenetwork/templates/valueaccounting/open_todos.html:55
 #: valuenetwork/templates/valueaccounting/today.html:376
@@ -6316,7 +6355,7 @@ msgstr ""
 #: work/templates/work/order_delete_confirmation_work.html:19
 #: work/templates/work/order_plan.html:139
 msgid "Order Items"
-msgstr "Encargar artículos"
+msgstr "Pedir Artículos"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:7
 #: valuenetwork/templates/valueaccounting/order_schedule.html:97
@@ -6326,27 +6365,27 @@ msgstr "Calendario para"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:100
 msgid "Go to Exchange"
-msgstr "ir a intercambio"
+msgstr "Ir a Intercambio"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:114
 #: work/templates/work/order_plan.html:140
 msgid "Add an Order Item"
-msgstr "Añadir un artículo al pedido"
+msgstr "Añadir un Artículo al Pedido"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:118
 #: work/templates/work/order_plan.html:144
 msgid "Add a Deliverable"
-msgstr "Agregar un entregable"
+msgstr "Agregar un Entregable"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:136
 #: work/templates/work/order_plan.html:161
 msgid "Change Quantity"
-msgstr "Cambiar cantidad"
+msgstr "Cambiar Cantidad"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:138
 #: work/templates/work/order_plan.html:163
 msgid "Change Project"
-msgstr "Modificar proyecto"
+msgstr "Modificar Proyecto"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:143
 #: work/templates/work/order_plan.html:168
@@ -6361,7 +6400,7 @@ msgstr "Cambiar proyecto por plan de flujo de trabajo"
 #: valuenetwork/templates/valueaccounting/order_schedule.html:193
 #: work/templates/work/order_plan.html:220
 msgid "Add another Order Item"
-msgstr "Agregar otro item a la Orden"
+msgstr "Agregar otro item al Pedido"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:213
 msgid "Production Schedule"
@@ -6434,11 +6473,11 @@ msgstr "Cronograma detallado"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:7
 msgid "Work Order from Recipe"
-msgstr "Pedido de Trabajo de Factura"
+msgstr "Pedido de Trabajo de Receta"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:53
 msgid "Plan Work Order Using Recipe"
-msgstr "Planificar Pedido de Trabajo Usando Factura"
+msgstr "Planificar Pedido de Trabajo Usando Receta"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:61
 #: valuenetwork/templates/valueaccounting/process_selections.html:68
@@ -6454,7 +6493,7 @@ msgstr "Elegir el proyecto"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:67
 msgid "Get recipes"
-msgstr "Conseguir Facturas"
+msgstr "Tomar recetas"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:78
 msgid "Choose a Resource Type..."
@@ -6463,7 +6502,7 @@ msgstr "Elegir un Tipo de Recurso..."
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:101
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:37
 msgid "This recipe needs a starting resource"
-msgstr "Esta Factura necesita un recurso de partida"
+msgstr "Esta receta necesita un recurso de partida"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:115
 msgid "...or choose a Resource Type List"
@@ -6471,7 +6510,7 @@ msgstr "... o elija una Lista de Tipo de Recurso"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:162
 msgid "Create plan from recipe"
-msgstr "Crear plan a partir de factura"
+msgstr "Crear plan a partir de receta"
 
 #: valuenetwork/templates/valueaccounting/plan_from_rt.html:7
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:7
@@ -6490,7 +6529,7 @@ msgstr "Guardar proceso planeado"
 
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:30
 msgid "Create a Plan from Recipe for "
-msgstr "Crear un Plan a partir de Factura para"
+msgstr "Crear un Plan a partir de Receta para"
 
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:49
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:51
@@ -6513,11 +6552,11 @@ msgstr "Notas de laboratorio para este proceso"
 
 #: valuenetwork/templates/valueaccounting/process.html:93
 msgid "Process Notes"
-msgstr "Notas de proceso"
+msgstr "Notas de Proceso"
 
 #: valuenetwork/templates/valueaccounting/process.html:126
 msgid "Log Resource"
-msgstr "Cargar Recurso"
+msgstr "Anotar Recurso"
 
 #: valuenetwork/templates/valueaccounting/process.html:131
 #: work/templates/work/invoice_number.html:39
@@ -6529,12 +6568,6 @@ msgstr "Crear"
 #: work/templates/work/process_logging.html:398
 msgid "Completed"
 msgstr "Completado"
-
-#: valuenetwork/templates/valueaccounting/process.html:162
-#: valuenetwork/templates/valueaccounting/process_oriented_logging.html:407
-#: work/templates/work/process_logging.html:432
-msgid "Created"
-msgstr "Creado"
 
 #: valuenetwork/templates/valueaccounting/process.html:178
 #: valuenetwork/templates/valueaccounting/process.html:190
@@ -6571,7 +6604,7 @@ msgstr "Fuente"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1159
 #: work/templates/work/process_logging.html:1203
 msgid "Usable Inputs"
-msgstr "Entradas usables"
+msgstr "Entradas Usables"
 
 #: valuenetwork/templates/valueaccounting/process.html:324
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:590
@@ -6596,12 +6629,12 @@ msgstr "Agregar un requerimiento de salida"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:212
 #: work/templates/work/process_logging.html:234
 msgid "Log an unplanned output"
-msgstr "Cargar una salida no planeada"
+msgstr "Anotar una salida no planeada"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:258
 #: work/templates/work/process_logging.html:280
 msgid "or Log details"
-msgstr "o Cargar detalles"
+msgstr "o Anotar detalles"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:293
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:478
@@ -6617,7 +6650,7 @@ msgstr "Cambiar Requerimiento"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:321
 #: work/templates/work/process_logging.html:344
 msgid "Log process output"
-msgstr "Cargar salida de proceso"
+msgstr "Anotar salida de proceso"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:325
 #: work/templates/work/process_logging.html:348
@@ -6627,7 +6660,7 @@ msgstr "Agregar a Recurso"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:332
 #: work/templates/work/process_logging.html:355
 msgid "Log new"
-msgstr "Cargar nuevo"
+msgstr "Anotar nuevo"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:349
 #: work/templates/work/process_logging.html:373
@@ -6660,7 +6693,7 @@ msgstr "Agregar un requerimiento de trabajo"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:451
 #: work/templates/work/process_logging.html:480
 msgid "Log unplanned work"
-msgstr "Cargar trabajo no planeado"
+msgstr "Anotar trabajo no planeado"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:464
 #: work/templates/work/process_logging.html:493
@@ -6691,7 +6724,7 @@ msgstr "Voy a trabajar en esto más tarde"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:609
 #: work/templates/work/process_logging.html:639
 msgid "You are committing to do this work."
-msgstr "Ud. está comprometiendose a realizar este trabajo"
+msgstr "Estás comprometiendote a realizar este trabajo."
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:610
 #: work/templates/work/process_logging.html:640
@@ -6703,7 +6736,7 @@ msgstr ""
 #: work/templates/work/process_logging.html:641
 msgid "The next step is to do the work and log your actual time."
 msgstr ""
-"El siguiente paso es realizar el trabajo y cargar el tiempo realmente "
+"El siguiente paso es realizar el trabajo y anotar el tiempo realmente "
 "utilizado."
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:629
@@ -6740,7 +6773,7 @@ msgstr "Agregar un requerimiento de citación"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:775
 #: work/templates/work/process_logging.html:812
 msgid "Log unplanned citation"
-msgstr "Cargar una citación no planeada"
+msgstr "Anotar una citación no planeada"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:790
 #: work/templates/work/process_logging.html:827
@@ -6750,12 +6783,12 @@ msgstr "Agregar una citación no planeada"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:869
 #: work/templates/work/process_logging.html:906
 msgid "Log citation"
-msgstr "Cargar citación"
+msgstr "Anotar citación"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:875
 #: work/templates/work/process_logging.html:912
 msgid "Log citation of"
-msgstr "Cargar citación de"
+msgstr "Anotar citación de"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:900
 #: work/templates/work/process_logging.html:938
@@ -6772,7 +6805,7 @@ msgstr "Agregar un requerimiento de entrada consumible"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:939
 #: work/templates/work/process_logging.html:979
 msgid "Log unplanned consumption"
-msgstr "Cargar consumo no pleneado"
+msgstr "Anotar consumo no planeado"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:954
 #: work/templates/work/process_logging.html:994
@@ -6787,12 +6820,12 @@ msgstr "Añadir consumo"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1039
 #: work/templates/work/process_logging.html:1080
 msgid "Log consumption"
-msgstr "Cargar consumo"
+msgstr "Anotar consumo"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1045
 #: work/templates/work/process_logging.html:1086
 msgid "Log consumption of"
-msgstr "Cargar consumo de"
+msgstr "Anotar consumo de"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1065
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1276
@@ -6816,7 +6849,7 @@ msgstr "Agregar un requerimiento de entrada usable"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1167
 #: work/templates/work/process_logging.html:1211
 msgid "Log unplanned use"
-msgstr "Cargar un uso no pleneado"
+msgstr "Anotar un uso no pleneado"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1181
 #: work/templates/work/process_logging.html:1225
@@ -6831,12 +6864,12 @@ msgstr "Añadir uso"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1250
 #: work/templates/work/process_logging.html:1297
 msgid "Log use"
-msgstr "Cargar uso"
+msgstr "Anotar uso"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1256
 #: work/templates/work/process_logging.html:1303
 msgid "Log use of"
-msgstr "Cargar uso de"
+msgstr "Anotar uso de"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1324
 #: work/templates/work/process_logging.html:1372
@@ -6889,21 +6922,21 @@ msgstr "Añadir requisito del trabajo"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1599
 #: work/templates/work/process_logging.html:1657
 msgid "Log Unplanned Output"
-msgstr "Cargar Salida no Planeada"
+msgstr "Anotar Salida no Planeada"
 
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:1632
 #: work/templates/work/process_logging.html:1686
 msgid "Log Unplanned Work Contribution"
-msgstr "Cargar Contribución de Trabajo no Planeada"
+msgstr "Anotar Contribución de Trabajo no Planeada"
 
 #: valuenetwork/templates/valueaccounting/process_selections.html:54
 #: work/templates/work/plan_work.html:56
 msgid "Production Planning"
-msgstr "Planificación de la producción"
+msgstr "Planificación de la Producción"
 
 #: valuenetwork/templates/valueaccounting/process_selections.html:56
 msgid "Log Unplanned Production Work"
-msgstr "Registrar Trabajo de Producción no Planeado"
+msgstr "Anotar Trabajo de Producción no Planeado"
 
 #: valuenetwork/templates/valueaccounting/process_selections.html:65
 #: work/templates/work/plan_work.html:74
@@ -6941,7 +6974,7 @@ msgstr "Trabajar ahora"
 
 #: valuenetwork/templates/valueaccounting/processes_graph.html:7
 msgid "Process Graph"
-msgstr "Gráfico de proceso"
+msgstr "Gráfico de Proceso"
 
 #: valuenetwork/templates/valueaccounting/processes_graph.html:91
 #: work/templates/new_base.html:107 work/templates/new_base.html:136
@@ -6962,17 +6995,16 @@ msgid ""
 "Zoom using mousewheel or touchpad scroll. Slide the whole graph like a map, "
 "or move a node."
 msgstr ""
-"Haga zoom usando la rueda del ratón o la barra de deslizamiento del "
-"touchpad. Deslice todo el gráfico como un mapa, o mueva un nodo."
+"Haz zoom usando la rueda del ratón o la barra de deslizamiento del touchpad. "
+"Desliza todo el gráfico como un mapa, o mueve un nodo."
 
 #: valuenetwork/templates/valueaccounting/processes_graph.html:99
 msgid "Click a node to freeze it, click again to unfreeze."
-msgstr ""
-"Cliquee en un nodo para congelarlo, cliquéelo nuevamente para descongelarlo."
+msgstr "Clica en un nodo para congelarlo, clica nuevamente para descongelarlo."
 
 #: valuenetwork/templates/valueaccounting/processes_graph.html:100
 msgid "Double-click a node to open its own page."
-msgstr "Haga doble click sobre un nodo para abrir su propia página."
+msgstr "Haz doble clic sobre un nodo para abrir su propia página."
 
 #: valuenetwork/templates/valueaccounting/processes_graph.html:101
 msgid "Processes horizontally positioned by date, width by duration."
@@ -6988,11 +7020,11 @@ msgstr "Contribuciones para"
 
 #: valuenetwork/templates/valueaccounting/project_wip.html:5
 msgid "WIP for "
-msgstr "Trabajo en curso para"
+msgstr "Trabajo en Curso para"
 
 #: valuenetwork/templates/valueaccounting/project_wip.html:32
 msgid "Work in Process for "
-msgstr "Trabajo en curso para"
+msgstr "Trabajo en Curso para"
 
 #: valuenetwork/templates/valueaccounting/project_wip.html:33
 msgid "Finished processes"
@@ -7065,7 +7097,7 @@ msgstr "Crear Pedido de Trabajo para"
 #: valuenetwork/templates/valueaccounting/resource.html:207
 #: work/templates/work/project_resource.html:289
 msgid "Demands"
-msgstr "Demandas "
+msgstr "Demandas"
 
 #: valuenetwork/templates/valueaccounting/resource.html:221
 #: work/templates/work/project_resource.html:303
@@ -7105,11 +7137,11 @@ msgstr "Notas de laboratorio"
 #: valuenetwork/templates/valueaccounting/resource_flow.html:7
 #: valuenetwork/templates/valueaccounting/resource_flow_report.html:5
 msgid "Resource Flow"
-msgstr "Flujo de Recurso"
+msgstr "Flujo de Recursos"
 
 #: valuenetwork/templates/valueaccounting/resource_flow.html:52
 msgid "Record New Resource Flow"
-msgstr "Registrar Nuevo Flujo de Recurso"
+msgstr "Registrar Nuevo Flujo de Recursos"
 
 #: valuenetwork/templates/valueaccounting/resource_flow.html:60
 msgid "Network"
@@ -7135,7 +7167,7 @@ msgstr "Cosechadora"
 
 #: valuenetwork/templates/valueaccounting/resource_flow.html:124
 msgid "If Paid, $"
-msgstr "Si Pagado, FAIR"
+msgstr "Si Pagado, $"
 
 #: valuenetwork/templates/valueaccounting/resource_flow.html:144
 msgid "Facility"
@@ -7184,7 +7216,7 @@ msgstr "Todos los Tipos de Recurso"
 #: valuenetwork/templates/valueaccounting/resource_type.html:169
 #: valuenetwork/templates/valueaccounting/resource_types.html:127
 msgid "Parent"
-msgstr "Padre"
+msgstr "Pariente"
 
 #: valuenetwork/templates/valueaccounting/resource_type.html:185
 msgid "Children"
@@ -7192,7 +7224,7 @@ msgstr "Hijos"
 
 #: valuenetwork/templates/valueaccounting/resource_type.html:204
 msgid "Used in these recipes"
-msgstr "Usado en estas facturas"
+msgstr "Usado en estas recetas"
 
 #: valuenetwork/templates/valueaccounting/resource_type.html:228
 #: valuenetwork/valueaccounting/models.py:262
@@ -7224,7 +7256,7 @@ msgid ""
 msgstr ""
 "\n"
 "\t\t\t\t\t\t<b>%(resource_type)s</b> será eliminado como entrada del Tipo de "
-"Proceo <b>%(proc_type)s</b>\n"
+"Proceso <b>%(proc_type)s</b>\n"
 "\t\t\t\t\t\t"
 
 #: valuenetwork/templates/valueaccounting/resource_type_delete_confirmation.html:27
@@ -7271,7 +7303,7 @@ msgid ""
 "Resource Type Lists may be used to schedule many deliverables on the same "
 "Work Order."
 msgstr ""
-"Las Listas de Tipo de Recurso pueden usarse para programar muchos "
+"Las Listas de Tipo de Recurso pueden usarse para programar varios "
 "entregables en el mismo Pedido de Trabajo."
 
 #: valuenetwork/templates/valueaccounting/resource_types.html:67
@@ -7280,7 +7312,7 @@ msgstr "Crear nuevo Tipo de Recurso"
 
 #: valuenetwork/templates/valueaccounting/resource_types.html:134
 msgid "Resource class"
-msgstr "Clase de recurso"
+msgstr "Clase del recurso"
 
 #: valuenetwork/templates/valueaccounting/sales_and_distributions.html:5
 #: valuenetwork/templates/valueaccounting/value_equation.html:48
@@ -7353,7 +7385,7 @@ msgstr "Estadísticas comparativas"
 #: valuenetwork/templates/valueaccounting/start.html:193
 #: valuenetwork/templates/valueaccounting/work.html:203
 msgid "Log non-production work"
-msgstr "Cargar trabajo no productivo"
+msgstr "Anotar trabajo no-productivo"
 
 #: valuenetwork/templates/valueaccounting/start.html:205
 msgid "My unfinished production work"
@@ -7362,7 +7394,7 @@ msgstr "Mi trabajo productivo sin terminar"
 #: valuenetwork/templates/valueaccounting/start.html:228
 #: work/templates/work/my_tasks.html:231
 msgid "Log work on process"
-msgstr "Cargar trabajo en proceso"
+msgstr "Anotar trabajo en proceso"
 
 #: valuenetwork/templates/valueaccounting/start.html:237
 #: work/templates/work/my_tasks.html:240
@@ -7399,14 +7431,14 @@ msgstr "Otras tareas sin asignar"
 
 #: valuenetwork/templates/valueaccounting/start.html:510
 msgid "My todo list:"
-msgstr "Mi lista de tareas por hacer"
+msgstr "Mi lista de tareas por hacer:"
 
 #: valuenetwork/templates/valueaccounting/start.html:515
 #: valuenetwork/templates/valueaccounting/start.html:522
 #: valuenetwork/templates/valueaccounting/work.html:337
 #: valuenetwork/templates/valueaccounting/work.html:344
 msgid "Add a todo"
-msgstr "Agregar a lista por hacer"
+msgstr "Agregar tarea por hacer"
 
 #: valuenetwork/templates/valueaccounting/start.html:532
 #: valuenetwork/templates/valueaccounting/work.html:354
@@ -7436,7 +7468,7 @@ msgstr "Url"
 #: valuenetwork/templates/valueaccounting/today.html:295
 #: valuenetwork/templates/valueaccounting/work.html:484
 msgid "Change todo"
-msgstr "Cambiar por hacer"
+msgstr "Cambiar tarea"
 
 #: valuenetwork/templates/valueaccounting/start.html:645
 #: valuenetwork/templates/valueaccounting/today.html:320
@@ -7447,7 +7479,7 @@ msgstr "Hizo"
 
 #: valuenetwork/templates/valueaccounting/start.html:678
 msgid "Other unassigned todos:"
-msgstr "Otras por hacer sin asignar"
+msgstr "Otras tareas sin asignar"
 
 #: valuenetwork/templates/valueaccounting/supply.html:94
 msgid "Requirements by Supplier"
@@ -7461,7 +7493,7 @@ msgstr "Comprar de"
 
 #: valuenetwork/templates/valueaccounting/supply.html:99
 msgid "Combined Score"
-msgstr "Puntaje Combinado"
+msgstr "Puntuación Combinada"
 
 #: valuenetwork/templates/valueaccounting/supply.html:104
 msgid "Total required"
@@ -7471,7 +7503,7 @@ msgstr "Total requerido"
 #: valuenetwork/templates/valueaccounting/supply.html:142
 #: valuenetwork/templates/valueaccounting/supply.html:170
 msgid "Score"
-msgstr "Puntuacion"
+msgstr "Puntuación"
 
 #: valuenetwork/templates/valueaccounting/supply.html:111
 #: valuenetwork/templates/valueaccounting/supply.html:136
@@ -7497,7 +7529,7 @@ msgstr "Testear Patrones de Proceso"
 
 #: valuenetwork/templates/valueaccounting/test_patterns.html:166
 msgid "Get Pattern"
-msgstr "Obtener Patrón"
+msgstr "Tomar Patrón"
 
 #: valuenetwork/templates/valueaccounting/this_week.html:8
 #: valuenetwork/templates/valueaccounting/this_week.html:183
@@ -7519,7 +7551,7 @@ msgstr "Proyectos inactivos"
 
 #: valuenetwork/templates/valueaccounting/this_week.html:192
 msgid "Total logged time"
-msgstr "Total de tiempo cargado"
+msgstr "Total de tiempo anotado"
 
 #: valuenetwork/templates/valueaccounting/this_week.html:192
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:81
@@ -7552,8 +7584,8 @@ msgid ""
 "Double-click on date in bottom lane to slide to that date. Click on process "
 "in top lane to show details."
 msgstr ""
-"Haga doble click en el carril inferior para deslizarse a esa fecha. Cliquee "
-"sobre el proceso en el carril superior para mostrar los detalles."
+"Haz doble clic en la barra inferior para deslizarte a esa fecha. Clica sobre "
+"el proceso en la barra superior para mostrar los detalles."
 
 #: valuenetwork/templates/valueaccounting/today.html:8
 #: valuenetwork/templates/valueaccounting/today.html:175
@@ -7583,7 +7615,7 @@ msgstr "Eventos de hoy"
 #: valuenetwork/templates/valueaccounting/todo_history.html:6
 #: valuenetwork/templates/valueaccounting/todo_history.html:50
 msgid "Todo History"
-msgstr "Historia de por hacer"
+msgstr "Historia de Tareas"
 
 #: valuenetwork/templates/valueaccounting/tutorials.html:25
 msgid ""
@@ -7591,8 +7623,8 @@ msgid ""
 "that is used for the OCP (Open Collaborative Platform) for Freedom Coop."
 msgstr ""
 "Estos tutoriales para PRR (Planeación de Recursos de Red) son para el "
-"software que se usa para PAC (Plataforma Abierta Colaborativa) para la "
-"Freedom Coop."
+"software que se usa en OCP (Plataforma Abierta Colaborativa) para la Freedom "
+"Coop."
 
 #: valuenetwork/templates/valueaccounting/tutorials.html:26
 msgid ""
@@ -7600,9 +7632,9 @@ msgid ""
 "what it creates, and what it needs to do that. The first 5 slide decks below "
 "should help."
 msgstr ""
-"Su primer trabajo es crear un modelo de su red, cómo está organizada, qué "
+"Tu primer trabajo es crear un modelo de tu red, cómo está organizada, qué "
 "produce, y qué necesita para hacerlo. Las primeras 5 diapositivas debajo "
-"deberían ayudarle."
+"deberían ayudarte."
 
 #: valuenetwork/templates/valueaccounting/tutorials.html:29
 msgid "send an email"
@@ -7614,7 +7646,7 @@ msgstr "para más ayuda aún"
 
 #: valuenetwork/templates/valueaccounting/unfold.html:6
 msgid "Unfold"
-msgstr "Desplegado"
+msgstr "Desplega"
 
 #: valuenetwork/templates/valueaccounting/unfold.html:72
 #, python-format
@@ -7636,7 +7668,7 @@ msgid ""
 "This process is connected to other processes to fulfill a "
 "%(process.independent_demand.get_order_type_display)s."
 msgstr ""
-"Este proceso está conectado a otro proceso para cumplir una "
+"Este proceso está conectado a otro proceso para cumplir un "
 "%(process.independent_demand.get_order_type_display)s."
 
 #: valuenetwork/templates/valueaccounting/unfold.html:91
@@ -7645,12 +7677,11 @@ msgid ""
 "This process fulfills a "
 "%(process.independent_demand.get_order_type_display)s."
 msgstr ""
-"Este proceso cumple una "
-"%(process.independent_demand.get_order_type_display)s."
+"Este proceso cumple un %(process.independent_demand.get_order_type_display)s."
 
 #: valuenetwork/templates/valueaccounting/unfold.html:103
 msgid "All Contexts"
-msgstr "Todos los contextos"
+msgstr "Todos los Contextos"
 
 #: valuenetwork/templates/valueaccounting/unfold.html:105
 msgid "All Orders"
@@ -7675,11 +7706,11 @@ msgstr "Recursos creados"
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:9
 #: work/templates/work/non_process_logging.html:9
 msgid "Log Unscheduled Time Contributions"
-msgstr "Cargar Contribuciones de Tiempo no Programadas"
+msgstr "Anotar Contribuciones de Tiempo no Programadas"
 
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:46
 msgid "Log Unscheduled Time Contributions for "
-msgstr "Cargar Contribuciones de Tiempo no Programadas para"
+msgstr "Anotar Contribuciones de Tiempo no Programadas para"
 
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:59
 msgid "Credit for value equations"
@@ -7715,7 +7746,7 @@ msgstr "El resultado será el valor de la contribución de tiempo."
 #: valuenetwork/templates/valueaccounting/value_equation.html:61
 #: work/templates/work/value_equation_work.html:61
 msgid "Please leave a space between each element of the equation."
-msgstr "Por favor, deje un espacio entre cada elemento de la ecuación."
+msgstr "Por favor, deja un espacio entre cada elemento de la ecuación."
 
 #: valuenetwork/templates/valueaccounting/value_equation.html:74
 #: work/templates/work/value_equation_work.html:74
@@ -7760,12 +7791,12 @@ msgstr "Porcentaje"
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:97
 #: work/templates/work/value_equation_sandbox_work.html:103
 msgid "Your distribution will be displayed but will not be saved."
-msgstr "Su distribución será mostrada pero no será guardada."
+msgstr "Tu distribución será mostrada pero no será guardada."
 
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:105
 #: work/templates/work/value_equation_sandbox_work.html:111
 msgid ">Amount to distribute"
-msgstr ">Monto a distribuir"
+msgstr ">Cantidad a distribuir"
 
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:142
 #: work/templates/work/value_equation_sandbox_work.html:148
@@ -7775,7 +7806,7 @@ msgstr "Calcular Distribución"
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:189
 #: work/templates/work/value_equation_sandbox_work.html:195
 msgid "Value Added"
-msgstr "Valor Agredado"
+msgstr "Valor Agregado"
 
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:190
 #: work/templates/work/value_equation_sandbox_work.html:196
@@ -7822,11 +7853,11 @@ msgstr "Sólo Prueba"
 
 #: valuenetwork/templates/valueaccounting/view_stream_recipe.html:8
 msgid " View Workflow Recipe for "
-msgstr "Ver Factura de Flujo de Trabajo para"
+msgstr "Ver Receta de Flujo de Trabajo para"
 
 #: valuenetwork/templates/valueaccounting/view_stream_recipe.html:113
 msgid "View Workflow Recipe for "
-msgstr "Ver Factura de Flujo de Trabajo para"
+msgstr "Ver Receta de Flujo de Trabajo para"
 
 #: valuenetwork/templates/valueaccounting/virtual_accounts.html:43
 msgid "Payout from "
@@ -7834,7 +7865,7 @@ msgstr "Desembolso desde"
 
 #: valuenetwork/templates/valueaccounting/work.html:196
 msgid "Process Diagram"
-msgstr "Diagrama de proceso"
+msgstr "Diagrama de Proceso"
 
 #: valuenetwork/templates/valueaccounting/work.html:212
 msgid "Show processes scheduled during "
@@ -7871,11 +7902,11 @@ msgstr "Lista de tareas por hacer"
 
 #: valuenetwork/templates/valueaccounting/work.html:360
 msgid "Unfinished Todos"
-msgstr "Por hacer sin terminar"
+msgstr "Tareas sin terminar"
 
 #: valuenetwork/templates/valueaccounting/work.html:361
 msgid "Finished Todos"
-msgstr "Por hacer terminados"
+msgstr "Tareas Terminadas"
 
 #: valuenetwork/templates/valueaccounting/work.html:371
 #: work/templates/work/project_work.html:392
@@ -7911,7 +7942,7 @@ msgstr "Parar"
 #: valuenetwork/templates/valueaccounting/work_now.html:164
 #: work/templates/work/work_timer.html:150
 msgid "Time spent in this work session"
-msgstr "Tiempo utilizado in esta sesión de trabajo"
+msgstr "Tiempo utilizado en esta sesión de trabajo"
 
 #: valuenetwork/templates/valueaccounting/workbook.html:160
 msgid "Time spent today"
@@ -7927,11 +7958,11 @@ msgstr "Procesos del plan"
 
 #: valuenetwork/templates/valueaccounting/workflow_board_demo.html:194
 msgid "Filter Board"
-msgstr "Filtrar tablero"
+msgstr "Filtrar Tablero"
 
 #: valuenetwork/templates/valueaccounting/workflow_board_demo.html:197
 msgid "Show All"
-msgstr "Mostrar todo"
+msgstr "Mostrar Todo"
 
 #: valuenetwork/valueaccounting/forms.py:125 work/forms.py:427
 #: work/templates/work/members_agent.html:378
@@ -8026,7 +8057,7 @@ msgstr "Monto a distribuir"
 
 #: valuenetwork/valueaccounting/forms.py:3359 work/forms.py:895
 msgid "Link to receipt(s)"
-msgstr "Víncular a Factura(s)"
+msgstr "Víncular a receta(s)"
 
 #: valuenetwork/valueaccounting/forms.py:3421
 msgid "Context (who interacts with the payer)"
@@ -8037,7 +8068,7 @@ msgid ""
 "if you selected only one distribution source, you may distribute only part "
 "of it"
 msgstr ""
-"si Ud. seleccionó sólo una fuente de distribución, Ud. puede distribuir sólo "
+"si sólo seleccionaste una fuente de distribución, puedes distribuir sólo "
 "parte de la misma"
 
 #: valuenetwork/valueaccounting/forms.py:3668
@@ -8298,7 +8329,7 @@ msgstr "Tipo_Inmaterial"
 #: valuenetwork/valueaccounting/models.py:10722
 #: valuenetwork/valueaccounting/models.py:12433
 #: valuenetwork/valueaccounting/models.py:12746
-#: valuenetwork/valueaccounting/models.py:14355 work/models.py:2236
+#: valuenetwork/valueaccounting/models.py:14355 work/models.py:2300
 msgid "name"
 msgstr "nombre"
 
@@ -8382,7 +8413,7 @@ msgstr "agente pasivo"
 msgid "external agent"
 msgstr "agente externo"
 
-#: valuenetwork/valueaccounting/models.py:305 work/models.py:512
+#: valuenetwork/valueaccounting/models.py:305 work/models.py:517
 msgid "individual"
 msgstr "individuo"
 
@@ -8394,7 +8425,7 @@ msgstr "organización"
 msgid "network"
 msgstr "red"
 
-#: valuenetwork/valueaccounting/models.py:308 work/models.py:520
+#: valuenetwork/valueaccounting/models.py:308 work/models.py:525
 msgid "project"
 msgstr "proyecto"
 
@@ -8430,7 +8461,7 @@ msgstr "es contexto"
 #: valuenetwork/valueaccounting/models.py:8997
 #: valuenetwork/valueaccounting/models.py:10948
 #: valuenetwork/valueaccounting/models.py:12754
-#: valuenetwork/valueaccounting/models.py:12972 work/models.py:2240
+#: valuenetwork/valueaccounting/models.py:12972 work/models.py:2304
 msgid "url"
 msgstr "url"
 
@@ -8530,7 +8561,7 @@ msgstr "cambiado por"
 #: valuenetwork/valueaccounting/models.py:7153
 #: valuenetwork/valueaccounting/models.py:7267
 #: valuenetwork/valueaccounting/models.py:15031 work/models.py:96
-#: work/models.py:131 work/models.py:543
+#: work/models.py:131 work/models.py:548
 msgid "agent"
 msgstr "agente"
 
@@ -8544,7 +8575,7 @@ msgstr "proveedor"
 msgid "customer"
 msgstr "cliente"
 
-#: valuenetwork/valueaccounting/models.py:2190 work/models.py:2259
+#: valuenetwork/valueaccounting/models.py:2190 work/models.py:2323
 msgid "member"
 msgstr "miembro"
 
@@ -8617,7 +8648,7 @@ msgstr "tipo de asociación"
 #: valuenetwork/valueaccounting/models.py:5572
 #: valuenetwork/valueaccounting/models.py:7290
 #: valuenetwork/valueaccounting/models.py:10914 work/models.py:100
-#: work/models.py:486 work/models.py:552
+#: work/models.py:491 work/models.py:557
 msgid "state"
 msgstr "estado"
 
@@ -8901,7 +8932,7 @@ msgstr "referncia optativa a una cuenta externa"
 #: valuenetwork/valueaccounting/models.py:12753
 #: valuenetwork/valueaccounting/models.py:12970
 #: valuenetwork/valueaccounting/models.py:14876
-#: valuenetwork/valueaccounting/models.py:15034 work/models.py:2461
+#: valuenetwork/valueaccounting/models.py:15034 work/models.py:2525
 msgid "context agent"
 msgstr "agente de contexto"
 
@@ -9291,7 +9322,7 @@ msgid "processes"
 msgstr "procesos"
 
 #: valuenetwork/valueaccounting/models.py:8628
-#: valuenetwork/valueaccounting/models.py:14356 work/models.py:2256
+#: valuenetwork/valueaccounting/models.py:14356 work/models.py:2320
 msgid "sequence"
 msgstr "secuencia"
 
@@ -9609,7 +9640,7 @@ msgstr "Se busca ayuda"
 
 #: valuenetwork/valueaccounting/signals.py:8
 msgid "a colleague requests help that fits your skills"
-msgstr "un compañero solicita una ayuda que se ajusta a sus habilidades"
+msgstr "un compañero solicita una ayuda que se ajusta a tus habilidades"
 
 #: valuenetwork/valueaccounting/signals.py:9
 msgid "New Task"
@@ -9617,7 +9648,7 @@ msgstr "Nueva Tarea"
 
 #: valuenetwork/valueaccounting/signals.py:9
 msgid "a new task was posted that fits your skills"
-msgstr "se publicó una nueva tarea que se adecúa a sus habilidades"
+msgstr "se publicó una nueva tarea que se adecúa a tus habilidades"
 
 #: valuenetwork/valueaccounting/signals.py:10
 msgid "New Todo"
@@ -9625,15 +9656,15 @@ msgstr "Nueva Por Hacer"
 
 #: valuenetwork/valueaccounting/signals.py:10
 msgid "a new todo was posted that is assigned to you"
-msgstr "su publicó una nueva por hacer que le fue asignada a Ud."
+msgstr "su publicó una nueva tarea que está asignada a ti"
 
 #: valuenetwork/valueaccounting/signals.py:11
 msgid "Deleted Todo"
-msgstr "Por Hacer borrado"
+msgstr "Tarea simple borrada"
 
 #: valuenetwork/valueaccounting/signals.py:11
 msgid "a todo that was assigned to you has been deleted"
-msgstr "ha sido borrada una Por Hacer que le había sido asignada a Ud."
+msgstr "ha sido borrada una tarea simple que estaba asignada a ti"
 
 #: valuenetwork/valueaccounting/signals.py:12
 msgid "New Distribution"
@@ -9641,7 +9672,7 @@ msgstr "Nueva Distribución"
 
 #: valuenetwork/valueaccounting/signals.py:12
 msgid "you have received a new income distribution"
-msgstr "Ud. a recibido una nueva distribución de ingresos"
+msgstr "has recibido una nueva distribución de ingresos"
 
 #: valuenetwork/valueaccounting/signals.py:13
 msgid "Payout Request"
@@ -9649,7 +9680,7 @@ msgstr "Solicitud de Desembolso"
 
 #: valuenetwork/valueaccounting/signals.py:13
 msgid "you have received a new payout request"
-msgstr "Ud. ha recibido una nueva solicitud de desembolso"
+msgstr "has recibido una nueva solicitud de desembolso"
 
 #: valuenetwork/valueaccounting/signals.py:14
 msgid "Freedom Coop Membership Request"
@@ -9661,7 +9692,7 @@ msgstr "hemos recibido una nueva solicitud de membresía"
 
 #: valuenetwork/valueaccounting/signals.py:15
 msgid "Project Join Request"
-msgstr "Solicitud de alta en el Proyecto"
+msgstr "Solicitud de Alta en el Proyecto"
 
 #: valuenetwork/valueaccounting/signals.py:15
 msgid "we have received a new join request"
@@ -9669,7 +9700,7 @@ msgstr "Hemos recibido una nueva solicitud de alta"
 
 #: valuenetwork/valueaccounting/signals.py:16
 msgid "Project New OCP Account"
-msgstr "Nueva cuenta OCP del proyecto"
+msgstr "Nueva Cuenta OCP del Proyecto"
 
 #: valuenetwork/valueaccounting/signals.py:16
 msgid "a new OCP account details"
@@ -9702,11 +9733,11 @@ msgstr "hemos recibido una petición para tomar en cuenta una nueva habilidad"
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_deleted_todo/full.txt:1
 #, python-format
 msgid "%(creator)s deleted a Todo that was assigned to you:"
-msgstr "%(creator)s borró un Por Hacer que le había sido asignado a Ud.:"
+msgstr "%(creator)s borró una Tarea que te había sido asignada:"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_deleted_todo/short.txt:1
 msgid "Todo assigned to you was deleted"
-msgstr "Un Por Hacer asignado a Ud. ha sido borrado"
+msgstr "Una tarea asignada a ti ha sido borrada"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_distribution/full.txt:1
 #, python-format
@@ -9716,14 +9747,15 @@ msgid ""
 "\n"
 "You can see it here:"
 msgstr ""
-"Ud. consiguió una  %(distribution.distribution_quantity_formatted)s "
-"distribución de %(distribution.from_agent)s\n"
+"Has recibido una distribución de "
+"%(distribution.distribution_quantity_formatted)s desde "
+"%(distribution.from_agent)s\n"
 "\n"
-"Puede verla aquí:"
+"Puedes verla aquí:"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_distribution/short.txt:1
 msgid "You got an income distribution from"
-msgstr "Ud. recibió una distribución de ingreso de"
+msgstr "Recibiste una distribución de ingreso de"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_help_wanted/full.txt:1
 #, python-format
@@ -9741,7 +9773,7 @@ msgid ""
 "\n"
 "You can see the process here:"
 msgstr ""
-"%(creator)s solicita ayuda que se adecua a sus habilidades:\n"
+"%(creator)s solicita ayuda que se adecua a tus habilidades:\n"
 "\n"
 "Trabajo requerido: %(resource_type)s, Duración estimada: %(hours)s %(unit)s\n"
 "Vencimiento: %(due_date)s\n"
@@ -9752,11 +9784,11 @@ msgstr ""
 "\n"
 "Este mensaje ha sido enviado muy probablemente a otros individuos. \n"
 "\n"
-"Puede ver el proceso aquí:"
+"Puedes ver el proceso aquí:"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_help_wanted/short.txt:1
 msgid "requests help that fits your skills"
-msgstr "solicita ayuda que se adecua a sus habilidades"
+msgstr "solicita ayuda que se adecua a tus habilidades"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_join_task/full.txt:1
 #, python-format
@@ -9784,14 +9816,14 @@ msgstr ""
 "\n"
 "para Proceso: %(process)s\n"
 "\n"
-"Este mensaje le ha sido enviado a Ud. porque está trabajando en esta tarea o "
-"se ha asignado a sí mismo a esta tarea.\n"
+"Este mensaje te ha sido enviado porque estás trabajando en esta tarea o te "
+"has asignado a tí mismo a esta tarea.\n"
 "\n"
-"Puede ver el proceso aquí:"
+"Puedes ver el proceso aquí:"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_join_task/short.txt:1
 msgid "would like to help with this task"
-msgstr "le gustaría ayudar con esta tarea"
+msgstr "te gustaría ayudar con esta tarea"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_new_task/full.txt:1
 #, python-format
@@ -9811,10 +9843,9 @@ msgid ""
 "\n"
 "You can see the process here:"
 msgstr ""
-"%(creator)s publicó una nueva tarea que se ajusta a sus habilidades:\n"
+"%(creator)s publicó una nueva tarea que se ajusta a tus habilidades:\n"
 "\n"
-"Trabajko requerido: %(resource_type)s, Duración estimada: %(hours)s "
-"%(unit)s\n"
+"Trabajo requerido: %(resource_type)s, Duración estimada: %(hours)s %(unit)s\n"
 "Vencimiento: %(due_date)s\n"
 "\n"
 "%(description)s\n"
@@ -9822,14 +9853,14 @@ msgstr ""
 "para Proceso: %(process)s\n"
 "\n"
 "Este mensaje ha sido enviado muy probablemente a otros individuos. \n"
-"SI Ud. lo desea puede tomar la tarea, pero sino otros la tomarán. \n"
-"Primero en llegar, primero en ser servido. \n"
+"Si lo deseas puedes tomar la tarea, pero sino otros la tomarán. \n"
+"Primero en llegar, primero en servir. \n"
 "\n"
-"Puede ver el proceso aquí:"
+"Puedes ver el proceso aquí:"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_new_task/short.txt:1
 msgid "New Task that fits your skills"
-msgstr "Nueva Tarea que se adecúa a sus habilidades"
+msgstr "Nueva Tarea que se adecúa a tus habilidades"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_new_todo/full.txt:1
 #, python-format
@@ -9840,15 +9871,15 @@ msgid ""
 "\n"
 "You can see it here:"
 msgstr ""
-"%(creator)s le ha asignado un Por Hacer a Ud.:\n"
+"%(creator)s te ha asignado una Tarea:\n"
 "\n"
 "%(description)s\n"
 "\n"
-"Puede verlo aquí:"
+"Puedes verlo aquí:"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_new_todo/short.txt:1
 msgid "New Todo assigned to you"
-msgstr "Nuevo Por Hacer asignado a Us."
+msgstr "Nueva Tarea asignada a ti"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_payout_request/full.txt:1
 #, python-format
@@ -9858,14 +9889,14 @@ msgid ""
 "%(payout.from_agent)s requests a payout of %(payout.quantity_formatted)s.\n"
 "You can see and respond to the request here:"
 msgstr ""
-"Tiene una solicitud de pago de %(payout.from_agent)s\n"
+"Tienes una solicitud de pago de %(payout.from_agent)s\n"
 "\n"
 "%(payout.from_agent)s solicita un pago de%(payout.quantity_formatted)s.\n"
-"Puede ver y responder a la solicitud aquí:"
+"Puedes ver y responder a la solicitud aquí:"
 
 #: valuenetwork/valueaccounting/templates/pinax/notifications/valnet_payout_request/short.txt:1
 msgid "You got a payout request from"
-msgstr "Tiene una solicitud de pago de"
+msgstr "Tienes una solicitud de pago de"
 
 #: work/forms.py:76
 msgid "This nickname is already present in the system."
@@ -9881,7 +9912,7 @@ msgstr "El correo electrónico ya existe en el sistema."
 
 #: work/forms.py:111
 msgid "Your skill suggestions will be sent to Freedom Coop Admins"
-msgstr "Tus sugerimientos se mandarán a los administradoras de Freedom Coop"
+msgstr "Tus sugerencias se enviarán a los administradoras de Freedom Coop"
 
 #: work/forms.py:128 work/forms.py:512
 msgid "search Skill type..."
@@ -9889,7 +9920,8 @@ msgstr "buscar tipo de Habilidad"
 
 #: work/forms.py:150 work/forms.py:268
 msgid "Is a math operation: Please put the result (don't copy the symbols)"
-msgstr "Es una operación matemática: Pon el resultado (no copies los símbolos)"
+msgstr ""
+"Es una operación matemática: Escribe el resultado (no copies los símbolos)"
 
 #: work/forms.py:193
 msgid "&nbsp;Auto create user+agent and confirm email:"
@@ -9897,11 +9929,11 @@ msgstr "&nbsp;Auto crear usuario+agente y confirmar correo:"
 
 #: work/forms.py:198
 msgid "Resource type visibility:"
-msgstr "Visibilidad de los Tipos de recurso:"
+msgstr "Visibilidad de los Tipos de Recurso:"
 
 #: work/forms.py:202
 msgid "Custom project url slug:"
-msgstr "Código url del formulario personalizado:"
+msgstr "Slug url del formulario a medida:"
 
 #: work/forms.py:203
 msgid ""
@@ -10239,7 +10271,7 @@ msgstr "Apellido (para membresía individual)"
 msgid "Email address"
 msgstr "Dirección de correo electrónico"
 
-#: work/models.py:74 work/models.py:535
+#: work/models.py:74 work/models.py:540
 msgid "Phone number"
 msgstr "Número de teléfono"
 
@@ -10360,47 +10392,47 @@ msgstr "nombre corto del formulario personalizado"
 msgid "Project: "
 msgstr "Proyecto:"
 
-#: work/models.py:475
+#: work/models.py:480
 msgid "skill"
 msgstr "habilidad"
 
-#: work/models.py:476
+#: work/models.py:481
 msgid "A new skill that you want to offer that is not already listed"
 msgstr "Una nueva habilidad que quieras ofrecer, que no esté ya listada"
 
-#: work/models.py:477
+#: work/models.py:482
 msgid "suggested by"
 msgstr "recomendado por"
 
-#: work/models.py:482
+#: work/models.py:487
 msgid "resource_type"
 msgstr "tipo_recurso"
 
-#: work/models.py:485
+#: work/models.py:490
 msgid "this skill suggestion became this ResourceType"
 msgstr "esta sugerencia de habilidad dio lugar a este TipoRecurso"
 
-#: work/models.py:513
+#: work/models.py:518
 msgid "collective"
 msgstr "colectivo"
 
-#: work/models.py:523
+#: work/models.py:528
 msgid "this join request is for joining this Project"
 msgstr "esta solicitud de alta es para unirse a este Proyecto"
 
-#: work/models.py:526
+#: work/models.py:531
 msgid "Type of user"
 msgstr "Tipo de usuario"
 
-#: work/models.py:529
+#: work/models.py:534
 msgid "* Required fields"
 msgstr "* Campos requeridos"
 
-#: work/models.py:531
+#: work/models.py:536
 msgid "Surname (for individual join requests)"
 msgstr "Apellido (para solicitudes individuales)"
 
-#: work/models.py:532
+#: work/models.py:537
 msgid ""
 "If you have already an account in OCP, you can login before filling this "
 "form to have this project in the same account, or you can choose another "
@@ -10410,34 +10442,34 @@ msgstr ""
 "formulario para tener este proyecto en la misma cuenta, o bien puedes elegir "
 "otro nombre de usuario y correo para tenerlo separado."
 
-#: work/models.py:533
+#: work/models.py:538
 msgid "Email address *"
 msgstr "Dirección de correo electrónico *"
 
-#: work/models.py:536
+#: work/models.py:541
 msgid "Town/Region where you are based"
 msgstr "Localidad / Región de la sede"
 
-#: work/models.py:545
+#: work/models.py:550
 msgid "this join request became this EconomicAgent"
 msgstr "esta solicitud de alta dio lugar a este AgenteEconomico"
 
-#: work/models.py:548
+#: work/models.py:553
 msgid "custom fobi entry"
 msgstr "entrada datos a medida"
 
-#: work/models.py:550
+#: work/models.py:555
 msgid ""
 "this join request is linked to this custom form (fobi SavedFormDataEntry)"
 msgstr ""
 "esta solicitud de alta está vinculada a este formulario personalizado (fobi "
 "SavedFormDataEntry)"
 
-#: work/models.py:559
+#: work/models.py:564
 msgid "this join request is linked to this Ocp Exchange"
 msgstr "esta solicitud de alta está vinculada a este Intercambio Ocp"
 
-#: work/models.py:851
+#: work/models.py:875
 msgid ""
 "Once you log in and change your password, you'll be able to top-up your "
 "internal Faircoin account and proceed to pay the membership shares."
@@ -10445,7 +10477,7 @@ msgstr ""
 "Una vez entres y cambies tu contraseña, podrás recargar tu monedero Faircoin "
 "interno y proceder al pago de las participaciones."
 
-#: work/models.py:870
+#: work/models.py:894
 #, python-format
 msgid ""
 "Your ocp faircoin balance is not enough to pay this shares, still missing: "
@@ -10455,28 +10487,28 @@ msgstr ""
 "participaciones, aún faltan: %(f)s <br/> Puedes enviarlos a tu cuenta %(ac)s "
 "y luego pagar las participaciones"
 
-#: work/models.py:874
+#: work/models.py:898
 msgid "Your actual faircoin balance is enough. You can pay the shares now!"
 msgstr ""
 "Tu saldo de faircoin es suficiente. ¡Puedes pagar las participaciones ahora!"
 
-#: work/models.py:876 work/templates/work/exchange_logging_work.html:269
+#: work/models.py:900 work/templates/work/exchange_logging_work.html:269
 msgid "Faircoin account"
 msgstr "Cuenta Faircoin"
 
-#: work/models.py:878
+#: work/models.py:902
 msgid "Can't find the balance of your faircoin account:"
 msgstr "No se puede encontrar el balance de tu cuenta faircoin: "
 
-#: work/models.py:880
+#: work/models.py:904
 msgid "The agent faircoin address is not from the same wallet!"
 msgstr "La dirección faircoin del agente no es del mismo monedero!"
 
-#: work/models.py:882
+#: work/models.py:906
 msgid "The OCP wallet is not available now, try later."
 msgstr "El monedero OCP no está disponible ahora, prueba más tarde."
 
-#: work/models.py:884
+#: work/models.py:908
 msgid ""
 "The account is requested and should be available in less than a minute... "
 "please refresh the page!"
@@ -10484,15 +10516,15 @@ msgstr ""
 "La cuenta esta solicitada y estará disponible en menos de un minuto... "
 "¡Recarga la página!"
 
-#: work/models.py:886
+#: work/models.py:910
 msgid "No faircoin address?"
 msgstr "¿No hay dirección faircoin?"
 
-#: work/models.py:888
+#: work/models.py:912
 msgid "This agent don't have an OCP Faircoin Account yet."
 msgstr "Este agente no tiene todavía una cuenta de Faircoin en OCP."
 
-#: work/models.py:2089
+#: work/models.py:2153
 #, python-format
 msgid ""
 "%(pass)s is the initial random password for agent %(user)s, used to verify "
@@ -10501,7 +10533,7 @@ msgstr ""
 "%(pass)s es la contraseña inicial aleatoria para el agente %(user)s, usada "
 "para verificar el correo %(mail)s"
 
-#: work/models.py:2120
+#: work/models.py:2184
 msgid ""
 "Email failed! The destination address seems not real (or there's another "
 "email error): "
@@ -10509,143 +10541,143 @@ msgstr ""
 "¡Correo fallado! La dirección de destino no parece real (o sucedió otro "
 "error de correo): "
 
-#: work/models.py:2180
+#: work/models.py:2244
 msgid "The agent can't be deleted! "
 msgstr "El agente no se puede borrar!"
 
-#: work/models.py:2209
+#: work/models.py:2273
 msgid "WARNING!"
 msgstr "ADVERTENCIA!"
 
-#: work/models.py:2237
+#: work/models.py:2301
 msgid "deployment date"
 msgstr "fecha de implementación"
 
-#: work/models.py:2239
+#: work/models.py:2303
 msgid "permissions"
 msgstr "permisos"
 
-#: work/models.py:2241
+#: work/models.py:2305
 msgid "screenshot"
 msgstr "captura de pantalla"
 
-#: work/models.py:2252
+#: work/models.py:2316
 msgid "invoice number"
 msgstr "número de factura"
 
-#: work/models.py:2253
+#: work/models.py:2317
 msgid "invoice date"
 msgstr "fecha de la factura"
 
-#: work/models.py:2254
+#: work/models.py:2318
 msgid "year"
 msgstr "Año"
 
-#: work/models.py:2255
+#: work/models.py:2319
 msgid "quarter"
 msgstr "trimestre"
 
-#: work/models.py:2413
+#: work/models.py:2477
 msgid "related material_type"
 msgstr "tipo_material relacionado"
 
-#: work/models.py:2416
+#: work/models.py:2480
 msgid "a related General Material Type"
 msgstr "un Tipo de Material General relacionado"
 
-#: work/models.py:2430
+#: work/models.py:2494
 msgid "related nonmaterial_type"
 msgstr "tipo_inmaterial relacionado"
 
-#: work/models.py:2433
+#: work/models.py:2497
 msgid "a related General Non-material Type"
 msgstr "un Tipo Inmaterial General relacionado"
 
-#: work/models.py:2439 work/models.py:2564
+#: work/models.py:2503 work/models.py:2628
 msgid "ocp facet"
 msgstr "faceta OCP"
 
-#: work/models.py:2442 work/models.py:2567
+#: work/models.py:2506 work/models.py:2631
 msgid "a related OCP Facet"
 msgstr "una Faceta OCP relacionada"
 
-#: work/models.py:2447 work/models.py:2572
+#: work/models.py:2511 work/models.py:2636
 msgid "ocp facet_value"
 msgstr "valor_faceta de OCP"
 
-#: work/models.py:2450 work/models.py:2575
+#: work/models.py:2514 work/models.py:2639
 msgid "a related OCP FacetValue"
 msgstr "un ValorFaceta de OCP relacionado"
 
-#: work/models.py:2455 work/models.py:2556
+#: work/models.py:2519 work/models.py:2620
 msgid "ocp resource_type"
 msgstr "tipo_recurso de OCP"
 
-#: work/models.py:2458 work/models.py:2559
+#: work/models.py:2522 work/models.py:2623
 msgid "a related OCP ResourceType"
 msgstr "un TipoRecurso de OCP relacionado"
 
-#: work/models.py:2465
+#: work/models.py:2529
 msgid "a related OCP context EconomicAgent"
 msgstr "un AgenteEconomico del contexto de OCP relacionado"
 
-#: work/models.py:2470
+#: work/models.py:2534
 msgid "general unit_type"
 msgstr "tipo_unidad general"
 
-#: work/models.py:2473
+#: work/models.py:2537
 msgid "a related General Unit Type"
 msgstr "un Tipo de Unidad General relacionado"
 
-#: work/models.py:2479
+#: work/models.py:2543
 msgid "Type of General Artwork/Resource"
 msgstr "Tipo de Obra de Arte / Recurso"
 
-#: work/models.py:2480
+#: work/models.py:2544
 msgid "o-> Types of General Artworks/Resources"
 msgstr "o-- Tipos de Obra de Arte/Recurso General"
 
-#: work/models.py:2580 work/models.py:2650
+#: work/models.py:2644 work/models.py:2714
 msgid "general artwork_type"
 msgstr "tipo_obra_arte general"
 
-#: work/models.py:2583 work/models.py:2653
+#: work/models.py:2647 work/models.py:2717
 msgid "a related General Artwork Type"
 msgstr "un Tipo de Obra de Arte General relacionado"
 
-#: work/models.py:2597
+#: work/models.py:2661
 msgid "Type of General Skill Resources"
 msgstr "Tipo de Recurso de Habilidad General"
 
-#: work/models.py:2598
+#: work/models.py:2662
 msgid "o-> Types of General Skill Resources"
 msgstr "o-- Tipos de Recurso de Habilidad General"
 
-#: work/models.py:2644
+#: work/models.py:2708
 msgid "ocp exchange type"
 msgstr "Tipo de intercambio de OCP"
 
-#: work/models.py:2658
+#: work/models.py:2722
 msgid "general skill_type"
 msgstr "tipo_habilidad general"
 
-#: work/models.py:2661
+#: work/models.py:2725
 msgid "a related General Skill Type"
 msgstr "un Tipo de Habilidad General relacionado"
 
-#: work/models.py:2675
+#: work/models.py:2739
 msgid "Type of General Record"
 msgstr "Tipo de Expediente General"
 
-#: work/models.py:2676
+#: work/models.py:2740
 msgid "o-> Types of General Records"
 msgstr "o-- Tipos de Expediente General"
 
-#: work/models.py:2810
+#: work/models.py:2874
 msgid "Type of General Unit"
 msgstr "Tipo de Unidad General"
 
-#: work/models.py:2811
+#: work/models.py:2875
 msgid "o-> Types of General Units"
 msgstr "o-- Tipos de Unidad General"
 
@@ -10717,18 +10749,6 @@ msgstr "Unirse a Proyectos"
 #: work/templates/new_base.html:92 work/templates/new_base.html:338
 msgid "Your join-a-project process"
 msgstr "Tu proceso de alta en un proyecto"
-
-#: work/templates/new_base.html:93 work/templates/new_base.html:318
-#: work/templates/new_base.html:323
-#: work/templates/work/exchange_logging_work.html:219
-#: work/templates/work/members_agent.html:193
-#: work/templates/work/members_agent.html:986
-#: work/templates/work/members_agent.html:1071
-#: work/templates/work/members_agent.html:1111
-#: work/templates/work/my_dashboard.html:229
-#: work/templates/work/my_dashboard.html:234
-msgid "Feedback"
-msgstr "Comunica"
 
 #: work/templates/new_base.html:111 work/templates/new_base.html:140
 #: work/templates/new_base.html:173 work/templates/new_base.html:203
@@ -11483,7 +11503,7 @@ msgstr "petición de alta en"
 
 #: work/templates/work/join_request_with_comments.html:118
 #: work/templates/work/joinaproject_request_internal.html:10
-#: work/templates/work/members_agent.html:1212
+#: work/templates/work/members_agent.html:1213
 #: work/templates/work/project_login.html:93
 msgid "Join"
 msgstr "Únete a"
@@ -11530,7 +11550,7 @@ msgid "Resend Password"
 msgstr "Reenviar Contraseña"
 
 #: work/templates/work/join_request_with_comments.html:220
-#: work/templates/work/join_requests.html:264 work/views.py:3625
+#: work/templates/work/join_requests.html:264 work/views.py:3650
 msgid "sends random pass and creates user+agent"
 msgstr "envia pass aleatoria y crea usuario+agente"
 
@@ -11552,13 +11572,21 @@ msgid "Received Amount"
 msgstr "Importe Recibido"
 
 #: work/templates/work/join_request_with_comments.html:299
-msgid "Transaction ID"
-msgstr "ID de la Transacción"
+#, fuzzy
+#| msgid "Transaction ID"
+msgid "Transaction ID (BotC-Wallet)"
+msgstr "ID de la Transacción (BotC-Wallet)"
+
+#: work/templates/work/join_request_with_comments.html:299
+#, fuzzy
+#| msgid "Transaction Hash"
+msgid "Transaction Hash (blockchain)"
+msgstr "Hash de la Transacción (blockchain)"
 
 #: work/templates/work/join_request_with_comments.html:303
 #: work/templates/work/join_request_with_comments.html:405
 msgid "Set as Complete"
-msgstr "Poner como Completo"
+msgstr "Poner Completo"
 
 #: work/templates/work/join_request_with_comments.html:306
 msgid "(The payment is done, this will only transfer the pending shares)"
@@ -11571,9 +11599,9 @@ msgstr "(Esto pondrá el pago como completo y transfiere las participaciones)"
 
 #: work/templates/work/join_request_with_comments.html:323
 #: work/templates/work/join_request_with_comments.html:419
-#: work/templates/work/join_requests.html:147 work/views.py:3560
+#: work/templates/work/join_requests.html:147 work/views.py:3585
 msgid "Set as Pending"
-msgstr "Poner como Pendiente"
+msgstr "Poner Pendiente"
 
 #: work/templates/work/join_request_with_comments.html:331
 msgid "gateway fees"
@@ -11592,9 +11620,9 @@ msgid "Total owned Shares"
 msgstr "Total de Participaciones adquiridas"
 
 #: work/templates/work/join_request_with_comments.html:388
-#: work/templates/work/join_requests.html:215 work/views.py:3600
+#: work/templates/work/join_requests.html:215 work/views.py:3625
 msgid "Accept Member"
-msgstr "Aceptar miembro"
+msgstr "Aceptar Miembro"
 
 #: work/templates/work/join_request_with_comments.html:406
 msgid "(This will only set the shares as transfered)"
@@ -11609,12 +11637,9 @@ msgid "Change your password first..."
 msgstr "Cambia tu contraseña primero..."
 
 #: work/templates/work/join_request_with_comments.html:439
-msgid "Read '"
-msgstr "Leer Multimonedero '"
-
-#: work/templates/work/join_request_with_comments.html:439
-msgid "' Multiwallet"
-msgstr "'"
+#, python-format
+msgid "Read '%(mauth.auth_user)s' Multiwallet"
+msgstr "Leer Multimonedero de '%(mauth.auth_user)s'"
 
 #: work/templates/work/join_request_with_comments.html:455
 msgid "Connect BotC-Wallet account"
@@ -11643,16 +11668,16 @@ msgstr "Otros comentarios"
 
 #: work/templates/work/join_request_with_comments.html:542
 msgid "Talk with "
-msgstr "Habla con"
+msgstr "Comunica con"
 
 #: work/templates/work/join_request_with_comments.html:544
 msgid "Talk with coordinators of "
-msgstr "Habla con los coordinadores de"
+msgstr "Comunica con los coordinadores de"
 
 #: work/templates/work/join_request_with_comments.html:555
 #: work/templates/work/membership_request_with_comments.html:162
 msgid "You have "
-msgstr "Ud. tiene"
+msgstr "Tienes"
 
 #: work/templates/work/join_request_with_comments.html:555
 #: work/templates/work/membership_request_with_comments.html:162
@@ -11672,7 +11697,7 @@ msgstr "Escribe un nuevo comentario:"
 #: work/templates/work/plan_work.html:60
 #: work/templates/work/your_projects.html:85
 msgid "Projects Tasks"
-msgstr "Tareas de los proyectos"
+msgstr "Tareas de Proyectos"
 
 #: work/templates/work/join_requests.html:73
 #: work/templates/work/joinaproject_request_internal.html:53
@@ -11683,53 +11708,53 @@ msgstr "Todos los intercambios de demanda"
 msgid "Fobi"
 msgstr "Fobi"
 
-#: work/templates/work/join_requests.html:114 work/views.py:3534
+#: work/templates/work/join_requests.html:114 work/views.py:3559
 msgid "Not Valid yet!"
 msgstr "¡No Valido aún!"
 
-#: work/templates/work/join_requests.html:117 work/views.py:3537
+#: work/templates/work/join_requests.html:117 work/views.py:3562
 msgid "Shares:"
 msgstr "Participaciones:"
 
-#: work/templates/work/join_requests.html:162 work/views.py:3573
+#: work/templates/work/join_requests.html:162 work/views.py:3598
 msgid "Duplicated!"
-msgstr "Duplicado!"
+msgstr "Duplicada!"
 
-#: work/templates/work/join_requests.html:163 work/views.py:3574
+#: work/templates/work/join_requests.html:163 work/views.py:3599
 msgid "see the other"
 msgstr "ver la otra"
 
-#: work/templates/work/join_requests.html:165 work/views.py:3575
+#: work/templates/work/join_requests.html:165 work/views.py:3600
 msgid "This request:"
 msgstr "Esta petición:"
 
-#: work/templates/work/join_requests.html:176 work/views.py:3580
+#: work/templates/work/join_requests.html:176 work/views.py:3605
 msgid "Feedback:"
 msgstr "Comunica:"
 
-#: work/templates/work/join_requests.html:221 work/views.py:3604
+#: work/templates/work/join_requests.html:221 work/views.py:3629
 msgid "Wait to confirm, or delete agent, user and request"
 msgstr "Espera confirmación, o borra el agente, el usuario y la petición"
 
-#: work/templates/work/join_requests.html:229 work/views.py:3608
+#: work/templates/work/join_requests.html:229 work/views.py:3633
 msgid "Delete all"
 msgstr "Borrar todo"
 
-#: work/templates/work/join_requests.html:244 work/views.py:3617
+#: work/templates/work/join_requests.html:244 work/views.py:3642
 msgid "is taken, choose this agent?"
 msgstr "ya está en uso, ¿elegir este agente?"
 
-#: work/templates/work/join_requests.html:245 work/views.py:3619
+#: work/templates/work/join_requests.html:245 work/views.py:3644
 msgid "Connect to"
 msgstr "Conectar a"
 
 #: work/templates/work/join_requests.html:266
 msgid "Create OCP Account (manual)"
-msgstr "Crear una cuenta en OCP (manual)"
+msgstr "Crear Cuenta OCP (manual)"
 
 #: work/templates/work/join_requests.html:270
 msgid "Create OCP Account"
-msgstr "Crear una cuenta en PAC"
+msgstr "Crear Cuenta OCP"
 
 #: work/templates/work/join_requests.html:330
 msgid "not verified"
@@ -11745,7 +11770,7 @@ msgstr "Pon tu Apellido si eres individual"
 
 #: work/templates/work/joinaproject_request.html:154
 msgid "Request to Join: "
-msgstr "Petición de Alta:"
+msgstr "Pedir el Alta en: "
 
 #: work/templates/work/joinaproject_request.html:159
 #: work/templates/work/joinaproject_thanks.html:23
@@ -11866,11 +11891,11 @@ msgstr "CuentaFaircoin"
 
 #: work/templates/work/members_agent.html:221
 msgid "Upgrade to an OCP Project"
-msgstr "Ascender a un Proyecto de OCP"
+msgstr "Definir como Proyecto en OCP"
 
 #: work/templates/work/members_agent.html:223
 msgid "Edit Project"
-msgstr "Editar proyecto"
+msgstr "Editar Proyecto"
 
 #: work/templates/work/members_agent.html:227
 msgid ""
@@ -11878,7 +11903,7 @@ msgid ""
 "defined the visibility and the joining style."
 msgstr ""
 "Este agente aún no es un 'proyecto' en OCP, solo falta definir la "
-"visibilidad y el estilo de alta."
+"visibilidad y el estilo de altas."
 
 #: work/templates/work/members_agent.html:255
 msgid "Create Multicurrency Wallet Access"
@@ -11895,7 +11920,7 @@ msgstr "Imagen"
 #: work/templates/work/members_agent.html:352
 #: work/templates/work/profile.html:274
 msgid "Upload Picture for "
-msgstr "Subir imagen para"
+msgstr "Subir Imagen para"
 
 #: work/templates/work/members_agent.html:372
 msgid "Set"
@@ -11928,11 +11953,11 @@ msgstr "Estilo de Altas en el Proyecto:"
 
 #: work/templates/work/members_agent.html:510
 msgid "Manage Requests"
-msgstr "Gestionar peticiones"
+msgstr "Gestionar Altas"
 
 #: work/templates/work/members_agent.html:511
 msgid "View Form"
-msgstr "Ver formulario"
+msgstr "Ver Formulario"
 
 #: work/templates/work/members_agent.html:517
 msgid "Auto create users+agents and confirm email:"
@@ -11940,7 +11965,7 @@ msgstr "Auto crear usuarios+agentes y confirmar correo:"
 
 #: work/templates/work/members_agent.html:522
 msgid "Project Visibility:"
-msgstr "Visibilidad del proyecto"
+msgstr "Visibilidad del Proyecto"
 
 #: work/templates/work/members_agent.html:526
 msgid "Resource Type Visibility:"
@@ -11952,7 +11977,7 @@ msgstr "Slug Proyecto:"
 
 #: work/templates/work/members_agent.html:533
 msgid "View Custom Form Fields"
-msgstr "Ver campos de formulario personalizados"
+msgstr "Ver Campos del Formulario"
 
 #: work/templates/work/members_agent.html:535
 msgid "Error: form not found."
@@ -12043,7 +12068,7 @@ msgstr "Otros Recursos"
 
 #: work/templates/work/members_agent.html:748
 msgid "Related Resources"
-msgstr "Recursos relacionados"
+msgstr "Recursos Relacionados"
 
 #: work/templates/work/members_agent.html:775
 msgid "Pending to create user+agent:"
@@ -12100,37 +12125,37 @@ msgstr "como Arbol"
 msgid "Relations:"
 msgstr "Relaciones"
 
-#: work/templates/work/members_agent.html:975
+#: work/templates/work/members_agent.html:976
 msgid "candidate of"
 msgstr "candidato a"
 
-#: work/templates/work/members_agent.html:1006
+#: work/templates/work/members_agent.html:1007
 msgid "Edit member relations"
 msgstr "Editar relaciones entre miembros"
 
-#: work/templates/work/members_agent.html:1010
+#: work/templates/work/members_agent.html:1011
 msgid "Maintain Associates for"
 msgstr "Mantener Asociados para"
 
-#: work/templates/work/members_agent.html:1037
+#: work/templates/work/members_agent.html:1038
 msgid "candidates"
 msgstr "candidatos"
 
-#: work/templates/work/members_agent.html:1039
-#: work/templates/work/members_agent.html:1250
-#: work/templates/work/members_agent.html:1258
+#: work/templates/work/members_agent.html:1040
+#: work/templates/work/members_agent.html:1251
+#: work/templates/work/members_agent.html:1259
 msgid "(SHOW)"
 msgstr "(SHOW)"
 
-#: work/templates/work/members_agent.html:1054
+#: work/templates/work/members_agent.html:1055
 msgid "Migrate the membership!"
 msgstr "Migrar la membresía!"
 
-#: work/templates/work/members_agent.html:1186
+#: work/templates/work/members_agent.html:1187
 msgid "Join this project:"
 msgstr "Únete a este proyecto:"
 
-#: work/templates/work/members_agent.html:1191
+#: work/templates/work/members_agent.html:1192
 msgid ""
 "Sorry, you've tried to join this project but your request was <b>declined</"
 "b> for any reason. See the thread at"
@@ -12138,52 +12163,52 @@ msgstr ""
 "Lo sentimos, has intentado unirte al proyecto pero tu petición ha sido "
 "<b>denegada</b> por alguna razón. Ver el hilo en"
 
-#: work/templates/work/members_agent.html:1192
+#: work/templates/work/members_agent.html:1193
 msgid "Your Declined Joining Feedback"
 msgstr "Hilo de la Alta Declinada"
 
-#: work/templates/work/members_agent.html:1194
+#: work/templates/work/members_agent.html:1195
 msgid ""
 "You've requested to join this project. To keep track of the joining process "
 "go to"
 msgstr ""
 "Has solicitado unirte a este proyecto. Para seguir el proceso de alta ves a"
 
-#: work/templates/work/members_agent.html:1196
+#: work/templates/work/members_agent.html:1197
 msgid "Your Joining Feedback"
 msgstr "Tu Proceso de Alta"
 
-#: work/templates/work/members_agent.html:1199
+#: work/templates/work/members_agent.html:1200
 msgid ""
 "This project has a moderated access workflow. Please fill the following form "
 "to request access, and then you will have a special feedback page to "
 "comunicate with the project coordinators"
 msgstr ""
-"El flujo de trabajo de este proyecto esta moderado.Por favor rellena el "
+"El flujo de trabajo de este proyecto esta moderado. Por favor rellena el "
 "siguiente formulario para solicitar acceso, y accederas a una pagina "
 "especial de comentarios para comunicarte con los coordinadores del proyecto"
 
-#: work/templates/work/members_agent.html:1200
+#: work/templates/work/members_agent.html:1201
 msgid "Form to join"
 msgstr "Formulario para unirte a"
 
-#: work/templates/work/members_agent.html:1200
+#: work/templates/work/members_agent.html:1201
 msgid "Sorry, the form is not ready, try tomorrow"
 msgstr "Lo sentimos, este formulario no esta listo, intentalo mañana"
 
-#: work/templates/work/members_agent.html:1205
+#: work/templates/work/members_agent.html:1206
 msgid "You can simply join this project with one click"
-msgstr "Puedes unirte a este proyecto solo con un click"
+msgstr "Puedes unirte a este proyecto con un solo click"
 
-#: work/templates/work/members_agent.html:1249
 #: work/templates/work/members_agent.html:1250
-#: work/templates/work/members_agent.html:1258
+#: work/templates/work/members_agent.html:1251
+#: work/templates/work/members_agent.html:1259
 msgid "(HIDE)"
 msgstr "(HIDE)"
 
 #: work/templates/work/membership_request.html:25
 msgid "Request Membership at FreedomCoop"
-msgstr "Solicitud de membresía en FreedomCoop"
+msgstr "Solicitud de Membresía en FreedomCoop"
 
 #: work/templates/work/membership_request.html:46
 msgid "Request Membership at FreedomCoop:"
@@ -12195,7 +12220,7 @@ msgid ""
 "membership form:"
 msgstr ""
 "El primer paso para convertirse en miembro de Freedom Coop es rellenar el "
-"siguiente formulario de inscripción:"
+"siguiente formulario de alta:"
 
 #: work/templates/work/membership_request_with_comments.html:64
 msgid "Feedback with Freedom Coop"
@@ -12203,7 +12228,7 @@ msgstr "Comunicar con Freedom Coop"
 
 #: work/templates/work/membership_request_with_comments.html:156
 msgid "Comments about the membership of "
-msgstr "Comentarios sobre la inscripción de"
+msgstr "Comentarios sobre el alta de"
 
 #: work/templates/work/membership_thanks.html:8
 #: work/templates/work/membership_thanks.html:22
@@ -12212,7 +12237,7 @@ msgstr "Gracias por tu solicitud de alta"
 
 #: work/templates/work/membership_thanks.html:26
 msgid "A Freedom Coop administrator will send you an email soon."
-msgstr "Un administrador de Freedom Coop le enviará un email pronto"
+msgstr "Un administrador de Freedom Coop te enviará un email pronto"
 
 #: work/templates/work/membership_thanks.html:28
 msgid "Freedom Coop"
@@ -12236,7 +12261,9 @@ msgstr ""
 msgid ""
 "As you already received your login information you are currently a "
 "membership candidate:"
-msgstr "Como ya recibió su información de login, ya es candidato a miembro:"
+msgstr ""
+"Como ya recibiste tu información de inicio de sesión, ya eres candidato a "
+"miembro:"
 
 #: work/templates/work/my_dashboard.html:195
 msgid ""
@@ -12247,9 +12274,9 @@ msgid ""
 "account</b> page."
 msgstr ""
 "Para convertirse en un miembro pleno <b>el próximo paso</b> es enviar "
-"suficientes Faircoins a su nueva cuenta de Faircoin en OCP, para pagar la "
+"suficientes Faircoins a tu nueva cuenta de Faircoin en OCP, para pagar la "
 "cantidad de participaciones mencionadas en tu formulario de registro. Por "
-"favor, transfiere por lo menos la cantidad equivalente de Faircoins a su "
+"favor, transfiere por lo menos la cantidad equivalente de Faircoins a tu "
 "nueva dirección de Faircoin en la página <b>cuenta de Faircoin</b>."
 
 #: work/templates/work/my_dashboard.html:198
@@ -12258,10 +12285,10 @@ msgid ""
 "button to make the transaction for your shares. Once pushed you'll become a "
 "full member of Freedom Coop and will have more tools available."
 msgstr ""
-"Cuando tenga suficientes Faircoins en su nueva cuenta en línea, verá un "
-"botón para efectuar la transacción de sus acciones. Una vez que lo haya "
-"presionado se convertirá en un miembro pleno de Freedom Coop y dispondrá de "
-"más herramientas."
+"Cuando tengas suficientes Faircoins en tu nueva cuenta online, verás un "
+"botón para efectuar el pago de tus participaciones. Una vez que lo hayas "
+"presionado te convertirás en un miembro pleno de Freedom Coop y dispondrás "
+"de más herramientas."
 
 #: work/templates/work/my_dashboard.html:202
 msgid ""
@@ -12302,7 +12329,7 @@ msgstr ""
 
 #: work/templates/work/my_dashboard.html:241
 msgid "The options you already have in OCP are:"
-msgstr "Las opciones que Ud. ya tiene en OCP son:"
+msgstr "Las opciones que ya tienes en OCP son:"
 
 #: work/templates/work/my_dashboard.html:249
 msgid "Projects:"
@@ -12313,9 +12340,9 @@ msgid ""
 "Here you can see the projects you are involved in and their structure. If "
 "you are a project coordinator you can manage your project also here."
 msgstr ""
-"Aquí Ud. puede ver los proyectos en los que está involucrado y su "
-"estructura. Si Ud. es un coordinador de proyecto Ud. también puede gestionar "
-"su proyecto aquí. "
+"Aquí puedes ver los proyectos en los que está involucrado y su estructura. "
+"Si eres coordinador de algun proyecto también puedes gestionar tu proyecto "
+"aquí. "
 
 #: work/templates/work/my_dashboard.html:257
 msgid "A complete list of tasks related to the projects you are involved in."
@@ -12339,7 +12366,7 @@ msgid ""
 "Here you can define a work plan for your managed project and setup the "
 "needed process with work orders and tasks."
 msgstr ""
-"Aquí Ud. puede definir un plan de trabajo para el proyecto que gestiona y "
+"Aquí puedes definir un plan de trabajo para el proyecto que gestionas y "
 "configurar el proceso necesario con pedidos de trabajo y tareas. "
 
 #: work/templates/work/my_dashboard.html:266
@@ -12364,9 +12391,9 @@ msgid ""
 "that you can also create by yourself. Here you can log the work you are "
 "doing."
 msgstr ""
-"La lista de taras activas asignadas a Ud. por procesos de proyecto o taras "
-"simples que Ud. también puede crear por sí mismo. Aquí Ud. puede cargar el "
-"trabajo que está haciendo."
+"La lista de tareas activas asignadas a ti por procesos de proyecto o tareas "
+"simples que también puedes crear por tí misma. Aquí puedes registrar el "
+"trabajo que estás haciendo."
 
 #: work/templates/work/my_dashboard.html:283
 msgid ""
@@ -12374,16 +12401,16 @@ msgid ""
 "them if you want. After that, these tasks will be assigned to you in 'your "
 "tasks' page."
 msgstr ""
-"He aquí una lista de tareas sin asignar que usan sus habilidades, de modo "
-"que Ud. puede asumir algunas de ellas si lo desea. Después de ello, estas "
-"tareas le sarán asignadas en la página \"sus tareas\"."
+"He aquí una lista de tareas sin asignar que usan tus habilidades, de modo "
+"que puedes asumir algunas de ellas si lo deseas. Después de ello, estas "
+"tareas te sarán asignadas en la página \"tus tareas\"."
 
 #: work/templates/work/my_dashboard.html:286
 msgid ""
 "Here you can log other tasks you did related to a project, but are not part "
 "of a defined project process."
 msgstr ""
-"Aquí Ud. puede cargar otras tareas que realizó relacionadas a un proyecto, "
+"Aquí puedes anotar otras tareas que realizaste relacionadas a un proyecto, "
 "pero que no son parte de un proceso de proyecto definido. "
 
 #: work/templates/work/my_dashboard.html:288
@@ -12392,7 +12419,7 @@ msgstr "Historia de tareas:"
 
 #: work/templates/work/my_dashboard.html:289
 msgid "The list of all the tasks you already did and log in the platform."
-msgstr "La lista de tareas que has realizado y registrado en la plataforma."
+msgstr "La lista de tareas que has realizado y anotado en la plataforma."
 
 #: work/templates/work/my_dashboard.html:297
 msgid "Joining Projects:"
@@ -12439,29 +12466,29 @@ msgstr "Tu histórico de Tareas"
 #: work/templates/work/non_process_logging.html:50
 #: work/templates/work/take_new_tasks.html:183
 msgid "Your Tasks"
-msgstr "Tus tareas"
+msgstr "Tus Tareas"
 
 #: work/templates/work/my_history.html:73 work/templates/work/my_tasks.html:194
 #: work/templates/work/non_process_logging.html:51
 msgid "Take New task"
-msgstr "Coge  nueva tarea"
+msgstr "Coger Nueva tarea"
 
 #: work/templates/work/my_history.html:74 work/templates/work/my_tasks.html:195
 #: work/templates/work/take_new_tasks.html:184
 msgid "Log Extra Tasks"
-msgstr "Anota tareas extra"
+msgstr "Anota tareas Extra"
 
 #: work/templates/work/my_history.html:89
 msgid "Total Value of Contributions"
-msgstr "Valor total de las contribuciones"
+msgstr "Valor Total de las Contribuciones"
 
 #: work/templates/work/my_history.html:93
 msgid "Total Paid for"
-msgstr "Total pagado por"
+msgstr "Total Pagado por"
 
 #: work/templates/work/my_history.html:97
 msgid "Total Outstanding"
-msgstr "Total pendiente"
+msgstr "Total Pendiente"
 
 #: work/templates/work/my_history.html:101
 msgid "Total Other Distributions"
@@ -12487,7 +12514,7 @@ msgstr "Tareas asignadas a"
 #: work/templates/work/non_process_logging.html:52
 #: work/templates/work/take_new_tasks.html:185
 msgid "Tasks History"
-msgstr "Historial de tareas"
+msgstr "Historial de Tareas"
 
 #: work/templates/work/my_tasks.html:206
 msgid "Your process work"
@@ -12547,7 +12574,7 @@ msgstr "Crédito para entradas"
 
 #: work/templates/work/order_list.html:5
 msgid "Order List"
-msgstr "Lista de ordenes"
+msgstr "Lista de Pedidos"
 
 #: work/templates/work/order_list.html:34
 msgid "Your projects open work orders"
@@ -12555,42 +12582,42 @@ msgstr "Ordenes de trabajo abiertas de tus proyectos"
 
 #: work/templates/work/order_list.html:50
 msgid "New Work Plan"
-msgstr "Nuevo plan de trabajo"
+msgstr "Nuevo Plan de Trabajo"
 
 #: work/templates/work/order_list.html:100
 #: work/templates/work/project_work.html:324
 msgid "Order:"
-msgstr "Pedido"
+msgstr "Pedido:"
 
 #: work/templates/work/order_plan.html:100
 msgid "Order: "
-msgstr "Pedido"
+msgstr "Pedido: "
 
 #: work/templates/work/order_plan.html:109
 #: work/templates/work/plan_work.html:58
 #: work/templates/work/project_work.html:200
 msgid "Open Orders"
-msgstr "Abrir pedidos"
+msgstr "Abrir Pedidos"
 
 #: work/templates/work/order_plan.html:125
 msgid "Due Date:"
-msgstr "Fecha entrega"
+msgstr "Fecha Entrega:"
 
 #: work/templates/work/order_plan.html:128
 msgid "Provider:"
-msgstr "Proveedor"
+msgstr "Proveedor:"
 
 #: work/templates/work/order_plan.html:131
 msgid "Receiver:"
-msgstr "Recipiente"
+msgstr "Receptor:"
 
 #: work/templates/work/process_logging.html:173
 msgid "Process:"
-msgstr "Proceso"
+msgstr "Proceso:"
 
 #: work/templates/work/process_logging.html:208
 msgid "View Order"
-msgstr "Ver pedido"
+msgstr "Ver Pedido"
 
 #: work/templates/work/profile.html:81
 msgid "Profile for "
@@ -12602,7 +12629,7 @@ msgstr "Proceso de Membresia"
 
 #: work/templates/work/profile.html:109
 msgid "Personal Information"
-msgstr "Informacion personal"
+msgstr "Informacion Personal"
 
 #: work/templates/work/profile.html:157
 msgid "More about me"
@@ -12618,7 +12645,7 @@ msgstr "Cuenta Faircoin"
 
 #: work/templates/work/profile.html:197
 msgid "Manage Account"
-msgstr "Gestionar cuenta"
+msgstr "Gestionar Cuenta"
 
 #: work/templates/work/profile.html:233
 msgid "Registered Skills"
@@ -12642,7 +12669,7 @@ msgstr "Historial del proyecto para"
 
 #: work/templates/work/project_history.html:47
 msgid "Work History"
-msgstr "Historial de trabajo"
+msgstr "Historial de Trabajo"
 
 #: work/templates/work/project_history.html:54
 msgid "Show events from "
@@ -12700,11 +12727,11 @@ msgstr "Unidad no definida"
 
 #: work/templates/work/project_resources.html:178
 msgid "Inventory:"
-msgstr "Inventario"
+msgstr "Inventario:"
 
 #: work/templates/work/project_resources.html:186
 msgid "New Resource"
-msgstr "Nuevo recurso"
+msgstr "Nuevo Recurso"
 
 #: work/templates/work/project_shares_totals.html:6
 msgid "Total Distributed Shares"
@@ -12741,12 +12768,12 @@ msgstr ""
 
 #: work/templates/work/project_work.html:351
 msgid "Simple Task List:"
-msgstr "Lista de tareas simples"
+msgstr "Lista de Tareas Simples"
 
 #: work/templates/work/register_skills.html:7
 #: work/templates/work/register_skills.html:46
 msgid "Register Skills for "
-msgstr "Registrar habilidades para"
+msgstr "Registrar Habilidades para"
 
 #: work/templates/work/take_new_tasks.html:180
 msgid "Take new tasks for "
@@ -12778,11 +12805,11 @@ msgstr "Guarda y vuelve"
 
 #: work/templates/work/your_projects.html:62
 msgid "Create New Project"
-msgstr "Crear nuevo proyecto"
+msgstr "Crear Nuevo Proyecto"
 
 #: work/templates/work/your_projects.html:67
 msgid "Create a New Project"
-msgstr "Crear nuevo proyecto"
+msgstr "Crear un Nuevo Proyecto"
 
 #: work/templates/work/your_projects.html:107
 msgid "You're joining:"
@@ -12798,11 +12825,11 @@ msgstr "Página de Feedback"
 
 #: work/templates/work/your_projects.html:116
 msgid "Projects coordinated by you:"
-msgstr "Proyectos coordinados por ti"
+msgstr "Proyectos coordinados por ti:"
 
 #: work/templates/work/your_projects.html:193
 msgid "Projects where you participate:"
-msgstr "Proyectos en los que participas"
+msgstr "Proyectos en los que participas:"
 
 #: work/templates/work/your_projects.html:201
 msgid "Membership feedback"
@@ -12831,21 +12858,22 @@ msgstr "Bienvenido a la Plataforma Abierta Colaborativa"
 
 #: work/templates/work_home.html:27
 msgid "To start using the OCP:"
-msgstr "Para empezar a usar la PAC"
+msgstr "Para empezar a usar la OCP:"
 
 #: work/templates/work_home.html:29
 msgid "First, you need an account on the system."
-msgstr "Primero,necesita una cuenta en el sistema"
+msgstr "Primero, necesita una cuenta en el sistema"
 
 #: work/templates/work_home.html:29
 msgid "Request Membership here"
-msgstr "Solicita membresia aqui"
+msgstr "Solicita Membresia aqui"
 
 #: work/templates/work_home.html:30
 msgid ""
 "You should go to the My Profile page and update your information and "
 "register your skills."
-msgstr "Ve a Mi Perfil y actualiza tu información, y registra tus habilidades."
+msgstr ""
+"Puedes ir a Mi Perfil, actualizar tu información y registrar tus habilidades."
 
 #: work/templates/work_home.html:31
 msgid "You can also add yourself to the Map page."
@@ -12858,7 +12886,7 @@ msgid ""
 "project you are involved with."
 msgstr ""
 "Cuando estés, puedes registrar tu trabajo en el Registro de Procesos, o en "
-"el de No Procesos, según el tipo de trabajo que sea."
+"el de sin Procesos, según el tipo de trabajo que sea."
 
 #: work/templates/work_home.html:35
 msgid "You can also find help on each page, in the upper right corner."
@@ -12882,7 +12910,7 @@ msgstr ""
 "La petición antigua de alta en FdC ha sido convertida al nuevo sistema "
 "modular de join_request, copiando todos los campos y comentarios en el hilo."
 
-#: work/views.py:2035
+#: work/views.py:2041
 msgid ""
 "Please provide an email for the project to use as a remitent for the "
 "moderated joining process notifications!"
@@ -12890,7 +12918,7 @@ msgstr ""
 "Por favor, define un correo del proyecto para usar como remitente para las "
 "notificaciones del proceso de inscripción moderado!"
 
-#: work/views.py:2098
+#: work/views.py:2123
 msgid ""
 "Can't disable the relation because there's still a join-request for this "
 "agent."
@@ -12898,7 +12926,7 @@ msgstr ""
 "No se puede desactivar la relación porque todavía hay una petición de alta "
 "para este agente."
 
-#: work/views.py:2279
+#: work/views.py:2304
 #, python-brace-format
 msgid ""
 "The Accounts needed for this agent (related {0}) as not been created because "
@@ -12909,29 +12937,29 @@ msgstr ""
 "porque el correo del usuario aún no está confirmado (no ha cambiado su "
 "contraseña inicial)"
 
-#: work/views.py:2311 work/views.py:2328
+#: work/views.py:2336 work/views.py:2353
 msgid "To participate in"
 msgstr "Para participar en"
 
-#: work/views.py:2312 work/views.py:2329
+#: work/views.py:2337 work/views.py:2354
 msgid "you need a"
-msgstr "necesitas"
+msgstr "necesitas una"
 
-#: work/views.py:2313
+#: work/views.py:2338
 msgid "BUT there's a problem with the naming of the project's account: "
 msgstr "PERO hay un problema con el nombre de la cuenta del proyecto: "
 
-#: work/views.py:2330
+#: work/views.py:2355
 #, python-brace-format
 msgid "It has been created for agent <b>{0}</b> automatically!"
 msgstr "Se ha creado para el agente <b>{0}</b> automáticamente!"
 
-#: work/views.py:2403 work/views.py:2524
+#: work/views.py:2428 work/views.py:2549
 #, python-brace-format
 msgid "WARNING: The Name '<b>{0}</b>' is set for various agents: "
 msgstr "ALERTA: El Nombre '<b>{0}</b>' lo tienen varios agentes: "
 
-#: work/views.py:2427 work/views.py:2428
+#: work/views.py:2452 work/views.py:2453
 #, python-brace-format
 msgid ""
 "- Changed 'participant' for 'member' because the {0} project has shares, for "
@@ -12940,29 +12968,29 @@ msgstr ""
 "- Cambiado 'participante' por 'miembro' porque el proyecto {0} ofrece "
 "participaciones, para el agente {1} (estado: {2})"
 
-#: work/views.py:2432 work/views.py:2433
+#: work/views.py:2457 work/views.py:2458
 #, python-brace-format
 msgid "- Changed 'selfemployed' for 'member' for agent {0} (status: {1})"
 msgstr ""
 "- Cambiado 'autoocupado' por 'miembro' para el agente {0} (estado: {1})"
 
-#: work/views.py:2436 work/views.py:2437
+#: work/views.py:2461 work/views.py:2462
 #, python-brace-format
 msgid "- Changed 'selfemployed' for 'participant' for agent {0} (status: {1})"
 msgstr ""
 "- Cambiado 'autoocupado' por 'participante' pare el agente {0} (estado: {1})"
 
-#: work/views.py:2778 work/views.py:3053
+#: work/views.py:2803 work/views.py:3078
 #, python-brace-format
 msgid "Error occured: {0}."
 msgstr "Error ocurrido: {0}."
 
-#: work/views.py:3068
+#: work/views.py:3093
 #, python-brace-format
 msgid "Form {0} was submitted successfully."
 msgstr "El formulario {0} se ha enviado correctamente."
 
-#: work/views.py:3635 work/views.py:4159
+#: work/views.py:3660 work/views.py:4184
 #, python-brace-format
 msgid ""
 "Please provide an email for the \"{0}\" project to use as a remitent for the "
@@ -12971,7 +12999,7 @@ msgstr ""
 "Por favor, define un correo para el proyecto \"{0}\" para usar como "
 "remitente en las notificaciones del proceso de inscripción moderado!"
 
-#: work/views.py:3767
+#: work/views.py:3792
 msgid ""
 "The project is missing its own Email Address! (needed to send notifications "
 "to users from the project)"
@@ -12979,21 +13007,27 @@ msgstr ""
 "Al proyecto le falta su propia Dirección de Correo! (necesario para enviar "
 "notificaciones del proyecto a sus usuarios)"
 
-#: work/views.py:4015
+#: work/views.py:4040
 msgid "The email with the user credentials was sended again."
 msgstr "El correo con las credenciales del usuario ha sido enviado de nuevo."
 
-#: work/views.py:4209 work/views.py:4243
+#: work/views.py:4234 work/views.py:4268
 msgid ""
 "Enter a valid username. This value may contain only letters, numbers and @/./"
 "+/-/_ characters."
 msgstr ""
-"Mete un nombre de usuario válido. Sólo puede contener letras, números y los "
-"caracteres @ . + - _"
+"Define un nombre de usuario válido. Sólo puede contener letras, números y "
+"los caracteres @ . + - _"
 
-#: work/views.py:5930
+#: work/views.py:5955
 msgid "If you don't find a type that suits, choose a subcategory and click:"
 msgstr "Si no encuentras un tipo que encaje, elige una subcategoría y pulsa:"
+
+#~ msgid "Read '"
+#~ msgstr "Leer Multimonedero '"
+
+#~ msgid "' Multiwallet"
+#~ msgstr "'"
 
 #~ msgid ""
 #~ "You've payed the shares with your faircoins! The exchange is now complete "

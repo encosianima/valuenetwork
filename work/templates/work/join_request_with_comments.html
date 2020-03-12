@@ -436,7 +436,7 @@ a.more-link {
                         {% for mauth in req.agent.multicurrencyauth_set.all %}
                           {% if mauth.auth_user == req.multiwallet_user %}
                             <a href="{% url 'multicurrency_history' agent_id=req.agent.id oauth_id=mauth.id %}"
-                               class="btn btn-info btn-mini">{% trans "Read '" %}{{ mauth.auth_user }}{% trans "' Multiwallet" %}</a>
+                               class="btn btn-info btn-mini">{% blocktrans %}Read '{{ mauth.auth_user }}' Multiwallet{% endblocktrans %}</a>
                             &nbsp; <span class="help-text">{{ out_text|safe }}</span>
                             {% if pay_form %} &nbsp; &nbsp;
                                 <form id="payForm" action="{% url 'authpayment' agent_id=req.agent.id %}" method="POST" style="display:inline;">
