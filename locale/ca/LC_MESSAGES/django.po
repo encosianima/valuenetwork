@@ -10018,15 +10018,15 @@ msgstr "alta col·lectiva (min. 2 participacions)"
 
 #: work/models.py:63
 msgid "new"
-msgstr ""
+msgstr "noves"
 
 #: work/models.py:64
 msgid "accepted"
-msgstr ""
+msgstr "acceptades"
 
 #: work/models.py:65
 msgid "declined"
-msgstr ""
+msgstr "declinades"
 
 #: work/models.py:71
 msgid "Surname (for individual memberships)"
