@@ -3532,7 +3532,7 @@ def join_requests(request, agent_id):
               req.entries = []
 
             # calculate the actions table cell to speedup the template
-            req.actions = ''
+            req.actions = u''
             chekpass = req.check_user_pass()
             payamount = req.payment_amount()
             totalshrs = req.total_shares()
@@ -3545,35 +3545,35 @@ def join_requests(request, agent_id):
             deleteform = '<form class="action-form" id="delete-form'+str(req.id)+'" method="POST" '
             deleteform += 'action="'+reverse("delete_request", args=(req.id,))+'" >'
             deleteform += csrf_token_field
-            deleteform += '<input type="submit" class="btn btn-mini btn-danger" name="submit" value="'+str(_("Delete"))+'" /></form>'
+            deleteform += '<input type="submit" class="btn btn-mini btn-danger" name="submit" value="'+unicode(_("Delete"))+'" /></form>'
 
             declineform = '<form class="action-form" id="decline-form'+str(req.id)+'" method="POST" '
             declineform += 'action="'+reverse("decline_request", args=(req.id,))+'" >'
             declineform += csrf_token_field
-            declineform += '<input type="submit" class="btn btn-mini btn-warning" name="submit" value="'+str(_("Decline"))+'" /></form>'
+            declineform += '<input type="submit" class="btn btn-mini btn-warning" name="submit" value="'+unicode(_("Decline"))+'" /></form>'
 
 
             if not req.fobi_data:
                 req.actions = '<span class="error">ERROR!</span> &nbsp;'
             if chekpass:
-                req.actions += '<span class="error">'+str(_("Not Valid yet!"))+'</span> &nbsp;'
+                req.actions += '<span class="error">'+unicode(_("Not Valid yet!"))+'</span> &nbsp;'
             elif proshrtyps and req.fobi_data:
                 if req.agent:
-                    req.actions += str(payamount)+'&nbsp;'+str(_("Shares:"))+'&nbsp;'
+                    req.actions += str(payamount)+'&nbsp;'+unicode(_("Shares:"))+'&nbsp;'
                     if pendshrs:
                         if totalshrs:
-                            req.actions += '<span class="complete">'+str(totalshrs)+'</span>&nbsp;+&nbsp;<span class="error">'+str(req.pending_shares())+'</span>'
+                            req.actions += '<span class="complete">'+unicode(totalshrs)+'</span>&nbsp;+&nbsp;<span class="error">'+unicode(req.pending_shares())+'</span>'
                         else:
-                            req.actions += '<span class="error">'+str(totalshrs)+'</span>'
+                            req.actions += '<span class="error">'+unicode(totalshrs)+'</span>'
                     else:
                         if not totalshrs == payamount:
-                            req.actions += '<span class="complete">'+str(totalshrs)+'</span>'
+                            req.actions += '<span class="complete">'+unicode(totalshrs)+'</span>'
                         else:
                             req.actions += '<em class="complete"></em>'
                     req.actions += '<br />'
                 if reqstatus:
                     req.actions += '<a href="'+reverse("exchange_logging_work", args=(req.project.agent.id, 0, req.exchange.id))+'"'
-                    req.actions += ' class="'+str(reqstatus)+'" >'+str(reqstatus.title())+'</a> '
+                    req.actions += ' class="'+unicode(reqstatus)+'" >'+unicode(reqstatus.title())+'</a> '
                 elif pendshrs:
                     if not req.payment_option()['key'] == 'ccard' and req.agent and req.exchange_type():
                         if managing:
@@ -3582,7 +3582,7 @@ def join_requests(request, agent_id):
                             req.actions += csrf_token_field
                             req.actions += '<input type="hidden" name="status" value="pending"> '
                             req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" '
-                            req.actions += ' value="'+str(_("Set as Pending"))+'" '
+                            req.actions += ' value="'+unicode(_("Set as Pending"))+'" '
                             if chekpass:
                                 req.actions += 'disabled="disabled" '
                             req.actions += ' /></form>'
@@ -3601,8 +3601,8 @@ def join_requests(request, agent_id):
                 req.actions += deleteform
 
             ncom = len(Comment.objects.filter(content_type=com_content_type, object_pk=req.pk))
-            req.actions += '<a class="btn btn-info btn-mini" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'"> '
-            req.actions += '<b>'+unicode(_("Feedback:"))+'</b> '+str(ncom)+'</a>&nbsp;'
+            req.actions += u'<a class="btn btn-info btn-mini" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'"> '
+            req.actions += u'<b>'+unicode(_("Feedback:"))+'</b> '+str(ncom)+'</a>&nbsp;'
 
             if state == "declined":
                 req.actions += '<form class="action-form" id="undecline-form'+str(req.id)+'" method="POST" '
