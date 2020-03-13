@@ -1165,7 +1165,9 @@ class JoinRequest(models.Model):
                     if 'margin' in obj and obj['margin']:
                         return unit, obj['margin']
                     else:
-                        raise ValidationError("To ask for a margin of amount repair it must be first defined in the project settings for this gateway.")
+                        loger.error("Askmargin in payment_unit, but the margin is not set for currency: "+unicode(unit)+" at project: "+unicode(self.project.agent))
+                        return unit, None
+                        #raise ValidationError("To ask for a margin of amount repair it must be first defined in the project settings for this gateway.")
         if askmargin:
             return unit, None
         return unit
