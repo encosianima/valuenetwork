@@ -4108,7 +4108,7 @@ def create_unit_types(**kwargs):
     if not share_rt.price_per_unit:
         print "- Added first FdC share price to 30 eur"
         share_rt.price_per_unit = 30
-    else:
+    elif not share_rt.price_per_unit == 30:
         check_new_rt_price(share_rt)
     share_rt.unit_of_price = ocp_euro
     share_rt.save()
