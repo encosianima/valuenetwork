@@ -872,7 +872,7 @@ class JoinRequest(models.Model):
                   amount = None
                   if self.project.agent.need_faircoins():
                     if not self.agent:
-                        txt = str(_("Once you log in and change your password, you'll be able to top-up your internal Faircoin account and proceed to pay the membership shares."))
+                        txt = unicode(_("Once you log in and change your password, you'll be able to top-up your internal Faircoin account and proceed to pay the membership shares."))
                         return txt
 
                     addr = self.agent.faircoin_address()
@@ -891,36 +891,36 @@ class JoinRequest(models.Model):
                               balance = fairrs.faircoin_address.balance()
                               if balance != None:
                                 if round(balance, settings.CRYPTO_DECIMALS) < round(amopend, settings.CRYPTO_DECIMALS):
-                                    txt = '<b>'+str(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br/>"
+                                    txt = u'<b>'+unicode(_("Your ocp faircoin balance is not enough to pay this shares, still missing: %(f)s <br/>"
                                                       +" You can send them to your account %(ac)s and then pay the shares") %
                                                       {'f':"<span class='error'>"+str(round(decimal.Decimal(amopend - balance), settings.CRYPTO_DECIMALS))+" fair</span>", 'ac':' </b> '+addr+' <b> '})
                                 elif amopend:
-                                    txt = '<b>'+str(_("Your actual faircoin balance is enough. You can pay the shares now!"))
-                                    txt += "</b> &nbsp;<a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
-                                    txt += "' class='btn btn-primary'>"+str(_("Faircoin account"))+"</a>"
+                                    txt = u'<b>'+unicode(_("Your actual faircoin balance is enough. You can pay the shares now!"))
+                                    txt += u"</b> &nbsp;<a href='"+str(reverse('manage_faircoin_account', args=(fairrs.id,)))
+                                    txt += u"' class='btn btn-primary'>"+unicode(_("Faircoin account"))+"</a>"
                               else:
-                                txt = str(_("Can't find the balance of your faircoin account:"))+' '+addr
+                                txt = unicode(_("Can't find the balance of your faircoin account:"))+' '+addr
                             else:
-                              txt = str(_("The agent faircoin address is not from the same wallet!"))
+                              txt = unicode(_("The agent faircoin address is not from the same wallet!"))
                           else:
-                            txt = str(_("The OCP wallet is not available now, try later."))
+                            txt = unicode(_("The OCP wallet is not available now, try later."))
                         else:
-                            txt = str(_("The account is requested and should be available in less than a minute... please refresh the page!"))
+                            txt = unicode(_("The account is requested and should be available in less than a minute... please refresh the page!"))
                       else:
-                        txt = str(_("No faircoin address?"))
+                        txt = unicode(_("No faircoin address?"))
                     else:
-                      txt = str(_("This agent don't have an OCP Faircoin Account yet."))
+                      txt = unicode(_("This agent don't have an OCP Faircoin Account yet."))
 
                     if not balance or not amount:
-                      txt = "<span class='error'>"+txt+"</span>"
+                      txt = u"<span class='error'>"+txt+"</span>"
 
-                    amtopay = u"<br>Amount to pay: <b> "+str(round(amount, settings.CRYPTO_DECIMALS))+u" ƒ "
+                    amtopay = u"<br>"+unicode(_("Amount to pay"))+u": <b> "+str(round(amount, settings.CRYPTO_DECIMALS))+u" ƒ "
                     amispay = self.payment_payed_amount()
                     if amispay > 0:
                       if amopend:
-                        amtopay += "- "+str(amispay)+u" ƒ payed = "+str(round(amopend, settings.CRYPTO_DECIMALS))+u' ƒ pending'
+                        amtopay += u"- "+str(amispay)+u" ƒ payed = "+str(round(amopend, settings.CRYPTO_DECIMALS))+u' ƒ pending'
                       else:
-                        amtopay += " (payed "+str(amispay)+u" ƒ)"
+                        amtopay += " ("+unicode(_("payed"))+" "+str(amispay)+u" ƒ)"
                     amtopay += "</b>"
 
                     if not isinstance(obj['html'], unicode) and not isinstance(obj['html'], str):
