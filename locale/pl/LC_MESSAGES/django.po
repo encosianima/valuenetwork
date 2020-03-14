@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 13:29+0000\n"
+"POT-Creation-Date: 2020-03-14 13:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Damian Emil Piotraschke Borkowski <depb@mailchuck.com>, "
 "2016\n"
@@ -11442,6 +11442,12 @@ msgstr ""
 #: work/templates/work/membership_request_with_comments.html:167
 msgid "Write a new comment:"
 msgstr ""
+
+#: work/templates/work/join_request_with_comments.html:584
+#, fuzzy
+#| msgid "Add me,"
+msgid "Add comment"
+msgstr "Dodaj mnie,"
 
 #: work/templates/work/join_requests.html:71
 #: work/templates/work/joinaproject_request_internal.html:51

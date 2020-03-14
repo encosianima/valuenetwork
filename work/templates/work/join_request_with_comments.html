@@ -581,7 +581,7 @@ a.more-link {
             {{ form.timestamp }}
             {{ form.security_hash }}
             <input type="hidden" name="next" value="{% url 'project_feedback' agent.id jn_req.id %}" />
-            <input type="submit" class="btn btn-primary" value="Add comment" id="id_submit" />
+            <input type="submit" class="btn btn-primary" value="{% trans "Add comment" %}" id="id_submit" />
           </form>
         </div>
       {% endif %}

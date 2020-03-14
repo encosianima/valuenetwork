@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 13:29+0000\n"
+"POT-Creation-Date: 2020-03-14 13:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Dani Ele <altrimenti@inventati.org>, 2017\n"
 "Language-Team: Italian (https://www.transifex.com/freedomcoop/teams/65382/"
@@ -11393,6 +11393,12 @@ msgstr "commenti:"
 #: work/templates/work/membership_request_with_comments.html:167
 msgid "Write a new comment:"
 msgstr "scrivi un nuovo commento:"
+
+#: work/templates/work/join_request_with_comments.html:584
+#, fuzzy
+#| msgid " comments:"
+msgid "Add comment"
+msgstr "commenti:"
 
 #: work/templates/work/join_requests.html:71
 #: work/templates/work/joinaproject_request_internal.html:51

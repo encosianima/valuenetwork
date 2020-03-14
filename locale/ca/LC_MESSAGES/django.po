@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 13:29+0000\n"
+"POT-Creation-Date: 2020-03-14 13:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1910,7 +1910,7 @@ msgstr "Comptes Multimoneda"
 #: multicurrency/templates/multicurrency_auth.html:16
 #: multicurrency/templates/multicurrency_history.html:25
 msgid "BotC Feedback"
-msgstr "Feedback BotC"
+msgstr "Comunicació BotC"
 
 #: multicurrency/templates/multicurrency_auth.html:22
 msgid "BotC-Wallet accounts for"
@@ -2095,7 +2095,7 @@ msgstr "FairPay: cobrat via codi QR"
 #: work/templates/work/my_dashboard.html:229
 #: work/templates/work/my_dashboard.html:234
 msgid "Feedback"
-msgstr ""
+msgstr "Comunica"
 
 #: multicurrency/views.py:429
 msgid "The payment is done! Transfered"
@@ -10518,7 +10518,7 @@ msgstr "La teva pàgina de feeback amb la coop"
 
 #: work/templates/_settings_bar.html:82 work/templates/work/profile.html:89
 msgid "Coop Feedback"
-msgstr ""
+msgstr "Comunicació Coop"
 
 #: work/templates/_settings_bar.html:84 work/templates/new_base.html:301
 #: work/templates/work/join_request_with_comments.html:118
@@ -10528,7 +10528,7 @@ msgstr "Membresia"
 
 #: work/templates/new_base.html:72
 msgid "Dashboard page with your available options"
-msgstr ""
+msgstr "Tauler amb les opcions disponibles"
 
 #: work/templates/new_base.html:80
 msgid "Joining Process"
@@ -10654,16 +10654,16 @@ msgstr "El teu moneder faircoin personal a OCP"
 
 #: work/templates/new_base.html:318
 msgid "Feedback page with"
-msgstr "Pàgina de Feedback amb"
+msgstr "Pàgina de Comunicació amb"
 
 #: work/templates/new_base.html:330
 msgid "FreedomCoop Feedback"
-msgstr ""
+msgstr "Comunicació FreedomCoop"
 
 #: work/templates/new_base.html:339
 #, python-format
 msgid "%(name)s Feedback"
-msgstr "Feedback amb %(name)s"
+msgstr "Comunica amb %(name)s"
 
 #: work/templates/new_base.html:350
 msgid "Member Options"
@@ -11462,6 +11462,10 @@ msgstr " comentaris:"
 msgid "Write a new comment:"
 msgstr "Escriu un comentari:"
 
+#: work/templates/work/join_request_with_comments.html:584
+msgid "Add comment"
+msgstr "Afegir comentari"
+
 #: work/templates/work/join_requests.html:71
 #: work/templates/work/joinaproject_request_internal.html:51
 #: work/templates/work/members_agent.html:207
@@ -11503,7 +11507,7 @@ msgstr "Aquesta petició:"
 
 #: work/templates/work/join_requests.html:176 work/views.py:3605
 msgid "Feedback:"
-msgstr ""
+msgstr "Comunica:"
 
 #: work/templates/work/join_requests.html:221 work/views.py:3629
 msgid "Wait to confirm, or delete agent, user and request"
@@ -11931,7 +11935,7 @@ msgstr ""
 
 #: work/templates/work/members_agent.html:1193
 msgid "Your Declined Joining Feedback"
-msgstr "El Feedback de la Alta Declinada"
+msgstr "Comunicació sobre l'Alta Declinada"
 
 #: work/templates/work/members_agent.html:1195
 msgid ""
@@ -11943,7 +11947,7 @@ msgstr ""
 
 #: work/templates/work/members_agent.html:1197
 msgid "Your Joining Feedback"
-msgstr "El teu Feedback d'Alta"
+msgstr "Comunicació sobre la teva Alta"
 
 #: work/templates/work/members_agent.html:1200
 msgid ""
@@ -12583,7 +12587,7 @@ msgstr "veure la"
 
 #: work/templates/work/your_projects.html:109
 msgid "Feedback page"
-msgstr "pàgina de Feedback"
+msgstr "pàgina de Comunicació"
 
 #: work/templates/work/your_projects.html:116
 msgid "Projects coordinated by you:"
@@ -12595,7 +12599,7 @@ msgstr "Projectes en els que participes:"
 
 #: work/templates/work/your_projects.html:201
 msgid "Membership feedback"
-msgstr "Feedback de l'alta"
+msgstr "Comunicació sobre l'alta"
 
 #: work/templates/work/your_projects.html:201
 #: work/templates/work/your_projects.html:215
@@ -12608,7 +12612,7 @@ msgstr "Projectes als que pots unir-te:"
 
 #: work/templates/work/your_projects.html:267
 msgid "Joining Process Feedback"
-msgstr "Feedback del Procés d'Alta"
+msgstr "Comunicació Procés d'Alta"
 
 #: work/templates/work_home.html:24
 msgid "Freedom COOP"
@@ -12616,7 +12620,7 @@ msgstr ""
 
 #: work/templates/work_home.html:25
 msgid "Welcome to the Online Collaborative Platform"
-msgstr ""
+msgstr "Benvingut a la OCP"
 
 #: work/templates/work_home.html:27
 msgid "To start using the OCP:"

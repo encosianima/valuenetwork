@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 13:29+0000\n"
+"POT-Creation-Date: 2020-03-14 13:57+0000\n"
 "PO-Revision-Date: 2020-03-04 03:02+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -10735,7 +10735,7 @@ msgstr "Tu página de comunicación con la cooperativa"
 
 #: work/templates/_settings_bar.html:82 work/templates/work/profile.html:89
 msgid "Coop Feedback"
-msgstr "Comunica con Cooperativa"
+msgstr "Comunicación Coop"
 
 #: work/templates/_settings_bar.html:84 work/templates/new_base.html:301
 #: work/templates/work/join_request_with_comments.html:118
@@ -10875,13 +10875,12 @@ msgstr "Página de Comunicación con"
 
 #: work/templates/new_base.html:330
 msgid "FreedomCoop Feedback"
-msgstr "Comunica con FreedomCoop"
+msgstr "Comunicación FreedomCoop"
 
 #: work/templates/new_base.html:339
-#, fuzzy, python-format
-#| msgid "Feedback"
+#, python-format
 msgid "%(name)s Feedback"
-msgstr "Comunica"
+msgstr "Comunica con %(name)s"
 
 #: work/templates/new_base.html:350
 msgid "Member Options"
@@ -11698,6 +11697,10 @@ msgstr "comentarios:"
 msgid "Write a new comment:"
 msgstr "Escribe un nuevo comentario:"
 
+#: work/templates/work/join_request_with_comments.html:584
+msgid "Add comment"
+msgstr "Añadir comentario"
+
 #: work/templates/work/join_requests.html:71
 #: work/templates/work/joinaproject_request_internal.html:51
 #: work/templates/work/members_agent.html:207
@@ -12174,7 +12177,7 @@ msgstr ""
 
 #: work/templates/work/members_agent.html:1193
 msgid "Your Declined Joining Feedback"
-msgstr "Hilo de la Alta Declinada"
+msgstr "Comunicación sobre el Alta Declinada"
 
 #: work/templates/work/members_agent.html:1195
 msgid ""
@@ -12830,7 +12833,7 @@ msgstr "ver la"
 
 #: work/templates/work/your_projects.html:109
 msgid "Feedback page"
-msgstr "Página de Feedback"
+msgstr "Página de Comunicación"
 
 #: work/templates/work/your_projects.html:116
 msgid "Projects coordinated by you:"
@@ -12842,7 +12845,7 @@ msgstr "Proyectos en los que participas:"
 
 #: work/templates/work/your_projects.html:201
 msgid "Membership feedback"
-msgstr "Comunicar sobre la membresía"
+msgstr "Comunicar sobre el alta"
 
 #: work/templates/work/your_projects.html:201
 #: work/templates/work/your_projects.html:215
@@ -12855,7 +12858,7 @@ msgstr "Proyectos a los que te puedes unir:"
 
 #: work/templates/work/your_projects.html:267
 msgid "Joining Process Feedback"
-msgstr "Hilo del Proceso de Alta"
+msgstr "Comunicación Proceso de Alta"
 
 #: work/templates/work_home.html:24
 msgid "Freedom COOP"
