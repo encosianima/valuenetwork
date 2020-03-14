@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 13:57+0000\n"
+"POT-Creation-Date: 2020-03-14 16:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Dani Ele <altrimenti@inventati.org>, 2017\n"
 "Language-Team: Italian (https://www.transifex.com/freedomcoop/teams/65382/"
@@ -1064,6 +1064,22 @@ msgstr ""
 msgid "Current Balance"
 msgstr "bilancio attuale"
 
+#: faircoin/templates/faircoin/faircoin_history.html:65 general/models.py:621
+#: general/models.py:650
+#: valuenetwork/templates/valueaccounting/membership_request.html:98
+#: valuenetwork/templates/valueaccounting/membership_requests.html:66
+#: work/templates/work/join_request_with_comments.html:241
+#: work/templates/work/join_requests.html:96
+#: work/templates/work/join_requests.html:357
+#: work/templates/work/membership_request_with_comments.html:113
+msgid "Address"
+msgstr "Indirizzo"
+
+#: faircoin/templates/faircoin/faircoin_history.html:66
+#: valuenetwork/templates/valueaccounting/bucket_filter.html:47
+msgid "Events"
+msgstr ""
+
 #: faircoin/templates/faircoin/faircoin_history.html:77
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:97
 #: valuenetwork/templates/valueaccounting/all_contributions.html:34
@@ -1275,7 +1291,7 @@ msgid "exchange"
 msgstr ""
 
 #: faircoin/templates/faircoin/faircoin_history.html:127
-#: work/templates/work/join_requests.html:163 work/views.py:3600
+#: work/templates/work/join_requests.html:163 work/views.py:3608
 msgid "request"
 msgstr ""
 
@@ -1435,16 +1451,6 @@ msgstr ""
 #: general/models.py:620
 msgid "Type of address"
 msgstr ""
-
-#: general/models.py:621 general/models.py:650
-#: valuenetwork/templates/valueaccounting/membership_request.html:98
-#: valuenetwork/templates/valueaccounting/membership_requests.html:66
-#: work/templates/work/join_request_with_comments.html:241
-#: work/templates/work/join_requests.html:96
-#: work/templates/work/join_requests.html:357
-#: work/templates/work/membership_request_with_comments.html:113
-msgid "Address"
-msgstr "Indirizzo"
 
 #: general/models.py:621
 msgid "Postal address able to receive by post"
@@ -1984,7 +1990,7 @@ msgstr "richiedi la membership qui"
 
 #: multicurrency/templates/multicurrency_auth.html:86
 #: work/templates/work/join_request_with_comments.html:113
-#: work/templates/work/my_dashboard.html:302
+#: work/templates/work/my_dashboard.html:304
 msgid "Feedback with"
 msgstr ""
 
@@ -2101,8 +2107,6 @@ msgstr ""
 #: work/templates/work/members_agent.html:987
 #: work/templates/work/members_agent.html:1072
 #: work/templates/work/members_agent.html:1112
-#: work/templates/work/my_dashboard.html:229
-#: work/templates/work/my_dashboard.html:234
 msgid "Feedback"
 msgstr ""
 
@@ -2362,7 +2366,7 @@ msgstr "Cancella il mio account"
 #: valuenetwork/templates/account/email_confirm.html:6
 #: valuenetwork/templates/account/email_confirm.html:12
 #: work/templates/work/join_request_with_comments.html:220
-#: work/templates/work/join_requests.html:264 work/views.py:3649
+#: work/templates/work/join_requests.html:264 work/views.py:3657
 msgid "Confirm Email"
 msgstr "Conferma e-mail"
 
@@ -3495,7 +3499,7 @@ msgstr "Richiedi indirizzo FairCoin"
 #: work/templates/work/order_list.html:128
 #: work/templates/work/project_resource.html:140
 #: work/templates/work/project_work.html:490
-#: work/templates/work/value_equations_work.html:90 work/views.py:3548
+#: work/templates/work/value_equations_work.html:90 work/views.py:3556
 msgid "Delete"
 msgstr "cancella"
 
@@ -3650,14 +3654,14 @@ msgid "Membership discussion"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:385
-#: work/templates/work/my_dashboard.html:307
-#: work/templates/work/my_dashboard.html:332
+#: work/templates/work/my_dashboard.html:309
+#: work/templates/work/my_dashboard.html:334
 #: work/templates/work/your_projects.html:207
 msgid "comment"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:387
-#: work/templates/work/my_dashboard.html:334
+#: work/templates/work/my_dashboard.html:336
 #: work/templates/work/your_projects.html:209
 msgid "comments"
 msgstr ""
@@ -4051,10 +4055,6 @@ msgstr ""
 
 #: valuenetwork/templates/valueaccounting/bucket_filter.html:34
 msgid "Start over"
-msgstr ""
-
-#: valuenetwork/templates/valueaccounting/bucket_filter.html:47
-msgid "Events"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/bucket_filter.html:52
@@ -6073,7 +6073,7 @@ msgstr ""
 
 #: valuenetwork/templates/valueaccounting/membership_requests.html:87
 #: valuenetwork/templates/valueaccounting/skill_suggestions.html:112
-#: work/templates/work/join_requests.html:186 work/views.py:3611
+#: work/templates/work/join_requests.html:186 work/views.py:3619
 msgid "Undecline"
 msgstr ""
 
@@ -6088,7 +6088,7 @@ msgstr ""
 #: work/templates/work/my_tasks.html:386 work/templates/work/my_tasks.html:607
 #: work/templates/work/project_work.html:474
 #: work/templates/work/take_new_tasks.html:318
-#: work/templates/work/take_new_tasks.html:603 work/views.py:3553
+#: work/templates/work/take_new_tasks.html:603 work/views.py:3561
 msgid "Decline"
 msgstr ""
 
@@ -8403,36 +8403,6 @@ msgstr ""
 msgid "agent"
 msgstr ""
 
-#: valuenetwork/valueaccounting/models.py:2188
-#: valuenetwork/valueaccounting/models.py:9002
-msgid "supplier"
-msgstr ""
-
-#: valuenetwork/valueaccounting/models.py:2189
-#: valuenetwork/valueaccounting/models.py:9005
-msgid "customer"
-msgstr ""
-
-#: valuenetwork/valueaccounting/models.py:2190 work/models.py:2325
-msgid "member"
-msgstr ""
-
-#: valuenetwork/valueaccounting/models.py:2191
-msgid "child"
-msgstr ""
-
-#: valuenetwork/valueaccounting/models.py:2192
-msgid "custodian"
-msgstr ""
-
-#: valuenetwork/valueaccounting/models.py:2193
-msgid "manager"
-msgstr ""
-
-#: valuenetwork/valueaccounting/models.py:2194
-msgid "peer"
-msgstr ""
-
 #: valuenetwork/valueaccounting/models.py:2203
 #: valuenetwork/valueaccounting/models.py:4150
 #: valuenetwork/valueaccounting/models.py:5400
@@ -9211,6 +9181,14 @@ msgstr ""
 #: valuenetwork/valueaccounting/models.py:9875
 msgid "transfer type"
 msgstr "tipe di trasferimento"
+
+#: valuenetwork/valueaccounting/models.py:9002
+msgid "supplier"
+msgstr ""
+
+#: valuenetwork/valueaccounting/models.py:9005
+msgid "customer"
+msgstr ""
 
 #: valuenetwork/valueaccounting/models.py:9008
 #: valuenetwork/valueaccounting/models.py:10900
@@ -10311,6 +10289,10 @@ msgstr ""
 msgid "quarter"
 msgstr ""
 
+#: work/models.py:2325
+msgid "member"
+msgstr ""
+
 #: work/models.py:2479
 #, fuzzy
 #| msgid "created date"
@@ -10434,8 +10416,8 @@ msgstr "Il tuo conto faircoin personale su OCP"
 #: work/templates/_settings_bar.html:56 work/templates/new_base.html:309
 #: work/templates/work/join_request_with_comments.html:154
 #: work/templates/work/membership_request_with_comments.html:74
-#: work/templates/work/my_dashboard.html:225
-#: work/templates/work/my_dashboard.html:316
+#: work/templates/work/my_dashboard.html:227
+#: work/templates/work/my_dashboard.html:318
 #: work/templates/work/profile.html:100
 msgid "Faircoin Account"
 msgstr ""
@@ -10445,7 +10427,7 @@ msgid "Your profile information and skills"
 msgstr ""
 
 #: work/templates/_settings_bar.html:64 work/templates/new_base.html:365
-#: work/templates/work/my_dashboard.html:346 work/templates/work/profile.html:8
+#: work/templates/work/my_dashboard.html:348 work/templates/work/profile.html:8
 msgid "Profile"
 msgstr "Profilo"
 
@@ -10468,7 +10450,7 @@ msgstr ""
 
 #: work/templates/_settings_bar.html:84 work/templates/new_base.html:301
 #: work/templates/work/join_request_with_comments.html:118
-#: work/templates/work/my_dashboard.html:326
+#: work/templates/work/my_dashboard.html:328
 msgid "Membership"
 msgstr ""
 
@@ -10497,7 +10479,7 @@ msgstr ""
 
 #: work/templates/new_base.html:112 work/templates/new_base.html:141
 #: work/templates/new_base.html:174 work/templates/new_base.html:204
-#: work/templates/work/my_dashboard.html:252
+#: work/templates/work/my_dashboard.html:254
 msgid "Your projects"
 msgstr ""
 
@@ -10508,7 +10490,7 @@ msgstr ""
 
 #: work/templates/new_base.html:118 work/templates/new_base.html:146
 #: work/templates/new_base.html:180 work/templates/new_base.html:209
-#: work/templates/work/my_dashboard.html:256
+#: work/templates/work/my_dashboard.html:258
 msgid "Your project tasks"
 msgstr ""
 
@@ -10537,7 +10519,7 @@ msgid "How to create a project in OCP"
 msgstr ""
 
 #: work/templates/new_base.html:161 work/templates/new_base.html:224
-#: work/templates/work/my_dashboard.html:266
+#: work/templates/work/my_dashboard.html:268
 msgid "OCP project's tutorial"
 msgstr ""
 
@@ -10559,7 +10541,7 @@ msgid "Do your planned tasks"
 msgstr ""
 
 #: work/templates/new_base.html:246 work/templates/new_base.html:275
-#: work/templates/work/my_dashboard.html:279
+#: work/templates/work/my_dashboard.html:281
 msgid "Your tasks"
 msgstr ""
 
@@ -10568,7 +10550,7 @@ msgid "Take new tasks for your skills"
 msgstr ""
 
 #: work/templates/new_base.html:251 work/templates/new_base.html:280
-#: work/templates/work/my_dashboard.html:282
+#: work/templates/work/my_dashboard.html:284
 msgid "Take a new task"
 msgstr ""
 
@@ -10577,7 +10559,7 @@ msgid "Register other extra tasks you did"
 msgstr ""
 
 #: work/templates/new_base.html:256 work/templates/new_base.html:285
-#: work/templates/work/my_dashboard.html:285
+#: work/templates/work/my_dashboard.html:287
 msgid "Log extra tasks"
 msgstr ""
 
@@ -11244,7 +11226,7 @@ msgid "Resend Password"
 msgstr "Cambiare la mia password"
 
 #: work/templates/work/join_request_with_comments.html:220
-#: work/templates/work/join_requests.html:264 work/views.py:3650
+#: work/templates/work/join_requests.html:264 work/views.py:3658
 msgid "sends random pass and creates user+agent"
 msgstr ""
 
@@ -11298,7 +11280,7 @@ msgstr ""
 
 #: work/templates/work/join_request_with_comments.html:323
 #: work/templates/work/join_request_with_comments.html:419
-#: work/templates/work/join_requests.html:147 work/views.py:3585
+#: work/templates/work/join_requests.html:147 work/views.py:3593
 msgid "Set as Pending"
 msgstr ""
 
@@ -11321,7 +11303,7 @@ msgid "Total owned Shares"
 msgstr ""
 
 #: work/templates/work/join_request_with_comments.html:388
-#: work/templates/work/join_requests.html:215 work/views.py:3625
+#: work/templates/work/join_requests.html:215 work/views.py:3633
 msgid "Accept Member"
 msgstr ""
 
@@ -11419,45 +11401,45 @@ msgstr ""
 msgid "Fobi"
 msgstr ""
 
-#: work/templates/work/join_requests.html:114 work/views.py:3559
+#: work/templates/work/join_requests.html:114 work/views.py:3567
 msgid "Not Valid yet!"
 msgstr ""
 
-#: work/templates/work/join_requests.html:117 work/views.py:3562
+#: work/templates/work/join_requests.html:117 work/views.py:3570
 msgid "Shares:"
 msgstr ""
 
-#: work/templates/work/join_requests.html:162 work/views.py:3598
+#: work/templates/work/join_requests.html:162 work/views.py:3606
 msgid "Duplicated!"
 msgstr ""
 
-#: work/templates/work/join_requests.html:163 work/views.py:3599
+#: work/templates/work/join_requests.html:163 work/views.py:3607
 msgid "see the other"
 msgstr ""
 
-#: work/templates/work/join_requests.html:165 work/views.py:3600
+#: work/templates/work/join_requests.html:165 work/views.py:3608
 msgid "This request:"
 msgstr ""
 
-#: work/templates/work/join_requests.html:176 work/views.py:3605
+#: work/templates/work/join_requests.html:176 work/views.py:3613
 msgid "Feedback:"
 msgstr ""
 
-#: work/templates/work/join_requests.html:221 work/views.py:3629
+#: work/templates/work/join_requests.html:221 work/views.py:3637
 msgid "Wait to confirm, or delete agent, user and request"
 msgstr ""
 
-#: work/templates/work/join_requests.html:229 work/views.py:3633
+#: work/templates/work/join_requests.html:229 work/views.py:3641
 #, fuzzy
 #| msgid "Delete"
 msgid "Delete all"
 msgstr "cancella"
 
-#: work/templates/work/join_requests.html:244 work/views.py:3642
+#: work/templates/work/join_requests.html:244 work/views.py:3650
 msgid "is taken, choose this agent?"
 msgstr ""
 
-#: work/templates/work/join_requests.html:245 work/views.py:3644
+#: work/templates/work/join_requests.html:245 work/views.py:3652
 msgid "Connect to"
 msgstr ""
 
@@ -12023,7 +12005,7 @@ msgid ""
 msgstr ""
 
 #: work/templates/work/my_dashboard.html:207
-msgid "As a participant <b>candidate</b> in the"
+msgid "As a participant <b>candidate</b> in"
 msgstr ""
 
 #: work/templates/work/my_dashboard.html:211
@@ -12032,30 +12014,34 @@ msgid ""
 "shares:"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:223
-msgid "project, you still have"
+#: work/templates/work/my_dashboard.html:224
+#, python-format
+msgid "you still have %(pendshr)s pending shares to buy with your new"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:223
-msgid "pending shares to buy with your new"
-msgstr ""
-
-#: work/templates/work/my_dashboard.html:227
-#: work/templates/work/my_dashboard.html:232
+#: work/templates/work/my_dashboard.html:229
+#: work/templates/work/my_dashboard.html:234
 msgid ""
-"project, you should be accepted by its coordinators before you can use all "
-"the project tools."
+"you should be accepted by its coordinators before you can use all the "
+"project tools."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:241
+#: work/templates/work/my_dashboard.html:231
+#: work/templates/work/my_dashboard.html:236
+#, fuzzy, python-format
+#| msgid "Go back"
+msgid "%(nick)s Feedback"
+msgstr "vai indietro"
+
+#: work/templates/work/my_dashboard.html:243
 msgid "The options you already have in OCP are:"
 msgstr "le opzioni che hai di già in OCP sono:"
 
-#: work/templates/work/my_dashboard.html:249
+#: work/templates/work/my_dashboard.html:251
 msgid "Projects:"
 msgstr "progetti:"
 
-#: work/templates/work/my_dashboard.html:253
+#: work/templates/work/my_dashboard.html:255
 msgid ""
 "Here you can see the projects you are involved in and their structure. If "
 "you are a project coordinator you can manage your project also here."
@@ -12064,75 +12050,75 @@ msgstr ""
 "sei il coordinatore di un progetto potrai gestire il tuo progetto anche da "
 "qui"
 
-#: work/templates/work/my_dashboard.html:257
+#: work/templates/work/my_dashboard.html:259
 msgid "A complete list of tasks related to the projects you are involved in."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:259
+#: work/templates/work/my_dashboard.html:261
 msgid "Your project open work orders"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:260
+#: work/templates/work/my_dashboard.html:262
 msgid "A complete list of open work orders related your projects."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:262
+#: work/templates/work/my_dashboard.html:264
 msgid "Plan project proceses"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:263
+#: work/templates/work/my_dashboard.html:265
 msgid ""
 "Here you can define a work plan for your managed project and setup the "
 "needed process with work orders and tasks."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:266
+#: work/templates/work/my_dashboard.html:268
 msgid "(coming soon)"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:267
+#: work/templates/work/my_dashboard.html:269
 msgid ""
 "To learn how to use OCP and structure your project and create process plans "
 "for it"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:276
+#: work/templates/work/my_dashboard.html:278
 msgid "Tasks:"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:280
+#: work/templates/work/my_dashboard.html:282
 msgid ""
 "The list of active tasks assigned to you by project proceses or simple tasks "
 "that you can also create by yourself. Here you can log the work you are "
 "doing."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:283
+#: work/templates/work/my_dashboard.html:285
 msgid ""
 "Here a list of unassigned tasks using your skills, so you can take some of "
 "them if you want. After that, these tasks will be assigned to you in 'your "
 "tasks' page."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:286
+#: work/templates/work/my_dashboard.html:288
 msgid ""
 "Here you can log other tasks you did related to a project, but are not part "
 "of a defined project process."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:288
+#: work/templates/work/my_dashboard.html:290
 msgid "History of tasks"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:289
+#: work/templates/work/my_dashboard.html:291
 msgid "The list of all the tasks you already did and log in the platform."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:297
+#: work/templates/work/my_dashboard.html:299
 msgid "Joining Projects:"
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:317
+#: work/templates/work/my_dashboard.html:319
 msgid ""
 "Here you can manage your online Faircoin account in the OCP. In this account "
 "you will receive internal payments for the tasks you did. You can see your "
@@ -12142,13 +12128,13 @@ msgid ""
 "OCP and have not earned enough Faircoins doing tasks."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:339
+#: work/templates/work/my_dashboard.html:341
 msgid ""
 "Your FreedomCoop membership request data and a comments thread to comunicate "
 "with the Welcome Team about your particular case or project."
 msgstr ""
 
-#: work/templates/work/my_dashboard.html:347
+#: work/templates/work/my_dashboard.html:349
 msgid ""
 "In this page you can see and edit your personal data and image, see your "
 "relations to projects and resources."
@@ -12643,64 +12629,64 @@ msgstr ""
 msgid "It has been created for agent <b>{0}</b> automatically!"
 msgstr ""
 
-#: work/views.py:2428 work/views.py:2549
+#: work/views.py:2436 work/views.py:2557
 #, python-brace-format
 msgid "WARNING: The Name '<b>{0}</b>' is set for various agents: "
 msgstr ""
 
-#: work/views.py:2452 work/views.py:2453
+#: work/views.py:2460 work/views.py:2461
 #, python-brace-format
 msgid ""
 "- Changed 'participant' for 'member' because the {0} project has shares, for "
 "agent {1} (status: {2})"
 msgstr ""
 
-#: work/views.py:2457 work/views.py:2458
+#: work/views.py:2465 work/views.py:2466
 #, python-brace-format
 msgid "- Changed 'selfemployed' for 'member' for agent {0} (status: {1})"
 msgstr ""
 
-#: work/views.py:2461 work/views.py:2462
+#: work/views.py:2469 work/views.py:2470
 #, python-brace-format
 msgid "- Changed 'selfemployed' for 'participant' for agent {0} (status: {1})"
 msgstr ""
 
-#: work/views.py:2803 work/views.py:3078
+#: work/views.py:2811 work/views.py:3086
 #, python-brace-format
 msgid "Error occured: {0}."
 msgstr ""
 
-#: work/views.py:3093
+#: work/views.py:3101
 #, python-brace-format
 msgid "Form {0} was submitted successfully."
 msgstr ""
 
-#: work/views.py:3660 work/views.py:4184
+#: work/views.py:3668 work/views.py:4192
 #, python-brace-format
 msgid ""
 "Please provide an email for the \"{0}\" project to use as a remitent for the "
 "moderated joining process notifications!"
 msgstr ""
 
-#: work/views.py:3792
+#: work/views.py:3800
 msgid ""
 "The project is missing its own Email Address! (needed to send notifications "
 "to users from the project)"
 msgstr ""
 
-#: work/views.py:4040
+#: work/views.py:4048
 msgid "The email with the user credentials was sended again."
 msgstr ""
 
-#: work/views.py:4171
+#: work/views.py:4179
 msgid "Pay the shares (coming soon)"
 msgstr ""
 
-#: work/views.py:4172
+#: work/views.py:4180
 msgid "meanwhile pay from"
 msgstr ""
 
-#: work/views.py:4234 work/views.py:4268
+#: work/views.py:4242 work/views.py:4276
 msgid ""
 "Enter a valid username. This value may contain only letters, numbers and @/./"
 "+/-/_ characters."
@@ -12708,6 +12694,6 @@ msgstr ""
 "Aggiungi un nome di user valido. Può contenere lettere, numeri e caratteri "
 "come @/./+/-/_"
 
-#: work/views.py:5955
+#: work/views.py:5963
 msgid "If you don't find a type that suits, choose a subcategory and click:"
 msgstr ""
