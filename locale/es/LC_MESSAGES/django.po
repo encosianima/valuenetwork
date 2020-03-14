@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-09 21:58+0000\n"
+"POT-Creation-Date: 2020-03-14 12:14+0000\n"
 "PO-Revision-Date: 2020-03-04 03:02+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -883,8 +883,7 @@ msgstr "(disponible cuando la dirección pertenece a este monedero)"
 msgid ""
 "(please wait about a minute to have a new fair-address and refresh the page)"
 msgstr ""
-"(espera un minuto para obtener la nueva dirección Fair y refresca "
-"la página)"
+"(espera un minuto para obtener la nueva dirección Fair y refresca la página)"
 
 #: faircoin/templates/faircoin/faircoin_account.html:302
 msgid "(sorry, the wallet is not available now, try later)"
@@ -1187,7 +1186,7 @@ msgstr "Cantidad"
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:60
 #: valuenetwork/templates/valueaccounting/workbook.html:217
 #: valuenetwork/valueaccounting/forms.py:3299 work/models.py:83
-#: work/models.py:2302 work/models.py:2321
+#: work/models.py:2304 work/models.py:2323
 #: work/templates/work/invoice_number.html:48
 #: work/templates/work/join_request_with_comments.html:522
 #: work/templates/work/members_agent.html:409
@@ -1272,7 +1271,7 @@ msgstr "Abrir"
 #: valuenetwork/valueaccounting/models.py:10939
 #: valuenetwork/valueaccounting/models.py:12957
 #: valuenetwork/valueaccounting/models.py:14287 work/models.py:562
-#: work/models.py:2326
+#: work/models.py:2328
 msgid "exchange"
 msgstr "intercambio"
 
@@ -1752,7 +1751,8 @@ msgstr ""
 msgid ""
 "Thanks to support the project! <br>We'll send the payment order to your bank "
 "account, with your chosen amount and regularity."
-msgstr "Gracias por apoyar el proyecto! <br>Enviaremos la orden de pago a tu cuenta, "
+msgstr ""
+"Gracias por apoyar el proyecto! <br>Enviaremos la orden de pago a tu cuenta, "
 "con la cantidad y la regularidad que has elegido."
 
 #: local_settings.py:130
@@ -1807,9 +1807,10 @@ msgid ""
 "<p><b>Health and Integral Development</b> (\"Salut i Desenvolupament Integral"
 "\") is a non-profit association to foster common good, quality of life and "
 "knowledge, from an integral point of view.</p>"
-msgstr "<p><b>Salud y Desarrollo Integral</b> (\"Salut i Desenvolupament Integral"
-"\") es una asociación sin ánimo de lucro para el bien común, la calidad de "
-"vida y el conocimiento, desde un punto de vista integral.</p>"
+msgstr ""
+"<p><b>Salud y Desarrollo Integral</b> (\"Salut i Desenvolupament Integral\") "
+"es una asociación sin ánimo de lucro para el bien común, la calidad de vida "
+"y el conocimiento, desde un punto de vista integral.</p>"
 
 #: multicurrency/forms.py:10
 msgid "Wallet Username"
@@ -1966,7 +1967,7 @@ msgstr "Acceso:"
 
 #: multicurrency/templates/multicurrency_auth.html:41
 #: valuenetwork/templates/_account_bar.html:29
-#: work/templates/_settings_bar.html:91
+#: work/templates/_settings_bar.html:92
 msgid "Log Out"
 msgstr "Cerrar Sesión"
 
@@ -2235,7 +2236,7 @@ msgstr ""
 #: valuenetwork/templates/account/work_password_change.html:12
 #: valuenetwork/templates/account/work_settings.html:11
 #: valuenetwork/templates/pinax/notifications/notice_settings.html:13
-#: work/templates/_settings_bar.html:72
+#: work/templates/_settings_bar.html:73
 #: work/templates/work/join_request_with_comments.html:156
 #: work/templates/work/members_agent.html:205
 #: work/templates/work/membership_request_with_comments.html:76
@@ -2272,7 +2273,7 @@ msgid "Coop Work App"
 msgstr "App Trabajo Cooperativo"
 
 #: valuenetwork/templates/_account_bar.html:43
-#: work/templates/_settings_bar.html:104
+#: work/templates/_settings_bar.html:105
 #: work/templates/work/join_request_with_comments.html:483
 msgid "or"
 msgstr "o"
@@ -2281,7 +2282,7 @@ msgstr "o"
 #: valuenetwork/templates/account/signup.html:7
 #: valuenetwork/templates/account/signup.html:13
 #: valuenetwork/templates/account/signup.html:21
-#: work/templates/_settings_bar.html:105
+#: work/templates/_settings_bar.html:106
 msgid "Sign up"
 msgstr "Registrarse"
 
@@ -4591,7 +4592,7 @@ msgstr ""
 #: valuenetwork/valueaccounting/models.py:12761
 #: valuenetwork/valueaccounting/models.py:12995
 #: valuenetwork/valueaccounting/models.py:14368
-#: valuenetwork/valueaccounting/models.py:14715 work/models.py:2327
+#: valuenetwork/valueaccounting/models.py:14715 work/models.py:2329
 #: work/templates/work/order_list.html:100
 msgid "created by"
 msgstr "creado por"
@@ -8329,7 +8330,7 @@ msgstr "Tipo_Inmaterial"
 #: valuenetwork/valueaccounting/models.py:10722
 #: valuenetwork/valueaccounting/models.py:12433
 #: valuenetwork/valueaccounting/models.py:12746
-#: valuenetwork/valueaccounting/models.py:14355 work/models.py:2300
+#: valuenetwork/valueaccounting/models.py:14355 work/models.py:2302
 msgid "name"
 msgstr "nombre"
 
@@ -8461,7 +8462,7 @@ msgstr "es contexto"
 #: valuenetwork/valueaccounting/models.py:8997
 #: valuenetwork/valueaccounting/models.py:10948
 #: valuenetwork/valueaccounting/models.py:12754
-#: valuenetwork/valueaccounting/models.py:12972 work/models.py:2304
+#: valuenetwork/valueaccounting/models.py:12972 work/models.py:2306
 msgid "url"
 msgstr "url"
 
@@ -8575,7 +8576,7 @@ msgstr "proveedor"
 msgid "customer"
 msgstr "cliente"
 
-#: valuenetwork/valueaccounting/models.py:2190 work/models.py:2323
+#: valuenetwork/valueaccounting/models.py:2190 work/models.py:2325
 msgid "member"
 msgstr "miembro"
 
@@ -8932,7 +8933,7 @@ msgstr "referncia optativa a una cuenta externa"
 #: valuenetwork/valueaccounting/models.py:12753
 #: valuenetwork/valueaccounting/models.py:12970
 #: valuenetwork/valueaccounting/models.py:14876
-#: valuenetwork/valueaccounting/models.py:15034 work/models.py:2525
+#: valuenetwork/valueaccounting/models.py:15034 work/models.py:2527
 msgid "context agent"
 msgstr "agente de contexto"
 
@@ -9322,7 +9323,7 @@ msgid "processes"
 msgstr "procesos"
 
 #: valuenetwork/valueaccounting/models.py:8628
-#: valuenetwork/valueaccounting/models.py:14356 work/models.py:2320
+#: valuenetwork/valueaccounting/models.py:14356 work/models.py:2322
 msgid "sequence"
 msgstr "secuencia"
 
@@ -10524,7 +10525,17 @@ msgstr "¿No hay dirección faircoin?"
 msgid "This agent don't have an OCP Faircoin Account yet."
 msgstr "Este agente no tiene todavía una cuenta de Faircoin en OCP."
 
-#: work/models.py:2153
+#: work/models.py:917
+#, fuzzy
+#| msgid "Account History"
+msgid "Amount to pay"
+msgstr "Cantidad a pagar"
+
+#: work/models.py:923
+msgid "payed"
+msgstr "pagado"
+
+#: work/models.py:2155
 #, python-format
 msgid ""
 "%(pass)s is the initial random password for agent %(user)s, used to verify "
@@ -10533,7 +10544,7 @@ msgstr ""
 "%(pass)s es la contraseña inicial aleatoria para el agente %(user)s, usada "
 "para verificar el correo %(mail)s"
 
-#: work/models.py:2184
+#: work/models.py:2186
 msgid ""
 "Email failed! The destination address seems not real (or there's another "
 "email error): "
@@ -10541,159 +10552,159 @@ msgstr ""
 "¡Correo fallado! La dirección de destino no parece real (o sucedió otro "
 "error de correo): "
 
-#: work/models.py:2244
+#: work/models.py:2246
 msgid "The agent can't be deleted! "
 msgstr "El agente no se puede borrar!"
 
-#: work/models.py:2273
+#: work/models.py:2275
 msgid "WARNING!"
 msgstr "ADVERTENCIA!"
 
-#: work/models.py:2301
+#: work/models.py:2303
 msgid "deployment date"
 msgstr "fecha de implementación"
 
-#: work/models.py:2303
+#: work/models.py:2305
 msgid "permissions"
 msgstr "permisos"
 
-#: work/models.py:2305
+#: work/models.py:2307
 msgid "screenshot"
 msgstr "captura de pantalla"
 
-#: work/models.py:2316
+#: work/models.py:2318
 msgid "invoice number"
 msgstr "número de factura"
 
-#: work/models.py:2317
+#: work/models.py:2319
 msgid "invoice date"
 msgstr "fecha de la factura"
 
-#: work/models.py:2318
+#: work/models.py:2320
 msgid "year"
 msgstr "Año"
 
-#: work/models.py:2319
+#: work/models.py:2321
 msgid "quarter"
 msgstr "trimestre"
 
-#: work/models.py:2477
+#: work/models.py:2479
 msgid "related material_type"
 msgstr "tipo_material relacionado"
 
-#: work/models.py:2480
+#: work/models.py:2482
 msgid "a related General Material Type"
 msgstr "un Tipo de Material General relacionado"
 
-#: work/models.py:2494
+#: work/models.py:2496
 msgid "related nonmaterial_type"
 msgstr "tipo_inmaterial relacionado"
 
-#: work/models.py:2497
+#: work/models.py:2499
 msgid "a related General Non-material Type"
 msgstr "un Tipo Inmaterial General relacionado"
 
-#: work/models.py:2503 work/models.py:2628
+#: work/models.py:2505 work/models.py:2630
 msgid "ocp facet"
-msgstr "faceta OCP"
+msgstr "ocp facet"
 
-#: work/models.py:2506 work/models.py:2631
+#: work/models.py:2508 work/models.py:2633
 msgid "a related OCP Facet"
-msgstr "una Faceta OCP relacionada"
+msgstr "una Facet OCP relacionada"
 
-#: work/models.py:2511 work/models.py:2636
+#: work/models.py:2513 work/models.py:2638
 msgid "ocp facet_value"
-msgstr "valor_faceta de OCP"
+msgstr "facet_value de ocp"
 
-#: work/models.py:2514 work/models.py:2639
+#: work/models.py:2516 work/models.py:2641
 msgid "a related OCP FacetValue"
-msgstr "un ValorFaceta de OCP relacionado"
+msgstr "un FacetValue de OCP relacionado"
 
-#: work/models.py:2519 work/models.py:2620
+#: work/models.py:2521 work/models.py:2622
 msgid "ocp resource_type"
 msgstr "tipo_recurso de OCP"
 
-#: work/models.py:2522 work/models.py:2623
+#: work/models.py:2524 work/models.py:2625
 msgid "a related OCP ResourceType"
 msgstr "un TipoRecurso de OCP relacionado"
 
-#: work/models.py:2529
+#: work/models.py:2531
 msgid "a related OCP context EconomicAgent"
 msgstr "un AgenteEconomico del contexto de OCP relacionado"
 
-#: work/models.py:2534
+#: work/models.py:2536
 msgid "general unit_type"
 msgstr "tipo_unidad general"
 
-#: work/models.py:2537
+#: work/models.py:2539
 msgid "a related General Unit Type"
 msgstr "un Tipo de Unidad General relacionado"
 
-#: work/models.py:2543
+#: work/models.py:2545
 msgid "Type of General Artwork/Resource"
 msgstr "Tipo de Obra de Arte / Recurso"
 
-#: work/models.py:2544
+#: work/models.py:2546
 msgid "o-> Types of General Artworks/Resources"
 msgstr "o-- Tipos de Obra de Arte/Recurso General"
 
-#: work/models.py:2644 work/models.py:2714
+#: work/models.py:2646 work/models.py:2716
 msgid "general artwork_type"
 msgstr "tipo_obra_arte general"
 
-#: work/models.py:2647 work/models.py:2717
+#: work/models.py:2649 work/models.py:2719
 msgid "a related General Artwork Type"
 msgstr "un Tipo de Obra de Arte General relacionado"
 
-#: work/models.py:2661
+#: work/models.py:2663
 msgid "Type of General Skill Resources"
 msgstr "Tipo de Recurso de Habilidad General"
 
-#: work/models.py:2662
+#: work/models.py:2664
 msgid "o-> Types of General Skill Resources"
 msgstr "o-- Tipos de Recurso de Habilidad General"
 
-#: work/models.py:2708
+#: work/models.py:2710
 msgid "ocp exchange type"
 msgstr "Tipo de intercambio de OCP"
 
-#: work/models.py:2722
+#: work/models.py:2724
 msgid "general skill_type"
 msgstr "tipo_habilidad general"
 
-#: work/models.py:2725
+#: work/models.py:2727
 msgid "a related General Skill Type"
 msgstr "un Tipo de Habilidad General relacionado"
 
-#: work/models.py:2739
+#: work/models.py:2741
 msgid "Type of General Record"
 msgstr "Tipo de Expediente General"
 
-#: work/models.py:2740
+#: work/models.py:2742
 msgid "o-> Types of General Records"
 msgstr "o-- Tipos de Expediente General"
 
-#: work/models.py:2874
+#: work/models.py:2876
 msgid "Type of General Unit"
 msgstr "Tipo de Unidad General"
 
-#: work/models.py:2875
+#: work/models.py:2877
 msgid "o-> Types of General Units"
 msgstr "o-- Tipos de Unidad General"
 
-#: work/templates/_settings_bar.html:45
+#: work/templates/_settings_bar.html:46
 msgid "DB Admin"
 msgstr "DB Admin"
 
-#: work/templates/_settings_bar.html:47
+#: work/templates/_settings_bar.html:48
 msgid "Coop Admin App"
 msgstr "Aplicación de Administración Cooperativa"
 
-#: work/templates/_settings_bar.html:54
+#: work/templates/_settings_bar.html:55
 msgid "Your personal faircoin account in OCP"
 msgstr "Tu cuenta faircoin personal en OCP"
 
-#: work/templates/_settings_bar.html:55 work/templates/new_base.html:309
+#: work/templates/_settings_bar.html:56 work/templates/new_base.html:309
 #: work/templates/work/join_request_with_comments.html:154
 #: work/templates/work/membership_request_with_comments.html:74
 #: work/templates/work/my_dashboard.html:225
@@ -10702,33 +10713,33 @@ msgstr "Tu cuenta faircoin personal en OCP"
 msgid "Faircoin Account"
 msgstr "Cuenta Faircoin"
 
-#: work/templates/_settings_bar.html:62
+#: work/templates/_settings_bar.html:63
 msgid "Your profile information and skills"
 msgstr "Tu información de perfil y habilidades"
 
-#: work/templates/_settings_bar.html:63 work/templates/new_base.html:365
+#: work/templates/_settings_bar.html:64 work/templates/new_base.html:365
 #: work/templates/work/my_dashboard.html:346 work/templates/work/profile.html:8
 msgid "Profile"
 msgstr "Perfil"
 
-#: work/templates/_settings_bar.html:68 work/templates/work/new_features.html:8
+#: work/templates/_settings_bar.html:69 work/templates/work/new_features.html:8
 #: work/templates/work/new_features.html:29
 msgid "New OCP Features"
 msgstr "Novedades de OCP"
 
-#: work/templates/_settings_bar.html:69
+#: work/templates/_settings_bar.html:70
 msgid "New Features"
 msgstr "Nuevas Funciones"
 
-#: work/templates/_settings_bar.html:78 work/templates/work/profile.html:87
+#: work/templates/_settings_bar.html:79 work/templates/work/profile.html:87
 msgid "Your coop feedback page"
 msgstr "Tu página de comunicación con la cooperativa"
 
-#: work/templates/_settings_bar.html:81 work/templates/work/profile.html:89
+#: work/templates/_settings_bar.html:82 work/templates/work/profile.html:89
 msgid "Coop Feedback"
 msgstr "Comunica con Cooperativa"
 
-#: work/templates/_settings_bar.html:83 work/templates/new_base.html:301
+#: work/templates/_settings_bar.html:84 work/templates/new_base.html:301
 #: work/templates/work/join_request_with_comments.html:118
 #: work/templates/work/my_dashboard.html:326
 msgid "Membership"

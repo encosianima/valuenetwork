@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-09 21:58+0000\n"
+"POT-Creation-Date: 2020-03-14 12:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -818,9 +818,10 @@ msgid ""
 "As soon as you have this amount here in your Faircoin account at OCP, you'll "
 "see below the <b>button to pay your shares</b>, click on it and you'll "
 "become a full member of"
-msgstr "Tan bon punt tinguis aquesta quantitat aquí al teu compte Faircoin a "
-"OCP, veuràs aquí sota el <b>botó per pagar les teves participacions</b>, "
-"clica'l i seràs un membre actiu de"
+msgstr ""
+"Tan bon punt tinguis aquesta quantitat aquí al teu compte Faircoin a OCP, "
+"veuràs aquí sota el <b>botó per pagar les teves participacions</b>, clica'l "
+"i seràs un membre actiu de"
 
 #: faircoin/templates/faircoin/faircoin_account.html:258
 msgid "You need to change your initial random password!"
@@ -844,8 +845,8 @@ msgid ""
 "pay your shares."
 msgstr ""
 "El teu balanç de %(confirmed_balance)s ƒ és massa baix per pagar ara "
-"%(share_price)s ƒ.<br>Si envies <span class=\"error\">"
-"%(pending_amount)s ƒ</span> al teu compte, veuras aqui el botó per pagar les participacions."
+"%(share_price)s ƒ.<br>Si envies <span class=\"error\">%(pending_amount)s ƒ</"
+"span> al teu compte, veuras aqui el botó per pagar les participacions."
 
 #: faircoin/templates/faircoin/faircoin_account.html:282
 msgid "The project's faircoin address is not of this wallet?"
@@ -1169,7 +1170,7 @@ msgstr "Qtt"
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:60
 #: valuenetwork/templates/valueaccounting/workbook.html:217
 #: valuenetwork/valueaccounting/forms.py:3299 work/models.py:83
-#: work/models.py:2302 work/models.py:2321
+#: work/models.py:2304 work/models.py:2323
 #: work/templates/work/invoice_number.html:48
 #: work/templates/work/join_request_with_comments.html:522
 #: work/templates/work/members_agent.html:409
@@ -1254,7 +1255,7 @@ msgstr "Obre"
 #: valuenetwork/valueaccounting/models.py:10939
 #: valuenetwork/valueaccounting/models.py:12957
 #: valuenetwork/valueaccounting/models.py:14287 work/models.py:562
-#: work/models.py:2326
+#: work/models.py:2328
 msgid "exchange"
 msgstr "intercanvi"
 
@@ -1721,8 +1722,9 @@ msgid ""
 "Please login with the credentials sent to your email, change your password "
 "and top-up your OCP Faircoin Account with enough Faircoins to pay the shares."
 msgstr ""
-"Inicia sessió amb les credencials enviades al teu correu-e, canvia la contrasenya "
-"i recarrega el teu Compte Faircoin a OCP amb suficients Faircoins per pagar les participacions."
+"Inicia sessió amb les credencials enviades al teu correu-e, canvia la "
+"contrasenya i recarrega el teu Compte Faircoin a OCP amb suficients "
+"Faircoins per pagar les participacions."
 
 #: local_settings.py:98
 msgid ""
@@ -1765,9 +1767,9 @@ msgid ""
 "\") is a non-profit association to foster common good, quality of life and "
 "knowledge, from an integral point of view.</p>"
 msgstr ""
-"<p><b>Salut i Desenvolupament Integral</b> és una associació sense ànim de lucre "
-"per fomentar el bé comú, la qualitat de vida i el coneixement, des d'una "
-"perspectiva integral.</p>"
+"<p><b>Salut i Desenvolupament Integral</b> és una associació sense ànim de "
+"lucre per fomentar el bé comú, la qualitat de vida i el coneixement, des "
+"d'una perspectiva integral.</p>"
 
 #: multicurrency/forms.py:10
 msgid "Wallet Username"
@@ -1920,7 +1922,7 @@ msgstr "Accés:"
 
 #: multicurrency/templates/multicurrency_auth.html:41
 #: valuenetwork/templates/_account_bar.html:29
-#: work/templates/_settings_bar.html:91
+#: work/templates/_settings_bar.html:92
 msgid "Log Out"
 msgstr "Sortir"
 
@@ -1933,8 +1935,8 @@ msgid ""
 "If you already have any access to BotC-Wallet's panel, use the form below to "
 "authenticate."
 msgstr ""
-"Si ja tens un accés al panel de BotC-Wallet, fes servir el formulari inferior "
-"per autentificar-lo."
+"Si ja tens un accés al panel de BotC-Wallet, fes servir el formulari "
+"inferior per autentificar-lo."
 
 #: multicurrency/templates/multicurrency_auth.html:48
 msgid ""
@@ -2000,8 +2002,8 @@ msgid ""
 "Your password won't be stored, it's just necessary to check your identity in "
 "BotC-Wallet system."
 msgstr ""
-"La teva contrasenya no serà guardada, només és necessaria per comprobar la teva "
-"identitat al sistema BotC-Wallet."
+"La teva contrasenya no serà guardada, només és necessaria per comprobar la "
+"teva identitat al sistema BotC-Wallet."
 
 #: multicurrency/templates/multicurrency_history.html:5
 msgid "Transactions list"
@@ -2038,8 +2040,9 @@ msgid ""
 "with your credentials, and authenticate your new user in the bottom form."
 msgstr ""
 "El teu compte BotC-Wallet a sigut creat amb éxit. Comprova el teu correu-e i "
-"clica l'enllaç per confirmar el teu correu al sistema BotC-Wallet. Torna aquí "
-"amb les teves credencials, i autentifica el teu nou usuari al formulari inferior."
+"clica l'enllaç per confirmar el teu correu al sistema BotC-Wallet. Torna "
+"aquí amb les teves credencials, i autentifica el teu nou usuari al formulari "
+"inferior."
 
 #: multicurrency/views.py:247 multicurrency/views.py:364
 #: multicurrency/views.py:420
@@ -2171,14 +2174,14 @@ msgid ""
 "Sorry, there's been an error. It's been reported to the site administrators "
 "via e-mail and will be fixed. Thanks for your patience."
 msgstr ""
-"Ho sentim, hi ha hagut un error. Ja ha sigut reportat als administradors "
-"per email i serà arreglat. Gràcies per la teva paciencia."
+"Ho sentim, hi ha hagut un error. Ja ha sigut reportat als administradors per "
+"email i serà arreglat. Gràcies per la teva paciencia."
 
 #: valuenetwork/templates/_account_bar.html:12
 #: valuenetwork/templates/account/work_password_change.html:12
 #: valuenetwork/templates/account/work_settings.html:11
 #: valuenetwork/templates/pinax/notifications/notice_settings.html:13
-#: work/templates/_settings_bar.html:72
+#: work/templates/_settings_bar.html:73
 #: work/templates/work/join_request_with_comments.html:156
 #: work/templates/work/members_agent.html:205
 #: work/templates/work/membership_request_with_comments.html:76
@@ -2215,7 +2218,7 @@ msgid "Coop Work App"
 msgstr ""
 
 #: valuenetwork/templates/_account_bar.html:43
-#: work/templates/_settings_bar.html:104
+#: work/templates/_settings_bar.html:105
 #: work/templates/work/join_request_with_comments.html:483
 msgid "or"
 msgstr "o"
@@ -2224,7 +2227,7 @@ msgstr "o"
 #: valuenetwork/templates/account/signup.html:7
 #: valuenetwork/templates/account/signup.html:13
 #: valuenetwork/templates/account/signup.html:21
-#: work/templates/_settings_bar.html:105
+#: work/templates/_settings_bar.html:106
 msgid "Sign up"
 msgstr ""
 
@@ -2378,9 +2381,10 @@ msgid ""
 "within a few minutes, contact us at <a href=\"mailto:"
 "%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
-"Hem enviat un correu a <b>%(email)s</b> per verificar. Segueix el enllaç "
-"que hi trobaras per finalitzar el procés de registre. Si no el reps en uns "
-"minuts, contacta amb <a href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
+"Hem enviat un correu a <b>%(email)s</b> per verificar. Segueix el enllaç que "
+"hi trobaras per finalitzar el procés de registre. Si no el reps en uns "
+"minuts, contacta amb <a href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">"
+"%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
 #: valuenetwork/templates/account/email_confirmation_sent.html:12
 msgid "Go back"
@@ -2417,9 +2421,9 @@ msgid ""
 "organizational tool we offer to individuals, collectives, and project "
 "coordinators inside Freedom Coop."
 msgstr ""
-"Això és OCP, la nostra Plataforma Oberta Col·laborativa. La OCP és la "
-"èina organitzativa clau que oferim a individuus, col·lectius i coordinadors "
-"de projectes dins Freedom Coop."
+"Això és OCP, la nostra Plataforma Oberta Col·laborativa. La OCP és la èina "
+"organitzativa clau que oferim a individuus, col·lectius i coordinadors de "
+"projectes dins Freedom Coop."
 
 #: valuenetwork/templates/account/login.html:65
 #: work/templates/work/project_login.html:78
@@ -2429,7 +2433,8 @@ msgstr "Aleshores, pot ser usada per a:"
 #: valuenetwork/templates/account/login.html:66
 #: work/templates/work/project_login.html:79
 msgid "Boost open collaborative projects between people in different places."
-msgstr "Impulsar projectes col·laboratius oberts entre persones en diferents llocs."
+msgstr ""
+"Impulsar projectes col·laboratius oberts entre persones en diferents llocs."
 
 #: valuenetwork/templates/account/login.html:67
 #: work/templates/work/project_login.html:80
@@ -2437,7 +2442,8 @@ msgid ""
 "Manage open collective projects and their team work by setting up task "
 "forces."
 msgstr ""
-"Gestionar projectes col·lectius oberts i el seu treball en equip definint forçes laborals."
+"Gestionar projectes col·lectius oberts i el seu treball en equip definint "
+"forçes laborals."
 
 #: valuenetwork/templates/account/login.html:68
 #: work/templates/work/project_login.html:81
@@ -2446,7 +2452,8 @@ msgid ""
 "distribution and a way of self-actualization for any project."
 msgstr ""
 "Comptar el temps que gasta cada membre per usar-ho com a base de les "
-"distribucions d'ingressos i una forma d'auto-actualització per qualsevol projecte."
+"distribucions d'ingressos i una forma d'auto-actualització per qualsevol "
+"projecte."
 
 #: valuenetwork/templates/account/login.html:69
 #: work/templates/work/project_login.html:82
@@ -2454,8 +2461,8 @@ msgid ""
 "Use some legal services that can be covered with a quarterly fee and tax "
 "distribution between Freedom Coop members."
 msgstr ""
-"Fer servir alguns serveis legals que poden ser coberts amb una quota trimestral "
-"i distribució de taxes entre membres."
+"Fer servir alguns serveis legals que poden ser coberts amb una quota "
+"trimestral i distribució de taxes entre membres."
 
 #: valuenetwork/templates/account/login.html:70
 #: work/templates/work/project_login.html:83
@@ -2466,7 +2473,8 @@ msgstr "Gestionar un moneder online de Faircoin per acceptar i fer pagaments."
 msgid ""
 "Freedom Coop, will use OCP for our collective organization as an open "
 "cooperative process."
-msgstr "Freedom Coop, farà us de OCP per a la nostra organització col·lectiva com a "
+msgstr ""
+"Freedom Coop, farà us de OCP per a la nostra organització col·lectiva com a "
 "procés cooperatiu."
 
 #: valuenetwork/templates/account/login.html:76
@@ -2694,7 +2702,8 @@ msgid ""
 "a>."
 msgstr ""
 "Si tens algun problema redefinint la teva contrasenya, contacta amb <a href="
-"\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>"
+"\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</"
+"a>"
 
 #: valuenetwork/templates/account/password_reset_sent.html:7
 #: valuenetwork/templates/account/password_reset_sent.html:10
@@ -2708,9 +2717,9 @@ msgid ""
 "try resending or contact us at <a href=\"mailto:"
 "%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 msgstr ""
-"T'hem enviat un correu electrònic. Si no el rebs en uns minuts, "
-"prova a re-enviar-lo o contacta amb <a href=\"mailto:"
-"%(THEME_ACCOUNT_CONTACT_EMAIL)s\">%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
+"T'hem enviat un correu electrònic. Si no el rebs en uns minuts, prova a re-"
+"enviar-lo o contacta amb <a href=\"mailto:%(THEME_ACCOUNT_CONTACT_EMAIL)s\">"
+"%(THEME_ACCOUNT_CONTACT_EMAIL)s</a>."
 
 #: valuenetwork/templates/account/password_reset_sent.html:18
 msgid "Resend"
@@ -3024,7 +3033,8 @@ msgstr "Mostra Ajuda"
 
 #: valuenetwork/templates/theme_bootstrap/base.html:104
 msgid "This page has no help yet.  Ask an Admin to create some."
-msgstr "Aquesta pàgina no te ajuda encara. Pregunta a un Admin de crear-ne una."
+msgstr ""
+"Aquesta pàgina no te ajuda encara. Pregunta a un Admin de crear-ne una."
 
 #: valuenetwork/templates/valueaccounting/_facet_filter.html:3
 #: valuenetwork/templates/valueaccounting/cash_report.html:204
@@ -4485,7 +4495,7 @@ msgstr ""
 #: valuenetwork/valueaccounting/models.py:12761
 #: valuenetwork/valueaccounting/models.py:12995
 #: valuenetwork/valueaccounting/models.py:14368
-#: valuenetwork/valueaccounting/models.py:14715 work/models.py:2327
+#: valuenetwork/valueaccounting/models.py:14715 work/models.py:2329
 #: work/templates/work/order_list.html:100
 msgid "created by"
 msgstr "creat per"
@@ -8171,7 +8181,7 @@ msgstr ""
 #: valuenetwork/valueaccounting/models.py:10722
 #: valuenetwork/valueaccounting/models.py:12433
 #: valuenetwork/valueaccounting/models.py:12746
-#: valuenetwork/valueaccounting/models.py:14355 work/models.py:2300
+#: valuenetwork/valueaccounting/models.py:14355 work/models.py:2302
 msgid "name"
 msgstr "nom"
 
@@ -8303,7 +8313,7 @@ msgstr ""
 #: valuenetwork/valueaccounting/models.py:8997
 #: valuenetwork/valueaccounting/models.py:10948
 #: valuenetwork/valueaccounting/models.py:12754
-#: valuenetwork/valueaccounting/models.py:12972 work/models.py:2304
+#: valuenetwork/valueaccounting/models.py:12972 work/models.py:2306
 msgid "url"
 msgstr ""
 
@@ -8417,7 +8427,7 @@ msgstr ""
 msgid "customer"
 msgstr ""
 
-#: valuenetwork/valueaccounting/models.py:2190 work/models.py:2323
+#: valuenetwork/valueaccounting/models.py:2190 work/models.py:2325
 msgid "member"
 msgstr "membre"
 
@@ -8694,8 +8704,8 @@ msgid ""
 "if this resource has different units of use and inventory, this is the unit "
 "of inventory"
 msgstr ""
-"si quest recurs te diferents unitats d'us i d'inventori, aquesta és la unitat "
-"del inventori"
+"si quest recurs te diferents unitats d'us i d'inventori, aquesta és la "
+"unitat del inventori"
 
 #: valuenetwork/valueaccounting/models.py:2809
 msgid "unit of use"
@@ -8706,7 +8716,8 @@ msgid ""
 "if this resource has different units of use and inventory, this is the unit "
 "of use"
 msgstr ""
-"si aquest recurs te diferents unitats d'us i d'inventori, aquesta és la unitat d'us"
+"si aquest recurs te diferents unitats d'us i d'inventori, aquesta és la "
+"unitat d'us"
 
 #: valuenetwork/valueaccounting/models.py:2813
 #: valuenetwork/valueaccounting/models.py:7167
@@ -8773,7 +8784,7 @@ msgstr "referència opcional a un compte extern"
 #: valuenetwork/valueaccounting/models.py:12753
 #: valuenetwork/valueaccounting/models.py:12970
 #: valuenetwork/valueaccounting/models.py:14876
-#: valuenetwork/valueaccounting/models.py:15034 work/models.py:2525
+#: valuenetwork/valueaccounting/models.py:15034 work/models.py:2527
 msgid "context agent"
 msgstr "agent de contexte"
 
@@ -9163,7 +9174,7 @@ msgid "processes"
 msgstr ""
 
 #: valuenetwork/valueaccounting/models.py:8628
-#: valuenetwork/valueaccounting/models.py:14356 work/models.py:2320
+#: valuenetwork/valueaccounting/models.py:14356 work/models.py:2322
 msgid "sequence"
 msgstr "seqüencia"
 
@@ -9724,8 +9735,9 @@ msgid ""
 "defined by you and configured by OCP Admins. Only works if the project has a "
 "'moderated' joining style."
 msgstr ""
-"Serveix per enllaçar el vostre formulari a mida, però després que hagueu definit els camps i algn admin del OCP els hagi configurat. "
-"Només funciona per projectes amb accés moderat."
+"Serveix per enllaçar el vostre formulari a mida, però després que hagueu "
+"definit els camps i algn admin del OCP els hagi configurat. Només funciona "
+"per projectes amb accés moderat."
 
 #: work/forms.py:242
 msgid "Choose a new relationship"
@@ -9752,7 +9764,8 @@ msgid ""
 "This name is already used by another agent, do yo want to diferentiate "
 "anyhow? "
 msgstr ""
-"Aquest nom ja està registrat per un altre usuari, vols diferenciar-te d'alguna manera? "
+"Aquest nom ja està registrat per un altre usuari, vols diferenciar-te "
+"d'alguna manera? "
 
 #: work/forms.py:317
 msgid "Bad type of user??"
@@ -9763,28 +9776,32 @@ msgid ""
 "A too similar username already exists. Please login here with your OCP "
 "credentials or choose another username."
 msgstr ""
-"Un nom d'usuari massa similar ja existeix. Inicia sessió aquí amb les teves credencials de OCP o escull un altre nom d'usuari"
+"Un nom d'usuari massa similar ja existeix. Inicia sessió aquí amb les teves "
+"credencials de OCP o escull un altre nom d'usuari"
 
 #: work/forms.py:326
 msgid ""
 "The username already exists. Please login here to join this project or "
 "choose another username."
 msgstr ""
-"El nom d'usuari ja existeix. Si et plau, inicia sessió aquí per unir-te al projecte o bé escull un altre nom d'usuari"
+"El nom d'usuari ja existeix. Si et plau, inicia sessió aquí per unir-te al "
+"projecte o bé escull un altre nom d'usuari"
 
 #: work/forms.py:330
 msgid ""
 "This username is already used in another request to join this same project. "
 "Please wait for an answer before applying again. "
 msgstr ""
-"Aquest nom d'usuari ja existeix per una altre petició d'alta. Espera alguna resposta abans d'aplicar de nou."
+"Aquest nom d'usuari ja existeix per una altre petició d'alta. Espera alguna "
+"resposta abans d'aplicar de nou."
 
 #: work/forms.py:339
 msgid ""
 "The email address is already registered in the system as a request to join "
 "this same project. Please wait for an answer before applying again."
 msgstr ""
-"El correu-e ja està registrar al sistema com a petició d'alta en aquest mateix projecte. Espera resposta abans d'aplicar de nou."
+"El correu-e ja està registrar al sistema com a petició d'alta en aquest "
+"mateix projecte. Espera resposta abans d'aplicar de nou."
 
 #: work/forms.py:346
 msgid ""
@@ -9798,24 +9815,25 @@ msgid ""
 "The email address is already registered in the system for various agents! "
 "Please login here and we'll try to solve this:"
 msgstr ""
-"El correu-e ja està registrat al sistema per a diversos agents! "
-"Si us plau, inicia sessió aquí i procurarem resoldre-ho:"
+"El correu-e ja està registrat al sistema per a diversos agents! Si us plau, "
+"inicia sessió aquí i procurarem resoldre-ho:"
 
 #: work/forms.py:353
 msgid ""
 "The email address is already registered in the system for another username. "
 "To join this project please login here with your existent OCP username."
 msgstr ""
-"L'adreça de correu-e ja està registrada al sistema per a un altre nom d'usuari. "
-"Per unir-te a aquest projecte millor inicia sessió aquí amb el teu usuari OCP"
+"L'adreça de correu-e ja està registrada al sistema per a un altre nom "
+"d'usuari. Per unir-te a aquest projecte millor inicia sessió aquí amb el teu "
+"usuari OCP"
 
 #: work/forms.py:355
 msgid ""
 "The email address is already registered in the system with same username. To "
 "join this project please login here:"
 msgstr ""
-"L'adreça de correu-e ja està registrada al sistema amb el mateix nom d'usuari. "
-"Per unir-te al projecte inicia sessió aquí:"
+"L'adreça de correu-e ja està registrada al sistema amb el mateix nom "
+"d'usuari. Per unir-te al projecte inicia sessió aquí:"
 
 #: work/forms.py:450
 msgid "Login password"
@@ -9855,7 +9873,8 @@ msgid ""
 "If the exchange type is only useful for your project or a parent sector "
 "collective, choose a smaller context here."
 msgstr ""
-"Si el tipus d'intercanvi és només útil per al vostre projecte o un sector col·lectiu parent, escull aquí un contexte més petit."
+"Si el tipus d'intercanvi és només útil per al vostre projecte o un sector "
+"col·lectiu parent, escull aquí un contexte més petit."
 
 #: work/forms.py:651
 msgid "Name of the Resource Type"
@@ -9870,14 +9889,16 @@ msgid ""
 "If the resource type is only useful for your project or a parent sector "
 "collective, choose a smaller context here."
 msgstr ""
-"Si el tipus d'intercanvi és només útil per al vostre projecte o un sector col·lectiu parent, escull aquí un contexte més petit."
+"Si el tipus d'intercanvi és només útil per al vostre projecte o un sector "
+"col·lectiu parent, escull aquí un contexte més petit."
 
 #: work/forms.py:676
 msgid ""
 "Check this if any resource of this type can be substituted for any other "
 "resource of this same type."
 msgstr ""
-"Marca aixó si qualsevol recurs d'aquest tipus pot ser substituït per qualsevol altre recurs del mateix tipus."
+"Marca aixó si qualsevol recurs d'aquest tipus pot ser substituït per "
+"qualsevol altre recurs del mateix tipus."
 
 #: work/forms.py:685
 msgid ""
@@ -9886,7 +9907,8 @@ msgid ""
 "unsure."
 msgstr ""
 "Escull 'Cada' per referir-te a una unitat com a peça, o la principal Unitat "
-"de comptabilitat o mesura per a recursos d'aquest tipus, o be deixa-ho buit si no ho tens clar."
+"de comptabilitat o mesura per a recursos d'aquest tipus, o be deixa-ho buit "
+"si no ho tens clar."
 
 #: work/forms.py:687 work/forms.py:815
 msgid "search Unit type..."
@@ -9900,7 +9922,8 @@ msgstr "Preu fixe en Faircoin per cada unitat?"
 msgid ""
 "Set only if all the resources of this type will have a fixed Faircoin price."
 msgstr ""
-"Defineix només si tots els recursos d'aquest tipus tindran el mateix preu en Faircoin."
+"Defineix només si tots els recursos d'aquest tipus tindran el mateix preu en "
+"Faircoin."
 
 #: work/forms.py:702
 msgid "Has a main related resource type from another branch?"
@@ -9911,7 +9934,8 @@ msgid ""
 "If this resource type is mainly related another resource type from a "
 "different branch, choose it here."
 msgstr ""
-"Si aquest tipus de recurs està relacionat principalment amb un altre tipus de recurs d'una altra branca, escull-lo aquí."
+"Si aquest tipus de recurs està relacionat principalment amb un altre tipus "
+"de recurs d'una altra branca, escull-lo aquí."
 
 #: work/forms.py:711
 msgid "Inherit a Recipe from another resource type?"
@@ -9922,7 +9946,8 @@ msgid ""
 "If the resource type must inherit a Recipe from another resource type, "
 "choose it here."
 msgstr ""
-"Si el tipus de recurs ha d'heretar una Recepta d'un altre tipus de recurs, escull-lo aquí."
+"Si el tipus de recurs ha d'heretar una Recepta d'un altre tipus de recurs, "
+"escull-lo aquí."
 
 #: work/forms.py:714
 msgid "search Resource type with Recipe..."
@@ -9968,14 +9993,16 @@ msgid ""
 "If this skill type is mainly related a resource type or branch, choose it "
 "here."
 msgstr ""
-"Si aquest tipus de ofici esta recionat principalment amb un tipus de recurs o branca, escull-lo aqui."
+"Si aquest tipus de ofici esta recionat principalment amb un tipus de recurs "
+"o branca, escull-lo aqui."
 
 #: work/forms.py:803
 msgid ""
 "If the skill is only useful for your project or a parent sector collective, "
 "choose a smaller context here."
 msgstr ""
-"Si el tipus d'ofici només és útil èr al vostre projecte o un sector col·lectiu parent, escull aquí un contexte més petit"
+"Si el tipus d'ofici només és útil èr al vostre projecte o un sector "
+"col·lectiu parent, escull aquí un contexte més petit"
 
 #: work/forms.py:812
 msgid "Unit of time measure"
@@ -9983,14 +10010,17 @@ msgstr "Unitat de mesura del temps"
 
 #: work/forms.py:813
 msgid "Choose Hours or another time related unit to measure the skill service."
-msgstr "Escull Hores o una altre unitat de temps relacionada per mesurar el servei del ofici."
+msgstr ""
+"Escull Hores o una altre unitat de temps relacionada per mesurar el servei "
+"del ofici."
 
 #: work/forms.py:822
 msgid ""
 "Set only if all the service time of this type will have a fixed Faircoin "
 "price."
 msgstr ""
-"Defineix només si tots els temps de servei d'aquest tipus tenen un preu fixe de Faircoin."
+"Defineix només si tots els temps de servei d'aquest tipus tenen un preu fixe "
+"de Faircoin."
 
 #: work/forms.py:827
 msgid "Any related URL for the Skill?"
@@ -10051,22 +10081,21 @@ msgstr "Número de Participacions"
 #: work/models.py:82
 msgid ""
 "How many shares would you like to underwrite? Each share is worth 30 Euros"
-msgstr ""
-"Quantes participacions vols adquirir? cada una val 30 Euros"
+msgstr "Quantes participacions vols adquirir? cada una val 30 Euros"
 
 #: work/models.py:84
 msgid ""
 "Describe your project or collective and the skills or abilities you can "
 "offer the cooperative"
 msgstr ""
-"Descriu el projecte o col·lectiu i els oficis o habilitats que podeu oferir a la cooperativa"
+"Descriu el projecte o col·lectiu i els oficis o habilitats que podeu oferir "
+"a la cooperativa"
 
 #: work/models.py:87
 msgid ""
 "The username you use in the FairNetwork at <a href='https://fair.coop' "
 "target='_blank'>fair.coop</a>"
 msgstr ""
-""
 
 #: work/models.py:89
 msgid ""
@@ -10193,7 +10222,8 @@ msgid ""
 "username and email to have it separate."
 msgstr ""
 "Si ja tens un compte a OCP, pots iniciar sessió abans d'omplir el formulari "
-"per tenir aquest projectce al mateix compte, o pots escollir un altre no d'usuari i correu-e per tenir-ho separat."
+"per tenir aquest projectce al mateix compte, o pots escollir un altre no "
+"d'usuari i correu-e per tenir-ho separat."
 
 #: work/models.py:538
 msgid "Email address *"
@@ -10215,7 +10245,8 @@ msgstr ""
 msgid ""
 "this join request is linked to this custom form (fobi SavedFormDataEntry)"
 msgstr ""
-"aquesta petició d'alta esta enllaçada amb aquest formulari a mida (fobi SavedFormDataEntry)"
+"aquesta petició d'alta esta enllaçada amb aquest formulari a mida (fobi "
+"SavedFormDataEntry)"
 
 #: work/models.py:564
 msgid "this join request is linked to this Ocp Exchange"
@@ -10226,8 +10257,8 @@ msgid ""
 "Once you log in and change your password, you'll be able to top-up your "
 "internal Faircoin account and proceed to pay the membership shares."
 msgstr ""
-"Un cop iniciada la sessió i canviada la contrasenya, podras recarregar el teu "
-"compte Faircoin intern i procedir a pagar les participacions."
+"Un cop iniciada la sessió i canviada la contrasenya, podras recarregar el "
+"teu compte Faircoin intern i procedir a pagar les participacions."
 
 #: work/models.py:894
 #, python-format
@@ -10235,12 +10266,15 @@ msgid ""
 "Your ocp faircoin balance is not enough to pay this shares, still missing: "
 "%(f)s <br/> You can send them to your account %(ac)s and then pay the shares"
 msgstr ""
-"El teu saldo en faircoins a ocp no és suficient per pagar les participacions, encara falten: "
-"%(f)s <br/> Pots enviar-los al teu compte %(ac)s i llavors pagar les participacions"
+"El teu saldo en faircoins a ocp no és suficient per pagar les "
+"participacions, encara falten: %(f)s <br/> Pots enviar-los al teu compte "
+"%(ac)s i llavors pagar les participacions"
 
 #: work/models.py:898
 msgid "Your actual faircoin balance is enough. You can pay the shares now!"
-msgstr "El teu saldo actual de faircoins es suficient. Pots pagar les participacions ara!"
+msgstr ""
+"El teu saldo actual de faircoins es suficient. Pots pagar les participacions "
+"ara!"
 
 #: work/models.py:900 work/templates/work/exchange_logging_work.html:269
 msgid "Faircoin account"
@@ -10274,174 +10308,186 @@ msgstr "No hi ha adreça faircoin?"
 msgid "This agent don't have an OCP Faircoin Account yet."
 msgstr "Aquest agent no te encara un Compte Faircoin OCP."
 
-#: work/models.py:2153
+#: work/models.py:917
+#, fuzzy
+#| msgid "Account History"
+msgid "Amount to pay"
+msgstr "Quantitat a pagar"
+
+#: work/models.py:923
+msgid "payed"
+msgstr "pagat"
+
+#: work/models.py:2155
 #, python-format
 msgid ""
 "%(pass)s is the initial random password for agent %(user)s, used to verify "
 "the email address %(mail)s"
 msgstr ""
-"%(pass)s és la contrasenya inicial aleatòria per al agent %(user)s, usada per verificar l'adreça de correu-e %(mail)s"
+"%(pass)s és la contrasenya inicial aleatòria per al agent %(user)s, usada "
+"per verificar l'adreça de correu-e %(mail)s"
 
-#: work/models.py:2184
+#: work/models.py:2186
 msgid ""
 "Email failed! The destination address seems not real (or there's another "
 "email error): "
 msgstr ""
-"Email fallat! L'adreça de destí no sembla real (o bé hi ha algun error d'email): "
+"Email fallat! L'adreça de destí no sembla real (o bé hi ha algun error "
+"d'email): "
 
-#: work/models.py:2244
+#: work/models.py:2246
 msgid "The agent can't be deleted! "
 msgstr "El agent no pot ser esborrat! "
 
-#: work/models.py:2273
+#: work/models.py:2275
 msgid "WARNING!"
 msgstr ""
 
-#: work/models.py:2301
+#: work/models.py:2303
 msgid "deployment date"
 msgstr ""
 
-#: work/models.py:2303
+#: work/models.py:2305
 msgid "permissions"
 msgstr "permisos"
 
-#: work/models.py:2305
+#: work/models.py:2307
 msgid "screenshot"
 msgstr "captura de pantalla"
 
-#: work/models.py:2316
+#: work/models.py:2318
 msgid "invoice number"
 msgstr "número de factura"
 
-#: work/models.py:2317
+#: work/models.py:2319
 msgid "invoice date"
 msgstr "data factura"
 
-#: work/models.py:2318
+#: work/models.py:2320
 msgid "year"
 msgstr "any"
 
-#: work/models.py:2319
+#: work/models.py:2321
 msgid "quarter"
 msgstr "trimestre"
 
-#: work/models.py:2477
+#: work/models.py:2479
 msgid "related material_type"
 msgstr "tipus_material relacionat"
 
-#: work/models.py:2480
+#: work/models.py:2482
 msgid "a related General Material Type"
 msgstr "un Tipus General de Material relacionat"
 
-#: work/models.py:2494
+#: work/models.py:2496
 msgid "related nonmaterial_type"
 msgstr "tipus_inmaterial relacionat"
 
-#: work/models.py:2497
+#: work/models.py:2499
 msgid "a related General Non-material Type"
 msgstr "un Tipus General de Inmaterial relacionat"
 
-#: work/models.py:2503 work/models.py:2628
+#: work/models.py:2505 work/models.py:2630
 msgid "ocp facet"
 msgstr ""
 
-#: work/models.py:2506 work/models.py:2631
+#: work/models.py:2508 work/models.py:2633
 msgid "a related OCP Facet"
 msgstr ""
 
-#: work/models.py:2511 work/models.py:2636
+#: work/models.py:2513 work/models.py:2638
 msgid "ocp facet_value"
 msgstr ""
 
-#: work/models.py:2514 work/models.py:2639
+#: work/models.py:2516 work/models.py:2641
 msgid "a related OCP FacetValue"
 msgstr ""
 
-#: work/models.py:2519 work/models.py:2620
+#: work/models.py:2521 work/models.py:2622
 msgid "ocp resource_type"
 msgstr ""
 
-#: work/models.py:2522 work/models.py:2623
+#: work/models.py:2524 work/models.py:2625
 msgid "a related OCP ResourceType"
 msgstr ""
 
-#: work/models.py:2529
+#: work/models.py:2531
 msgid "a related OCP context EconomicAgent"
 msgstr ""
 
-#: work/models.py:2534
+#: work/models.py:2536
 msgid "general unit_type"
 msgstr ""
 
-#: work/models.py:2537
+#: work/models.py:2539
 msgid "a related General Unit Type"
 msgstr ""
 
-#: work/models.py:2543
+#: work/models.py:2545
 msgid "Type of General Artwork/Resource"
 msgstr ""
 
-#: work/models.py:2544
+#: work/models.py:2546
 msgid "o-> Types of General Artworks/Resources"
 msgstr ""
 
-#: work/models.py:2644 work/models.py:2714
+#: work/models.py:2646 work/models.py:2716
 msgid "general artwork_type"
 msgstr ""
 
-#: work/models.py:2647 work/models.py:2717
+#: work/models.py:2649 work/models.py:2719
 msgid "a related General Artwork Type"
 msgstr ""
 
-#: work/models.py:2661
+#: work/models.py:2663
 msgid "Type of General Skill Resources"
 msgstr ""
 
-#: work/models.py:2662
+#: work/models.py:2664
 msgid "o-> Types of General Skill Resources"
 msgstr ""
 
-#: work/models.py:2708
+#: work/models.py:2710
 msgid "ocp exchange type"
 msgstr ""
 
-#: work/models.py:2722
+#: work/models.py:2724
 msgid "general skill_type"
 msgstr ""
 
-#: work/models.py:2725
+#: work/models.py:2727
 msgid "a related General Skill Type"
 msgstr ""
 
-#: work/models.py:2739
+#: work/models.py:2741
 msgid "Type of General Record"
 msgstr ""
 
-#: work/models.py:2740
+#: work/models.py:2742
 msgid "o-> Types of General Records"
 msgstr ""
 
-#: work/models.py:2874
+#: work/models.py:2876
 msgid "Type of General Unit"
 msgstr ""
 
-#: work/models.py:2875
+#: work/models.py:2877
 msgid "o-> Types of General Units"
 msgstr ""
 
-#: work/templates/_settings_bar.html:45
+#: work/templates/_settings_bar.html:46
 msgid "DB Admin"
 msgstr ""
 
-#: work/templates/_settings_bar.html:47
+#: work/templates/_settings_bar.html:48
 msgid "Coop Admin App"
 msgstr ""
 
-#: work/templates/_settings_bar.html:54
+#: work/templates/_settings_bar.html:55
 msgid "Your personal faircoin account in OCP"
 msgstr "El teu compte personal de faircoin a OCP"
 
-#: work/templates/_settings_bar.html:55 work/templates/new_base.html:309
+#: work/templates/_settings_bar.html:56 work/templates/new_base.html:309
 #: work/templates/work/join_request_with_comments.html:154
 #: work/templates/work/membership_request_with_comments.html:74
 #: work/templates/work/my_dashboard.html:225
@@ -10450,33 +10496,33 @@ msgstr "El teu compte personal de faircoin a OCP"
 msgid "Faircoin Account"
 msgstr "Compte Faircoin"
 
-#: work/templates/_settings_bar.html:62
+#: work/templates/_settings_bar.html:63
 msgid "Your profile information and skills"
 msgstr "Informacio de perfil i oficis"
 
-#: work/templates/_settings_bar.html:63 work/templates/new_base.html:365
+#: work/templates/_settings_bar.html:64 work/templates/new_base.html:365
 #: work/templates/work/my_dashboard.html:346 work/templates/work/profile.html:8
 msgid "Profile"
 msgstr "Perfil"
 
-#: work/templates/_settings_bar.html:68 work/templates/work/new_features.html:8
+#: work/templates/_settings_bar.html:69 work/templates/work/new_features.html:8
 #: work/templates/work/new_features.html:29
 msgid "New OCP Features"
 msgstr ""
 
-#: work/templates/_settings_bar.html:69
+#: work/templates/_settings_bar.html:70
 msgid "New Features"
 msgstr ""
 
-#: work/templates/_settings_bar.html:78 work/templates/work/profile.html:87
+#: work/templates/_settings_bar.html:79 work/templates/work/profile.html:87
 msgid "Your coop feedback page"
 msgstr "La teva pàgina de feeback amb la coop"
 
-#: work/templates/_settings_bar.html:81 work/templates/work/profile.html:89
+#: work/templates/_settings_bar.html:82 work/templates/work/profile.html:89
 msgid "Coop Feedback"
 msgstr ""
 
-#: work/templates/_settings_bar.html:83 work/templates/new_base.html:301
+#: work/templates/_settings_bar.html:84 work/templates/new_base.html:301
 #: work/templates/work/join_request_with_comments.html:118
 #: work/templates/work/my_dashboard.html:326
 msgid "Membership"
@@ -10772,7 +10818,6 @@ msgstr ""
 "\n"
 "Benvinguda a la 'Open Collaborative Platform'!\n"
 
-
 #: work/templates/pinax/notifications/work_new_account/short.txt:1
 #, python-format
 msgid "New OCP Account for %(username)s to join %(project)s"
@@ -10942,7 +10987,9 @@ msgstr "Tipus de Recurs:"
 #: work/templates/work/exchange_logging_work.html:1280
 #: work/templates/work/exchange_logging_work.html:1370
 msgid "Can't retrieve General types, try choosing a resource type below:"
-msgstr "No es poden trobar tipus Generals, prova escollint un tipus de recurs aquí sota:"
+msgstr ""
+"No es poden trobar tipus Generals, prova escollint un tipus de recurs aquí "
+"sota:"
 
 #: work/templates/work/exchange_logging_work.html:463
 #: work/templates/work/exchange_logging_work.html:1017
@@ -11018,7 +11065,8 @@ msgid ""
 "* Note these totals are meaningful only if the events selected all use the "
 "same currency. <br/>(We'll do a multi total per unit-type box soon)"
 msgstr ""
-"* Aquests totals només tenen sentit si els events seleccionats usen tots la mateixa moneda."
+"* Aquests totals només tenen sentit si els events seleccionats usen tots la "
+"mateixa moneda."
 
 #: work/templates/work/exchanges_all.html:449
 msgid "Filters:"
@@ -11084,7 +11132,8 @@ msgstr "Crea un nou Intercanvi"
 
 #: work/templates/work/exchanges_all.html:881
 msgid "Choose a previously used <b>Exchange Type</b> to copy the model:"
-msgstr "Escull un <b>Tipus d'Intercanvi</b> prèviament usat per copiar el model:"
+msgstr ""
+"Escull un <b>Tipus d'Intercanvi</b> prèviament usat per copiar el model:"
 
 #: work/templates/work/exchanges_all.html:884
 msgid "Or search an available exchange type:"
@@ -11098,11 +11147,13 @@ msgstr "O fes-ne un de nou..."
 msgid ""
 "The new resource type request has some errors, click 'SHOW' to see them."
 msgstr ""
-"La petició de nou tipus de recurs te alguns errors, clica 'SHOW' per veure'ls."
+"La petició de nou tipus de recurs te alguns errors, clica 'SHOW' per "
+"veure'ls."
 
 #: work/templates/work/exchanges_all.html:894
 msgid "The new skill type request has some errors, click 'SHOW' to see them."
-msgstr "La petició de nou tipus d'ofici te algins errors, clica 'SHOW' per veure'ls."
+msgstr ""
+"La petició de nou tipus d'ofici te algins errors, clica 'SHOW' per veure'ls."
 
 #: work/templates/work/exchanges_all.html:911
 msgid "...choosing a <b>use case</b>:"
@@ -11165,7 +11216,8 @@ msgstr "Nou Intercanvi"
 
 #: work/templates/work/exchanges_all.html:1122
 msgid "To create a new exchange Type, please request it to an Ocp admin."
-msgstr "Per crear un nou Tipus d'intercanvi, demana-ho a un administrdor de OCP."
+msgstr ""
+"Per crear un nou Tipus d'intercanvi, demana-ho a un administrdor de OCP."
 
 #: work/templates/work/exchanges_all.html:1130
 msgid "Add a new "
@@ -11269,7 +11321,8 @@ msgid ""
 "This user has not verified the email yet and still has the initial random "
 "password."
 msgstr ""
-"Aquest usuari no ha verificat el correu-e encara i te la contrasenya aleatoria inicial."
+"Aquest usuari no ha verificat el correu-e encara i te la contrasenya "
+"aleatoria inicial."
 
 #: work/templates/work/join_request_with_comments.html:210
 msgid "Resend Password"
@@ -11312,7 +11365,8 @@ msgstr "Posar Completat"
 
 #: work/templates/work/join_request_with_comments.html:306
 msgid "(The payment is done, this will only transfer the pending shares)"
-msgstr "(El pagament esta fet, aixó només transferirà les participacions pendents)"
+msgstr ""
+"(El pagament esta fet, aixó només transferirà les participacions pendents)"
 
 #: work/templates/work/join_request_with_comments.html:308
 msgid "(This will set the payment as done and transfer the shares)"
@@ -11506,7 +11560,8 @@ msgstr "Petició d'alta a:"
 
 #: work/templates/work/joinaproject_request.html:200
 msgid "The first step to join this project is to fill the following form:"
-msgstr "El primer pas per unir-se a aquest projecte és omplir el següent formulari:"
+msgstr ""
+"El primer pas per unir-se a aquest projecte és omplir el següent formulari:"
 
 #: work/templates/work/joinaproject_request_internal.html:64
 msgid "You already are an active participant of this project!"
@@ -11515,7 +11570,9 @@ msgstr "Ja ets un participant actiu d'aquest projecte!"
 #: work/templates/work/joinaproject_request_internal.html:68
 msgid ""
 "However, you didn't fill the project form yet. You can do so now if you wish."
-msgstr "De tota manera, no has omplert encara el formulari de registre. Pots fer-ho ara si vols."
+msgstr ""
+"De tota manera, no has omplert encara el formulari de registre. Pots fer-ho "
+"ara si vols."
 
 #: work/templates/work/joinaproject_thanks.html:9
 msgid "Thank you for your request to join this project"
@@ -11531,7 +11588,8 @@ msgid ""
 "If you are <b>%(existuser)s</b>, put your existent password to connect this "
 "request to your account."
 msgstr ""
-"Si ets <b>%(existuser)s</b>, posa la teva contrasenya existent per connectar aquesta petició al teu compte."
+"Si ets <b>%(existuser)s</b>, posa la teva contrasenya existent per connectar "
+"aquesta petició al teu compte."
 
 #: work/templates/work/joinaproject_thanks.html:49
 msgid "Thank you for your request to join"
@@ -11542,14 +11600,16 @@ msgid ""
 "You will receive an initial password in your email, to log in the system and "
 "confirm the email address."
 msgstr ""
-"Rebras una clau d'accés inicial al teu correu-e, per iniciar sessió i confirmar l'adreça de correu-e."
+"Rebras una clau d'accés inicial al teu correu-e, per iniciar sessió i "
+"confirmar l'adreça de correu-e."
 
 #: work/templates/work/joinaproject_thanks.html:66
 msgid ""
 "Please change your password the first time you enter the system to ensure "
 "total security."
 msgstr ""
-"Canvia la teva contrasenya la primera vegada que entris al sistema per garantir la seguretat."
+"Canvia la teva contrasenya la primera vegada que entris al sistema per "
+"garantir la seguretat."
 
 #: work/templates/work/joinaproject_thanks.html:70
 msgid "You've choosed to pay your"
@@ -11564,14 +11624,16 @@ msgid ""
 "To pay the shares directly by credit card or BotC wallet is required to "
 "first login in OCP."
 msgstr ""
-"Per pagar les participacions directament amb targeta de crèdit o amb BotC-Wallet és necessari iniciar sessió abans a OCP."
+"Per pagar les participacions directament amb targeta de crèdit o amb BotC-"
+"Wallet és necessari iniciar sessió abans a OCP."
 
 #: work/templates/work/joinaproject_thanks.html:77
 msgid ""
 "You've received an email with an initial random password to proceed (change "
 "it afterwards)."
 msgstr ""
-"Has rebut un correu amb la contrasenya inicial aleatòria per procedir (canvia-la un cop usada)."
+"Has rebut un correu amb la contrasenya inicial aleatòria per procedir "
+"(canvia-la un cop usada)."
 
 #: work/templates/work/map.html:42
 msgid "Current work location"
@@ -11697,17 +11759,17 @@ msgid ""
 "listed which custom fields are needed (using the feedback page) so admins "
 "can proceed."
 msgstr ""
-"El formulari a mida pot estar pendent de configurar per administradors. Assegura't "
-"d'haver llistat quins camps es necessiten (fent servir la pàgina de feedback) de "
-"manera que els administradors puguin procedir."
+"El formulari a mida pot estar pendent de configurar per administradors. "
+"Assegura't d'haver llistat quins camps es necessiten (fent servir la pàgina "
+"de feedback) de manera que els administradors puguin procedir."
 
 #: work/templates/work/members_agent.html:538
 msgid ""
 "(custom form fields pending to setup, list your desired fields and ask an "
 "admin using the feedback page)"
 msgstr ""
-"(camps del formulari a mida pendents de configurar, llista els camps desitjats i pregunta "
-"a un coordinador a la pàgina de 'feedback')"
+"(camps del formulari a mida pendents de configurar, llista els camps "
+"desitjats i pregunta a un coordinador a la pàgina de 'feedback')"
 
 #: work/templates/work/members_agent.html:544
 msgid "Offered Shares:"
@@ -11865,7 +11927,9 @@ msgstr "Uneix-te a aquest projecte:"
 msgid ""
 "Sorry, you've tried to join this project but your request was <b>declined</"
 "b> for any reason. See the thread at"
-msgstr "Disculpa, has provat d'unir-te a aquest projecte pero la teva petició ha estat <b>declinada</b> per alguna raó. Mira el fil de comunicació a"
+msgstr ""
+"Disculpa, has provat d'unir-te a aquest projecte pero la teva petició ha "
+"estat <b>declinada</b> per alguna raó. Mira el fil de comunicació a"
 
 #: work/templates/work/members_agent.html:1193
 msgid "Your Declined Joining Feedback"
@@ -11875,7 +11939,9 @@ msgstr "El Feedback de la Alta Declinada"
 msgid ""
 "You've requested to join this project. To keep track of the joining process "
 "go to"
-msgstr "Has demanat d'unir-te a aquest projecte. Per tenir traçat el procés d'alta ves a"
+msgstr ""
+"Has demanat d'unir-te a aquest projecte. Per tenir traçat el procés d'alta "
+"ves a"
 
 #: work/templates/work/members_agent.html:1197
 msgid "Your Joining Feedback"
@@ -11887,8 +11953,9 @@ msgid ""
 "to request access, and then you will have a special feedback page to "
 "comunicate with the project coordinators"
 msgstr ""
-"Aquest projecte te un accés moderat. Cal omplir el següent formulari per demanar accés, "
-"i aleshores tindràs un pàgina de feedback especial per comunicar-te amb els coordinadors del projecte"
+"Aquest projecte te un accés moderat. Cal omplir el següent formulari per "
+"demanar accés, i aleshores tindràs un pàgina de feedback especial per "
+"comunicar-te amb els coordinadors del projecte"
 
 #: work/templates/work/members_agent.html:1201
 msgid "Form to join"
@@ -11961,7 +12028,8 @@ msgid ""
 "As you already received your login information you are currently a "
 "membership candidate:"
 msgstr ""
-"Com que has rebut les teves dades d'inici de sessió ja ets un candidat de membre:"
+"Com que has rebut les teves dades d'inici de sessió ja ets un candidat de "
+"membre:"
 
 #: work/templates/work/my_dashboard.html:195
 msgid ""
@@ -11973,8 +12041,8 @@ msgid ""
 msgstr ""
 "Per ser membre actiu <b>el proper pas</b> és enviar prous Faircoins al teu "
 "nou compte de Faircoin a OCP, per pagar el número de participacions escollit "
-"al teu formulari de registre. Envia al menys l'import equivalent en Faircoins a "
-"la teva adreça faircoin a la pàgina del <b>Compte Faircoin</b>."
+"al teu formulari de registre. Envia al menys l'import equivalent en "
+"Faircoins a la teva adreça faircoin a la pàgina del <b>Compte Faircoin</b>."
 
 #: work/templates/work/my_dashboard.html:198
 msgid ""
@@ -11983,8 +12051,8 @@ msgid ""
 "full member of Freedom Coop and will have more tools available."
 msgstr ""
 "Quan tingis prous Faircoins al teu compte online, veuràs un botó per fer la "
-"transacció per les teves participacions. Un cop el cliquis seràs membre actiu "
-"de Freedom Coop i tindras més èines disponibles."
+"transacció per les teves participacions. Un cop el cliquis seràs membre "
+"actiu de Freedom Coop i tindras més èines disponibles."
 
 #: work/templates/work/my_dashboard.html:202
 msgid ""
@@ -12018,7 +12086,8 @@ msgstr "participacions pendents de comprar amb el teu"
 msgid ""
 "project, you should be accepted by its coordinators before you can use all "
 "the project tools."
-msgstr ", et cal ser acceptat per els seus coordinadors abans que puguis fer servir "
+msgstr ""
+", et cal ser acceptat per els seus coordinadors abans que puguis fer servir "
 "les èines del projecte."
 
 #: work/templates/work/my_dashboard.html:241
@@ -12034,12 +12103,15 @@ msgid ""
 "Here you can see the projects you are involved in and their structure. If "
 "you are a project coordinator you can manage your project also here."
 msgstr ""
-"Aqí pots veure els projectes ab els que estas involucrat i la seva estructura. "
-"Si ets un coordinador de projecte també pots gestionar el teu projecte aquí."
+"Aqí pots veure els projectes ab els que estas involucrat i la seva "
+"estructura. Si ets un coordinador de projecte també pots gestionar el teu "
+"projecte aquí."
 
 #: work/templates/work/my_dashboard.html:257
 msgid "A complete list of tasks related to the projects you are involved in."
-msgstr "Llista completa de tasques realcionades amb els projectes en els que participes."
+msgstr ""
+"Llista completa de tasques realcionades amb els projectes en els que "
+"participes."
 
 #: work/templates/work/my_dashboard.html:259
 msgid "Your project open work orders"
@@ -12047,7 +12119,8 @@ msgstr "Les comandes de treball"
 
 #: work/templates/work/my_dashboard.html:260
 msgid "A complete list of open work orders related your projects."
-msgstr "Llista completa de comandes de feina relacionades amb els teus projectes."
+msgstr ""
+"Llista completa de comandes de feina relacionades amb els teus projectes."
 
 #: work/templates/work/my_dashboard.html:262
 msgid "Plan project proceses"
@@ -12058,8 +12131,8 @@ msgid ""
 "Here you can define a work plan for your managed project and setup the "
 "needed process with work orders and tasks."
 msgstr ""
-"Aqui pots definir el pla de treball per al projectes que gestiones i configurar "
-"el procés necessari amb comandes de treball i tasques."
+"Aqui pots definir el pla de treball per al projectes que gestiones i "
+"configurar el procés necessari amb comandes de treball i tasques."
 
 #: work/templates/work/my_dashboard.html:266
 msgid "(coming soon)"
@@ -12070,7 +12143,8 @@ msgid ""
 "To learn how to use OCP and structure your project and create process plans "
 "for it"
 msgstr ""
-"Per apendre com usar OCP, estructurar el teu projecte i crear plans de procés per a ell"
+"Per apendre com usar OCP, estructurar el teu projecte i crear plans de "
+"procés per a ell"
 
 #: work/templates/work/my_dashboard.html:276
 msgid "Tasks:"
@@ -12082,8 +12156,9 @@ msgid ""
 "that you can also create by yourself. Here you can log the work you are "
 "doing."
 msgstr ""
-"La llista de tasques actives assignada a tu per processos de projectes o tasques simples "
-"que també pots crear tu mateixa. Aquí pots anotar el treball que estas fent."
+"La llista de tasques actives assignada a tu per processos de projectes o "
+"tasques simples que també pots crear tu mateixa. Aquí pots anotar el treball "
+"que estas fent."
 
 #: work/templates/work/my_dashboard.html:283
 msgid ""
@@ -12091,16 +12166,17 @@ msgid ""
 "them if you want. After that, these tasks will be assigned to you in 'your "
 "tasks' page."
 msgstr ""
-"Aquí una llista de tasques no assignades usant els teus oficis, així que pots agafar-ne alguna "
-"si vols. Després, aquestes tasques estaran assignades a tu en la pàgina de 'les teves tasques'."
+"Aquí una llista de tasques no assignades usant els teus oficis, així que "
+"pots agafar-ne alguna si vols. Després, aquestes tasques estaran assignades "
+"a tu en la pàgina de 'les teves tasques'."
 
 #: work/templates/work/my_dashboard.html:286
 msgid ""
 "Here you can log other tasks you did related to a project, but are not part "
 "of a defined project process."
 msgstr ""
-"Aquí pots anotar altres tasques que has fet en realció a un projecte, pero no son "
-"part d'un procés d'un projecte."
+"Aquí pots anotar altres tasques que has fet en realció a un projecte, pero "
+"no son part d'un procés d'un projecte."
 
 #: work/templates/work/my_dashboard.html:288
 msgid "History of tasks"
@@ -12125,26 +12201,27 @@ msgid ""
 msgstr ""
 "Aquí pots gestionar el teu compte Faircoin a OCP. En aquest compte rebràs "
 "els pagaments interns per les tasques que has fet. Pots veure la teva adreça "
-"Faircoin i pots enviar aqui Faircoins externs desde un altre moneder personal "
-"(o bé desde Euros fent servir <a href='https://getfaircoin.net' "
-"target='_blank'>https://getfaircoin.net</a>) si necessites pagar alguna cosa a "
-"OCP i no has guanyat suficients Faircoins fent tasques."
+"Faircoin i pots enviar aqui Faircoins externs desde un altre moneder "
+"personal (o bé desde Euros fent servir <a href='https://getfaircoin.net' "
+"target='_blank'>https://getfaircoin.net</a>) si necessites pagar alguna cosa "
+"a OCP i no has guanyat suficients Faircoins fent tasques."
 
 #: work/templates/work/my_dashboard.html:339
 msgid ""
 "Your FreedomCoop membership request data and a comments thread to comunicate "
 "with the Welcome Team about your particular case or project."
 msgstr ""
-"Les teves dades de la petició d'alta a FreedomCoop i un fil de comentaris per comunicar "
-"amb el Equip de Benvinguda sobre el teu cas particular o projecte."
+"Les teves dades de la petició d'alta a FreedomCoop i un fil de comentaris "
+"per comunicar amb el Equip de Benvinguda sobre el teu cas particular o "
+"projecte."
 
 #: work/templates/work/my_dashboard.html:347
 msgid ""
 "In this page you can see and edit your personal data and image, see your "
 "relations to projects and resources."
 msgstr ""
-"En aquesta pàgina pots veure i editar les teves dades personals i la imatge, veure "
-"les teves relacions amb projectes i recursos."
+"En aquesta pàgina pots veure i editar les teves dades personals i la imatge, "
+"veure les teves relacions amb projectes i recursos."
 
 #: work/templates/work/my_history.html:69
 msgid "Your tasks history"
@@ -12226,8 +12303,8 @@ msgid ""
 "You don't have a group context to work in, so you can't add or take tasks. "
 "Please ask an administrator to assign you to a group."
 msgstr ""
-"No tens un grup de contexte on treballar, així que no pots afegir a agafar tasques. "
-"Demana a un administrador que t'assigni a un grup."
+"No tens un grup de contexte on treballar, així que no pots afegir a agafar "
+"tasques. Demana a un administrador que t'assigni a un grup."
 
 #: work/templates/work/my_tasks.html:364 work/templates/work/my_tasks.html:645
 #: work/templates/work/project_work.html:511
@@ -12370,7 +12447,8 @@ msgid ""
 "coordinators."
 msgstr ""
 "Aixó és OCP, la nostra Plataforma Oberta Col·laborativa. La OCP és la èina "
-"clau d'organització que oferim a individuus, col·lectius i coordinadors de projectes."
+"clau d'organització que oferim a individuus, col·lectius i coordinadors de "
+"projectes."
 
 #: work/templates/work/project_login.html:84
 msgid "We"
@@ -12380,7 +12458,8 @@ msgstr "Nosaltres"
 msgid ""
 "will use OCP for our collective organization as an open cooperative process."
 msgstr ""
-"farem servir OCP per a la nostra organització col·lectiva com a procés obert cooperatiu."
+"farem servir OCP per a la nostra organització col·lectiva com a procés obert "
+"cooperatiu."
 
 #: work/templates/work/project_login.html:91
 msgid ""
@@ -12571,9 +12650,9 @@ msgid ""
 "Logging or the Process Logging page, depending on the type of work or "
 "project you are involved with."
 msgstr ""
-"Quan ho tinguis preparat, pots anotar el teu treball tant "
-"a la pàgina d'Anotacions sense Procés com a la d'Anotacions amb Procés, "
-"depenent del tipus de treball o projecte en els que estas involucrat."
+"Quan ho tinguis preparat, pots anotar el teu treball tant a la pàgina "
+"d'Anotacions sense Procés com a la d'Anotacions amb Procés, depenent del "
+"tipus de treball o projecte en els que estas involucrat."
 
 #: work/templates/work_home.html:35
 msgid "You can also find help on each page, in the upper right corner."
@@ -12585,8 +12664,8 @@ msgid ""
 "Please provide an email for the project \"{0}\" to use as a remitent for its "
 "moderated joining process notifications!"
 msgstr ""
-"Defineix un correu electrònic per al projecte \"{0}\" per usar com a remitent "
-"per a les notificacions del procés d'altes moderat!"
+"Defineix un correu electrònic per al projecte \"{0}\" per usar com a "
+"remitent per a les notificacions del procés d'altes moderat!"
 
 #: work/views.py:607
 msgid ""
@@ -12599,16 +12678,16 @@ msgid ""
 "Please provide an email for the project to use as a remitent for the "
 "moderated joining process notifications!"
 msgstr ""
-"Defineix un correu electrònic del projecte per usar com a remitent per "
-"a les notificacions del procés d'altes moderat!"
+"Defineix un correu electrònic del projecte per usar com a remitent per a les "
+"notificacions del procés d'altes moderat!"
 
 #: work/views.py:2123
 msgid ""
 "Can't disable the relation because there's still a join-request for this "
 "agent."
 msgstr ""
-"No es poden desactivar les relacions perque encara hi ha una petició "
-"d'alta per aquest agent."
+"No es poden desactivar les relacions perque encara hi ha una petició d'alta "
+"per aquest agent."
 
 #: work/views.py:2304
 #, python-brace-format
@@ -12617,9 +12696,9 @@ msgid ""
 "the user's email is not confirmed yet (has not changed his/her initial "
 "password)"
 msgstr ""
-"Els Comptes necessaris per aquest agent (relacionat amb {0}) no ha sigut creat "
-"perque el correu electrònic del usuari no ha sigut encara confirmat (no ha canviat "
-"la seva cantrasenya inicial"
+"Els Comptes necessaris per aquest agent (relacionat amb {0}) no ha sigut "
+"creat perque el correu electrònic del usuari no ha sigut encara confirmat "
+"(no ha canviat la seva cantrasenya inicial"
 
 #: work/views.py:2336 work/views.py:2353
 msgid "To participate in"
@@ -12649,8 +12728,8 @@ msgid ""
 "- Changed 'participant' for 'member' because the {0} project has shares, for "
 "agent {1} (status: {2})"
 msgstr ""
-"- Canviat 'participant' per 'membre' perque el projecte {0} te participacions, per "
-"al agent {1} (estat: {2})"
+"- Canviat 'participant' per 'membre' perque el projecte {0} te "
+"participacions, per al agent {1} (estat: {2})"
 
 #: work/views.py:2457 work/views.py:2458
 #, python-brace-format
@@ -12660,7 +12739,8 @@ msgstr "- Canviat 'selfemployed' per 'membre' per al agent {0} (estat: {1})"
 #: work/views.py:2461 work/views.py:2462
 #, python-brace-format
 msgid "- Changed 'selfemployed' for 'participant' for agent {0} (status: {1})"
-msgstr "- Canviat 'selfemployed' per 'participant' per al agent {0} (estat: {1})"
+msgstr ""
+"- Canviat 'selfemployed' per 'participant' per al agent {0} (estat: {1})"
 
 #: work/views.py:2803 work/views.py:3078
 #, python-brace-format
@@ -12678,16 +12758,16 @@ msgid ""
 "Please provide an email for the \"{0}\" project to use as a remitent for the "
 "moderated joining process notifications!"
 msgstr ""
-"Defineix un correu electrònic per al projecte \"{0}\" per a usar de remitent per a "
-"les notificacions del procés d'altes moderat!"
+"Defineix un correu electrònic per al projecte \"{0}\" per a usar de remitent "
+"per a les notificacions del procés d'altes moderat!"
 
 #: work/views.py:3792
 msgid ""
 "The project is missing its own Email Address! (needed to send notifications "
 "to users from the project)"
 msgstr ""
-"Al projecte li falta la seva Adreça de Correu-e! (necessaria per enviar notificacions "
-"del projecte als usuaris)"
+"Al projecte li falta la seva Adreça de Correu-e! (necessaria per enviar "
+"notificacions del projecte als usuaris)"
 
 #: work/views.py:4040
 msgid "The email with the user credentials was sended again."
@@ -12698,7 +12778,8 @@ msgid ""
 "Enter a valid username. This value may contain only letters, numbers and @/./"
 "+/-/_ characters."
 msgstr ""
-"Introdueix un nom d'usuari vàlid. Aquest valor pot contenir només lletres, números i els caràcters @/./+/-/_"
+"Introdueix un nom d'usuari vàlid. Aquest valor pot contenir només lletres, "
+"números i els caràcters @/./+/-/_"
 
 #: work/views.py:5955
 msgid "If you don't find a type that suits, choose a subcategory and click:"
