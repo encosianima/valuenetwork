@@ -2185,13 +2185,13 @@ class AgentUser(models.Model):
 
 
 ASSOCIATION_BEHAVIOR_CHOICES = (
-    ('supplier', _('supplier')),
-    ('customer', _('customer')),
-    ('member', _('member')),
-    ('child', _('child')),
-    ('custodian', _('custodian')),
-    ('manager', _('manager')),
-    ('peer', _('peer'))
+    ('supplier', 'supplier'),
+    ('customer', 'customer'),
+    ('member', 'member'),
+    ('child', 'child'),
+    ('custodian', 'custodian'),
+    ('manager', 'manager'),
+    ('peer', 'peer')
 )
 
 class AgentAssociationTypeManager(models.Manager):
