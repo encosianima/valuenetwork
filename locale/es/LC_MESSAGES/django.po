@@ -10526,8 +10526,6 @@ msgid "This agent don't have an OCP Faircoin Account yet."
 msgstr "Este agente no tiene todavía una cuenta de Faircoin en OCP."
 
 #: work/models.py:917
-#, fuzzy
-#| msgid "Account History"
 msgid "Amount to pay"
 msgstr "Cantidad a pagar"
 
@@ -11649,8 +11647,8 @@ msgstr "Cambia tu contraseña primero..."
 
 #: work/templates/work/join_request_with_comments.html:439
 #, python-format
-msgid "Read '%(mauth.auth_user)s' Multiwallet"
-msgstr "Leer Multimonedero de '%(mauth.auth_user)s'"
+msgid "Read '%(auser)s' Multiwallet"
+msgstr "Leer Multimonedero de '%(auser)s'"
 
 #: work/templates/work/join_request_with_comments.html:455
 msgid "Connect BotC-Wallet account"

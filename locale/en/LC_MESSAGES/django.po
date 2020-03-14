@@ -11214,7 +11214,7 @@ msgstr ""
 
 #: work/templates/work/join_request_with_comments.html:439
 #, python-format
-msgid "Read '%(mauth.auth_user)s' Multiwallet"
+msgid "Read '%(auser)s' Multiwallet"
 msgstr ""
 
 #: work/templates/work/join_request_with_comments.html:455
