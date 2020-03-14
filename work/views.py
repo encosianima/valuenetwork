@@ -4066,7 +4066,7 @@ def project_feedback(request, agent_id, join_request_id):
     fobi_headers = []
     fobi_keys = []
 
-    out_text = ''
+    out_text = u''
 
     if fobi_slug:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
@@ -4168,8 +4168,8 @@ def project_feedback(request, agent_id, join_request_id):
                     if 'url_w2w' in settings.MULTICURRENCY:
                         pay_form = PaySharesForm(initial=reqdata)
                     else:
-                        out_text += " &nbsp; &nbsp; <div style='display: inline-block;'><input type='button' class='btn btn-primary' value='Pay the shares (coming soon)' disabled='disabled'> "
-                        out_text += "<br>(meanwhile pay from <a href='https://wallet.bankofthecommons.coop' target='_blank'>https://wallet.bankofthecommons.coop</a>)</div>"
+                        out_text += u" &nbsp; &nbsp; <div style='display: inline-block;'><input type='button' class='btn btn-primary' value='"+unicode(_("Pay the shares (coming soon)"))+"' disabled='disabled'> "
+                        out_text += u"<br>("+unicode(_("meanwhile pay from"))+" <a href='https://wallet.bankofthecommons.coop' target='_blank'>https://wallet.bankofthecommons.coop</a>)</div>"
             else:
                 wallet_form = MulticurrencyAuthCreateForm(initial={
                     'username': walletuser,

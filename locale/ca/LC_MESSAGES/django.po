@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 12:14+0000\n"
+"POT-Creation-Date: 2020-03-14 13:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -543,7 +543,7 @@ msgstr ""
 #: work/templates/work/exchanges_all.html:1147
 #: work/templates/work/exchanges_all.html:1174
 #: work/templates/work/exchanges_all.html:1200
-#: work/templates/work/join_request_with_comments.html:476
+#: work/templates/work/join_request_with_comments.html:478
 #: work/templates/work/join_requests.html:278 work/templates/work/map.html:59
 #: work/templates/work/members_agent.html:309
 #: work/templates/work/members_agent.html:330
@@ -1172,7 +1172,7 @@ msgstr "Qtt"
 #: valuenetwork/valueaccounting/forms.py:3299 work/models.py:83
 #: work/models.py:2304 work/models.py:2323
 #: work/templates/work/invoice_number.html:48
-#: work/templates/work/join_request_with_comments.html:522
+#: work/templates/work/join_request_with_comments.html:524
 #: work/templates/work/members_agent.html:409
 #: work/templates/work/membership_request_with_comments.html:137
 #: work/templates/work/my_history.html:154
@@ -1954,12 +1954,12 @@ msgid "Create new BotC-Wallet Account"
 msgstr "Crea nou Compte BotC-Wallet"
 
 #: multicurrency/templates/multicurrency_auth.html:62
-#: work/templates/work/join_request_with_comments.html:470
+#: work/templates/work/join_request_with_comments.html:472
 msgid "Confirm password"
 msgstr "Confirma contrasenya"
 
 #: multicurrency/templates/multicurrency_auth.html:69
-#: work/templates/work/join_request_with_comments.html:477
+#: work/templates/work/join_request_with_comments.html:479
 msgid "Create BotC-Wallet User"
 msgstr "Crea Usuari BotC-Wallet"
 
@@ -1980,7 +1980,7 @@ msgstr "Autentifica un compte existent a BotC-Wallet"
 #: multicurrency/templates/multicurrency_auth.html:96
 #: valuenetwork/templates/valueaccounting/bucket_filter.html:43
 #: valuenetwork/templates/valueaccounting/bucket_filter_header.html:35
-#: work/templates/work/join_request_with_comments.html:497
+#: work/templates/work/join_request_with_comments.html:499
 #: work/templates/work/joinaproject_request.html:207
 #: work/templates/work/joinaproject_request_internal.html:79
 #: work/templates/work/membership_request.html:55
@@ -1988,7 +1988,7 @@ msgid "Submit"
 msgstr "Envia"
 
 #: multicurrency/templates/multicurrency_auth.html:99
-#: work/templates/work/join_request_with_comments.html:500
+#: work/templates/work/join_request_with_comments.html:502
 msgid ""
 "By submitting your BotC-Wallet user/password you give permission to this "
 "site to access (read-only) to your wallet."
@@ -1997,7 +1997,7 @@ msgstr ""
 "aquest lloc web a accedir (només lectura) al teu moneder."
 
 #: multicurrency/templates/multicurrency_auth.html:100
-#: work/templates/work/join_request_with_comments.html:501
+#: work/templates/work/join_request_with_comments.html:503
 msgid ""
 "Your password won't be stored, it's just necessary to check your identity in "
 "BotC-Wallet system."
@@ -2105,7 +2105,7 @@ msgstr "Pagament fet! Transferit"
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:56
 #: valuenetwork/valueaccounting/models.py:10927
 #: valuenetwork/valueaccounting/models.py:12943
-#: work/templates/work/join_request_with_comments.html:445
+#: work/templates/work/join_request_with_comments.html:446
 msgid "to"
 msgstr "a"
 
@@ -2219,7 +2219,7 @@ msgstr ""
 
 #: valuenetwork/templates/_account_bar.html:43
 #: work/templates/_settings_bar.html:105
-#: work/templates/work/join_request_with_comments.html:483
+#: work/templates/work/join_request_with_comments.html:485
 msgid "or"
 msgstr "o"
 
@@ -5314,7 +5314,7 @@ msgstr "Fer Transferència a partir del Compromís"
 #: work/templates/work/exchange_logging_work.html:777
 #: work/templates/work/exchange_logging_work.html:1240
 #: work/templates/work/exchange_logging_work.html:1331
-#: work/templates/work/join_request_with_comments.html:445
+#: work/templates/work/join_request_with_comments.html:446
 msgid "Transfer"
 msgstr "Transferència"
 
@@ -6035,7 +6035,7 @@ msgstr "Telèfon"
 
 #: valuenetwork/templates/valueaccounting/membership_request.html:100
 #: valuenetwork/templates/valueaccounting/membership_requests.html:68
-#: work/models.py:76 work/templates/work/join_request_with_comments.html:518
+#: work/models.py:76 work/templates/work/join_request_with_comments.html:520
 #: work/templates/work/membership_request_with_comments.html:121
 msgid "Languages"
 msgstr "Idiomes"
@@ -6060,7 +6060,7 @@ msgstr ""
 
 #: valuenetwork/templates/valueaccounting/membership_request.html:104
 #: valuenetwork/templates/valueaccounting/membership_requests.html:72
-#: work/templates/work/join_request_with_comments.html:526
+#: work/templates/work/join_request_with_comments.html:528
 #: work/templates/work/membership_request_with_comments.html:141
 msgid "References"
 msgstr "Referencies"
@@ -11409,55 +11409,55 @@ msgstr "Compte Multimoneda"
 msgid "Change your password first..."
 msgstr "Canvia abans la teva contrasenya..."
 
-#: work/templates/work/join_request_with_comments.html:439
+#: work/templates/work/join_request_with_comments.html:440
 #, python-format
 msgid "Read '%(auser)s' Multiwallet"
 msgstr "Llegir Multicompte '%(auser)s'"
 
-#: work/templates/work/join_request_with_comments.html:455
+#: work/templates/work/join_request_with_comments.html:457
 msgid "Connect BotC-Wallet account"
 msgstr "Connecta compte BotC-Wallet"
 
-#: work/templates/work/join_request_with_comments.html:458
+#: work/templates/work/join_request_with_comments.html:460
 msgid "Create new BotC-Wallet account"
 msgstr "Crea nou compte BotC-Wallet"
 
-#: work/templates/work/join_request_with_comments.html:463
+#: work/templates/work/join_request_with_comments.html:465
 msgid "Create New BotC-Wallet User"
 msgstr "Crea Nou Usuari BotC-Wallet"
 
-#: work/templates/work/join_request_with_comments.html:484
+#: work/templates/work/join_request_with_comments.html:486
 msgid "Connect existent BotC-Wallet account"
 msgstr "Connecta compte BotC-Wallet existent"
 
-#: work/templates/work/join_request_with_comments.html:490
+#: work/templates/work/join_request_with_comments.html:492
 msgid "Authenticate BotC-Wallet User"
 msgstr "Autentifica Usuari BotC-Wallet"
 
-#: work/templates/work/join_request_with_comments.html:529
+#: work/templates/work/join_request_with_comments.html:531
 #: work/templates/work/membership_request_with_comments.html:144
 msgid "Other comments"
 msgstr "Altres comentaris"
 
-#: work/templates/work/join_request_with_comments.html:542
+#: work/templates/work/join_request_with_comments.html:544
 msgid "Talk with "
 msgstr "Comunica amb "
 
-#: work/templates/work/join_request_with_comments.html:544
+#: work/templates/work/join_request_with_comments.html:546
 msgid "Talk with coordinators of "
 msgstr "Comunica amb coordinadors de "
 
-#: work/templates/work/join_request_with_comments.html:555
+#: work/templates/work/join_request_with_comments.html:557
 #: work/templates/work/membership_request_with_comments.html:162
 msgid "You have "
 msgstr "Tens "
 
-#: work/templates/work/join_request_with_comments.html:555
+#: work/templates/work/join_request_with_comments.html:557
 #: work/templates/work/membership_request_with_comments.html:162
 msgid " comments:"
 msgstr " comentaris:"
 
-#: work/templates/work/join_request_with_comments.html:570
+#: work/templates/work/join_request_with_comments.html:572
 #: work/templates/work/membership_request_with_comments.html:167
 msgid "Write a new comment:"
 msgstr "Escriu un comentari:"
@@ -12770,6 +12770,14 @@ msgstr ""
 #: work/views.py:4040
 msgid "The email with the user credentials was sended again."
 msgstr "El correu amb les credencials d'usuari s'ha enviat de nou."
+
+#: work/views.py:4171
+msgid "Pay the shares (coming soon)"
+msgstr "Paga les participacions (pròximament)"
+
+#: work/views.py:4172
+msgid "meanwhile pay from"
+msgstr "de mentres paga desde"
 
 #: work/views.py:4234 work/views.py:4268
 msgid ""
