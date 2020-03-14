@@ -4144,8 +4144,17 @@ def create_unit_types(**kwargs):
     artw_fdc.save()
 
 
-    arrt, c = AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
-    if c: print "- created AgentResourceRoleType: "+str(arrt)
+    arrts = AgentResourceRoleType.objects.filter(is_owner=True)
+    if len(arrts) > 1:
+        for ar in arrts:
+            print("WARN! More than one is_owner? "+str(ar))
+            if ar.name_en == 'Owner':
+                arrt = ar
+    elif arrts:
+        arrt = arrts[0]
+    else:
+        arrt, c = AgentResourceRoleType.objects.get_or_create(name='Owner', is_owner=True)
+        if c: print "- created AgentResourceRoleType: "+str(arrt)
 
 
     ## BankOfTheCommons
