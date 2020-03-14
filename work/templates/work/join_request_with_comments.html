@@ -115,7 +115,7 @@ a.more-link {
            &nbsp; &nbsp;
           <span style="font-weight:normal; font-size:90%;">
           {% if jn_req.agent %}
-            {% if jn_req.project.shares_type %}{% trans "Membership" %}{% else %}{% trans "Join" %}{% endif %} request:
+            {% if jn_req.project.shares_type %}{% trans "Membership request" %}{% else %}{% trans "Join request" %}{% endif %}:
               <b>{% if jn_req.state == 'new' %}{% trans "Pending" %}{% else %}{{ jn_req.state|title }}{% endif %}</b>
           {% else %}
             <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span>

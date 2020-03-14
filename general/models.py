@@ -92,7 +92,7 @@ class rel_Type_Types(models.Model):
 @python_2_unicode_compatible
 class Being(models.Model):    # Abstract
     name = models.CharField(verbose_name=_(u"Name"), max_length=200, help_text=_(u"The name of the Entity"))
-    #being_type = TreeForeignKey('Being_Type', blank=True, null=True, verbose_name=_(u"Tipus d'entitat"), on_delete=models.SET_NULL)
+    #being_type = TreeForeignKey('Being_Type', blank=True, null=True, verbose_name="Type of entity", on_delete=models.SET_NULL)
     birth_date = models.DateField(blank=True, null=True, verbose_name=_(u"Born date"), help_text=_(u"The day of starting existence"))
     death_date = models.DateField(blank=True, null=True, verbose_name=_(u"Die date"), help_text=_(u"The day of ceasing existence"))
 
@@ -259,7 +259,7 @@ class Project(MPTTModel, Human):
     email2 = models.EmailField(blank=True, verbose_name=_(u"Alternate email"))
 
     ecommerce = models.BooleanField(default=False, verbose_name=_(u"E-commerce?"))
-    #images = models.ManyToManyField('Image', blank=True, null=True, verbose_name=_(u"Imatges"))
+    #images = models.ManyToManyField('Image', blank=True, null=True, verbose_name=_(u"Images"))
 
     def _is_collective(self):
         if self.persons.count() < 2 and self.projects.count() < 2:
@@ -270,7 +270,7 @@ class Project(MPTTModel, Human):
     _is_collective.short_description = _(u"is collective?")
     collective = property(_is_collective)
 
-    #ref_persons = models.ManyToManyField('Person', blank=True, null=True, verbose_name=_(u"Persones de referència"))
+    #ref_persons = models.ManyToManyField('Person', blank=True, null=True, verbose_name=_(u"Reference Persons"))
 
     class Meta:
         verbose_name= _(u'Project')
@@ -493,11 +493,11 @@ class rel_Human_Companies(models.Model):
 '''
 class rel_Address_Jobs(models.Model):
     address = models.ForeignKey('Address')
-    job = models.ForeignKey('Job', verbose_name=_(u"Art/Ofici vinculat"))
+    job = models.ForeignKey('Job', verbose_name=_(u"related Art/Job"))
     relation = TreeForeignKey('Relation', related_name='ad_job+', blank=True, null=True, on_delete=models.SET_NULL)
     class Meta:
         verbose_name = _(u"job")
-        verbose_name_plural = _(u"Arts/Oficis vinculats")
+        verbose_name_plural = _(u"related Arts/Jobs")
     def __str__(self):
         if self.relation.gerund is None or self.relation.gerund == '':
             return self.job.__str__()
@@ -597,7 +597,7 @@ class rel_Job_Jobs(models.Model):
 @python_2_unicode_compatible
 class Space(models.Model):    # Abstact
     name = models.CharField(verbose_name=_(u"Name"), max_length=100, help_text=_(u"The name of the Space"))
-    #space_type = TreeForeignKey('Space_Type', blank=True, null=True, verbose_name=_(u"Tipus d'espai"), on_delete=models.SET_NULL)
+    #space_type = TreeForeignKey('Space_Type', blank=True, null=True, verbose_name=_(u"Type of space"), on_delete=models.SET_NULL)
     #m2 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     def __str__(self):
@@ -623,9 +623,9 @@ class Address(Space):    # Create own ID's
     postalcode = models.CharField(max_length=5, blank=True, null=True, verbose_name=_(u"Postal/Zip code"))
     region = TreeForeignKey('Region', blank=True, null=True, related_name='rel_addresses', verbose_name=_(u"Region"), on_delete=models.SET_NULL)
 
-    #telephone = models.CharField(max_length=20, blank=True, verbose_name=_(u"Telefon fix"))
+    #telephone = models.CharField(max_length=20, blank=True, verbose_name=_(u"Telephone"))
     ic_larder = models.BooleanField(default=False, verbose_name=_(u"Is a Larder?"))
-    #main_address = models.BooleanField(default=False, verbose_name=_(u"Adreça principal?"))
+    #main_address = models.BooleanField(default=False, verbose_name=_(u"Main address?"))
     size = models.DecimalField(max_digits=20, decimal_places=2, blank=True, null=True, verbose_name=_(u'Size'), help_text=_(u"Number of units (accept 2 decimals)"))
     size_unit = models.ForeignKey('Unit', blank=True, null=True, verbose_name=_(u"Unit of measure"), on_delete=models.SET_NULL)
     longitude = models.IntegerField(blank=True, null=True, verbose_name=_(u"Longitude (geo)"))
@@ -700,8 +700,8 @@ class Region_Type(Space_Type):
 #     A R T W O R K S - (Obres, Coses, Registres, Documents...)
 @python_2_unicode_compatible
 class Artwork(models.Model):    # Abstract
-    name = models.CharField(verbose_name=_(u"Name"), max_length=200, blank=True, null=True) #, help_text=_(u"El nom de la obra (Registre, Unitat, Cosa)"))
-    #artwork_type = TreeForeignKey('Artwork_Type', blank=True, verbose_name=_(u"Tipus d'Obra"), on_delete=models.SET_NULL)
+    name = models.CharField(verbose_name=_(u"Name"), max_length=200, blank=True, null=True) #, help_text=_(u"The name of the artwork (Record, Unit, Thing)"))
+    #artwork_type = TreeForeignKey('Artwork_Type', blank=True, verbose_name=_(u"Type of Artwork"), on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True, verbose_name=_(u"Description"))
 
     def __str__(self):
@@ -803,7 +803,7 @@ class Image(Nonmaterial):
     image_image = models.ImageField(upload_to='files/images', height_field='height', width_field='width',
                                                     blank=True, null=True,
                                                     verbose_name=_(u"Image (jpg/png)"))
-    #footer = models.TextField(blank=True, null=True, verbose_name=_(u"Peu de foto"))
+    #footer = models.TextField(blank=True, null=True, verbose_name=_(u"Image caption"))
     url = models.URLField(blank=True, null=True, verbose_name=_(u"Url of the image"))
     height = models.IntegerField(blank=True, null=True, verbose_name=_(u"Height"))
     width = models.IntegerField(blank=True, null=True, verbose_name=_(u"Width"))

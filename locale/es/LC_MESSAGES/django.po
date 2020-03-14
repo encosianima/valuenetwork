@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 16:50+0000\n"
+"POT-Creation-Date: 2020-03-14 17:24+0000\n"
 "PO-Revision-Date: 2020-03-04 03:02+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1119,6 +1119,7 @@ msgid "Type"
 msgstr "Tipo"
 
 #: faircoin/templates/faircoin/faircoin_history.html:80
+#: general/templates/admin/general/human/change_list.html:16
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:99
 #: valuenetwork/templates/valueaccounting/all_contributions.html:37
 #: valuenetwork/templates/valueaccounting/cash_report.html:118
@@ -1653,25 +1654,22 @@ msgid "o- Equivalences between Units"
 msgstr "o- Equivalencias entre Unidades"
 
 #: general/templates/admin/general/human/change_list.html:11
-#, fuzzy
-msgid "Persona"
+msgid "Person"
 msgstr "Persona"
 
-#: general/templates/admin/general/human/change_list.html:16
-#, fuzzy
-msgid "Projecte"
-msgstr "Proyecto"
-
 #: general/templates/admin/general/human/change_list.html:21
-#, fuzzy
-msgid "Empresa"
+msgid "Company"
 msgstr "Empresa"
 
 #: general/templates/related-widget-wrapper-manytomany.html:6
-#: general/widgets.py:240
-#, fuzzy
-msgid "Afegeix"
-msgstr "Añade"
+#: general/widgets.py:240 valuenetwork/templates/valueaccounting/start.html:532
+#: valuenetwork/templates/valueaccounting/work.html:354
+#: work/templates/work/members_agent.html:866
+#: work/templates/work/my_tasks.html:288
+#: work/templates/work/project_work.html:373
+#: work/templates/work/take_new_tasks.html:217
+msgid "Add"
+msgstr "Agregar"
 
 #: general/templatetags/related_widget_wrapper_result_list.py:380
 msgid "All dates"
@@ -1682,9 +1680,10 @@ msgid "Add Another"
 msgstr "Añadir Otra"
 
 #: general/widgets.py:206 general/widgets.py:307
-#, fuzzy
-msgid "Treu"
-msgstr "Treu"
+#: valuenetwork/templates/valueaccounting/financial_contribution.html:240
+#: valuenetwork/templates/valueaccounting/log_simple.html:296
+msgid "Remove"
+msgstr "Quitar"
 
 #: general/widgets.py:213 general/widgets.py:288
 msgid "Change related model"
@@ -2167,13 +2166,6 @@ msgid "Receipt Date"
 msgstr "Fecha de la Receta"
 
 #: valuenetwork/local_settings_example.py:86
-#, fuzzy
-#| msgid ""
-#| "To pay with a bank transfer, go to your bank and place a transfer to this "
-#| "account:<br>IBAN:  <b>the iban number</b><br>    BIC:  <b>the swift/bic "
-#| "code</b><br>Concept:  <b>Put your new username!</b><br>Account owner:  "
-#| "<b>the ower name</b><br>Bank name:  <b>bank</b><br>Bank address:  "
-#| "<b>address</b>"
 msgid ""
 "To pay with a bank transfer, go to your bank and place a transfer to this "
 "account:<br>IBAN:  <b>the iban number</b><br>    BIC:  <b>the swift/bic "
@@ -3063,16 +3055,12 @@ msgstr ""
 #: valuenetwork/templates/valueaccounting/inventory.html:47
 #: valuenetwork/valueaccounting/models.py:182
 #: work/templates/work/project_resources.html:8
-#, fuzzy
-#| msgid "Inventory "
 msgid "Inventory"
 msgstr "Inventario"
 
 #: valuenetwork/templates/theme_bootstrap/base.html:69
-#, fuzzy
-#| msgid "You got an income distribution from"
 msgid "Value Equations and income distributions"
-msgstr "Recibiste una distribución de ingreso de"
+msgstr "Ecuaciones de Valor y distribución de ingresos"
 
 #: valuenetwork/templates/theme_bootstrap/base.html:70
 #: valuenetwork/templates/valueaccounting/create_distribution.html:7
@@ -5566,11 +5554,6 @@ msgstr "Contribución Financiera"
 msgid "Resources Acquired"
 msgstr "Recursos Adquiridos"
 
-#: valuenetwork/templates/valueaccounting/financial_contribution.html:240
-#: valuenetwork/templates/valueaccounting/log_simple.html:296
-msgid "Remove"
-msgstr "Quitar"
-
 #: valuenetwork/templates/valueaccounting/finished_processes.html:5
 #: valuenetwork/templates/valueaccounting/finished_processes.html:32
 msgid "Finished processes for "
@@ -7423,15 +7406,6 @@ msgstr "Mi lista de tareas por hacer:"
 #: valuenetwork/templates/valueaccounting/work.html:344
 msgid "Add a todo"
 msgstr "Agregar tarea por hacer"
-
-#: valuenetwork/templates/valueaccounting/start.html:532
-#: valuenetwork/templates/valueaccounting/work.html:354
-#: work/templates/work/members_agent.html:866
-#: work/templates/work/my_tasks.html:288
-#: work/templates/work/project_work.html:373
-#: work/templates/work/take_new_tasks.html:217
-msgid "Add"
-msgstr "Agregar"
 
 #: valuenetwork/templates/valueaccounting/start.html:543
 #: valuenetwork/templates/valueaccounting/today.html:209
@@ -10703,7 +10677,6 @@ msgid "Coop Feedback"
 msgstr "Comunicación Coop"
 
 #: work/templates/_settings_bar.html:84 work/templates/new_base.html:301
-#: work/templates/work/join_request_with_comments.html:118
 #: work/templates/work/my_dashboard.html:328
 msgid "Membership"
 msgstr "Membresía"
@@ -11475,11 +11448,12 @@ msgid "join request to"
 msgstr "petición de alta en"
 
 #: work/templates/work/join_request_with_comments.html:118
-#: work/templates/work/joinaproject_request_internal.html:10
-#: work/templates/work/members_agent.html:1213
-#: work/templates/work/project_login.html:93
-msgid "Join"
-msgstr "Únete a"
+msgid "Membership request"
+msgstr "Solicitud de Membresía"
+
+#: work/templates/work/join_request_with_comments.html:118
+msgid "Join request"
+msgstr "Petición de Alta"
 
 #: work/templates/work/join_request_with_comments.html:121
 msgid "MISSING THE OCP ACCOUNT!"
@@ -11606,10 +11580,9 @@ msgid "Change your password first..."
 msgstr "Cambia tu contraseña primero..."
 
 #: work/templates/work/join_request_with_comments.html:440
-#, fuzzy, python-format
-#| msgid "' Multiwallet"
+#, python-format
 msgid "Read '%(auser)s' Multiwallet"
-msgstr "'"
+msgstr "Leer Multimonedero '%(auser)s'"
 
 #: work/templates/work/join_request_with_comments.html:457
 msgid "Connect BotC-Wallet account"
@@ -11762,6 +11735,12 @@ msgid "The first step to join this project is to fill the following form:"
 msgstr ""
 "El primer paso para unirte a este proyecto es rellenar este formulario:"
 
+#: work/templates/work/joinaproject_request_internal.html:10
+#: work/templates/work/members_agent.html:1213
+#: work/templates/work/project_login.html:93
+msgid "Join"
+msgstr "Únete a"
+
 #: work/templates/work/joinaproject_request_internal.html:64
 msgid "You already are an active participant of this project!"
 msgstr "Ya eres un participante activo de este proyecto"
@@ -11807,16 +11786,12 @@ msgid ""
 msgstr ""
 
 #: work/templates/work/joinaproject_thanks.html:70
-#, fuzzy
-#| msgid "You've requested to buy"
 msgid "You've choosed to pay your"
-msgstr "Has solicitado adquirir"
+msgstr "Has elegido pagar tus"
 
 #: work/templates/work/joinaproject_thanks.html:70
-#, fuzzy
-#| msgid "Shares"
 msgid "Shares via"
-msgstr "Participaciones"
+msgstr "Participaciones via"
 
 #: work/templates/work/joinaproject_thanks.html:74
 msgid ""
@@ -12999,6 +12974,7 @@ msgstr ""
 #: work/views.py:5963
 msgid "If you don't find a type that suits, choose a subcategory and click:"
 msgstr "Si no encuentras un tipo que encaje, elige una subcategoría y pulsa:"
+
 
 #~ msgid ""
 #~ "You have received the following notice from %(site_name)s:\n"

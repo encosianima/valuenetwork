@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 16:50+0000\n"
+"POT-Creation-Date: 2020-03-14 17:24+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1106,6 +1106,7 @@ msgid "Type"
 msgstr ""
 
 #: faircoin/templates/faircoin/faircoin_history.html:80
+#: general/templates/admin/general/human/change_list.html:16
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:99
 #: valuenetwork/templates/valueaccounting/all_contributions.html:37
 #: valuenetwork/templates/valueaccounting/cash_report.html:118
@@ -1640,20 +1641,21 @@ msgid "o- Equivalences between Units"
 msgstr ""
 
 #: general/templates/admin/general/human/change_list.html:11
-msgid "Persona"
-msgstr ""
-
-#: general/templates/admin/general/human/change_list.html:16
-msgid "Projecte"
+msgid "Person"
 msgstr ""
 
 #: general/templates/admin/general/human/change_list.html:21
-msgid "Empresa"
+msgid "Company"
 msgstr ""
 
 #: general/templates/related-widget-wrapper-manytomany.html:6
-#: general/widgets.py:240
-msgid "Afegeix"
+#: general/widgets.py:240 valuenetwork/templates/valueaccounting/start.html:532
+#: valuenetwork/templates/valueaccounting/work.html:354
+#: work/templates/work/members_agent.html:866
+#: work/templates/work/my_tasks.html:288
+#: work/templates/work/project_work.html:373
+#: work/templates/work/take_new_tasks.html:217
+msgid "Add"
 msgstr ""
 
 #: general/templatetags/related_widget_wrapper_result_list.py:380
@@ -1665,7 +1667,9 @@ msgid "Add Another"
 msgstr ""
 
 #: general/widgets.py:206 general/widgets.py:307
-msgid "Treu"
+#: valuenetwork/templates/valueaccounting/financial_contribution.html:240
+#: valuenetwork/templates/valueaccounting/log_simple.html:296
+msgid "Remove"
 msgstr ""
 
 #: general/widgets.py:213 general/widgets.py:288
@@ -5407,11 +5411,6 @@ msgstr ""
 msgid "Resources Acquired"
 msgstr ""
 
-#: valuenetwork/templates/valueaccounting/financial_contribution.html:240
-#: valuenetwork/templates/valueaccounting/log_simple.html:296
-msgid "Remove"
-msgstr ""
-
 #: valuenetwork/templates/valueaccounting/finished_processes.html:5
 #: valuenetwork/templates/valueaccounting/finished_processes.html:32
 msgid "Finished processes for "
@@ -7242,15 +7241,6 @@ msgstr ""
 #: valuenetwork/templates/valueaccounting/work.html:337
 #: valuenetwork/templates/valueaccounting/work.html:344
 msgid "Add a todo"
-msgstr ""
-
-#: valuenetwork/templates/valueaccounting/start.html:532
-#: valuenetwork/templates/valueaccounting/work.html:354
-#: work/templates/work/members_agent.html:866
-#: work/templates/work/my_tasks.html:288
-#: work/templates/work/project_work.html:373
-#: work/templates/work/take_new_tasks.html:217
-msgid "Add"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/start.html:543
@@ -10363,7 +10353,6 @@ msgid "Coop Feedback"
 msgstr ""
 
 #: work/templates/_settings_bar.html:84 work/templates/new_base.html:301
-#: work/templates/work/join_request_with_comments.html:118
 #: work/templates/work/my_dashboard.html:328
 msgid "Membership"
 msgstr ""
@@ -11067,10 +11056,11 @@ msgid "join request to"
 msgstr ""
 
 #: work/templates/work/join_request_with_comments.html:118
-#: work/templates/work/joinaproject_request_internal.html:10
-#: work/templates/work/members_agent.html:1213
-#: work/templates/work/project_login.html:93
-msgid "Join"
+msgid "Membership request"
+msgstr ""
+
+#: work/templates/work/join_request_with_comments.html:118
+msgid "Join request"
 msgstr ""
 
 #: work/templates/work/join_request_with_comments.html:121
@@ -11347,6 +11337,12 @@ msgstr ""
 
 #: work/templates/work/joinaproject_request.html:200
 msgid "The first step to join this project is to fill the following form:"
+msgstr ""
+
+#: work/templates/work/joinaproject_request_internal.html:10
+#: work/templates/work/members_agent.html:1213
+#: work/templates/work/project_login.html:93
+msgid "Join"
 msgstr ""
 
 #: work/templates/work/joinaproject_request_internal.html:64
