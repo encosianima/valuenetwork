@@ -663,7 +663,7 @@ def migrate_fdc_shares(request, jr):
             jr.state = mem.state
             jr.save()
 
-    aamem = AgentAssociationType.objects.get(name="Member")
+    aamem = AgentAssociationType.objects.get(identifier="member")
     agrel = None
     agrels = jr.agent.is_associate_of.filter(has_associate=jr.project.agent).exclude(association_type__association_behavior='manager')
     if len(agrels) == 1:
@@ -1383,8 +1383,8 @@ def run_fdc_scripts(request, agent):
     ags = EconomicAgent.objects.filter(pk__in=agids)
     partis = fdc.participants()
     candis = fdc.candidates()
-    aamem = AgentAssociationType.objects.get(name="Member")
-    aapar = AgentAssociationType.objects.get(name="Participant")
+    aamem = AgentAssociationType.objects.get(identifier="member")
+    aapar = AgentAssociationType.objects.get(identifier="participant")
     for ag in ags:
         agshacs = ag.agent_resource_roles.filter(
             role__is_owner=True,
@@ -1596,7 +1596,7 @@ def run_fdc_scripts(request, agent):
                     #print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state)
                     #loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state))
                     if rel.association_type == aamem: #and rel.has_associate == fdc.parent():
-                        rel.association_type = AgentAssociationType.objects.get(name="Participant")
+                        rel.association_type = AgentAssociationType.objects.get(identifier="participant")
                         rel.save()
                         print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state)
                         loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
@@ -2406,9 +2406,17 @@ def check_duplicate_agents(request, agent):
     if user_agent in agent.managers() or user_agent == agent or request.user.is_staff:
       if ags:
         copis = None
-        aamem = AgentAssociationType.objects.get(name="Member")
-        aapar = AgentAssociationType.objects.get(name="Participant")
-        aasel = AgentAssociationType.objects.get(name="Self Employed Member")
+        aamem = AgentAssociationType.objects.get(identifier="member")
+        aapar = AgentAssociationType.objects.get(identifier="participant")
+        try:
+            aasel = AgentAssociationType.objects.get(identifier="selfemployed")
+        except:
+            aasel = AgentAssociationType.objects.get(identifier="Coop Worker")
+            aasel.identifier = "selfemployed"
+            aasel.save()
+            loger.info("- CHANGED AgentAssociationType identifier 'Coop Worker' to 'selfemployed'!")
+
+
         for ag in ags:
             copis = EconomicAgent.objects.filter(name=ag.is_associate.name)
             if len(copis) > 1:
