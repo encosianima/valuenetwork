@@ -811,7 +811,7 @@
                   <h3 class="">{% trans "Skills" %}:</h3>
                   {% if agent.skills %}
                     {% if user_agent in agent.managers or user_is_agent %}
-                      <a href="#skillAssnForm" role="button" class="btn btn-primary btn-mini" data-toggle="modal" style="float:right;">Edit offered skills</a>
+                      <a href="#skillAssnForm" role="button" class="btn btn-primary btn-mini" data-toggle="modal" style="float:right;">{% trans "Edit offered skills" %}</a>
                     {% endif %}
                     <ul>
                         {% for skill in agent.skills %}
@@ -973,7 +973,7 @@
               <ul>
                 {% for assoc in is_associated_with  %}
                     {% ifchanged assoc.association_type and assoc.state %}
-                       <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.label|cut:" of" }} {% trans "candidate of" %}{% else %}
+                       <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.label|cut:" of"|cut:" de" }} {% trans "candidate of" %}{% else %}
                                 {{ assoc.association_type.label }}{% endif %}: </h4>
                     {% endifchanged %}
                     <li><a href="{% url "members_agent" agent_id=assoc.has_associate.id %}">{{ assoc.has_associate.name }}</a>
