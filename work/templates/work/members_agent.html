@@ -364,7 +364,12 @@
                         </div>
                       </div>
                       {% if agent.photo and photo_size %}
-                        <img src="{% thumbnail agent.photo photo_size %}" />
+                        {% if agent.photo.readable %}
+                          <img src="{% thumbnail agent.photo photo_size %}" />
+                        {% else %}
+                          <span class="error">{% trans "Error: can't read the image." %}</span>
+                          {% if request.user.is_superuser %}<br>{{ agent.photo.url }}{% endif %}
+                        {% endif %}
                       {% elif agent.photo_url %}
                         <img src="{{ agent.photo_url }}" style="width:auto;"/>
                       {% endif %}
