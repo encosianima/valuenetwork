@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-14 17:24+0000\n"
+"POT-Creation-Date: 2020-03-16 17:49+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Dani Ele <altrimenti@inventati.org>, 2017\n"
 "Language-Team: Italian (https://www.transifex.com/freedomcoop/teams/65382/"
@@ -71,7 +71,7 @@ msgstr "Il nome utente e/o la password che hai immesso sono incorrette"
 #: work/templates/work/join_request_with_comments.html:200
 #: work/templates/work/join_requests.html:94
 #: work/templates/work/join_requests.html:355
-#: work/templates/work/members_agent.html:416
+#: work/templates/work/members_agent.html:421
 #: work/templates/work/membership_request_with_comments.html:105
 #: work/templates/work/profile.html:169
 msgid "Email"
@@ -225,7 +225,7 @@ msgstr ""
 msgid "External"
 msgstr ""
 
-#: faircoin/models.py:76 work/templates/work/members_agent.html:511
+#: faircoin/models.py:76 work/templates/work/members_agent.html:516
 msgid "Error"
 msgstr ""
 
@@ -343,7 +343,7 @@ msgstr ""
 #: work/templates/work/exchanges_all.html:546
 #: work/templates/work/members_agent.html:232
 #: work/templates/work/members_agent.html:299
-#: work/templates/work/members_agent.html:372
+#: work/templates/work/members_agent.html:377
 #: work/templates/work/my_tasks.html:374 work/templates/work/my_tasks.html:655
 #: work/templates/work/order_list.html:109
 #: work/templates/work/order_plan.html:358
@@ -559,9 +559,9 @@ msgstr ""
 #: work/templates/work/members_agent.html:309
 #: work/templates/work/members_agent.html:330
 #: work/templates/work/members_agent.html:360
-#: work/templates/work/members_agent.html:851
-#: work/templates/work/members_agent.html:955
-#: work/templates/work/members_agent.html:1025
+#: work/templates/work/members_agent.html:856
+#: work/templates/work/members_agent.html:960
+#: work/templates/work/members_agent.html:1030
 #: work/templates/work/my_tasks.html:287 work/templates/work/my_tasks.html:373
 #: work/templates/work/my_tasks.html:654
 #: work/templates/work/order_delete_confirmation_work.html:58
@@ -711,7 +711,7 @@ msgstr ""
 #: valuenetwork/templates/valueaccounting/resource.html:141
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:61
 #: valuenetwork/valueaccounting/forms.py:3304
-#: work/templates/work/members_agent.html:403
+#: work/templates/work/members_agent.html:408
 #: work/templates/work/new_features.html:38
 #: work/templates/work/profile.html:163
 #: work/templates/work/project_history.html:97
@@ -788,7 +788,7 @@ msgstr "Data di creazione del record"
 #: valuenetwork/templates/valueaccounting/agent.html:310
 #: valuenetwork/templates/valueaccounting/digital_currency_resource.html:184
 #: valuenetwork/templates/valueaccounting/resource.html:196
-#: work/templates/work/members_agent.html:498
+#: work/templates/work/members_agent.html:503
 #: work/templates/work/project_resource.html:278
 msgid "Record created by"
 msgstr "Record creato da "
@@ -1064,8 +1064,8 @@ msgstr ""
 msgid "Current Balance"
 msgstr "bilancio attuale"
 
-#: faircoin/templates/faircoin/faircoin_history.html:65 general/models.py:621
-#: general/models.py:650
+#: faircoin/templates/faircoin/faircoin_history.html:65 general/models.py:631
+#: general/models.py:660
 #: valuenetwork/templates/valueaccounting/membership_request.html:98
 #: valuenetwork/templates/valueaccounting/membership_requests.html:66
 #: work/templates/work/join_request_with_comments.html:241
@@ -1120,7 +1120,7 @@ msgstr ""
 #: work/templates/work/join_request_with_comments.html:196
 #: work/templates/work/join_requests.html:93
 #: work/templates/work/join_requests.html:354
-#: work/templates/work/members_agent.html:392
+#: work/templates/work/members_agent.html:397
 #: work/templates/work/membership_request_with_comments.html:97
 #: work/templates/work/my_history.html:150 work/templates/work/profile.html:151
 #: work/templates/work/project_history.html:93
@@ -1169,7 +1169,7 @@ msgid "Qty"
 msgstr ""
 
 #: faircoin/templates/faircoin/faircoin_history.html:83 general/models.py:44
-#: general/models.py:516 general/models.py:705
+#: general/models.py:526 general/models.py:715
 #: valuenetwork/templates/valueaccounting/agent.html:254
 #: valuenetwork/templates/valueaccounting/agent_assoc_type.html:105
 #: valuenetwork/templates/valueaccounting/agent_association.html:100
@@ -1203,9 +1203,10 @@ msgstr ""
 #: valuenetwork/templates/valueaccounting/workbook.html:217
 #: valuenetwork/valueaccounting/forms.py:3299 work/models.py:83
 #: work/models.py:2304 work/models.py:2323
+#: work/templates/work/exchange_logging_work.html:420
 #: work/templates/work/invoice_number.html:48
 #: work/templates/work/join_request_with_comments.html:524
-#: work/templates/work/members_agent.html:409
+#: work/templates/work/members_agent.html:414
 #: work/templates/work/membership_request_with_comments.html:137
 #: work/templates/work/my_history.html:154
 #: work/templates/work/new_features.html:36
@@ -1302,8 +1303,8 @@ msgstr ""
 msgid "On Chain"
 msgstr "sulla catena"
 
-#: general/models.py:43 general/models.py:513 general/models.py:599
-#: general/models.py:703
+#: general/models.py:43 general/models.py:523 general/models.py:609
+#: general/models.py:713
 #: valuenetwork/templates/valueaccounting/agent_assoc_type.html:92
 #: valuenetwork/templates/valueaccounting/agent_type.html:89
 #: valuenetwork/templates/valueaccounting/membership_request.html:91
@@ -1330,266 +1331,266 @@ msgstr "Concetto"
 msgid "c- Concepts"
 msgstr ""
 
-#: general/models.py:59 general/models.py:537
+#: general/models.py:60 general/models.py:547
 msgid "Class"
 msgstr ""
 
-#: general/models.py:60
+#: general/models.py:61
 msgid "Django model or python class associated to the Type"
 msgstr ""
 
-#: general/models.py:64
+#: general/models.py:65
 msgid "c- Type"
 msgstr ""
 
-#: general/models.py:108
+#: general/models.py:118
 msgid "Type of entity"
 msgstr ""
 
-#: general/models.py:109
+#: general/models.py:119
 msgid "e--> Types of entities"
 msgstr ""
 
-#: general/models.py:306
+#: general/models.py:316
 msgid "Type of Project"
 msgstr ""
 
-#: general/models.py:307
+#: general/models.py:317
 msgid "e-> Types of Projects"
 msgstr ""
 
-#: general/models.py:323
+#: general/models.py:333
 msgid "Type of Company"
 msgstr ""
 
-#: general/models.py:324
+#: general/models.py:334
 msgid "e-> Types of Companies"
 msgstr ""
 
-#: general/models.py:513
+#: general/models.py:523
 msgid "The name of the Art"
 msgstr ""
 
-#: general/models.py:514
+#: general/models.py:524
 msgid "Verb"
 msgstr ""
 
-#: general/models.py:514
+#: general/models.py:524
 msgid "The verb of the action, infinitive"
 msgstr ""
 
-#: general/models.py:515
+#: general/models.py:525
 msgid "Gerund"
 msgstr ""
 
-#: general/models.py:515
+#: general/models.py:525
 msgid "The verb in gerund, present"
 msgstr ""
 
-#: general/models.py:530
+#: general/models.py:540
 msgid "Art"
 msgstr ""
 
-#: general/models.py:531
+#: general/models.py:541
 msgid "a- Arts"
 msgstr ""
 
-#: general/models.py:538
+#: general/models.py:548
 msgid "Django model or python class associated to the Relation"
 msgstr ""
 
-#: general/models.py:540
+#: general/models.py:550
 msgid "Relation"
 msgstr ""
 
-#: general/models.py:541
+#: general/models.py:551
 msgid "a- Relations"
 msgstr ""
 
-#: general/models.py:558 work/templates/work/project_resource.html:268
+#: general/models.py:568 work/templates/work/project_resource.html:268
 msgid "Clas"
 msgstr ""
 
-#: general/models.py:558
+#: general/models.py:568
 msgid "Django model or python class associated to the Job"
 msgstr ""
 
-#: general/models.py:565
+#: general/models.py:575
 msgid "related Skills"
 msgstr ""
 
-#: general/models.py:568
+#: general/models.py:578
 #: valuenetwork/templates/valueaccounting/skill_suggestions.html:53
 msgid "Skill"
 msgstr ""
 
-#: general/models.py:569
+#: general/models.py:579
 msgid "a- Skills"
 msgstr ""
 
-#: general/models.py:583
+#: general/models.py:593
 msgid "J_job"
 msgstr ""
 
-#: general/models.py:584
+#: general/models.py:594
 #, fuzzy
 #| msgid "created by"
 msgid "Related jobs"
 msgstr "creato da"
 
-#: general/models.py:599
+#: general/models.py:609
 msgid "The name of the Space"
 msgstr ""
 
-#: general/models.py:613
+#: general/models.py:623
 msgid "Type of Space"
 msgstr ""
 
-#: general/models.py:614
+#: general/models.py:624
 msgid "s--> Types of Spaces"
 msgstr ""
 
-#: general/models.py:620
+#: general/models.py:630
 msgid "Type of address"
 msgstr ""
 
-#: general/models.py:621
+#: general/models.py:631
 msgid "Postal address able to receive by post"
 msgstr "Indirizzo per invii postali"
 
-#: general/models.py:622
+#: general/models.py:632
 msgid "Town"
 msgstr "Cittá"
 
-#: general/models.py:622
+#: general/models.py:632
 msgid "Town or City"
 msgstr "Città o paese"
 
-#: general/models.py:623
+#: general/models.py:633
 msgid "Postal/Zip code"
 msgstr "Codice Postale(CAP)"
 
-#: general/models.py:624 general/models.py:688
+#: general/models.py:634 general/models.py:698
 msgid "Region"
 msgstr "Regione"
 
-#: general/models.py:627
+#: general/models.py:637
 msgid "Is a Larder?"
 msgstr ""
 
-#: general/models.py:629
+#: general/models.py:639
 msgid "Size"
 msgstr "Misura"
 
-#: general/models.py:629
+#: general/models.py:639
 msgid "Number of units (accept 2 decimals)"
 msgstr ""
 
-#: general/models.py:630 work/forms.py:684
+#: general/models.py:640 work/forms.py:684
 msgid "Unit of measure"
 msgstr ""
 
-#: general/models.py:631
+#: general/models.py:641
 msgid "Longitude (geo)"
 msgstr ""
 
-#: general/models.py:632
+#: general/models.py:642
 msgid "Latitude (geo)"
 msgstr ""
 
-#: general/models.py:634
+#: general/models.py:644
 msgid "Related Jobs"
 msgstr ""
 
-#: general/models.py:636
+#: general/models.py:646
 msgid "Description of the Address"
 msgstr ""
 
-#: general/models.py:636
+#: general/models.py:646
 msgid "Exact localization, indications to arrive or comments"
 msgstr ""
 
-#: general/models.py:643
+#: general/models.py:653
 msgid "nobody"
 msgstr ""
 
-#: general/models.py:645
+#: general/models.py:655
 msgid "Main address of"
 msgstr "Indirizzo principale"
 
-#: general/models.py:651
+#: general/models.py:661
 msgid "s- Addresses"
 msgstr ""
 
-#: general/models.py:675
+#: general/models.py:685
 msgid "Type of Address"
 msgstr ""
 
-#: general/models.py:676
+#: general/models.py:686
 msgid "s-> Types of Addresses"
 msgstr ""
 
-#: general/models.py:682
+#: general/models.py:692
 msgid "Type of region"
 msgstr ""
 
-#: general/models.py:685
+#: general/models.py:695
 msgid "Description of the Region"
 msgstr ""
 
-#: general/models.py:689
+#: general/models.py:699
 msgid "s- Regions"
 msgstr ""
 
-#: general/models.py:694
+#: general/models.py:704
 msgid "Type of Region"
 msgstr ""
 
-#: general/models.py:695
+#: general/models.py:705
 msgid "s-> Types of Regions"
 msgstr ""
 
-#: general/models.py:716
+#: general/models.py:726
 msgid "Type of Artwork"
 msgstr ""
 
-#: general/models.py:717
+#: general/models.py:727
 msgid "o--> Types of Artworks"
 msgstr ""
 
-#: general/models.py:796
+#: general/models.py:806
 msgid "Type of Non-material artwork"
 msgstr ""
 
-#: general/models.py:797
+#: general/models.py:807
 msgid "o-> Types of Non-material artworks"
 msgstr ""
 
-#: general/models.py:931
+#: general/models.py:941
 msgid "Type of Material artwork"
 msgstr ""
 
-#: general/models.py:932
+#: general/models.py:942
 msgid "o-> Types of Material artworks"
 msgstr ""
 
-#: general/models.py:963 general/models.py:985
+#: general/models.py:973 general/models.py:995
 msgid "Type of Unit"
 msgstr ""
 
-#: general/models.py:964
+#: general/models.py:974
 msgid "Code or Symbol"
 msgstr ""
 
-#: general/models.py:966
+#: general/models.py:976
 msgid "related use Region"
 msgstr ""
 
-#: general/models.py:969
+#: general/models.py:979
 msgid "OCP Unit"
 msgstr ""
 
-#: general/models.py:972 multicurrency/views.py:268
+#: general/models.py:982 multicurrency/views.py:268
 #: valuenetwork/templates/valueaccounting/change_process.html:89
 #: valuenetwork/templates/valueaccounting/change_process.html:132
 #: valuenetwork/templates/valueaccounting/change_process.html:147
@@ -1620,47 +1621,47 @@ msgstr ""
 msgid "Unit"
 msgstr ""
 
-#: general/models.py:973
+#: general/models.py:983
 msgid "o- Units"
 msgstr ""
 
-#: general/models.py:986
+#: general/models.py:996
 msgid "o-> Types of Units"
 msgstr ""
 
-#: general/models.py:994 general/models.py:1016
+#: general/models.py:1004 general/models.py:1026
 msgid "Type of Record"
 msgstr ""
 
-#: general/models.py:998
+#: general/models.py:1008
 msgid "Record"
 msgstr ""
 
-#: general/models.py:999
+#: general/models.py:1009
 msgid "o- Records"
 msgstr ""
 
-#: general/models.py:1017
+#: general/models.py:1027
 msgid "o-> Types of Records"
 msgstr ""
 
-#: general/models.py:1024
+#: general/models.py:1034
 msgid "in Unit"
 msgstr ""
 
-#: general/models.py:1025
+#: general/models.py:1035
 msgid "Ratio multiplier"
 msgstr ""
 
-#: general/models.py:1026
+#: general/models.py:1036
 msgid "out Unit"
 msgstr ""
 
-#: general/models.py:1028
+#: general/models.py:1038
 msgid "Equivalence between Units"
 msgstr ""
 
-#: general/models.py:1029
+#: general/models.py:1039
 msgid "o- Equivalences between Units"
 msgstr ""
 
@@ -1675,7 +1676,7 @@ msgstr ""
 #: general/templates/related-widget-wrapper-manytomany.html:6
 #: general/widgets.py:240 valuenetwork/templates/valueaccounting/start.html:532
 #: valuenetwork/templates/valueaccounting/work.html:354
-#: work/templates/work/members_agent.html:866
+#: work/templates/work/members_agent.html:871
 #: work/templates/work/my_tasks.html:288
 #: work/templates/work/project_work.html:373
 #: work/templates/work/take_new_tasks.html:217
@@ -1833,6 +1834,8 @@ msgstr ""
 
 #: multicurrency/models.py:123 multicurrency/views.py:268
 #: work/templates/work/exchange_logging_work.html:201
+#: work/templates/work/exchange_logging_work.html:357
+#: work/templates/work/exchange_logging_work.html:911
 msgid "Status"
 msgstr ""
 
@@ -1920,8 +1923,8 @@ msgstr ""
 
 #: multicurrency/templates/multicurrency_auth.html:13
 #: multicurrency/templates/multicurrency_history.html:21
-#: work/templates/work/members_agent.html:446
-#: work/templates/work/members_agent.html:459
+#: work/templates/work/members_agent.html:451
+#: work/templates/work/members_agent.html:464
 #, fuzzy
 #| msgid "Delete My Account"
 msgid "Multicurrency Accounts"
@@ -2108,9 +2111,9 @@ msgstr ""
 #: work/templates/new_base.html:318 work/templates/new_base.html:323
 #: work/templates/work/exchange_logging_work.html:219
 #: work/templates/work/members_agent.html:193
-#: work/templates/work/members_agent.html:987
-#: work/templates/work/members_agent.html:1072
-#: work/templates/work/members_agent.html:1112
+#: work/templates/work/members_agent.html:992
+#: work/templates/work/members_agent.html:1077
+#: work/templates/work/members_agent.html:1117
 msgid "Feedback"
 msgstr ""
 
@@ -2648,9 +2651,9 @@ msgstr ""
 #: work/templates/work/join_requests.html:254
 #: work/templates/work/join_requests.html:279
 #: work/templates/work/members_agent.html:361
-#: work/templates/work/members_agent.html:852
-#: work/templates/work/members_agent.html:956
-#: work/templates/work/members_agent.html:1026
+#: work/templates/work/members_agent.html:857
+#: work/templates/work/members_agent.html:961
+#: work/templates/work/members_agent.html:1031
 #: work/templates/work/non_process_logging.html:96
 #: work/templates/work/order_plan.html:281
 #: work/templates/work/process_logging.html:191
@@ -3532,23 +3535,23 @@ msgid "Save user"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:199
-#: work/templates/work/members_agent.html:1163
+#: work/templates/work/members_agent.html:1168
 msgid "Cumulative Time"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:202
-#: work/templates/work/members_agent.html:1166
+#: work/templates/work/members_agent.html:1171
 msgid "Last 2 months"
 msgstr "ultimi 2 mesi"
 
 #: valuenetwork/templates/valueaccounting/agent.html:206
 #: valuenetwork/valueaccounting/models.py:14698
-#: work/templates/work/members_agent.html:1170
+#: work/templates/work/members_agent.html:1175
 msgid "Forever"
 msgstr "sempre"
 
 #: valuenetwork/templates/valueaccounting/agent.html:210
-#: work/templates/work/members_agent.html:1174
+#: work/templates/work/members_agent.html:1179
 msgid "Roles"
 msgstr "ruoli"
 
@@ -3558,62 +3561,62 @@ msgid "ID"
 msgstr "ID"
 
 #: valuenetwork/templates/valueaccounting/agent.html:233
-#: work/templates/work/members_agent.html:388
+#: work/templates/work/members_agent.html:393
 msgid "Full Name"
 msgstr "nome completo"
 
 #: valuenetwork/templates/valueaccounting/agent.html:242
-#: work/templates/work/members_agent.html:397
+#: work/templates/work/members_agent.html:402
 #: work/templates/work/profile.html:204
 msgid "Unit of claim value"
 msgstr "unità di valore del reclamo"
 
 #: valuenetwork/templates/valueaccounting/agent.html:267
-#: work/templates/work/members_agent.html:422
+#: work/templates/work/members_agent.html:427
 #: work/templates/work/profile.html:181
 msgid "Work Location"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:272
-#: work/templates/work/members_agent.html:426
+#: work/templates/work/members_agent.html:431
 msgid "Change on map"
 msgstr "Cambiamenti nella mappa"
 
 #: valuenetwork/templates/valueaccounting/agent.html:274
-#: work/templates/work/members_agent.html:428
+#: work/templates/work/members_agent.html:433
 #: work/templates/work/profile.html:186
 msgid "Add on map"
 msgstr "Aggiungi alla mappa"
 
 #: valuenetwork/templates/valueaccounting/agent.html:284
-#: work/templates/work/members_agent.html:474
+#: work/templates/work/members_agent.html:479
 msgid "FairCoin address"
 msgstr "Indirizzo FairCoin"
 
 #: valuenetwork/templates/valueaccounting/agent.html:301
 #: valuenetwork/templates/valueaccounting/value_equation.html:90
-#: work/templates/work/members_agent.html:488
+#: work/templates/work/members_agent.html:493
 #: work/templates/work/value_equation_work.html:90
 msgid "Reputation"
 msgstr "Reputazione"
 
 #: valuenetwork/templates/valueaccounting/agent.html:316
-#: work/templates/work/members_agent.html:671
+#: work/templates/work/members_agent.html:676
 msgid "Membership request information"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:320
-#: work/templates/work/members_agent.html:675
+#: work/templates/work/members_agent.html:680
 msgid "Native language"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:324 work/models.py:77
-#: work/templates/work/members_agent.html:679
+#: work/templates/work/members_agent.html:684
 msgid "Type of membership"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:328
-#: work/templates/work/members_agent.html:683
+#: work/templates/work/members_agent.html:688
 msgid "Description from membership request"
 msgstr ""
 
@@ -3623,23 +3626,23 @@ msgstr ""
 #: work/models.py:85 work/templates/work/join_request_with_comments.html:247
 #: work/templates/work/join_requests.html:97
 #: work/templates/work/join_requests.html:358
-#: work/templates/work/members_agent.html:687
+#: work/templates/work/members_agent.html:692
 #: work/templates/work/membership_request_with_comments.html:117
 msgid "Website"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:336 work/models.py:86
-#: work/templates/work/members_agent.html:691
+#: work/templates/work/members_agent.html:696
 msgid "FairNetwork username"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:340 work/models.py:88
-#: work/templates/work/members_agent.html:695
+#: work/templates/work/members_agent.html:700
 msgid "UseFaircoin profile"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:344 work/models.py:90
-#: work/templates/work/members_agent.html:699
+#: work/templates/work/members_agent.html:704
 msgid "FairMarket shop"
 msgstr "Bottega Fairmarket"
 
@@ -3671,7 +3674,7 @@ msgid "comments"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:413
-#: work/templates/work/members_agent.html:1154
+#: work/templates/work/members_agent.html:1159
 msgid "Cumulative Contributions"
 msgstr ""
 
@@ -3679,14 +3682,14 @@ msgstr ""
 #: valuenetwork/templates/valueaccounting/resource_type.html:224
 #: work/templates/work/exchanges_all.html:336
 #: work/templates/work/members_agent.html:186
-#: work/templates/work/members_agent.html:710
+#: work/templates/work/members_agent.html:715
 #: work/templates/work/project_resource.html:53
 #: work/templates/work/project_resources.html:159
 msgid "Resources"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:424
-#: work/templates/work/members_agent.html:723
+#: work/templates/work/members_agent.html:728
 msgid "Resources Created"
 msgstr ""
 
@@ -3695,7 +3698,7 @@ msgid "Resource Relationships"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent.html:452
-#: work/templates/work/members_agent.html:1134
+#: work/templates/work/members_agent.html:1139
 msgid "Active Processes"
 msgstr ""
 
@@ -3703,8 +3706,8 @@ msgstr ""
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:266
 #: valuenetwork/templates/valueaccounting/change_pattern.html:217
 #: valuenetwork/templates/valueaccounting/test_patterns.html:197
-#: work/templates/work/members_agent.html:538
-#: work/templates/work/members_agent.html:1144
+#: work/templates/work/members_agent.html:543
+#: work/templates/work/members_agent.html:1149
 msgid "None"
 msgstr ""
 
@@ -3780,7 +3783,7 @@ msgid "Save and add more"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent_associations.html:57
-#: work/templates/work/members_agent.html:1004
+#: work/templates/work/members_agent.html:1009
 msgid "has these associates"
 msgstr ""
 
@@ -3805,7 +3808,7 @@ msgid "Active?"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/agent_associations.html:83
-#: work/templates/work/members_agent.html:972
+#: work/templates/work/members_agent.html:977
 msgid "is associated with"
 msgstr ""
 
@@ -4641,6 +4644,7 @@ msgid "Select one or more sources to be distributed"
 msgstr ""
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:122
+#: work/templates/work/exchange_logging_work.html:426
 msgid "OR"
 msgstr ""
 
@@ -6013,7 +6017,7 @@ msgstr ""
 #: work/templates/work/join_request_with_comments.html:235
 #: work/templates/work/join_requests.html:95
 #: work/templates/work/join_requests.html:356
-#: work/templates/work/members_agent.html:437
+#: work/templates/work/members_agent.html:442
 #: work/templates/work/membership_request_with_comments.html:109
 msgid "Phone"
 msgstr ""
@@ -6774,7 +6778,8 @@ msgstr ""
 #: valuenetwork/valueaccounting/forms.py:3008
 #: valuenetwork/valueaccounting/forms.py:3349
 #: valuenetwork/valueaccounting/forms.py:3455 work/forms.py:1424
-#: work/forms.py:1483 work/templates/work/my_tasks.html:222
+#: work/forms.py:1483 work/templates/work/exchange_logging_work.html:203
+#: work/templates/work/my_tasks.html:222
 #: work/templates/work/non_process_logging.html:64
 #: work/templates/work/process_logging.html:1438
 msgid "Context"
@@ -7801,7 +7806,7 @@ msgid "Show All"
 msgstr ""
 
 #: valuenetwork/valueaccounting/forms.py:125 work/forms.py:427
-#: work/templates/work/members_agent.html:378
+#: work/templates/work/members_agent.html:383
 msgid "Nickname"
 msgstr ""
 
@@ -7848,6 +7853,7 @@ msgstr ""
 #: valuenetwork/valueaccounting/forms.py:2350
 #: valuenetwork/valueaccounting/forms.py:2426
 #: valuenetwork/valueaccounting/forms.py:3576 work/forms.py:1075
+#: work/templates/work/exchange_logging_work.html:430
 msgid "Current Resource Location"
 msgstr ""
 
@@ -10834,14 +10840,96 @@ msgstr "trasferimento di dati"
 msgid "Total reciprocal transfered value"
 msgstr ""
 
+#: work/templates/work/exchange_logging_work.html:329
+#, fuzzy
+#| msgid "Change Transfer"
+msgid "Outgoing Transfers"
+msgstr "cambia trasferimento"
+
 #: work/templates/work/exchange_logging_work.html:364
 #: work/templates/work/exchange_logging_work.html:918
 msgid "Pending:"
 msgstr ""
 
+#: work/templates/work/exchange_logging_work.html:369
+#: work/templates/work/exchange_logging_work.html:923
+msgid "Share:"
+msgstr ""
+
 #: work/templates/work/exchange_logging_work.html:378
 msgid "Log a new "
 msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:384
+#: work/templates/work/exchange_logging_work.html:611
+#: work/templates/work/exchange_logging_work.html:708
+#: work/templates/work/exchange_logging_work.html:798
+#: work/templates/work/exchange_logging_work.html:938
+#: work/templates/work/exchange_logging_work.html:1166
+#: work/templates/work/exchange_logging_work.html:1262
+#: work/templates/work/exchange_logging_work.html:1352
+#, fuzzy
+#| msgid "end date"
+msgid "Event date:"
+msgstr "data di fine"
+
+#: work/templates/work/exchange_logging_work.html:387
+#: work/templates/work/exchange_logging_work.html:390
+#: work/templates/work/exchange_logging_work.html:394
+#: work/templates/work/exchange_logging_work.html:614
+#: work/templates/work/exchange_logging_work.html:617
+#: work/templates/work/exchange_logging_work.html:621
+#: work/templates/work/exchange_logging_work.html:711
+#: work/templates/work/exchange_logging_work.html:714
+#: work/templates/work/exchange_logging_work.html:718
+#: work/templates/work/exchange_logging_work.html:801
+#: work/templates/work/exchange_logging_work.html:804
+#: work/templates/work/exchange_logging_work.html:808
+#: work/templates/work/exchange_logging_work.html:941
+#: work/templates/work/exchange_logging_work.html:944
+#: work/templates/work/exchange_logging_work.html:948
+#: work/templates/work/exchange_logging_work.html:1169
+#: work/templates/work/exchange_logging_work.html:1172
+#: work/templates/work/exchange_logging_work.html:1176
+#: work/templates/work/exchange_logging_work.html:1265
+#: work/templates/work/exchange_logging_work.html:1268
+#: work/templates/work/exchange_logging_work.html:1272
+#: work/templates/work/exchange_logging_work.html:1355
+#: work/templates/work/exchange_logging_work.html:1358
+#: work/templates/work/exchange_logging_work.html:1362
+#, fuzzy
+#| msgid "Transfer"
+msgid "Transferred from:"
+msgstr "trasferimento"
+
+#: work/templates/work/exchange_logging_work.html:388
+#: work/templates/work/exchange_logging_work.html:391
+#: work/templates/work/exchange_logging_work.html:395
+#: work/templates/work/exchange_logging_work.html:615
+#: work/templates/work/exchange_logging_work.html:618
+#: work/templates/work/exchange_logging_work.html:622
+#: work/templates/work/exchange_logging_work.html:712
+#: work/templates/work/exchange_logging_work.html:715
+#: work/templates/work/exchange_logging_work.html:719
+#: work/templates/work/exchange_logging_work.html:802
+#: work/templates/work/exchange_logging_work.html:805
+#: work/templates/work/exchange_logging_work.html:809
+#: work/templates/work/exchange_logging_work.html:942
+#: work/templates/work/exchange_logging_work.html:945
+#: work/templates/work/exchange_logging_work.html:949
+#: work/templates/work/exchange_logging_work.html:1170
+#: work/templates/work/exchange_logging_work.html:1173
+#: work/templates/work/exchange_logging_work.html:1177
+#: work/templates/work/exchange_logging_work.html:1266
+#: work/templates/work/exchange_logging_work.html:1269
+#: work/templates/work/exchange_logging_work.html:1273
+#: work/templates/work/exchange_logging_work.html:1356
+#: work/templates/work/exchange_logging_work.html:1359
+#: work/templates/work/exchange_logging_work.html:1363
+#, fuzzy
+#| msgid "Transfer"
+msgid "Transferred to:"
+msgstr "trasferimento"
 
 #: work/templates/work/exchange_logging_work.html:398
 #: work/templates/work/exchange_logging_work.html:485
@@ -10868,10 +10956,248 @@ msgstr ""
 msgid "Can't retrieve General types, try choosing a resource type below:"
 msgstr ""
 
+#: work/templates/work/exchange_logging_work.html:404
+#: work/templates/work/exchange_logging_work.html:630
+#: work/templates/work/exchange_logging_work.html:727
+#: work/templates/work/exchange_logging_work.html:817
+#: work/templates/work/exchange_logging_work.html:959
+#: work/templates/work/exchange_logging_work.html:1185
+#: work/templates/work/exchange_logging_work.html:1281
+#: work/templates/work/exchange_logging_work.html:1371
+#, fuzzy
+#| msgid "Resources we need"
+msgid "Resource type transferred:"
+msgstr "le risorse che ci servono"
+
+#: work/templates/work/exchange_logging_work.html:406
+#: work/templates/work/exchange_logging_work.html:951
+#: work/templates/work/exchange_logging_work.html:1179
+#: work/templates/work/exchange_logging_work.html:1275
+#: work/templates/work/exchange_logging_work.html:1365
+msgid "Quantity transferred:"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:408
+#: work/templates/work/exchange_logging_work.html:633
+#: work/templates/work/exchange_logging_work.html:730
+#: work/templates/work/exchange_logging_work.html:820
+#: work/templates/work/exchange_logging_work.html:962
+#: work/templates/work/exchange_logging_work.html:1188
+#: work/templates/work/exchange_logging_work.html:1284
+#: work/templates/work/exchange_logging_work.html:1374
+msgid "Account from (if virtual account)"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:409
+#: work/templates/work/exchange_logging_work.html:634
+#: work/templates/work/exchange_logging_work.html:731
+#: work/templates/work/exchange_logging_work.html:821
+#: work/templates/work/exchange_logging_work.html:963
+#: work/templates/work/exchange_logging_work.html:1189
+#: work/templates/work/exchange_logging_work.html:1285
+#: work/templates/work/exchange_logging_work.html:1375
+msgid "Account to (if virtual account)"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:411
+#: work/templates/work/exchange_logging_work.html:636
+#: work/templates/work/exchange_logging_work.html:965
+#: work/templates/work/exchange_logging_work.html:1191
+msgid "Resource transferred (no entry if not inventoried)"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:414
+msgid "Value (total, not per unit)"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:415
+#, fuzzy
+#| msgid "Unit of claim value"
+msgid "Unit of value"
+msgstr "unità di valore del reclamo"
+
+#: work/templates/work/exchange_logging_work.html:417
+msgid "Can be a rewarded in a value equation"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:418
+#, fuzzy
+#| msgid "Contributions with no Value Equation"
+msgid "Can be distributed in a value equation"
+msgstr "contributo senza equazione di valore"
+
+#: work/templates/work/exchange_logging_work.html:419
+msgid "Event reference"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:424
+#, fuzzy
+#| msgid "FairCoin Resource"
+msgid "Incoming resource"
+msgstr "Risorsa FairCoin"
+
+#: work/templates/work/exchange_logging_work.html:425
+#, fuzzy
+#| msgid "can create resource"
+msgid "Add to an existing resource"
+msgstr "può creare risorse"
+
+#: work/templates/work/exchange_logging_work.html:426
+#, fuzzy
+#| msgid "can create resource"
+msgid "create a new resource"
+msgstr "può creare risorse"
+
+#: work/templates/work/exchange_logging_work.html:427
+#: work/templates/work/exchange_logging_work.html:651
+#: work/templates/work/exchange_logging_work.html:981
+#: work/templates/work/exchange_logging_work.html:1206
+msgid "Identifier: (for example, lot number or serial number)"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:429
+#, fuzzy
+#| msgid "Photo"
+msgid "Photo URL"
+msgstr "Foto"
+
+#: work/templates/work/exchange_logging_work.html:431
+#, fuzzy
+#| msgid "All Resource Types"
+msgid "Resource Notes"
+msgstr "tutti i tipi di risorsa"
+
+#: work/templates/work/exchange_logging_work.html:432
+#, fuzzy
+#| msgid "Resources we need"
+msgid "Resource Access Rules"
+msgstr "le risorse che ci servono"
+
 #: work/templates/work/exchange_logging_work.html:463
 #: work/templates/work/exchange_logging_work.html:1017
 msgid "Log a new Commitment:"
 msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:469
+#: work/templates/work/exchange_logging_work.html:552
+#: work/templates/work/exchange_logging_work.html:1023
+#: work/templates/work/exchange_logging_work.html:1107
+msgid "Commitment date:"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:470
+#: work/templates/work/exchange_logging_work.html:553
+#: work/templates/work/exchange_logging_work.html:1024
+#: work/templates/work/exchange_logging_work.html:1108
+#, fuzzy
+#| msgid "end date"
+msgid "Due date:"
+msgstr "data di fine"
+
+#: work/templates/work/exchange_logging_work.html:473
+#: work/templates/work/exchange_logging_work.html:476
+#: work/templates/work/exchange_logging_work.html:480
+#: work/templates/work/exchange_logging_work.html:556
+#: work/templates/work/exchange_logging_work.html:559
+#: work/templates/work/exchange_logging_work.html:563
+#: work/templates/work/exchange_logging_work.html:1027
+#: work/templates/work/exchange_logging_work.html:1030
+#: work/templates/work/exchange_logging_work.html:1034
+#: work/templates/work/exchange_logging_work.html:1111
+#: work/templates/work/exchange_logging_work.html:1114
+#: work/templates/work/exchange_logging_work.html:1118
+#, fuzzy
+#| msgid "Transfer"
+msgid "Transfer from:"
+msgstr "trasferimento"
+
+#: work/templates/work/exchange_logging_work.html:474
+#: work/templates/work/exchange_logging_work.html:477
+#: work/templates/work/exchange_logging_work.html:481
+#: work/templates/work/exchange_logging_work.html:557
+#: work/templates/work/exchange_logging_work.html:560
+#: work/templates/work/exchange_logging_work.html:564
+#: work/templates/work/exchange_logging_work.html:1028
+#: work/templates/work/exchange_logging_work.html:1031
+#: work/templates/work/exchange_logging_work.html:1035
+#: work/templates/work/exchange_logging_work.html:1112
+#: work/templates/work/exchange_logging_work.html:1115
+#: work/templates/work/exchange_logging_work.html:1119
+#, fuzzy
+#| msgid "Transfer"
+msgid "Transfer to:"
+msgstr "trasferimento"
+
+#: work/templates/work/exchange_logging_work.html:483
+#: work/templates/work/exchange_logging_work.html:566
+#: work/templates/work/exchange_logging_work.html:1037
+#: work/templates/work/exchange_logging_work.html:1121
+#, fuzzy
+#| msgid "Quantity"
+msgid "Quantity:"
+msgstr "Quantità"
+
+#: work/templates/work/exchange_logging_work.html:488
+#: work/templates/work/exchange_logging_work.html:573
+#: work/templates/work/exchange_logging_work.html:1043
+#: work/templates/work/exchange_logging_work.html:1128
+#, fuzzy
+#| msgid "All Resource Types"
+msgid "Resource type:"
+msgstr "tutti i tipi di risorsa"
+
+#: work/templates/work/exchange_logging_work.html:491
+#: work/templates/work/exchange_logging_work.html:576
+#: work/templates/work/exchange_logging_work.html:639
+#: work/templates/work/exchange_logging_work.html:736
+#: work/templates/work/exchange_logging_work.html:826
+#: work/templates/work/exchange_logging_work.html:968
+#: work/templates/work/exchange_logging_work.html:1046
+#: work/templates/work/exchange_logging_work.html:1131
+#: work/templates/work/exchange_logging_work.html:1194
+#: work/templates/work/exchange_logging_work.html:1290
+#: work/templates/work/exchange_logging_work.html:1380
+msgid "Value (total, not per unit):"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:492
+#: work/templates/work/exchange_logging_work.html:577
+#: work/templates/work/exchange_logging_work.html:640
+#: work/templates/work/exchange_logging_work.html:737
+#: work/templates/work/exchange_logging_work.html:827
+#: work/templates/work/exchange_logging_work.html:969
+#: work/templates/work/exchange_logging_work.html:1047
+#: work/templates/work/exchange_logging_work.html:1132
+#: work/templates/work/exchange_logging_work.html:1195
+#: work/templates/work/exchange_logging_work.html:1291
+#: work/templates/work/exchange_logging_work.html:1381
+#, fuzzy
+#| msgid "Unit of claim value"
+msgid "Unit of value:"
+msgstr "unità di valore del reclamo"
+
+#: work/templates/work/exchange_logging_work.html:494
+#: work/templates/work/exchange_logging_work.html:579
+#: work/templates/work/exchange_logging_work.html:645
+#: work/templates/work/exchange_logging_work.html:742
+#: work/templates/work/exchange_logging_work.html:832
+#: work/templates/work/exchange_logging_work.html:974
+#: work/templates/work/exchange_logging_work.html:1049
+#: work/templates/work/exchange_logging_work.html:1134
+#: work/templates/work/exchange_logging_work.html:1200
+#: work/templates/work/exchange_logging_work.html:1296
+#: work/templates/work/exchange_logging_work.html:1386
+#, fuzzy
+#| msgid "Description"
+msgid "Description:"
+msgstr "Descrizione"
+
+#: work/templates/work/exchange_logging_work.html:516
+#: work/templates/work/exchange_logging_work.html:1071
+#, fuzzy
+#| msgid "external agent"
+msgid "New External Agent?"
+msgstr "agente esterno"
 
 #: work/templates/work/exchange_logging_work.html:520
 #: work/templates/work/exchange_logging_work.html:1075
@@ -10895,9 +11221,122 @@ msgstr ""
 msgid "Type of Resource transferred:"
 msgstr ""
 
+#: work/templates/work/exchange_logging_work.html:642
+#: work/templates/work/exchange_logging_work.html:971
+#: work/templates/work/exchange_logging_work.html:1197
+msgid "Can be a rewarded in a value equation:"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:643
+#: work/templates/work/exchange_logging_work.html:740
+#: work/templates/work/exchange_logging_work.html:830
+#: work/templates/work/exchange_logging_work.html:972
+#: work/templates/work/exchange_logging_work.html:1198
+#: work/templates/work/exchange_logging_work.html:1294
+#: work/templates/work/exchange_logging_work.html:1384
+#, fuzzy
+#| msgid "Contributions with no Value Equation"
+msgid "Can be distributed in a value equation:"
+msgstr "contributo senza equazione di valore"
+
+#: work/templates/work/exchange_logging_work.html:644
+#: work/templates/work/exchange_logging_work.html:741
+#: work/templates/work/exchange_logging_work.html:831
+#: work/templates/work/exchange_logging_work.html:973
+#: work/templates/work/exchange_logging_work.html:1199
+#: work/templates/work/exchange_logging_work.html:1295
+#: work/templates/work/exchange_logging_work.html:1385
+msgid "Event reference:"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:648
+#: work/templates/work/exchange_logging_work.html:978
+#: work/templates/work/exchange_logging_work.html:1203
+#, fuzzy
+#| msgid "FairCoin Resource"
+msgid "Incoming resource:"
+msgstr "Risorsa FairCoin"
+
+#: work/templates/work/exchange_logging_work.html:649
+#: work/templates/work/exchange_logging_work.html:979
+#: work/templates/work/exchange_logging_work.html:1204
+msgid "Add to an existing resource:"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:650
+#: work/templates/work/exchange_logging_work.html:980
+#: work/templates/work/exchange_logging_work.html:1205
+#, fuzzy
+#| msgid "can create resource"
+msgid "OR create a new resource:"
+msgstr "può creare risorse"
+
+#: work/templates/work/exchange_logging_work.html:653
+#: work/templates/work/exchange_logging_work.html:983
+#: work/templates/work/exchange_logging_work.html:1208
+#, fuzzy
+#| msgid "Photo"
+msgid "Photo URL:"
+msgstr "Foto"
+
+#: work/templates/work/exchange_logging_work.html:654
+#: work/templates/work/exchange_logging_work.html:984
+#: work/templates/work/exchange_logging_work.html:1209
+#, fuzzy
+#| msgid "current location"
+msgid "Current Resource Location:"
+msgstr "posizione corrente"
+
+#: work/templates/work/exchange_logging_work.html:655
+#: work/templates/work/exchange_logging_work.html:985
+#: work/templates/work/exchange_logging_work.html:1210
+#, fuzzy
+#| msgid "All Resource Types"
+msgid "Resource Notes:"
+msgstr "tutti i tipi di risorsa"
+
+#: work/templates/work/exchange_logging_work.html:656
+#: work/templates/work/exchange_logging_work.html:986
+#: work/templates/work/exchange_logging_work.html:1211
+#, fuzzy
+#| msgid "Resources we need"
+msgid "Resource Access Rules:"
+msgstr "le risorse che ci servono"
+
+#: work/templates/work/exchange_logging_work.html:658
+#: work/templates/work/exchange_logging_work.html:1213
+#, fuzzy
+#| msgid "Resources we need"
+msgid "Resource access roles"
+msgstr "le risorse che ci servono"
+
+#: work/templates/work/exchange_logging_work.html:733
+#: work/templates/work/exchange_logging_work.html:823
+#: work/templates/work/exchange_logging_work.html:1287
+#: work/templates/work/exchange_logging_work.html:1377
+msgid "Resource transferred (only if inventoried):"
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:739
+#: work/templates/work/exchange_logging_work.html:829
+#: work/templates/work/exchange_logging_work.html:1293
+#: work/templates/work/exchange_logging_work.html:1383
+msgid "Can be rewarded in a value equation:"
+msgstr ""
+
 #: work/templates/work/exchange_logging_work.html:862
 #: work/templates/work/exchange_logging_work.html:1416
 msgid "This transfer has not any event or commitment yet..."
+msgstr ""
+
+#: work/templates/work/exchange_logging_work.html:887
+#, fuzzy
+#| msgid "Change Transfer"
+msgid "Incoming Transfers"
+msgstr "cambia trasferimento"
+
+#: work/templates/work/exchange_logging_work.html:912
+msgid "Total:"
 msgstr ""
 
 #: work/templates/work/exchange_logging_work.html:932
@@ -11048,7 +11487,7 @@ msgstr ""
 #: work/templates/work/exchanges_all.html:950
 #: work/templates/work/exchanges_all.html:1021
 #: work/templates/work/exchanges_all.html:1087
-#: work/templates/work/members_agent.html:873
+#: work/templates/work/members_agent.html:878
 msgid "Edit"
 msgstr ""
 
@@ -11073,17 +11512,17 @@ msgid "Or choose a related <b>Skill Verb</b> (service time):"
 msgstr ""
 
 #: work/templates/work/exchanges_all.html:1086
-#: work/templates/work/members_agent.html:874
+#: work/templates/work/members_agent.html:879
 msgid "...if no one fits:"
 msgstr ""
 
 #: work/templates/work/exchanges_all.html:1086
-#: work/templates/work/members_agent.html:874
+#: work/templates/work/members_agent.html:879
 msgid "New Skill Service Type"
 msgstr ""
 
 #: work/templates/work/exchanges_all.html:1087
-#: work/templates/work/members_agent.html:873
+#: work/templates/work/members_agent.html:878
 msgid "...you created this skill:"
 msgstr ""
 
@@ -11108,12 +11547,12 @@ msgid "Resource Type:"
 msgstr ""
 
 #: work/templates/work/exchanges_all.html:1156
-#: work/templates/work/members_agent.html:937
+#: work/templates/work/members_agent.html:942
 msgid "Add a new"
 msgstr ""
 
 #: work/templates/work/exchanges_all.html:1156
-#: work/templates/work/members_agent.html:937
+#: work/templates/work/members_agent.html:942
 msgid "Skill Type:"
 msgstr ""
 
@@ -11479,7 +11918,7 @@ msgid "The first step to join this project is to fill the following form:"
 msgstr ""
 
 #: work/templates/work/joinaproject_request_internal.html:10
-#: work/templates/work/members_agent.html:1213
+#: work/templates/work/members_agent.html:1218
 #: work/templates/work/project_login.html:93
 msgid "Join"
 msgstr ""
@@ -11607,310 +12046,318 @@ msgstr ""
 msgid "Upload Picture for "
 msgstr "caricare un'immagine per"
 
-#: work/templates/work/members_agent.html:372
+#: work/templates/work/members_agent.html:370
+msgid "Error: can't read the image."
+msgstr ""
+
+#: work/templates/work/members_agent.html:377
 msgid "Set"
 msgstr ""
 
-#: work/templates/work/members_agent.html:383
+#: work/templates/work/members_agent.html:388
 #, fuzzy
 #| msgid "role"
 msgid "OCP role"
 msgstr "ruolo"
 
-#: work/templates/work/members_agent.html:417
+#: work/templates/work/members_agent.html:422
 #, fuzzy
 #| msgid "Address"
 msgid "Address Missing!"
 msgstr "Indirizzo"
 
-#: work/templates/work/members_agent.html:449
+#: work/templates/work/members_agent.html:454
 #, fuzzy
 #| msgid "Login"
 msgid "Login as"
 msgstr "login"
 
-#: work/templates/work/members_agent.html:462
+#: work/templates/work/members_agent.html:467
 #, fuzzy
 #| msgid "Username"
 msgid "User:"
 msgstr "Nome Utente"
 
-#: work/templates/work/members_agent.html:493
+#: work/templates/work/members_agent.html:498
 #: work/templates/work/project_resource.html:273
 #, fuzzy
 #| msgid "created date"
 msgid "Created date"
 msgstr "data di creazione"
 
-#: work/templates/work/members_agent.html:506
+#: work/templates/work/members_agent.html:511
 msgid "Project Joining Style:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:510
+#: work/templates/work/members_agent.html:515
 msgid "Manage Requests"
 msgstr ""
 
-#: work/templates/work/members_agent.html:511
+#: work/templates/work/members_agent.html:516
 msgid "View Form"
 msgstr ""
 
-#: work/templates/work/members_agent.html:517
+#: work/templates/work/members_agent.html:522
 msgid "Auto create users+agents and confirm email:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:522
+#: work/templates/work/members_agent.html:527
 msgid "Project Visibility:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:526
+#: work/templates/work/members_agent.html:531
 #, fuzzy
 #| msgid "All Resource Types"
 msgid "Resource Type Visibility:"
 msgstr "tutti i tipi di risorsa"
 
-#: work/templates/work/members_agent.html:531
+#: work/templates/work/members_agent.html:536
 #, fuzzy
 #| msgid "Projects:"
 msgid "Project Slug:"
 msgstr "progetti:"
 
-#: work/templates/work/members_agent.html:533
+#: work/templates/work/members_agent.html:538
 msgid "View Custom Form Fields"
 msgstr ""
 
-#: work/templates/work/members_agent.html:535
+#: work/templates/work/members_agent.html:540
 msgid "Error: form not found."
 msgstr ""
 
-#: work/templates/work/members_agent.html:535
+#: work/templates/work/members_agent.html:540
 msgid ""
 "The custom form can be pending to setup by admins. Make sure you already "
 "listed which custom fields are needed (using the feedback page) so admins "
 "can proceed."
 msgstr ""
 
-#: work/templates/work/members_agent.html:538
+#: work/templates/work/members_agent.html:543
 msgid ""
 "(custom form fields pending to setup, list your desired fields and ask an "
 "admin using the feedback page)"
 msgstr ""
 
-#: work/templates/work/members_agent.html:544
+#: work/templates/work/members_agent.html:549
 msgid "Offered Shares:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:545
+#: work/templates/work/members_agent.html:550
 msgid "Error: No project's Share types found!"
 msgstr ""
 
-#: work/templates/work/members_agent.html:568
+#: work/templates/work/members_agent.html:573
 msgid "Create Project Shares:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:578
+#: work/templates/work/members_agent.html:583
 msgid "Share unit abbrev"
 msgstr ""
 
-#: work/templates/work/members_agent.html:585
+#: work/templates/work/members_agent.html:590
 msgid "Share price"
 msgstr ""
 
-#: work/templates/work/members_agent.html:588
+#: work/templates/work/members_agent.html:593
 #, fuzzy
 #| msgid "Unit of claim value"
 msgid "Unit of price"
 msgstr "unità di valore del reclamo"
 
-#: work/templates/work/members_agent.html:598
+#: work/templates/work/members_agent.html:603
 #, fuzzy
 #| msgid "Create Exchange"
 msgid "Create Project Shares"
 msgstr "Crea punto di scambio"
 
-#: work/templates/work/members_agent.html:608
+#: work/templates/work/members_agent.html:613
 #, fuzzy
 #| msgid "Distribution date"
 msgid "Distributed Shares:"
 msgstr "data di sistribuzione"
 
-#: work/templates/work/members_agent.html:609
+#: work/templates/work/members_agent.html:614
 msgid "holders"
 msgstr ""
 
-#: work/templates/work/members_agent.html:615
+#: work/templates/work/members_agent.html:620
 msgid "Payment Options:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:637
+#: work/templates/work/members_agent.html:642
 msgid "Enabled Services:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:647
+#: work/templates/work/members_agent.html:652
 msgid "Custom Login Html:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:653
+#: work/templates/work/members_agent.html:658
 msgid "Custom CSS:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:659
+#: work/templates/work/members_agent.html:664
 msgid "Custom JS:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:713
+#: work/templates/work/members_agent.html:718
 #, fuzzy
 #| msgid "Account"
 msgid "Accounts owned"
 msgstr "account"
 
-#: work/templates/work/members_agent.html:733
+#: work/templates/work/members_agent.html:738
 #, fuzzy
 #| msgid "Create Resource"
 msgid "Other Resources"
 msgstr "crea risorsa"
 
-#: work/templates/work/members_agent.html:748
+#: work/templates/work/members_agent.html:753
 #, fuzzy
 #| msgid "Create Resource"
 msgid "Related Resources"
 msgstr "crea risorsa"
 
-#: work/templates/work/members_agent.html:775
+#: work/templates/work/members_agent.html:780
 msgid "Pending to create user+agent:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:776
+#: work/templates/work/members_agent.html:781
 msgid "Manage Join Requests"
 msgstr ""
 
-#: work/templates/work/members_agent.html:788
+#: work/templates/work/members_agent.html:793
 #, fuzzy
 #| msgid "Confirm Email"
 msgid "confirm email"
 msgstr "Conferma e-mail"
 
-#: work/templates/work/members_agent.html:797
+#: work/templates/work/members_agent.html:802
 msgid "x"
 msgstr ""
 
-#: work/templates/work/members_agent.html:811
+#: work/templates/work/members_agent.html:816
 msgid "Skills"
 msgstr ""
 
-#: work/templates/work/members_agent.html:820
+#: work/templates/work/members_agent.html:819
+msgid "Edit offered skills"
+msgstr ""
+
+#: work/templates/work/members_agent.html:825
 #, fuzzy
 #| msgid "created by"
 msgid "(created by you)"
 msgstr "creato da"
 
-#: work/templates/work/members_agent.html:820
+#: work/templates/work/members_agent.html:825
 msgid "(edited by you)"
 msgstr ""
 
-#: work/templates/work/members_agent.html:820
+#: work/templates/work/members_agent.html:825
 #, python-format
 msgid "(suggested by %(agent)s)"
 msgstr ""
 
-#: work/templates/work/members_agent.html:831
+#: work/templates/work/members_agent.html:836
 msgid "Assigned Skills for"
 msgstr ""
 
-#: work/templates/work/members_agent.html:843
+#: work/templates/work/members_agent.html:848
 #: work/templates/work/profile.html:245
 msgid "Thanks for the suggestion!"
 msgstr ""
 
-#: work/templates/work/members_agent.html:858
+#: work/templates/work/members_agent.html:863
 msgid "Add another skill to your profile: "
 msgstr ""
 
-#: work/templates/work/members_agent.html:869
+#: work/templates/work/members_agent.html:874
 msgid "as a Tree"
 msgstr ""
 
-#: work/templates/work/members_agent.html:968
+#: work/templates/work/members_agent.html:973
 msgid "Relations:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:976
+#: work/templates/work/members_agent.html:981
 #, fuzzy
 #| msgid "end date"
 msgid "candidate of"
 msgstr "data di fine"
 
-#: work/templates/work/members_agent.html:1007
+#: work/templates/work/members_agent.html:1012
 msgid "Edit member relations"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1011
+#: work/templates/work/members_agent.html:1016
 msgid "Maintain Associates for"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1038
+#: work/templates/work/members_agent.html:1043
 #, fuzzy
 #| msgid "end date"
 msgid "candidates"
 msgstr "data di fine"
 
-#: work/templates/work/members_agent.html:1040
-#: work/templates/work/members_agent.html:1251
-#: work/templates/work/members_agent.html:1259
+#: work/templates/work/members_agent.html:1045
+#: work/templates/work/members_agent.html:1256
+#: work/templates/work/members_agent.html:1264
 msgid "(SHOW)"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1055
+#: work/templates/work/members_agent.html:1060
 #, fuzzy
 #| msgid "Comments about the membership of "
 msgid "Migrate the membership!"
 msgstr "commenti sulla membership di"
 
-#: work/templates/work/members_agent.html:1187
+#: work/templates/work/members_agent.html:1192
 msgid "Join this project:"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1192
+#: work/templates/work/members_agent.html:1197
 msgid ""
 "Sorry, you've tried to join this project but your request was <b>declined</"
 "b> for any reason. See the thread at"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1193
+#: work/templates/work/members_agent.html:1198
 msgid "Your Declined Joining Feedback"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1195
+#: work/templates/work/members_agent.html:1200
 msgid ""
 "You've requested to join this project. To keep track of the joining process "
 "go to"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1197
+#: work/templates/work/members_agent.html:1202
 msgid "Your Joining Feedback"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1200
+#: work/templates/work/members_agent.html:1205
 msgid ""
 "This project has a moderated access workflow. Please fill the following form "
 "to request access, and then you will have a special feedback page to "
 "comunicate with the project coordinators"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1201
+#: work/templates/work/members_agent.html:1206
 msgid "Form to join"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1201
+#: work/templates/work/members_agent.html:1206
 msgid "Sorry, the form is not ready, try tomorrow"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1206
+#: work/templates/work/members_agent.html:1211
 msgid "You can simply join this project with one click"
 msgstr ""
 
-#: work/templates/work/members_agent.html:1250
-#: work/templates/work/members_agent.html:1251
-#: work/templates/work/members_agent.html:1259
+#: work/templates/work/members_agent.html:1255
+#: work/templates/work/members_agent.html:1256
+#: work/templates/work/members_agent.html:1264
 msgid "(HIDE)"
 msgstr ""
 
