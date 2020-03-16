@@ -53,6 +53,7 @@ class Concept(MPTTModel):    # Abstract
         verbose_name_plural = _(u"c- Concepts")
 
 
+
 @python_2_unicode_compatible
 class Type(Concept):    # Create own ID's (TREE)
     #concept = models.OneToOneField('Concept', primary_key=True, parent_link=True, on_delete=models.CASCADE)
@@ -69,6 +70,15 @@ class Type(Concept):    # Create own ID's (TREE)
             return self.name
         else:
             return self.name+' ('+self.clas+')'
+
+    def save(self, *args, **kwargs):
+        if not self.name_ca:
+            print("save: name_ca:"+self.name_en)
+            self.name_ca = self.name_en
+        if not self.name_es:
+            print("save: name_es:"+self.name_en)
+            self.name_es = self.name_en
+        super(Type, self).save(*args, **kwargs)
 
 """
 class rel_Type_Types(models.Model):

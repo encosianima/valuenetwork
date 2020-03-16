@@ -430,13 +430,13 @@ class Project(models.Model):
         return pay_opts
 
     def compact_name(self):
-        name = self.agent.name.title()
+        name = self.agent.name_en.title()
         arr = name.split()
         name = ''.join(arr)
         return name
 
     def abbrev_name(self):
-        name = self.agent.name
+        name = self.agent.name_en
         arr = name.split()
         abbr = ''
         for a in arr:
@@ -2937,7 +2937,12 @@ class Ocp_Unit_Type(Unit_Type):
 from django.db.models.signals import post_migrate
 #from work.apps import WorkAppConfig
 
+from django.core.management import call_command
+
 def create_unit_types(**kwargs):
+
+    call_command('update_translation_fields', interactive=True)
+
     ocp = EconomicAgent.objects.filter(nick='OCP')
     if not ocp:
         print("- 'OCP' nick not found, fill from nick_en!")
@@ -2975,12 +2980,12 @@ def create_unit_types(**kwargs):
 
     print "Analizing the unit types in the system..."
     # Each
-    ocp_eachs = Unit.objects.filter(name='Each')
+    ocp_eachs = Unit.objects.filter(name_en='Each')
     if ocp_eachs:
         ocp_each = ocp_eachs[0]
     else:
         ocp_each, created = Unit.objects.get_or_create(
-            name='Each',
+            name_en='Each',
             unit_type='quantity',
             abbrev='u.')
         if created:
@@ -2988,14 +2993,14 @@ def create_unit_types(**kwargs):
     ocp_each.abbrev = 'u.'
     ocp_each.save()
 
-    gen_artwt, created = Type.objects.get_or_create(name="Artwork", clas='Artwork')
+    gen_artwt, created = Type.objects.get_or_create(name_en="Artwork", clas='Artwork')
     if created:
         print "- created root general Type: 'Artwork'"
-    gen_unitt, created = Artwork_Type.objects.get_or_create(name="Unit", parent=gen_artwt, clas='Unit')
+    gen_unitt, created = Artwork_Type.objects.get_or_create(name_en="Unit", parent=gen_artwt, clas='Unit')
     if created:
         print "- created general Artwork_Type: 'Unit'"
     each_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Each',
+        name_en='Each',
         parent=gen_unitt
     )
     if created:
@@ -3020,12 +3025,12 @@ def create_unit_types(**kwargs):
     each.save()
 
     # Percent
-    ocp_percs = Unit.objects.filter(name='Percent')
+    ocp_percs = Unit.objects.filter(name_en='Percent')
     if ocp_percs:
         ocp_perc = ocp_percs[0]
     else:
         ocp_perc, created = Unit.objects.get_or_create(
-            name='Percent',
+            name_en='Percent',
             unit_type='percent',
             abbrev='Pct')
         if created:
@@ -3034,7 +3039,7 @@ def create_unit_types(**kwargs):
     ocp_perc.save()
 
     perc_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Percent',
+        name_en='Percent',
         parent=gen_unitt
     )
     if created:
@@ -3054,25 +3059,25 @@ def create_unit_types(**kwargs):
             print "- created General.Unit for Percent: 'percent'"
 
     # Hours
-    ocp_hours = Unit.objects.filter(name='Hour')
+    ocp_hours = Unit.objects.filter(name_en='Hour')
     if ocp_hours:
         ocp_hour = ocp_hours[0]
-        ocp_hour.name = 'Hours'
+        ocp_hour.name_en = 'Hours'
         ocp_hour.save()
     else:
-        ocp_hours = Unit.objects.filter(name='Hours')
+        ocp_hours = Unit.objects.filter(name_en='Hours')
         if ocp_hours:
             ocp_hour = ocp_hours[0]
         else:
             ocp_hour, created = Unit.objects.get_or_create(
-                name='Hours',
+                name_en='Hours',
                 unit_type='time',
                 abbrev='Hr')
             if created:
                 print "- created Unit: 'Hours'"
 
     gen_time_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Time',
+        name_en='Time',
         parent=gen_unitt
     )
     if created:
@@ -3095,16 +3100,16 @@ def create_unit_types(**kwargs):
     hour.save()
 
     # Days
-    ocp_days = Unit.objects.filter(name='Day')
+    ocp_days = Unit.objects.filter(name_en='Day')
     if ocp_days:
         ocp_day = ocp_days[0]
     else:
-        ocp_days = Unit.objects.filter(name='Days')
+        ocp_days = Unit.objects.filter(name_en='Days')
         if ocp_days:
             ocp_day = ocp_days[0]
         else:
             ocp_day, created = Unit.objects.get_or_create(
-                name='Day',
+                name_en='Day',
                 unit_type='time',
                 abbrev='day')
             if created:
@@ -3124,26 +3129,26 @@ def create_unit_types(**kwargs):
 
 
     # Kilos
-    ocp_kilos = Unit.objects.filter(name='Kilos')
+    ocp_kilos = Unit.objects.filter(name_en='Kilos')
     if ocp_kilos:
         ocp_kilos = ocp_kilos[0]
     else:
-        ocp_kilos = Unit.objects.filter(name='Kilo')
+        ocp_kilos = Unit.objects.filter(name_en='Kilo')
         if ocp_kilos:
             ocp_kilos = ocp_kilos[0]
         else:
             ocp_kilos, created = Unit.objects.get_or_create(
-                name='Kilos',
+                name_en='Kilos',
                 unit_type='weight',
                 abbrev='Kg')
             if created:
                 print "- created Unit: 'Kilos'"
-    ocp_kilos.name = 'Kilos'
+    ocp_kilos.name_en = 'Kilos'
     ocp_kilos.abbrev = 'Kg'
     ocp_kilos.save()
 
     gen_weight_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Weight',
+        name_en='Weight',
         parent=gen_unitt
     )
     if created:
@@ -3253,7 +3258,7 @@ def create_unit_types(**kwargs):
     ocp_fair.save()
 
     gen_curr_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Currency',
+        name_en='Currency',
         parent=gen_unitt
     )
     if created:
@@ -3262,14 +3267,14 @@ def create_unit_types(**kwargs):
     gen_curr_typ.save()
 
     gen_crypto_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Crypto Currency',
+        name_en='Crypto Currency',
         parent=gen_curr_typ
     )
     if created:
         print "- created Ocp_Unit_Type: 'Crypto Currency'"
 
     gen_fair_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Faircoins',
+        name_en='Faircoins',
         parent=gen_crypto_typ
     )
     if created:
@@ -3292,10 +3297,10 @@ def create_unit_types(**kwargs):
     fair.ocp_unit = ocp_fair
     fair.save()
 
-    ocp_fair_rts = EconomicResourceType.objects.filter(name='FairCoin')
+    ocp_fair_rts = EconomicResourceType.objects.filter(name_en='FairCoin')
     if not ocp_fair_rts:
         ocp_fair_rt, created = EconomicResourceType.objects.get_or_create(
-            name='FairCoin')
+            name_en='FairCoin')
         if created:
             print "- created EconomicResourceType: 'FairCoin'"
     else:
@@ -3338,21 +3343,21 @@ def create_unit_types(**kwargs):
         nonmat_typ = nonmat_typs[0]
     else:
         nonmat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='Non-material',
+            name_en='Non-material',
             parent=gen_artwt,
             clas='Nonmaterial')
         if created:
             print "- created Ocp_Artwork_Type: 'Non-material'"
 
     digart_typ, created = Ocp_Artwork_Type.objects.get_or_create(
-        name='Digital artwork',
+        name_en='Digital artwork',
         parent=nonmat_typ)
     if created:
         print "- created Ocp_Artwork_Type: 'Digital artwork'"
-    digcur_typs = Ocp_Artwork_Type.objects.filter(name='digital Currencies')
+    digcur_typs = Ocp_Artwork_Type.objects.filter(name_en='digital Currencies')
     if not digcur_typs:
         digcur_typ, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='digital Currencies',
+            name_en='digital Currencies',
             parent=digart_typ)
         if created:
             print "- created Ocp_Artwork_Types: 'digital Currencies'"
@@ -3361,10 +3366,10 @@ def create_unit_types(**kwargs):
     digcur_typ.clas = 'currency'
     digcur_typ.save()
 
-    fair_rts = Ocp_Artwork_Type.objects.filter(name='FairCoin')
+    fair_rts = Ocp_Artwork_Type.objects.filter(name_en='FairCoin')
     if not fair_rts:
         fair_rt, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='FairCoin',
+            name_en='FairCoin',
             parent=digcur_typ)
         if created:
             print "- created Ocp_Artwork_Types: 'FairCoin'"
@@ -3378,10 +3383,10 @@ def create_unit_types(**kwargs):
 
     #    F a i r c o i n   O c p   A c c o u n t
 
-    fairacc_rts = EconomicResourceType.objects.filter(name='Faircoin Ocp Account')
+    fairacc_rts = EconomicResourceType.objects.filter(name_en='Faircoin Ocp Account')
     if not fairacc_rts:
         fairacc_rt, created = EconomicResourceType.objects.get_or_create(
-            name='Faircoin Ocp Account')
+            name_en='Faircoin Ocp Account')
         if created:
             print "- created EconomicResourceType: 'Faircoin Ocp Account'"
     else:
@@ -3400,26 +3405,26 @@ def create_unit_types(**kwargs):
 
     print "- "+str(fairacc_rt)+" FV's: "+str([fv.facet_value.value+', ' for fv in fairacc_rt.facets.all()])
 
-    digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Account')
+    digacc_typs = Ocp_Artwork_Type.objects.filter(name_en='digital Account')
     if not digacc_typs:
-        digacc_typs = Ocp_Artwork_Type.objects.filter(name='digital Accounts')
+        digacc_typs = Ocp_Artwork_Type.objects.filter(name_en='digital Accounts')
     if not digacc_typs:
         digacc_typ, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='digital Accounts',
+            name_en='digital Accounts',
             parent=digart_typ)
         if created:
             print "- created Ocp_Artwork_Types: 'digital Accounts'"
     else:
         digacc_typ = digacc_typs[0]
-    digacc_typ.name = 'digital Accounts'
+    digacc_typ.name_en = 'digital Accounts'
     digacc_typ.clas = 'accounts'
     digacc_typ.parent = digart_typ
     digacc_typ.save()
 
-    facc_rts = Ocp_Artwork_Type.objects.filter(name='Faircoin Ocp Account')
+    facc_rts = Ocp_Artwork_Type.objects.filter(name_en='Faircoin Ocp Account')
     if not facc_rts:
         facc_rt, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='Faircoin Ocp Account',
+            name_en='Faircoin Ocp Account',
             parent=digacc_typ)
         if created:
             print "- created Ocp_Artwork_Types: 'Faircoin Ocp Account'"
@@ -3485,20 +3490,20 @@ def create_unit_types(**kwargs):
     genrec = Artwork_Type.objects.get(clas="Record")
     ocprecs = Artwork_Type.objects.filter(clas='ocp_record')
     if not ocprecs:
-        ocprecs = Artwork_Type.objects.filter(name='OCP Record')
+        ocprecs = Artwork_Type.objects.filter(name_en='OCP Record')
         print "- found OCP Record as an Artwork_Type by name"
 
     if ocprecs:
         ocprec = ocprecs[0]
     else:
         ocprec, c = Artwork_Type.objects.get_or_create(
-            name="OCP Record",
+            name_en="OCP Record",
             clas="ocp_record",
             parent=genrec)
         if c:
             print "- created Artwork_Type: "+str(ocprec)
     ocprec.clas = 'ocp_record'
-    ocprec.name = "OCP Record"
+    ocprec.name_en = "OCP Record"
     ocprec.parent = genrec
     ocprec.save()
 
@@ -3508,50 +3513,50 @@ def create_unit_types(**kwargs):
         ocpext = ocpexts[0]
     else:
         ocpext, c = Ocp_Record_Type.objects.get_or_create(
-            name="OCP ExchangeType",
+            name_en="OCP ExchangeType",
             clas="ocp_exchange",
             parent=ocprec)
         if c:
             print "- created Ocp_Record_Type: "+str(ocpext)
 
 
-    gen_gifts = Ocp_Record_Type.objects.filter(name__icontains="Gift Economy")
+    gen_gifts = Ocp_Record_Type.objects.filter(name_en__icontains="Gift Economy")
     if gen_gifts:
         gen_gift = gen_gifts[0]
     else:
         gen_gift, c = Ocp_Record_Type.objects.get_or_create(
-            name="Gift Economy:",
+            name_en="Gift Economy:",
             parent=ocpext)
         if c:
             print "- created Ocp_Record_Type: "+str(gen_gift)
-    gen_gift.name = "Gift Economy:"
+    gen_gift.name_en = "Gift Economy:"
     gen_gift.clas = "gift_economy"
     gen_gift.save()
 
-    gen_gives = Ocp_Record_Type.objects.filter(name__icontains="Give gift")
+    gen_gives = Ocp_Record_Type.objects.filter(name_en__icontains="Give gift")
     if gen_gives:
         gen_give = gen_gives[0]
     else:
         gen_give, c = Ocp_Record_Type.objects.get_or_create(
-            name="Give gift:",
+            name_en="Give gift:",
             parent=gen_gift)
         if c:
             print "- created Ocp_Record_Type: "+str(gen_give)
-    gen_give.name = "Give gift:"
+    gen_give.name_en = "Give gift:"
     gen_give.clas = "give"
     gen_give.parent = gen_gift
     gen_give.save()
 
-    gen_nmats = Ocp_Record_Type.objects.filter(name__icontains="give Non-material resources")
+    gen_nmats = Ocp_Record_Type.objects.filter(name_en__icontains="give Non-material resources")
     if gen_nmats:
         gen_nmat = gen_nmats[0]
     else:
         gen_nmat, c = Ocp_Record_Type.objects.get_or_create(
-            name="give Non-material resources",
+            name_en="give Non-material resources",
             parent=gen_give)
         if c:
             print "- created Ocp_Record_Type: "+str(gen_nmat)
-    gen_nmat.name = "give Non-material resources"
+    gen_nmat.name_en = "give Non-material resources"
     gen_nmat.parent = gen_give
     gen_nmat.ocpRecordType_ocp_artwork_type = nonmat_typ
     gen_nmat.save()
@@ -3578,9 +3583,9 @@ def create_unit_types(**kwargs):
             print "- DELETED ExchangeType: "+str(oldet.id)+" "+str(oldet)
             oldet.delete()
 
-    gen_fairints = Ocp_Record_Type.objects.filter(name__icontains="give FairCoin donation (via ocp)")
+    gen_fairints = Ocp_Record_Type.objects.filter(name_en__icontains="give FairCoin donation (via ocp)")
     if not gen_fairints:
-        gen_fairints = Ocp_Record_Type.objects.filter(name__icontains="give FairCoin donation")
+        gen_fairints = Ocp_Record_Type.objects.filter(name_en__icontains="give FairCoin donation")
     if gen_fairints:
         if len(gen_fairints) > 1:
             print "WARNING there is more than one gen_fairint ? "+str(gen_fairints)
@@ -3588,77 +3593,77 @@ def create_unit_types(**kwargs):
         gen_fairint = gen_fairints[0]
     else:
         gen_fairint, c = Ocp_Record_Type.objects.get_or_create(
-            name="give FairCoin donation (via ocp)",
+            name_en="give FairCoin donation (via ocp)",
             parent=gen_nmat)
         if c:
             print "- created Ocp_Record_Type: "+str(gen_fairint)
-    gen_fairint.name = "give FairCoin donation (via ocp)"
+    gen_fairint.name_en = "give FairCoin donation (via ocp)"
     gen_fairint.parent = gen_nmat
     gen_fairint.ocpRecordType_ocp_artwork_type = fair_rt # facc_rt ?
     gen_fairint.exchange_type = intfairet
     gen_fairint.save()
 
-    gen_fairouts = Ocp_Record_Type.objects.filter(name__icontains="give FairCoin donation (external)")
+    gen_fairouts = Ocp_Record_Type.objects.filter(name_en__icontains="give FairCoin donation (external)")
     if gen_fairouts:
         gen_fairout = gen_fairouts[0]
     else:
         gen_fairout, c = Ocp_Record_Type.objects.get_or_create(
-            name="give FairCoin donation (external)",
+            name_en="give FairCoin donation (external)",
             parent=gen_nmat)
         if c:
             print "- created Ocp_Record_Type: "+str(gen_fairout)
-    gen_fairout.name = "give FairCoin donation (external)"
+    gen_fairout.name_en = "give FairCoin donation (external)"
     gen_fairout.parent = gen_nmat
     gen_fairout.ocpRecordType_ocp_artwork_type = fair_rt
     gen_fairout.exchange_type = extfairet
     gen_fairout.save()
 
-    gen_receives = Ocp_Record_Type.objects.filter(name__contains="Receive gift")
+    gen_receives = Ocp_Record_Type.objects.filter(name_en__contains="Receive gift")
     if gen_receives:
         if len(gen_receives) > 1:
             print "WARNING: There is more than one gen_receives: "+str(gen_receives)
         gen_receive = gen_receives[0]
     else:
         gen_receive, c = Ocp_Record_Type.objects.get_or_create(
-            name="Receive gift:",
+            name_en="Receive gift:",
             parent=gen_gift)
         if c:
             print "- created Ocp_Record_Type: "+str(gen_receive)
-    gen_receive.name = "Receive gift:"
+    gen_receive.name_en = "Receive gift:"
     gen_receive.parent = gen_gift
     gen_receive.description = "Branch of exchange types only used when there's no way to identify the sending 'from' agent in the system"
     gen_receive.save()
 
-    gen_recnons = Ocp_Record_Type.objects.filter(name__icontains="receive Non-material resources")
+    gen_recnons = Ocp_Record_Type.objects.filter(name_en__icontains="receive Non-material resources")
     if gen_recnons:
         if len(gen_recnons) > 1:
             print "WARNING: There is more than one gen_recnons: "+str(gen_recnons)
         gen_recnon = gen_recnons[0]
     else:
         gen_recnon, c = Ocp_Record_Type.objects.get_or_create(
-            name="receive Non-material resources",
+            name_en="receive Non-material resources",
             parent=gen_receive)
         if c:
             print "- created Ocp_Record_Type: "+str(gen_recnon)
-    gen_recnon.name = "receive Non-material resources"
+    gen_recnon.name_en = "receive Non-material resources"
     gen_recnon.parent = gen_receive
     gen_recnon.ocpRecordType_ocp_artwork_type = nonmat_typ
     gen_recnon.save()
 
-    gen_recfairs = Ocp_Record_Type.objects.filter(name__icontains="receive Faircoin donation")
+    gen_recfairs = Ocp_Record_Type.objects.filter(name_en__icontains="receive Faircoin donation")
     if not gen_recfairs:
-        gen_recfairs = Ocp_Record_Type.objects.filter(name__icontains="receive Faircoin")
+        gen_recfairs = Ocp_Record_Type.objects.filter(name_en__icontains="receive Faircoin")
     if gen_recfairs:
         if len(gen_recfairs) > 1:
             print "WARNING: Theres is more than one gen_recfairs: "+str(gen_recfairs)
         gen_recfair = gen_recfairs[0]
     else:
         gen_recfair, c = Ocp_Record_Type.objects.get_or_create(
-            name="receive Faircoin donation",
+            name_en="receive Faircoin donation",
             parent=gen_recnon)
         if c:
             print "- created Ocp_Record_Type: "+str(gen_recfair)
-    gen_recfair.name = "receive Faircoin donation"
+    gen_recfair.name_en = "receive Faircoin donation"
     gen_recfair.parent = gen_recnon
     gen_recfair.ocpRecordType_ocp_artwork_type = fair_rt
     gen_recfair.exchange_type = incfairet
@@ -3680,14 +3685,14 @@ def create_unit_types(**kwargs):
     ocp_euro.symbol = '€'
     ocp_euro.save()
     gen_fiat_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Fiat Currency',
+        name_en='Fiat Currency',
         parent=gen_curr_typ
     )
     if created:
         print "- created Ocp_Unit_Type: 'Fiat Currency'"
 
     gen_euro_typ, created = Ocp_Unit_Type.objects.get_or_create(
-        name='Euros',
+        name_en='Euros',
         parent=gen_fiat_typ
     )
     if created:
@@ -3719,7 +3724,7 @@ def create_unit_types(**kwargs):
         else:
             raise ValidationError("There is only one rt related Euro but is not 'Euro': "+str(ocp_euro_rts[0]))
     elif len(ocp_euro_rts) > 1:
-        digi_rt = ocp_euro_rts.get(name='Euro digital')
+        digi_rt = ocp_euro_rts.get(name_en='Euro digital')
         if not digi_rt:
             raise ValidationError("Can't find a ResourceType named 'Euro digital' rts: "+str(ocp_euro_rts))
         digi_rt.unit = ocp_euro
@@ -3733,7 +3738,7 @@ def create_unit_types(**kwargs):
         digi_rt.inventory_rule = 'yes'
         digi_rt.behavior = 'dig_curr'
         digi_rt.save()
-        cash_rt = ocp_euro_rts.get(name='Euro cash')
+        cash_rt = ocp_euro_rts.get(name_en='Euro cash')
         if not cash_rt:
             raise ValidationError("Can't find a ResourceType named 'Euro cash' rts: "+str(ocp_euro_rts))
         cash_rt.unit = ocp_euro
@@ -3749,7 +3754,7 @@ def create_unit_types(**kwargs):
         cash_rt.save()
     else:
         digi_rt, created = EconomicResourceType.objects.get_or_create(
-            name='Euro digital',
+            name_en='Euro digital',
             unit=ocp_euro,
             unit_of_use=ocp_euro,
             price_per_unit = 1,
@@ -3760,7 +3765,7 @@ def create_unit_types(**kwargs):
         if created:
             print "- created EconomicResourceType: 'Euro digital'"
         cash_rt, created = EconomicResourceType.objects.get_or_create(
-            name='Euro cash',
+            name_en='Euro cash',
             unit=ocp_euro,
             unit_of_use=ocp_euro,
             price_per_unit=1,
@@ -3776,7 +3781,7 @@ def create_unit_types(**kwargs):
 
     artw_euros = Ocp_Artwork_Type.objects.filter(name__icontains="Euro")
     if len(artw_euros) > 1:
-        digi = artw_euros.get(name='Euro digital')
+        digi = artw_euros.get(name_en='Euro digital')
         if digi:
             digi.clas = 'euro_digital'
             digi.resource_type = digi_rt
@@ -3784,7 +3789,7 @@ def create_unit_types(**kwargs):
             digi.save()
         else:
             raise ValidationError("Can't find an Ocp_Artwork_Type named 'Euro digital' artw: "+str(artw_euros))
-        cash = artw_euros.get(name='Euro cash')
+        cash = artw_euros.get(name_en='Euro cash')
         if cash:
             cash.clas = 'euro_cash'
             cash.resource_type = cash_rt
@@ -3798,7 +3803,7 @@ def create_unit_types(**kwargs):
         #raise ValidationError("There are not 2 Ocp_Artwork_Types containing 'Euro' in the name (should find 'Euro digital' and 'Euro cash': "+str(artw_euros))
 
         digi, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='Euro digital',
+            name_en='Euro digital',
             parent=digcur_typ,
         )
         if created:
@@ -3816,16 +3821,16 @@ def create_unit_types(**kwargs):
             mat_typ = mat_typs[0]
         else:
             mat_typ, created = Ocp_Artwork_Type.objects.get_or_create(
-                name='Material',
+                name_en='Material',
                 parent=gen_artwt,
                 clas='Material')
             if created:
                 print "- created Ocp_Artwork_Type: 'Material'"
 
-        phycur_typs = Ocp_Artwork_Type.objects.filter(name='physical Currencies')
+        phycur_typs = Ocp_Artwork_Type.objects.filter(name_en='physical Currencies')
         if not phycur_typs:
             phycur_typ, created = Ocp_Artwork_Type.objects.get_or_create(
-                name='physical Currencies',
+                name_en='physical Currencies',
                 parent=mat_typ)
             if created:
                 print "- created Ocp_Artwork_Types: 'physical Currencies'"
@@ -3835,7 +3840,7 @@ def create_unit_types(**kwargs):
         phycur_typ.save()
 
         cash, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='Euro cash',
+            name_en='Euro cash',
             parent=phycur_typ)
         if created:
             print "- created Ocp_Artwork_Type: 'Euro cash'"
@@ -3998,35 +4003,35 @@ def create_unit_types(**kwargs):
 
     #   S h a r e s
 
-    gen_share_typs = Ocp_Unit_Type.objects.filter(name='Shares')
+    gen_share_typs = Ocp_Unit_Type.objects.filter(name_en='Shares')
     if not gen_share_typs:
-        gen_share_typs = Ocp_Unit_Type.objects.filter(name='Shares currency')
+        gen_share_typs = Ocp_Unit_Type.objects.filter(name_en='Shares currency')
     if not gen_share_typs:
         gen_share_typ, created = Ocp_Unit_Type.objects.get_or_create(
-            name='Shares currency',
+            name_en='Shares currency',
             parent=gen_curr_typ)
         if created:
             print "- created Ocp_Unit_Type: 'Shares currency'"
     else:
         gen_share_typ = gen_share_typs[0]
-    gen_share_typ.name = 'Shares currency'
+    gen_share_typ.name_en = 'Shares currency'
     gen_share_typ.parent = gen_curr_typ
     gen_share_typ.clas = 'shares_currency'
     gen_share_typ.save()
 
 
-    artw_share = Ocp_Artwork_Type.objects.filter(name='Share')
+    artw_share = Ocp_Artwork_Type.objects.filter(name_en='Share')
     if not artw_share:
-        artw_share = Ocp_Artwork_Type.objects.filter(name='Shares')
+        artw_share = Ocp_Artwork_Type.objects.filter(name_en='Shares')
     if not artw_share:
         artw_sh, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='Shares',
+            name_en='Shares',
             parent=digcur_typ)
         if created:
             print "- created Ocp_Artwork_Type branch: 'Shares'"
     else:
         artw_sh = artw_share[0]
-    artw_sh.name = 'Shares'
+    artw_sh.name_en = 'Shares'
     artw_sh.clas = 'shares'
     artw_sh.parent = digcur_typ
     artw_sh.resource_type = None
@@ -4046,12 +4051,12 @@ def create_unit_types(**kwargs):
     else:
         fdc_ag = fdc_ag[0]
 
-    ocp_shares = Unit.objects.filter(name='Share')
+    ocp_shares = Unit.objects.filter(name_en='Share')
     if not ocp_shares:
-        ocp_shares = Unit.objects.filter(name='FreedomCoop Share')
+        ocp_shares = Unit.objects.filter(name_en='FreedomCoop Share')
     if not ocp_shares:
         ocp_share, created = Unit.objects.get_or_create(
-            name='FreedomCoop Share',
+            name_en='FreedomCoop Share',
             unit_type='value',
             abbrev='FdC'
         )
@@ -4059,15 +4064,15 @@ def create_unit_types(**kwargs):
             print "- created OCP Unit: 'FreedomCoop Share'"
     else:
         ocp_share = ocp_shares[0]
-    ocp_share.name = 'FreedomCoop Share'
+    ocp_share.name_en = 'FreedomCoop Share'
     ocp_share.unit_type = 'value'
     ocp_share.abbrev = 'FdC'
     ocp_share.save()
 
-    gen_fdc_typs = Ocp_Unit_Type.objects.filter(name='FreedomCoop Shares')
+    gen_fdc_typs = Ocp_Unit_Type.objects.filter(name_en='FreedomCoop Shares')
     if not gen_fdc_typs:
         gen_fdc_typ, created = Ocp_Unit_Type.objects.get_or_create(
-            name='FreedomCoop Shares',
+            name_en='FreedomCoop Shares',
             parent=gen_share_typ)
         if created:
             print "- created Ocp_Unit_Type: 'FreedomCoop Shares'"
@@ -4086,21 +4091,21 @@ def create_unit_types(**kwargs):
     fdc_share.ocp_unit = ocp_share
     fdc_share.save()
 
-    ocp_share_rts = EconomicResourceType.objects.filter(name='FreedomCoop Share')
+    ocp_share_rts = EconomicResourceType.objects.filter(name_en='FreedomCoop Share')
     if not ocp_share_rts:
-        ocp_share_rts = EconomicResourceType.objects.filter(name='Membership Share')
+        ocp_share_rts = EconomicResourceType.objects.filter(name_en='Membership Share')
     if not ocp_share_rts:
-        ocp_share_rts = EconomicResourceType.objects.filter(name='Share')
+        ocp_share_rts = EconomicResourceType.objects.filter(name_en='Share')
     if ocp_share_rts:
         if len(ocp_share_rts) > 1:
             raise ValidationError("There's more than one 'FreedomCoop Share' ?? "+str(ocp_share_rts))
         share_rt = ocp_share_rts[0]
     else:
         share_rt, created = EconomicResourceType.objects.get_or_create(
-            name='FreedomCoop Share')
+            name_en='FreedomCoop Share')
         if created:
             print "- created EconomicResourceType: 'FreedomCoop Share'"
-    share_rt.name = 'FreedomCoop Share'
+    share_rt.name_en = 'FreedomCoop Share'
     share_rt.unit = ocp_share
     share_rt.inventory_rule = 'yes'
     share_rt.behavior = 'other'
@@ -4124,16 +4129,16 @@ def create_unit_types(**kwargs):
         print "- created ResourceTypeFacetValue: "+str(share_rtfv)
 
 
-    artw_fdcs = Ocp_Artwork_Type.objects.filter(name="Share")
+    artw_fdcs = Ocp_Artwork_Type.objects.filter(name_en="Share")
     if not artw_fdcs:
-        artw_fdcs = Ocp_Artwork_Type.objects.filter(name="Membership Share")
+        artw_fdcs = Ocp_Artwork_Type.objects.filter(name_en="Membership Share")
     if not artw_fdcs:
-        artw_fdcs = Ocp_Artwork_Type.objects.filter(name="FreedomCoop Share")
+        artw_fdcs = Ocp_Artwork_Type.objects.filter(name_en="FreedomCoop Share")
     if artw_fdcs:
         artw_fdc = artw_fdcs[0]
     else:
         artw_fdc, created = Ocp_Artwork_Type.objects.get_or_create(
-            name='FreedomCoop Share',
+            name_en='FreedomCoop Share',
             parent = Type.objects.get(id=artw_sh.id)
         )
         if created:
@@ -4184,7 +4189,7 @@ def create_unit_types(**kwargs):
     ocpboc_share.abbrev = 'BotC'
     ocpboc_share.save()
 
-    gen_boc_typs = Ocp_Unit_Type.objects.filter(name='BankOfTheCommons Shares')
+    gen_boc_typs = Ocp_Unit_Type.objects.filter(name_en='BankOfTheCommons Shares')
     if not gen_boc_typs:
         gen_boc_typ, created = Ocp_Unit_Type.objects.get_or_create(
             name='BankOfTheCommons Shares',
@@ -4207,9 +4212,9 @@ def create_unit_types(**kwargs):
     boc_share.ocp_unit = ocpboc_share
     boc_share.save()
 
-    share_rts = EconomicResourceType.objects.filter(name__icontains="BankOfTheCommons Share").exclude(name__icontains="Account")
+    share_rts = EconomicResourceType.objects.filter(name_en__icontains="BankOfTheCommons Share").exclude(name_en__icontains="Account")
     if not share_rts:
-        share_rts = EconomicResourceType.objects.filter(name__icontains="Bank of the Commons Share").exclude(name__icontains="Account")
+        share_rts = EconomicResourceType.objects.filter(name_en__icontains="Bank of the Commons Share").exclude(name_en__icontains="Account")
     if share_rts:
         if len(share_rts) > 1:
             raise ValidationError("There are more than 1 EconomicResourceType named: 'BankOfTheCommons Share'")
@@ -4242,9 +4247,9 @@ def create_unit_types(**kwargs):
     if created:
         print "- created ResourceTypeFacetValue: "+str(share_rtfv)
 
-    artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="BankOfTheCommons Share").exclude(name__icontains="Account")
+    artw_bocs = Ocp_Artwork_Type.objects.filter(name_en__icontains="BankOfTheCommons Share").exclude(name_en__icontains="Account")
     if not artw_bocs:
-        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains="Bank of the Commons Share").exclude(name__icontains="Account")
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name_en__icontains="Bank of the Commons Share").exclude(name_en__icontains="Account")
     if artw_bocs:
         if len(artw_bocs) > 1:
             raise ValidationError("There are more than 1 Ocp_Artwork_Type named: 'BankOfTheCommons Share' ")

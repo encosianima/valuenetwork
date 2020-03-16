@@ -6947,15 +6947,15 @@ def create_project_shares(request, agent_id):
     gen_curr_typ = Ocp_Unit_Type.objects.get(clas="currency")
     artw_sh = Ocp_Artwork_Type.objects.get(clas="shares")
     gen_share_typ = Ocp_Unit_Type.objects.get(clas="shares_currency")
-    ocp_each = Unit.objects.get(name="Each")
+    ocp_each = Unit.objects.get(name_en="Each")
 
     #  Unit
-    ocpboc_shares = Unit.objects.filter(name=nome+' Share')
+    ocpboc_shares = Unit.objects.filter(name_en=nome+' Share')
     if not ocpboc_shares:
-        ocpboc_shares = Unit.objects.filter(name=agent.name+' Share')
+        ocpboc_shares = Unit.objects.filter(name_en=agent.name_en+' Share')
     if not ocpboc_shares:
         ocpboc_share, created = Unit.objects.get_or_create(
-            name=nome+' Share',
+            name_en=nome+' Share',
             unit_type='value',
             abbrev=abbr
         )
@@ -6967,7 +6967,7 @@ def create_project_shares(request, agent_id):
         if len(ocpboc_shares) > 1:
             raise ValidationError("There is more than one Unit !? "+str(ocpboc_shares))
         ocpboc_share = ocpboc_shares[0]
-    ocpboc_share.name = nome+' Share'
+    ocpboc_share.name_en = nome+' Share'
     ocpboc_share.unit_type = 'value'
     if ocpboc_share.abbrev and not ocpboc_share.abbrev == abbr:
         print "- changed shares Unit abbrev, from "+str(ocpboc_share.abbrev)+" to "+str(abbr)
@@ -6977,12 +6977,12 @@ def create_project_shares(request, agent_id):
     ocpboc_share.save()
 
     #  Ocp_Unit_Type
-    gen_boc_typs = Ocp_Unit_Type.objects.filter(name__iexact=nome+' Shares')
+    gen_boc_typs = Ocp_Unit_Type.objects.filter(name_en__iexact=nome+' Shares')
     if not gen_boc_typs:
-        gen_boc_typs = Ocp_Unit_Type.objects.filter(name__iexact=agent.name+' Shares')
+        gen_boc_typs = Ocp_Unit_Type.objects.filter(name_en__iexact=agent.name+' Shares')
     if not gen_boc_typs:
         gen_boc_typ, created = Ocp_Unit_Type.objects.get_or_create(
-            name=nome+' Shares',
+            name_en=nome+' Shares',
             parent=gen_share_typ)
         if created:
             print "- created Ocp_Unit_Type: '"+nome+" Shares'"
@@ -7020,20 +7020,20 @@ def create_project_shares(request, agent_id):
     #  EconomicResourceType
     acc_typ = project.shares_account_type()
     if acc_typ:
-        share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share").exclude(id=acc_typ.id)
+        share_rts = EconomicResourceType.objects.filter(name_en__icontains=nome+" Share").exclude(id=acc_typ.id)
         if not share_rts:
-            share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share").exclude(id=acc_typ.id)
+            share_rts = EconomicResourceType.objects.filter(name_en__icontains=agent.name+" Share").exclude(id=acc_typ.id)
     else:
-        share_rts = EconomicResourceType.objects.filter(name__icontains=nome+" Share")
+        share_rts = EconomicResourceType.objects.filter(name_en__icontains=nome+" Share")
         if not share_rts:
-            share_rts = EconomicResourceType.objects.filter(name__icontains=agent.name+" Share")
+            share_rts = EconomicResourceType.objects.filter(name_en__icontains=agent.name+" Share")
     if share_rts:
         if len(share_rts) > 1:
             raise ValidationError("There are more than 1 EconomicResourceType with same name: "+str(share_rts))
         share_rt = share_rts[0]
     else:
         share_rt, created = EconomicResourceType.objects.get_or_create(
-            name=nome+' Share',
+            name_en=nome+' Share',
             unit=ocpboc_share,
             inventory_rule='yes',
             behavior='other'
@@ -7042,7 +7042,7 @@ def create_project_shares(request, agent_id):
             print "- created EconomicResourceType: '"+nome+" Share'"
             loger.info("- created EconomicResourceType: '"+nome+" Share'")
             messages.info(request, "- created EconomicResourceType: '"+nome+" Share'")
-    share_rt.name = nome+" Share"
+    share_rt.name_en = nome+" Share"
     if hasattr(share_rt, 'unit'):
         if not share_rt.unit == ocpboc_share:
             print "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share)
@@ -7074,27 +7074,27 @@ def create_project_shares(request, agent_id):
 
     #  Ocp_Artwork_Type
     if acc_typ:
-        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share").exclude(id=acc_typ.ocp_artwork_type.id)
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name_en__icontains=nome+" Share").exclude(id=acc_typ.ocp_artwork_type.id)
         if not artw_bocs:
-            artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share").exclude(id=acc_typ.ocp_artwork_type.id)
+            artw_bocs = Ocp_Artwork_Type.objects.filter(name_en__icontains=agent.name_en+" Share").exclude(id=acc_typ.ocp_artwork_type.id)
     else:
-        artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Share")
+        artw_bocs = Ocp_Artwork_Type.objects.filter(name_en__icontains=nome+" Share")
         if not artw_bocs:
-            artw_bocs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Share")
+            artw_bocs = Ocp_Artwork_Type.objects.filter(name_en__icontains=agent.name_en+" Share")
     if artw_bocs:
         if len(artw_bocs) > 1:
             raise ValidationError("There are more than 1 Ocp_Artwork_Type with same name: "+str(artw_bocs))
         artw_boc = artw_bocs[0]
     else:
         artw_boc, created = Ocp_Artwork_Type.objects.get_or_create(
-            name=nome+' Share',
+            name_en=nome+' Share',
             parent=Type.objects.get(id=artw_sh.id)
         )
         if created:
             print "- created Ocp_Artwork_Type: '"+nome+" Share'"
             loger.info("- created Ocp_Artwork_Type: '"+nome+" Share'")
             messages.info(request, "- created Ocp_Artwork_Type: '"+nome+" Share'")
-    artw_boc.name = nome+" Share"
+    artw_boc.name_en = nome+" Share"
     artw_boc.parent = Type.objects.get(id=artw_sh.id)
     artw_boc.resource_type = share_rt
     artw_boc.general_unit_type = Unit_Type.objects.get(id=gen_boc_typ.id)
@@ -7104,16 +7104,16 @@ def create_project_shares(request, agent_id):
     #  P r o j e c t   S h a r e s   A c c o u n t
 
     #  EconomicResourceType
-    ert_accs = EconomicResourceType.objects.filter(name__icontains=agent.name+" Shares Account")
+    ert_accs = EconomicResourceType.objects.filter(name_en__icontains=agent.name_en+" Shares Account")
     if not ert_accs:
-        ert_accs = EconomicResourceType.objects.filter(name__icontains=nome+" Shares Account")
+        ert_accs = EconomicResourceType.objects.filter(name_en__icontains=nome+" Shares Account")
     if ert_accs:
         if len(ert_accs) > 1:
             raise ValidationError("There is more than 1 EconomicResourceType ?! "+str(ert_accs))
         ert_acc = ert_accs[0]
     else:
         ert_acc, created = EconomicResourceType.objects.get_or_create(
-            name=agent.name+" Shares Account",
+            name_en=agent.name_en+" Shares Account",
             unit=ocp_each,
             inventory_rule='yes',
             behavior='account')
@@ -7121,7 +7121,7 @@ def create_project_shares(request, agent_id):
             print "- created EconomicResourceType: "+str(ert_acc)
             loger.info("- created EconomicResourceType: "+str(ert_acc))
             messages.info(request, "- created EconomicResourceType: "+str(ert_acc))
-    ert_acc.name = agent.name+" Shares Account"
+    ert_acc.name_en = agent.name_en+" Shares Account"
     ert_acc.unit = ocp_each
     ert_acc.inventory_rule = 'yes'
     ert_acc.behavior = 'account'
@@ -7131,22 +7131,22 @@ def create_project_shares(request, agent_id):
 
     #  Ocp_Artwork_Type
     parent_accs = Ocp_Artwork_Type.objects.get(clas="accounts")
-    proaccs = Ocp_Artwork_Type.objects.filter(name__icontains=agent.name+" Shares Account")
+    proaccs = Ocp_Artwork_Type.objects.filter(name_en__icontains=agent.name_en+" Shares Account")
     if not proaccs:
-        proaccs = Ocp_Artwork_Type.objects.filter(name__icontains=nome+" Shares Account")
+        proaccs = Ocp_Artwork_Type.objects.filter(name_en__icontains=nome+" Shares Account")
     if proaccs:
         if len(proaccs) > 1:
             raise ValidationError("There is more than one Ocp_Artwork_Type ?! "+str(proaccs))
         proacc = proaccs[0]
     else:
         proacc, created = Ocp_Artwork_Type.objects.get_or_create(
-            name=agent.name+" Shares Account",
+            name_en=agent.name_en+" Shares Account",
             parent=parent_accs)
         if created:
             print "- created Ocp_Artwork_Type: '"+nome+" Shares Account'"
             loger.info("- created Ocp_Artwork_Type: '"+nome+" Shares Account'")
             messages.info(request, "- created Ocp_Artwork_Type: '"+nome+" Shares Account'")
-    proacc.name = agent.name+" Shares Account"
+    proacc.name_en = agent.name_en+" Shares Account"
     proacc.parent = parent_accs
     proacc.clas = nome.lower()+'shares'
     proacc.resource_type = ert_acc
@@ -7197,7 +7197,7 @@ def create_project_shares(request, agent_id):
         for ag in agent.all_has_associates():
             for rs in ag.has_associate.owned_accounts():
                 if abbr+" shares account" in rs.identifier:
-                    rs.identifier = agent.nick+" shares account for "+ag.has_associate.nick
+                    rs.identifier = agent.nick_en+" shares account for "+ag.has_associate.nick_en
                     rs.save()
                     print "- Renamed account! "+rs.identifier
                     loger.info("- Renamed account! "+rs.identifier)
@@ -7251,9 +7251,9 @@ def create_shares_exchange_types(request, agent_id):
     dummy.is_context = True
     dummy.save()
 
-    botc = EconomicAgent.objects.filter(nick="BoC")
+    botc = EconomicAgent.objects.filter(nick_en="BoC")
     if not botc:
-        botc = EconomicAgent.objects.filter(nick="BotC")
+        botc = EconomicAgent.objects.filter(nick_en="BotC")
     if not botc:
         print "- WARNING: the BotC agent don't exist, not created any exchange type for shares"
         loger.info("- WARNING: the BotC agent don't exist, not created any exchange type for shares")
@@ -7267,19 +7267,19 @@ def create_shares_exchange_types(request, agent_id):
     ocpext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
     usecas = UseCase.objects.get(identifier='intrnl_xfer')
 
-    et_sharecos = Ocp_Record_Type.objects.filter(name__icontains="Shares Economy")
+    et_sharecos = Ocp_Record_Type.objects.filter(name_en__icontains="Shares Economy")
     if et_sharecos:
         if len(et_sharecos) > 1:
             raise ValidationError("There are more than 1 Ocp_Record_Type named 'Shares Economy' : "+str(et_sharecos))
         et_shareco = et_sharecos[0]
     else:
         et_shareco, created = Ocp_Record_Type.objects.get_or_create(
-            name="Shares Economy:",
+            name_en="Shares Economy:",
             parent=ocpext)
         if created:
             print "- created Ocp_Record_Type branch: 'Shares Economy'"
             loger.info("- created Ocp_Record_Type branch: 'Shares Economy'")
-    et_shareco.name = "Shares Economy:"
+    et_shareco.name_en = "Shares Economy:"
     et_shareco.clas = "shares_economy"
 
     shareco, created = ExchangeType.objects.get_or_create(
@@ -7295,21 +7295,21 @@ def create_shares_exchange_types(request, agent_id):
     et_shareco.exchange_type = shareco
     et_shareco.save()
 
-    et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="Buy Shares", parent=et_shareco)
+    et_sharebuys = Ocp_Record_Type.objects.filter(name_en__iexact="Buy Shares", parent=et_shareco)
     if not et_sharebuys:
-        et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="shares Buy", parent=et_shareco)
+        et_sharebuys = Ocp_Record_Type.objects.filter(name_en__iexact="shares Buy", parent=et_shareco)
     if not et_sharebuys:
-        et_sharebuys = Ocp_Record_Type.objects.filter(name__iexact="buy Project Shares", parent=et_shareco)
+        et_sharebuys = Ocp_Record_Type.objects.filter(name_en__iexact="buy Project Shares", parent=et_shareco)
     if et_sharebuys:
         et_sharebuy = et_sharebuys[0]
     else:
         et_sharebuy, created = Ocp_Record_Type.objects.get_or_create(
-            name="shares Buy",
+            name_en="shares Buy",
             parent=et_shareco)
         if created:
             print "- created Ocp_Record_Type branch: 'shares Buy'"
             loger.info("- created Ocp_Record_Type branch: 'shares Buy'")
-    et_sharebuy.name = 'shares Buy'
+    et_sharebuy.name_en = 'shares Buy'
     et_sharebuy.clas = 'buy'
 
     etshs = ExchangeType.objects.filter(name__iexact="buy Project Shares")
@@ -7331,7 +7331,7 @@ def create_shares_exchange_types(request, agent_id):
     etsh.save()
 
     et_sharebuy.exchange_type = etsh
-    et_sharebuy.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares", name="Shares")
+    et_sharebuy.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares", name_en="Shares")
     et_sharebuy.save()
 
     # TransferType  ->  pay
@@ -7459,23 +7459,23 @@ def create_shares_exchange_types(request, agent_id):
             raise ValidationError("The ExchangeType has more than 2 TransferType's: "+str(tts))
 
         #  Ocp_Record_Type  ->  project
-        rectyps = Ocp_Record_Type.objects.filter(name__iexact="buy "+str(project.compact_name())+" Shares")
+        rectyps = Ocp_Record_Type.objects.filter(name_en__iexact="buy "+str(project.compact_name())+" Shares")
         if not rectyps:
-            rectyps = Ocp_Record_Type.objects.filter(name__iexact="buy "+str(project.agent.name)+" Shares")
+            rectyps = Ocp_Record_Type.objects.filter(name_en__iexact="buy "+str(project.agent.name_en)+" Shares")
         if not rectyps:
-            rectyps = Ocp_Record_Type.objects.filter(name__iexact="share-buy "+str(project.agent.name)+" Shares")
+            rectyps = Ocp_Record_Type.objects.filter(name_en__iexact="share-buy "+str(project.agent.name_en)+" Shares")
         if rectyps:
             if len(rectyps) > 1:
                 raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(rectyps))
             rectyp = rectyps[0]
         else:
             rectyp, created = Ocp_Record_Type.objects.get_or_create(
-                name="share-buy "+str(project.compact_name())+" Shares",
+                name_en="share-buy "+str(project.compact_name())+" Shares",
                 parent=et_sharebuy)
             if created:
                 print "- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'"
                 loger.info("- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'")
-        rectyp.name = "share-buy "+str(project.compact_name())+" Shares"
+        rectyp.name_en = "share-buy "+str(project.compact_name())+" Shares"
         rectyp.parent = et_sharebuy
         rectyp.exchange_type = extyp
         rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
@@ -7616,7 +7616,7 @@ def create_shares_exchange_types(request, agent_id):
             #  Ocp_Record_Type  branch
             parent_rectyps = Ocp_Record_Type.objects.filter(clas=slug+"_economy")
             if not parent_rectyps:
-                parent_rectyps = Ocp_Record_Type.objects.filter(name__icontains=title+" Economy")
+                parent_rectyps = Ocp_Record_Type.objects.filter(name_en__icontains=title+" Economy")
             if parent_rectyps:
                 if len(parent_rectyps) > 1:
                     raise ValidationError("There are more than 1 Ocp_Record_Type named: '"+title+" Economy'")
@@ -7624,14 +7624,14 @@ def create_shares_exchange_types(request, agent_id):
                 #print "- edited Ocp_Record_Type: '"+title+" Economy:'"
             else:
                 parent_rectyp, created = Ocp_Record_Type.objects.get_or_create(
-                    name=title+" Economy:",
+                    name_en=title+" Economy:",
                     clas=slug+"_economy",
                     parent=ocpext
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+title+" Economy:'"
                     loger.info("- created Ocp_Record_Type: '"+title+" Economy:'")
-            parent_rectyp.name = title+" Economy:"
+            parent_rectyp.name_en = title+" Economy:"
             parent_rectyp.parent = ocpext
             parent_rectyp.clas = slug+"_economy"
             parent_rectyp.exchange_type = None
@@ -7639,7 +7639,7 @@ def create_shares_exchange_types(request, agent_id):
 
             #   Buy  sub-branch
             parent_rectypbuy, created = Ocp_Record_Type.objects.get_or_create(
-                name=slug+" Buy",
+                name_en=slug+" Buy",
                 parent=parent_rectyp
             )
             if created:
@@ -7652,20 +7652,20 @@ def create_shares_exchange_types(request, agent_id):
             #   G e n e r i c    B u y    N o n - m a t e r i a l
 
             #  Ocp_Record_Type
-            parent_rectypbuy_nons = Ocp_Record_Type.objects.filter(name__icontains=slug+"-Buy Non-material resources")
+            parent_rectypbuy_nons = Ocp_Record_Type.objects.filter(name_en__icontains=slug+"-Buy Non-material resources")
             if not parent_rectypbuy_nons:
-                parent_rectypbuy_nons = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy Non-materials")
+                parent_rectypbuy_nons = Ocp_Record_Type.objects.filter(name_en__icontains=slug+"-buy Non-materials")
             if parent_rectypbuy_nons:
                 parent_rectypbuy_non = parent_rectypbuy_nons[0]
             else:
                 parent_rectypbuy_non, created = Ocp_Record_Type.objects.get_or_create(
-                    name=slug+"-buy Non-materials",
+                    name_en=slug+"-buy Non-materials",
                     parent=parent_rectypbuy
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+slug+"-buy Non-materials'"
                     loger.info("- created Ocp_Record_Type: '"+slug+"-buy Non-materials'")
-            parent_rectypbuy_non.name = slug+"-buy Non-materials"
+            parent_rectypbuy_non.name_en = slug+"-buy Non-materials"
             parent_rectypbuy_non.parent = parent_rectypbuy
             parent_rectypbuy_non.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="Nonmaterial")
             #parent_rectypbuy_non.save()
@@ -7781,22 +7781,22 @@ def create_shares_exchange_types(request, agent_id):
 
             #   S H A R E S    B U Y
 
-            fiat_rectyps = Ocp_Record_Type.objects.filter(name=slug+"-buy Shares")
+            fiat_rectyps = Ocp_Record_Type.objects.filter(name_en=slug+"-buy Shares")
             if not fiat_rectyps:
-                fiat_rectyps = Ocp_Record_Type.objects.filter(name=slug+"-buy Project Shares")
+                fiat_rectyps = Ocp_Record_Type.objects.filter(name_en=slug+"-buy Project Shares")
             if fiat_rectyps:
                 if len(fiat_rectyps) > 1:
                     raise ValidationError("There's more than 1 Ocp_Record_Type named: '"+slug+"-buy Project Shares'")
                 fiat_rectyp = fiat_rectyps[0]
             else:
                 fiat_rectyp, created = Ocp_Record_Type.objects.get_or_create(
-                    name=slug+"-buy Project Shares",
+                    name_en=slug+"-buy Project Shares",
                     parent=parent_rectypbuy_non
                 )
                 if created:
                     print "- created Ocp_Record_Type: '"+slug+"-buy Project Shares'"
                     loger.info("- created Ocp_Record_Type: '"+slug+"-buy Project Shares'")
-            fiat_rectyp.name = slug+"-buy Project Shares"
+            fiat_rectyp.name_en = slug+"-buy Project Shares"
             fiat_rectyp.parent = parent_rectypbuy_non
             fiat_rectyp.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="shares")
 
@@ -8029,22 +8029,22 @@ def create_shares_exchange_types(request, agent_id):
 
             pro_shr_rectyps = Ocp_Record_Type.objects.filter(exchange_type=slug_et)
             if not pro_shr_rectyps:
-                pro_shr_rectyps = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Share")
+                pro_shr_rectyps = Ocp_Record_Type.objects.filter(name_en__icontains=slug+"-buy "+str(project.compact_name())+" Share")
             if not pro_shr_rectyps:
-                pro_shr_rectyps = Ocp_Record_Type.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Share")
+                pro_shr_rectyps = Ocp_Record_Type.objects.filter(name_en__icontains=slug+"-buy "+str(project.agent.name_en)+" Share")
             if pro_shr_rectyps:
                 if len(pro_shr_rectyps) > 1:
                     raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(pro_shr_rectyp))
                 pro_shr_rectyp = pro_shr_rectyps[0]
             else:
                 pro_shr_rectyp, created = Ocp_Record_Type.objects.get_or_create(
-                    name=slug+"-buy "+str(project.compact_name())+" Shares",
+                    name_en=slug+"-buy "+str(project.compact_name())+" Shares",
                     parent=fiat_rectyp
                 )
                 if created:
-                    print "- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name)+" Shares'"
-                    loger.info("- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name)+" Shares'")
-            pro_shr_rectyp.name = slug+"-buy "+str(project.compact_name())+" Shares"
+                    print "- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Shares'"
+                    loger.info("- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Shares'")
+            pro_shr_rectyp.name_en = slug+"-buy "+str(project.compact_name())+" Shares"
             pro_shr_rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
             pro_shr_rectyp.parent = fiat_rectyp
             pro_shr_rectyp.exchange_type = slug_et

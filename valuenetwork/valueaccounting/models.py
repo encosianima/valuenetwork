@@ -463,7 +463,7 @@ class AgentManager(models.Manager):
 
     def freedom_coop(self):
         try:
-            fc = EconomicAgent.objects.get(name="Freedom Coop")
+            fc = EconomicAgent.objects.get(name_en="Freedom Coop")
         except EconomicAgent.DoesNotExist:
             raise ValidationError("Freedom Coop does not exist by that name")
         return fc
@@ -2677,7 +2677,7 @@ class EconomicResourceTypeManager(models.Manager):
 
     def membership_share(self):
         try:
-            share = EconomicResourceType.objects.get(name="FreedomCoop Share")
+            share = EconomicResourceType.objects.get(name_en="FreedomCoop Share")
         except EconomicResourceType.DoesNotExist:
             raise ValidationError("FreedomCoop Share does not exist by that name")
         return share
