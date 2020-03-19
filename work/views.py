@@ -3527,17 +3527,17 @@ def join_requests(request, agent_id):
             req.possible_agent = False
             if not hasattr(req, 'agent') and req.requested_username:
                 try:
-                    req.possible_agent = EconomicAgent.objects.get(nick=req.requested_username)
+                    req.possible_agent = EconomicAgent.objects.get(nick_en=req.requested_username)
                 except:
                     pass
             if hasattr(req, 'fobi_data') and hasattr(req.fobi_data, 'pk'):
-              req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
-              entry = req.entries[0]
-              req.data = json.loads(entry.saved_data)
-              req.items = req.data.items()
-              req.items_data = []
-              for key in fobi_keys:
-                req.items_data.append(req.data.get(key))
+              #req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
+              #entry = req.entries[0]
+              #req.data = json.loads(entry.saved_data)
+              #req.items = req.data.items()
+              req.items_data = req.fobi_items_data()
+              #for key in fobi_keys:
+              #  req.items_data.append(req.data.get(key))
             else:
               req.entries = []
 
