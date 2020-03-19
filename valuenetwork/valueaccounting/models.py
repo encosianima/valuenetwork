@@ -15099,7 +15099,7 @@ class CachedEventSummary(models.Model):
         event_list = EconomicEvent.objects.filter(is_contribution="true")
         summaries = {}
         #todo: very temporary hack
-        context_agent = EconomicAgent.objects.get(name="Not defined")
+        context_agent = EconomicAgent.objects.get(name_en="Not defined")
         for event in event_list:
             #todo: very temporary hack
             if not event.context_agent:

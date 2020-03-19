@@ -1107,17 +1107,17 @@ from django.db.models.signals import post_migrate
 def create_general_types(**kwargs):
     sep = ", "
     out = "Initial basic types created: <br>"
-    being, created = Type.objects.get_or_create(name='Being', clas='Being')
+    being, created = Type.objects.get_or_create(name_en='Being', clas='Being')
     if created: out += str(being)+sep
-    artwork, created = Type.objects.get_or_create(name='Artwork', clas='Artwork')
+    artwork, created = Type.objects.get_or_create(name_en='Artwork', clas='Artwork')
     if created: out += str(artwork)+sep
-    space, created = Type.objects.get_or_create(name='Space', clas='Space')
+    space, created = Type.objects.get_or_create(name_en='Space', clas='Space')
     if created: out += str(space)+'<br>'
 
-    """human, created = Being_Type.objects.get_or_create(name='Human', clas='Human', parent=being)
+    """human, created = Being_Type.objects.get_or_create(name_en='Human', clas='Human', parent=being)
     if created: out += str(human)+": "
 
-    persons = Being_Type.objects.filter(name="Person")
+    persons = Being_Type.objects.filter(name_en="Person")
     if persons:
         if len(persons) > 1:
             out += "ERROR there's more than one 'Person' as a Being_Type ?"+'<br>'
@@ -1125,13 +1125,13 @@ def create_general_types(**kwargs):
         else:
             person = persons[0]
     else:
-        person, created = Being_Type.objects.get_or_create(name='Person', parent=human)
+        person, created = Being_Type.objects.get_or_create(name_en='Person', parent=human)
         if created: out += str(person)+sep
     person.clas = 'Person'
     person.parent = human
     person.save()
 
-    projects = Being_Type.objects.filter(name="Project")
+    projects = Being_Type.objects.filter(name_en="Project")
     if projects:
         if len(projects) > 1:
             out += "ERROR there's more than one 'Project' as a Being_Type ?"+'<br>'
@@ -1139,13 +1139,13 @@ def create_general_types(**kwargs):
         else:
             project = projects[0]
     else:
-        project, created = Being_Type.objects.get_or_create(name='Project', parent=human)
+        project, created = Being_Type.objects.get_or_create(name_en='Project', parent=human)
         if created: out += str(project)+sep
     project.clas = 'Project'
     project.parent = human
     project.save()
 
-    companys = Being_Type.objects.filter(name="Company")
+    companys = Being_Type.objects.filter(name_en="Company")
     if companys:
         if len(companys) > 1:
             out += "ERROR there's more than one 'Company' as a Being_Type ?"+'<br>'
@@ -1153,44 +1153,44 @@ def create_general_types(**kwargs):
         else:
             company = companys[0]
     else:
-        company, created = Being_Type.objects.get_or_create(name='Company', parent=human)
+        company, created = Being_Type.objects.get_or_create(name_en='Company', parent=human)
         if created: out += str(company)+'<br>'
     company.clas = 'Company'
     company.parent = human
     company.save()
 
-    material, created = Artwork_Type.objects.get_or_create(name='Material', clas='Material', parent=artwork)
+    material, created = Artwork_Type.objects.get_or_create(name_en='Material', clas='Material', parent=artwork)
     if created: out += str(material)+sep
 
-    nonmaterial, created = Artwork_Type.objects.get_or_create(name='Non-material', clas='Nonmaterial', parent=artwork)
+    nonmaterial, created = Artwork_Type.objects.get_or_create(name_en='Non-material', clas='Nonmaterial', parent=artwork)
     if created: out += str(nonmaterial)+sep"""
 
-    record, created = Artwork_Type.objects.get_or_create(name='Record', clas='Record', parent=artwork)
+    record, created = Artwork_Type.objects.get_or_create(name_en='Record', clas='Record', parent=artwork)
     if created: out += str(record)+sep
 
-    unit, created = Artwork_Type.objects.get_or_create(name='Unit', clas='Unit', parent=artwork)
+    unit, created = Artwork_Type.objects.get_or_create(name_en='Unit', clas='Unit', parent=artwork)
     if created: out += str(unit)+sep
 
-    """currency, created = Unit_Type.objects.get_or_create(name='Currency', parent=unit)
+    """currency, created = Unit_Type.objects.get_or_create(name_en='Currency', parent=unit)
     if created: out += str(currency)+sep
-    social, created = Unit_Type.objects.get_or_create(name='MutualCredit currency', parent=currency)
+    social, created = Unit_Type.objects.get_or_create(name_en='MutualCredit currency', parent=currency)
     if created: out += str(social)+sep
-    crypto, created = Unit_Type.objects.get_or_create(name='Cryptocurrency', parent=currency)
+    crypto, created = Unit_Type.objects.get_or_create(name_en='Cryptocurrency', parent=currency)
     if created: out += str(crypto)+sep
-    fiat, created = Unit_Type.objects.get_or_create(name='Fiat currency', parent=currency)
+    fiat, created = Unit_Type.objects.get_or_create(name_en='Fiat currency', parent=currency)
     if created: out += str(crypto)+'<br>'
     """
 
-    region, created = Space_Type.objects.get_or_create(name='Region', clas='Region', parent=space)
+    region, created = Space_Type.objects.get_or_create(name_en='Region', clas='Region', parent=space)
     if created: out += str(region)+sep
-    address, created = Space_Type.objects.get_or_create(name='Address', clas='Address', parent=space)
+    address, created = Space_Type.objects.get_or_create(name_en='Address', clas='Address', parent=space)
     if created: out += str(address)+'<br>'
 
-    unitratio, created = Record_Type.objects.get_or_create(name='Unit Ratio', clas='UnitRatio', parent=record)
+    unitratio, created = Record_Type.objects.get_or_create(name_en='Unit Ratio', clas='UnitRatio', parent=record)
     if created: out += str(unitratio)+sep
-    """ces, created = Record_Type.objects.get_or_create(name='Account Ces', clas='AccountCes', parent=record)
+    """ces, created = Record_Type.objects.get_or_create(name_en='Account Ces', clas='AccountCes', parent=record)
     if created: out += str(ces)+sep
-    bank, created = Record_Type.objects.get_or_create(name='Account Bank', clas='AccountBank', parent=record)
+    bank, created = Record_Type.objects.get_or_create(name_en='Account Bank', clas='AccountBank', parent=record)
     if created: out += str(bank)+sep"""
 
     print(out)

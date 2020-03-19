@@ -3497,6 +3497,7 @@ def join_requests(request, agent_id):
             managing = True
         #req = requests.last()
         for req in requests:
+            #print("--- req1: "+str(req)+" ----")
             if req.fobi_data and req.fobi_data.pk:
                 req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
@@ -3522,6 +3523,7 @@ def join_requests(request, agent_id):
         csrf_token_field = '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf_token+'"> '
 
         for req in requests:
+            #print("----- start req: "+str(req)+" ----")
             req.possible_agent = False
             if not hasattr(req, 'agent') and req.requested_username:
                 try:
@@ -3661,6 +3663,8 @@ def join_requests(request, agent_id):
 
             else:
                 req.actions += deleteform
+
+            #print("---- end req: "+str(req)+" ----")
 
 
 
