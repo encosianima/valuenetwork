@@ -6191,7 +6191,7 @@ msgstr "No permés"
 
 #: valuenetwork/templates/valueaccounting/no_permission.html:20
 msgid "You do not have permission to access the requested page."
-msgstr "No tens permisos per accedir a aqeusta pàgina."
+msgstr "No tens permisos per accedir a aquesta pàgina."
 
 #: valuenetwork/templates/valueaccounting/open_todos.html:6
 #: valuenetwork/templates/valueaccounting/open_todos.html:50

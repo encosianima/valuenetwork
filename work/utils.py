@@ -155,8 +155,8 @@ def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
             if obj and hasattr(obj, 'ratio'):
                 ratio = obj.ratio
                 price = amount/ratio
-                print("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+str(obj))
-                logger.warning("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+str(obj))
+                print("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+unicode(obj))
+                logger.warning("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+unicode(obj))
             else:
                 if unit.abbrev in settings.CRYPTOS and not unit.abbrev == 'fair':
                     if hasattr(settings, 'CRYPTO_LAPSUS'):

@@ -2325,10 +2325,10 @@ def create_user_accounts(request, agent, project=None):
                     rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
                     if not rt in rts:
                         res = ag.has_associate.agent_resource_roles.filter(resource__resource_type=rt)[0].resource
-                        if res.resource_type.name == "Faircoin Ocp Account":
+                        if res.resource_type.name_en == "Faircoin Ocp Account":
                             #if request.user.is_superuser: auto_resource += _("Not cloning a Faircoin Ocp Account: ")+res.identifier+'<br>'
                             continue
-                        resarr = res.identifier.split(ag.has_associate.nick)
+                        resarr = res.identifier.split(ag.has_associate.nick_en)
                         if len(resarr) > 1: # and not ag.has_associate.nick == 'Freedom Coop':
                             res.id = None
                             res.pk = None
@@ -2337,7 +2337,7 @@ def create_user_accounts(request, agent, project=None):
                                 auto_resource += _("you need a")+" \"<b>"+rt.name+"</b>\"... "
                                 auto_resource += _("BUT there's a problem with the naming of the project's account: ")+str(resarr)
                                 break
-                            res.identifier = ag.has_associate.nick+resarr[1]+agent.nick #.identifier.split(ag.has_associate.nick)
+                            res.identifier = ag.has_associate.nick_en+resarr[1]+agent.nick_en #.identifier.split(ag.has_associate.nick)
                             res.quantity = 1
                             res.price_per_unit = 0
                             res.save()
@@ -2384,7 +2384,7 @@ def create_user_accounts(request, agent, project=None):
                             auto_resource += _("There's a problem with the naming of the account: ")+str(res)+"<br>"
                             break
                         """
-              elif rt.name == "Faircoin Ocp Account" and rt.context_agent.nick == "OCP":
+              elif rt.name_en == "Faircoin Ocp Account" and rt.context_agent.nick_en == "OCP":
                 pass
               else:
                 print "- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent)
