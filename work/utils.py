@@ -236,7 +236,7 @@ def remove_exponent(num):
       if '.' in str(num):
         return num.to_integral() if num == num.to_integral() else num.normalize()
     else:
-        print("Is a FLOAT??")
+        print("Is a FLOAT?? "+str(num))
     return num
 
 
