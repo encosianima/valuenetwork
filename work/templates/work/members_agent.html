@@ -510,14 +510,14 @@
                       <tr>
                         <th>{% trans "Project Joining Style:" %}</th>
                         <td>{{ agent.project.joining_style }}
-                          {% if agent.project.joining_style == 'moderated' %}
+                          {% if agent.project.is_moderated %}
                             {% if agent.project.fobi_slug %}
                           - <b><a href="/work/agent/{{ agent.id }}/join-requests/">{% trans "Manage Requests" %}</a></b>
                             - <b><a href="/joinaproject/{{ agent.project.fobi_slug }}" target="_blank">{% if agent.project.fobi_form %}{% trans "View Form" %}{% else %}<span class="error">{% trans "Error" %}</span>{% endif %}</a></b>
                             {% endif %}
                           {% endif %}</td>
                       </tr>
-                      {% if agent.project.joining_style == 'moderated' %}
+                      {% if agent.project.is_moderated %}
                           <tr>
                             <th>{% trans "Auto create users+agents and confirm email:" %}</th>
                             <td>{{ agent.project.auto_create_pass }}</td>
@@ -545,6 +545,7 @@
                           </td>
                         </tr>
                         {% if agent.project.share_types or agent.project.payment_options %}
+                          {% if 'shares' == agent.project.joining_style %}
                           <tr>
                             <th>{% trans "Offered Shares:" %}</th>
                             <td>{% if not agent.project.share_types %}<span class="error">{% trans "Error: No project's Share types found!" %}</span>{% else %}<ul style="margin-left:15px;">
@@ -607,6 +608,7 @@
                             {% endif %}
                             </td>
                           </tr>
+                          {% endif %}
                         {% endif %}
                         {% if agent.project.share_totals %}
                           <tr>
@@ -1191,7 +1193,7 @@
       <h3>
         {% trans "Join this project:" %}
       </h3>
-      {% if agent.project.joining_style == "moderated" %}
+      {% if agent.project.is_moderated %}
         {% if user_agent.req %}
             {% if user_agent.req.state == 'declined' %}
               <p>{% trans "Sorry, you've tried to join this project but your request was <b>declined</b> for any reason. See the thread at" %}:

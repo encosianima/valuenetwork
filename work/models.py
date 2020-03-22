@@ -110,6 +110,8 @@ class MembershipRequest(models.Model):
 
 
 JOINING_STYLE_CHOICES = (
+    ('subscription', _('subscription')),
+    ('shares', _('shares')),
     ('moderated', _('moderated')),
     ('autojoin', _('autojoin')),
 )
@@ -150,7 +152,9 @@ class Project(models.Model):
         return _('Project: ') + self.agent.name
 
     def is_moderated(self):
-        return self.joining_style == 'moderated'
+        if self.joining_style in ['moderated','shares','subscription']:
+            return True
+        return False #self.joining_style == 'moderated'
 
     def is_public(self):
         return self.visibility == 'public'
@@ -391,7 +395,7 @@ class Project(models.Model):
 
     def shares_account_type(self):
         account_type = None
-        if self.joining_style == "moderated" and self.fobi_slug:
+        if self.is_moderated() and self.fobi_slug:
             rts = self.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.agent.resource_relationships()]))
             keys = self.fobi_items_keys()
             for rt in rts:
@@ -775,7 +779,9 @@ class JoinRequest(models.Model):
                     if not answer.has_key('key'):
                         raise ValidationError(u"can't find the payment_option key! answer: "+str(data2)+u' val: '+val)
             if not answer.has_key('key') or not answer.has_key('val'):
-                pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
+                print("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
+                loger.warning("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
+                #pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
         return answer
 
     def share_price(self):
@@ -997,8 +1003,8 @@ class JoinRequest(models.Model):
             print("Using CACHED pending_amount!! "+str(amountpay))
             loger.info("Using CACHED pending_amount!! "+str(amountpay))
         else:
-            from work.utils import convert_price
             if not shunit == unit and amount2: #unit.abbrev == 'fair':
+                from work.utils import convert_price
                 amountpay, ratio = convert_price(amount2, shunit, unit, self)
                 self.ratio = ratio
                 self.pending_amount = amountpay
@@ -1022,7 +1028,7 @@ class JoinRequest(models.Model):
 
     def payment_account_type(self):
         account_type = None
-        if self.project.joining_style == "moderated" and self.fobi_data:
+        if self.project.is_moderated() and self.fobi_data:
             rts = self.project.rts_with_clas() #list(set([arr.resource.resource_type for arr in self.project.agent.resource_relationships()]))
             for rt in rts:
                 if rt.ocp_artwork_type:
