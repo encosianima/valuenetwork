@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os, sys
 from django.utils.translation import ugettext_lazy as _
+from decimal import Decimal
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -254,8 +255,9 @@ MULTICURRENCY = {} #Fill the dict in local_settings.py with private data.
 PAYMENT_GATEWAYS = {} # Fill the object in local_settings.py with custom gateways data by project
 
 CRYPTOS = () # Fill the list in local_settings.py with flexible price crypto units
+CRYPTO_LAPSUS = 600 # How many seconds is valid a crypto price ticker (default 10 minutes), tuned in local_settings
 CRYPTO_DECIMALS = 9
-
+DECIMALS = Decimal('0.000000000') # same 9 decimals, used for formating cryptos
 
 PINAX_NOTIFICATIONS_QUEUE_ALL = True
 PINAX_NOTIFICATIONS_BACKENDS = [
