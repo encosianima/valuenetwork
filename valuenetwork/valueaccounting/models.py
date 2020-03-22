@@ -9178,11 +9178,11 @@ class Exchange(models.Model):
                             if rt and not rt in slot.rts:
                                 slot.rts.append(rt)
 
-                    if slot.total_com_unit and str(slot.total_com_unit) == 'Each':
+                    if slot.total_com_unit and slot.total_com_unit.name_en == 'Each':
                         slot.total_com_unit = ''
                         if rt and not rt in slot.rts:
                             slot.rts.append(rt)
-                    if slot.total_com_unit and str(slot.total_com_unit) == 'Hours':
+                    if slot.total_com_unit and slot.total_com_unit.name_en == 'Hours':
                         #slot.total_com_unit = ''
                         slot.hours = True
                         if rt and not rt in slot.rts:
@@ -9207,8 +9207,8 @@ class Exchange(models.Model):
                                 #print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
                                 rt = prt
                             if not receive:
-                                print("get the to payment_amount for the slot.total_com")
                                 slot.total_com = jn_req.payment_amount()
+                                print("get the to payment_amount for the slot.total_com: "+str(slot.total_com))
                             slot.total_com_unit = '' # unit is set later because rt is defined
                     if not fro and jn_req:
                         if ttpay.name == slot.name:
@@ -9226,8 +9226,8 @@ class Exchange(models.Model):
                                 print "x shr from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
                                 rt = prt
                             if not receive:
-                                print("get the fro payment_amount for the slot.total_com")
                                 slot.total_com = jn_req.payment_amount()
+                                print("get the fro payment_amount for the slot.total_com: "+str(slot.total_com))
                             slot.total_com_unit = ''
 
                     if not to in slot.agents_to:
