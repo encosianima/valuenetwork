@@ -856,6 +856,22 @@ class JoinRequest(models.Model):
             return arr[2]
         return self.payment_option()['key']
 
+    def payment_margin(self):
+        payopt = self.payment_option()
+        margin = Decimal("0.0")
+        if settings.PAYMENT_GATEWAYS and payopt:
+            gates = settings.PAYMENT_GATEWAYS
+            if self.project.fobi_slug and gates[self.project.fobi_slug]:
+                try:
+                    obj = gates[self.project.fobi_slug][payopt['key']]
+                except:
+                    print "WARN Can't find the key '"+str(payopt['key'])+"' in PAYMENT_GATEWAYS object for slug "+str(self.project.fobi_slug)
+                    loger.info("WARN Can't find the key '"+str(payopt['key'])+"' in PAYMENT_GATEWAYS object for slug "+str(self.project.fobi_slug))
+                    pass
+                if obj and 'margin' in obj:
+                    margin = Decimal(obj['margin'])
+        return margin
+
     def payment_html(self):
         payopt = self.payment_option()
         fairrs = None
@@ -1219,6 +1235,7 @@ class JoinRequest(models.Model):
         else:
             raise ValidationError("The unit is not related any resource type: "+str(unit.gen_unit.unit_type))
         return unit_rt
+
 
     def exchange_type(self):
         et = None

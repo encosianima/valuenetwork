@@ -20,10 +20,7 @@ if hasattr(settings, 'DECIMALS'):
     DECIMALS = settings.DECIMALS
 else:
     DECIMALS = Decimal('1.000000000')
-if hasattr(settings, 'MARGIN'):
-    MARGIN = settings.MARGIN
-else:
-    MARGIN = Decimal("0.0000001")
+
 
 if 'faircoin' in settings.INSTALLED_APPS:
     from faircoin.models import FC2_TX_URL
@@ -414,16 +411,18 @@ class BlockchainTransaction(models.Model):
                                                 rest = val - (realamount+outfee)
                                             else:
                                                 rest = (realamount+outfee) - val
-                                            if rest > MARGIN:
-                                                print("ev-give: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found+fee:"+str(val)+" (type:"+str(type(val))+") - declared+fee:"+str(realamount+outfee)+"(type:"+str(type(realamount))+")")
-                                                #loger.info("ev-give: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found+fee:"+str(val)+" (type:"+str(type(val))+") - declared+fee:"+str(realamount+outfee)+"(type:"+str(type(realamount))+")")
-                                                #mesg += ("(give event): Declared amount and chain discovered amount are too different!! fee:"+str(outfee)+", found+fee:"+str(val)+" <> declared+fee:"+str(realamount+outfee)+" (rest:"+str(remove_exponent(rest))+")") #+"(type:"+str(type(realamount))+")")
-                                                #self.event.delete()
-                                                #self.delete()
-                                            else:
-                                                validval = val
-                                                print("ev-give: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
-                                                loger.info("ev-give: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
+                                            jnreq = self.related_join_request()
+                                            if jnreq:
+                                                if rest > jnreq.payment_margin():
+                                                    print("ev-give: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found+fee:"+str(val)+" (type:"+str(type(val))+") - declared+fee:"+str(realamount+outfee)+"(type:"+str(type(realamount))+")")
+                                                    #loger.info("ev-give: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found+fee:"+str(val)+" (type:"+str(type(val))+") - declared+fee:"+str(realamount+outfee)+"(type:"+str(type(realamount))+")")
+                                                    #mesg += ("(give event): Declared amount and chain discovered amount are too different!! fee:"+str(outfee)+", found+fee:"+str(val)+" <> declared+fee:"+str(realamount+outfee)+" (rest:"+str(remove_exponent(rest))+")") #+"(type:"+str(type(realamount))+")")
+                                                    #self.event.delete()
+                                                    #self.delete()
+                                                else:
+                                                    validval = val
+                                                    print("ev-give: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
+                                                    loger.info("ev-give: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
 
                                           else: # same val
                                             print("ev-give: declared exactly the same amount (+fee): "+str(val))
@@ -463,16 +462,18 @@ class BlockchainTransaction(models.Model):
                                                 rest = val - realamount
                                             else:
                                                 rest = realamount - val
-                                            if rest > MARGIN:
-                                                print("ev-receive: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found:"+str(val)+" (type:"+str(type(val))+") <> declared:"+str(realamount)+"(type:"+str(type(realamount))+")")
-                                                #loger.info("ev-receive: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found:"+str(val)+" (type:"+str(type(val))+") <> declared:"+str(realamount)+"(type:"+str(type(realamount))+")")
-                                                #mesg += ("(receive event): Declared amount and chain discovered amount are too different!! fee:"+str(outfee)+", found:"+str(val)+" <> declared:"+str(realamount)+" (rest:"+str(remove_exponent(rest))+")") #+"(type:"+str(type(realamount))+")")
-                                                #self.event.delete()
-                                                #self.delete()
-                                            else:
-                                                validval = val
-                                                print("ev-receive: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
-                                                loger.info("ev-receive: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
+                                            jnreq = self.related_join_request()
+                                            if jnreq:
+                                                if rest > jnreq.payment_margin():
+                                                    print("ev-receive: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found:"+str(val)+" (type:"+str(type(val))+") <> declared:"+str(realamount)+"(type:"+str(type(realamount))+")")
+                                                    #loger.info("ev-receive: Declared amount and chain discovered amount are too different!! rest:"+str(remove_exponent(rest))+" fee:"+str(outfee)+", found:"+str(val)+" (type:"+str(type(val))+") <> declared:"+str(realamount)+"(type:"+str(type(realamount))+")")
+                                                    #mesg += ("(receive event): Declared amount and chain discovered amount are too different!! fee:"+str(outfee)+", found:"+str(val)+" <> declared:"+str(realamount)+" (rest:"+str(remove_exponent(rest))+")") #+"(type:"+str(type(realamount))+")")
+                                                    #self.event.delete()
+                                                    #self.delete()
+                                                else:
+                                                    validval = val
+                                                    print("ev-receive: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
+                                                    loger.info("ev-receive: Declared amount and chain discovered amount are not equal but are close. Allow... rest:"+str(rest)+" fee:"+str(outfee)+" declared:"+str(realamount))
 
                                           else: # same val
                                             print("ev-receive: declared exactly the same amount (-fee): "+str(val))
