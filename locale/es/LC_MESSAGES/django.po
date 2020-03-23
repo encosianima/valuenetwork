@@ -2166,7 +2166,7 @@ msgstr "Selecciona más de un lote para ser combinados"
 
 #: valuenetwork/board/forms.py:204
 msgid "Receipt Date"
-msgstr "Fecha de la Receta"
+msgstr "Fecha del Recibo"
 
 #: valuenetwork/local_settings_example.py:86
 msgid ""
@@ -3496,7 +3496,7 @@ msgstr "Distribuciones"
 #: valuenetwork/templates/valueaccounting/agent.html:104
 #: work/templates/work/members_agent.html:159
 msgid "Active Orders"
-msgstr "Pedidos activos"
+msgstr "Pedidos Activos"
 
 #: valuenetwork/templates/valueaccounting/agent.html:105
 #: valuenetwork/templates/valueaccounting/order_schedule.html:217
@@ -3510,7 +3510,7 @@ msgstr "Linea temporal"
 #: valuenetwork/templates/valueaccounting/agent.html:107
 #: work/templates/work/members_agent.html:162
 msgid "Association Graph"
-msgstr "Gráfico asociado"
+msgstr "Gráfico Asociacion"
 
 #: valuenetwork/templates/valueaccounting/agent.html:108
 #: valuenetwork/valueaccounting/models.py:185
@@ -3524,7 +3524,7 @@ msgstr "Mantener Asociaciones"
 #: work/templates/work/members_agent.html:164
 #: work/templates/work/your_projects.html:88
 msgid "All Agents"
-msgstr "Todos los agentes"
+msgstr "Todos los Agentes"
 
 #: valuenetwork/templates/valueaccounting/agent.html:116
 msgid "Send welcome email"
@@ -3535,7 +3535,7 @@ msgstr "Enviar email de bienvenida"
 #: work/templates/work/members_agent.html:244
 #: work/templates/work/my_dashboard.html:219
 msgid "Request FairCoin Address"
-msgstr "Solicitud de una dirección FairCoin"
+msgstr "Solicitar Dirección FairCoin"
 
 #: valuenetwork/templates/valueaccounting/agent.html:140
 #: valuenetwork/templates/valueaccounting/agent_associations.html:66
@@ -3589,7 +3589,7 @@ msgstr "Borrar"
 #: valuenetwork/templates/valueaccounting/agent.html:145
 #: work/templates/work/members_agent.html:275
 msgid "Create User"
-msgstr "Crear usuario"
+msgstr "Crear Usuario"
 
 #: valuenetwork/templates/valueaccounting/agent.html:152
 #: valuenetwork/templates/valueaccounting/create_exchange.html:7
@@ -3598,7 +3598,7 @@ msgstr "Crear usuario"
 #: valuenetwork/valueaccounting/models.py:175
 #: work/templates/work/members_agent.html:282
 msgid "Create Exchange"
-msgstr "Crear intercambio"
+msgstr "Crear Intercambio"
 
 #: valuenetwork/templates/valueaccounting/agent.html:179
 #: work/templates/work/members_agent.html:321
@@ -3613,7 +3613,7 @@ msgstr "Guardar usuario"
 #: valuenetwork/templates/valueaccounting/agent.html:199
 #: work/templates/work/members_agent.html:1168
 msgid "Cumulative Time"
-msgstr "Tiempo acumulado"
+msgstr "Tiempo Acumulado"
 
 #: valuenetwork/templates/valueaccounting/agent.html:202
 #: work/templates/work/members_agent.html:1171
@@ -3679,7 +3679,7 @@ msgstr "Reputación"
 #: valuenetwork/templates/valueaccounting/agent.html:316
 #: work/templates/work/members_agent.html:676
 msgid "Membership request information"
-msgstr "Información de solicitud de membresía"
+msgstr "Información de la solicitud de alta"
 
 #: valuenetwork/templates/valueaccounting/agent.html:320
 #: work/templates/work/members_agent.html:680
@@ -3694,7 +3694,7 @@ msgstr "Tipo de membresía"
 #: valuenetwork/templates/valueaccounting/agent.html:328
 #: work/templates/work/members_agent.html:688
 msgid "Description from membership request"
-msgstr "Descripción de la solicitud de membresía"
+msgstr "Descripción de la solicitud de alta"
 
 #: valuenetwork/templates/valueaccounting/agent.html:332
 #: valuenetwork/templates/valueaccounting/membership_request.html:99
@@ -3730,11 +3730,11 @@ msgstr "está asociado con"
 #: valuenetwork/templates/valueaccounting/agent.html:366
 #: work/templates/work/profile.html:316
 msgid "has these associates "
-msgstr "tiene estos socios"
+msgstr "tiene estos asociados"
 
 #: valuenetwork/templates/valueaccounting/agent.html:378
 msgid "Membership discussion"
-msgstr "Discusión de miembros"
+msgstr "Debate del alta"
 
 #: valuenetwork/templates/valueaccounting/agent.html:385
 #: work/templates/work/my_dashboard.html:309
@@ -3820,11 +3820,11 @@ msgstr "Etiqueta inversa"
 
 #: valuenetwork/templates/valueaccounting/agent_association.html:7
 msgid "Agent relationship"
-msgstr "Relación de agente"
+msgstr "Relación del agente"
 
 #: valuenetwork/templates/valueaccounting/agent_association.html:39
 msgid "Agent Relationship"
-msgstr "Relación de agente"
+msgstr "Relación del Agente"
 
 #: valuenetwork/templates/valueaccounting/agent_association.html:88
 msgid "Subject"
@@ -3861,22 +3861,22 @@ msgstr "Guardar y agregar más"
 #: valuenetwork/templates/valueaccounting/agent_associations.html:57
 #: work/templates/work/members_agent.html:1009
 msgid "has these associates"
-msgstr "tiene estos socios"
+msgstr "tiene estos asociados"
 
 #: valuenetwork/templates/valueaccounting/agent_associations.html:62
 #: valuenetwork/templates/valueaccounting/agent_associations.html:88
 msgid "Association Type"
-msgstr "Tipo de asociación"
+msgstr "Tipo de Asociación"
 
 #: valuenetwork/templates/valueaccounting/agent_associations.html:63
 #: valuenetwork/templates/valueaccounting/agent_associations.html:89
 msgid "Associated Agent"
-msgstr "Agente asociado"
+msgstr "Agente Asociado"
 
 #: valuenetwork/templates/valueaccounting/agent_associations.html:64
 #: valuenetwork/templates/valueaccounting/agent_associations.html:90
 msgid "Description of association"
-msgstr "Descripción de asociación"
+msgstr "Descripción de la asociación"
 
 #: valuenetwork/templates/valueaccounting/agent_associations.html:65
 #: valuenetwork/templates/valueaccounting/agent_associations.html:91
@@ -3896,13 +3896,13 @@ msgstr "Contribuciones de"
 
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:44
 msgid "Value Accounting"
-msgstr "Valor Contable"
+msgstr "Contabilidad Valores"
 
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:52
 #: valuenetwork/templates/valueaccounting/project_contributions.html:45
 #: work/templates/work/my_history.html:113
 msgid "Show contributions from "
-msgstr "Mostrar contribuciones de"
+msgstr "Mostrar contribuciones de "
 
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:60
 #: valuenetwork/templates/valueaccounting/project_contributions.html:53
@@ -3911,7 +3911,7 @@ msgstr "Mostrar contribuciones de"
 #: work/templates/work/project_history.html:62
 #: work/templates/work/project_work.html:217
 msgid " through "
-msgstr "a través de"
+msgstr " a través de "
 
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:68
 #: work/templates/work/my_history.html:129
@@ -3929,12 +3929,12 @@ msgstr "Tipos de Evento"
 #: valuenetwork/templates/valueaccounting/sales_and_distributions.html:85
 #: work/templates/work/project_history.html:84
 msgid "Export CSV File"
-msgstr "Exportar archivo CSV"
+msgstr "Exportar Archivo CSV"
 
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:92
 msgid "You can change date or qty inline and it will be automatically saved."
 msgstr ""
-"Puede cambiar la fecha o la cantidad en línea y será guardado "
+"Puede cambiar aquí la fecha o la cantidad y será guardado "
 "automáticamente."
 
 #: valuenetwork/templates/valueaccounting/agent_contributions.html:100
@@ -3992,7 +3992,7 @@ msgstr "Horas de trabajo cargadas"
 
 #: valuenetwork/templates/valueaccounting/agent_type.html:7
 msgid "Agent type"
-msgstr "Tipo de Agente"
+msgstr "Tipo de agente"
 
 #: valuenetwork/templates/valueaccounting/agent_type.html:39
 msgid "Agent Type"
@@ -4000,7 +4000,7 @@ msgstr "Tipo de Agente"
 
 #: valuenetwork/templates/valueaccounting/agent_type.html:93
 msgid "Party Type"
-msgstr "Tipo de parte"
+msgstr "Tipo de Parte"
 
 #: valuenetwork/templates/valueaccounting/agent_type.html:103
 msgid "Is Context"
@@ -4009,7 +4009,7 @@ msgstr "Es Contexto"
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:7
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:45
 msgid "Value Accounting for "
-msgstr "Valor Contable para"
+msgstr "Contabilidad de Valor para "
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:50
 msgid "Detailed Contributions and Distributions"
@@ -4025,7 +4025,7 @@ msgstr "Contribuciones y Distribuciones detalladas"
 #: work/templates/work/edit_value_equation_work.html:7
 #: work/templates/work/value_equation_sandbox_work.html:109
 msgid "Value Equation"
-msgstr "Ecuación de valor"
+msgstr "Ecuación de Valor"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:63
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:217
@@ -4035,7 +4035,7 @@ msgstr "Contenedor"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:64
 msgid "Claim duration"
-msgstr "Duración del reclamo"
+msgstr "Duración de la reclamación"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:65
 #: valuenetwork/valueaccounting/forms.py:3313
@@ -4044,14 +4044,14 @@ msgstr "Ecuación"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:75
 msgid "Claim against"
-msgstr "Reclamo contra"
+msgstr "Reclamación contra"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:76
 #: valuenetwork/templates/valueaccounting/change_process.html:60
 #: valuenetwork/templates/valueaccounting/labnotes.html:18
 #: valuenetwork/templates/valueaccounting/process.html:88
 msgid "for"
-msgstr "por"
+msgstr "para"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:77
 #: valuenetwork/templates/valueaccounting/project_contributions.html:61
@@ -4089,15 +4089,15 @@ msgstr "Contribuciones con Ecuación de Valor"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:110
 msgid "Total Value of Contribution Claims"
-msgstr "Valor Total de Reclamos de Contribución"
+msgstr "Valor Total de Reclamaciones de Contribución"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:114
 msgid "Income Distributions to Claims"
-msgstr "Distribuciones de ingreso a Reclamos"
+msgstr "Distribuciones de ingreso a Reclamaciones"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:118
 msgid "Outstanding Claims"
-msgstr "Reclamos destacados"
+msgstr "Reclamaciones Destacadas"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:122
 msgid "Other Distributions"
@@ -4132,11 +4132,11 @@ msgstr "Todas las Contribuciones"
 
 #: valuenetwork/templates/valueaccounting/bucket_filter.html:7
 msgid "Filter demo"
-msgstr "Filtrar Demo"
+msgstr "Filtrar demo"
 
 #: valuenetwork/templates/valueaccounting/bucket_filter.html:33
 msgid "Value Equation Bucket Filter demo"
-msgstr "Demo del Filtro Contenedor de Ecuación de Valor"
+msgstr "Demo del Filtro del Contenedor de Ecuación de Valor"
 
 #: valuenetwork/templates/valueaccounting/bucket_filter.html:34
 msgid "Start over"
@@ -4159,11 +4159,11 @@ msgstr "Qué"
 
 #: valuenetwork/templates/valueaccounting/bucket_filter_header.html:7
 msgid "Filter demo - header"
-msgstr "Filtrar encabezado del demo"
+msgstr "Filtro demo - encabezado"
 
 #: valuenetwork/templates/valueaccounting/bucket_filter_header.html:29
 msgid "Value Equation Bucket Filter demo - header"
-msgstr "Filtrar encabezado del demo"
+msgstr "Filtro Contenedor Ecuación de Valor demo - encabezado"
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:5
 msgid "Cash Report"
@@ -4192,11 +4192,11 @@ msgstr "Categoría"
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:97
 msgid "Total In"
-msgstr "Total entrante"
+msgstr "Total Entrante"
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:101
 msgid "Total Out"
-msgstr "Total saliente"
+msgstr "Total Saliente"
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:105
 #: valuenetwork/templates/valueaccounting/cash_report.html:168
@@ -4230,7 +4230,7 @@ msgstr "Totales"
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:199
 msgid "Starting balance "
-msgstr "Balance inicial"
+msgstr "Balance inicial "
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:207
 #: valuenetwork/templates/valueaccounting/demand_exchanges.html:99
@@ -4240,7 +4240,7 @@ msgstr "Balance inicial"
 #: valuenetwork/templates/valueaccounting/material_contributions.html:83
 #: valuenetwork/templates/valueaccounting/sales_and_distributions.html:93
 msgid "Start date "
-msgstr "Fecha de inicio"
+msgstr "Fecha de inicio "
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:215
 #: valuenetwork/templates/valueaccounting/demand_exchanges.html:107
@@ -4250,7 +4250,7 @@ msgstr "Fecha de inicio"
 #: valuenetwork/templates/valueaccounting/material_contributions.html:91
 #: valuenetwork/templates/valueaccounting/sales_and_distributions.html:101
 msgid "End date  "
-msgstr "Fecha de finalización"
+msgstr "Fecha de finalización  "
 
 #: valuenetwork/templates/valueaccounting/cash_report.html:222
 #: valuenetwork/templates/valueaccounting/demand_exchanges.html:113
@@ -4277,11 +4277,11 @@ msgstr "Cambiar Contribución"
 
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:7
 msgid "Change Exchange Type and Pattern"
-msgstr "Cambiar Tipo de Cambio y Patrón"
+msgstr "Cambiar Tipo de Intercambio y Patrón"
 
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:143
 msgid "Exchange Type with Pattern"
-msgstr "Tipo de Cambio con Patrón"
+msgstr "Tipo de Intercambio con Patrón"
 
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:145
 #: valuenetwork/templates/valueaccounting/change_pattern.html:177
@@ -4296,11 +4296,11 @@ msgstr "Cambiar Facetas de Tipo de Recurso"
 #: valuenetwork/templates/valueaccounting/exchanges.html:112
 #: valuenetwork/templates/valueaccounting/internal_exchanges.html:113
 msgid "Exchange Type"
-msgstr "Tipo de Cambio"
+msgstr "Tipo de Intercambio"
 
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:155
 msgid "Save exchange type"
-msgstr "Guardar tipo de cambio"
+msgstr "Guardar tipo de intercambio"
 
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:162
 msgid "New Transfer Type"
@@ -4367,7 +4367,7 @@ msgstr "Facetas de Patrón"
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:275
 #: valuenetwork/templates/valueaccounting/change_pattern.html:226
 msgid "Del"
-msgstr "Borrar"
+msgstr "Borra"
 
 #: valuenetwork/templates/valueaccounting/change_exchange_type.html:295
 #: valuenetwork/templates/valueaccounting/change_pattern.html:246
@@ -4429,11 +4429,11 @@ msgstr "Guardar y continuar editando"
 
 #: valuenetwork/templates/valueaccounting/change_process.html:81
 msgid "Planned Outputs"
-msgstr "Resultados previstos"
+msgstr "Resultados Planeados"
 
 #: valuenetwork/templates/valueaccounting/change_process.html:96
 msgid "Planned Citables"
-msgstr "Citables previstos"
+msgstr "Citables Planeados"
 
 #: valuenetwork/templates/valueaccounting/change_process.html:102
 #: valuenetwork/templates/valueaccounting/log_past_work.html:474
@@ -4445,7 +4445,7 @@ msgstr "Citar"
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:464
 #: work/templates/work/process_logging.html:493
 msgid "Planned Work"
-msgstr "Trabajo previsto"
+msgstr "Trabajo Planeado"
 
 #: valuenetwork/templates/valueaccounting/change_process.html:117
 #: valuenetwork/templates/valueaccounting/start.html:651
@@ -4459,11 +4459,11 @@ msgstr "Horas"
 
 #: valuenetwork/templates/valueaccounting/change_process.html:124
 msgid "Planned Consumables"
-msgstr "Consumibles previstos"
+msgstr "Consumibles Planeados"
 
 #: valuenetwork/templates/valueaccounting/change_process.html:139
 msgid "Planned Usables"
-msgstr "Usables previstos"
+msgstr "Usables Planeados"
 
 #: valuenetwork/templates/valueaccounting/change_rand.html:7
 #: valuenetwork/templates/valueaccounting/change_rand.html:56
@@ -4493,11 +4493,11 @@ msgstr "Limpieza"
 
 #: valuenetwork/templates/valueaccounting/cleanup.html:21
 msgid "Orphan Processes"
-msgstr "Proceso huérfano"
+msgstr "Procesos huérfanos"
 
 #: valuenetwork/templates/valueaccounting/cleanup.html:22
 msgid "Old Unfinished Processes"
-msgstr "Proceso viejo sin terminar"
+msgstr "Procesos viejos Sin Terminar"
 
 #: valuenetwork/templates/valueaccounting/cleanup.html:23
 #: valuenetwork/templates/valueaccounting/cleanup_resourcetypes.html:22
@@ -4580,7 +4580,7 @@ msgstr "creado por"
 #: valuenetwork/valueaccounting/models.py:518
 #: valuenetwork/valueaccounting/models.py:5595
 msgid "created date"
-msgstr "creado en la fecha "
+msgstr "fecha creación"
 
 #: valuenetwork/templates/valueaccounting/cleanup_old_processes.html:27
 msgid "Finished?"
@@ -4620,7 +4620,7 @@ msgstr "Limpiar Tipos de Recursos"
 
 #: valuenetwork/templates/valueaccounting/cleanup_unsourced_resources.html:6
 msgid "Cleanup Unsourced Resources"
-msgstr "Limpiar Recursos No Conseguidos"
+msgstr "Limpiar Recursos sin fuentes"
 
 #: valuenetwork/templates/valueaccounting/cleanup_unsourced_resources.html:24
 msgid ""
@@ -4628,7 +4628,7 @@ msgid ""
 "contribution events."
 msgstr ""
 "Estos recursos tienen eventos de consumo pero no eventos de producción, "
-"recibo o contribución."
+"recibos o contribuciones."
 
 #: valuenetwork/templates/valueaccounting/cleanup_unvalued_resources.html:6
 msgid "Cleanup Unvalued Resources"
@@ -4681,7 +4681,7 @@ msgstr "Sobre"
 
 #: valuenetwork/templates/valueaccounting/comments.html:29
 msgid "Membership Request for"
-msgstr "Solicitud de membresia para"
+msgstr "Solicitud de Alta para"
 
 #: valuenetwork/templates/valueaccounting/comments.html:31
 msgid "Comment"
@@ -4699,7 +4699,7 @@ msgstr "Guardar e ir al paso 2"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:110
 msgid "Create Distribution for "
-msgstr "Crear Distribución para"
+msgstr "Crear Distribución para "
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:111
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:96
@@ -4720,7 +4720,7 @@ msgstr "Editar Ecuación de Valor"
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:103
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:94
 msgid "Value Equations List"
-msgstr "Lista de Ecuación de Valor"
+msgstr "Lista de Ecuaciones de Valor"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:122
 msgid "Select one or more sources to be distributed"
@@ -4733,16 +4733,16 @@ msgstr "O"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:122
 msgid "Enter amount to distribute"
-msgstr "Ingresar monto a distribuir"
+msgstr "Entrar cantidad a distribuir"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:130
 msgid "and source Cash Resource Account"
-msgstr "y Cuenta de Recurso de Efectivo fuente "
+msgstr "y usar como fuente la Cuenta de Recursos de Efectivo"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:135
 msgid "if you selected one cash receipt, you may distribute any part of it"
 msgstr ""
-"si seleccionó un recibo de caja, puede distribuir cualquier parte del mismo"
+"si seleccionaste un recibo de efectivo, puedes distribuir cualquier parte del mismo"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:140
 #: valuenetwork/valueaccounting/forms.py:3459
@@ -4770,7 +4770,7 @@ msgstr "Filtros de contenedor"
 #: valuenetwork/templates/valueaccounting/value_equation_sandbox.html:92
 #: valuenetwork/templates/valueaccounting/value_equations.html:101
 msgid "Distribute Income"
-msgstr "Distribuir ingreso"
+msgstr "Distribuir Ingreso"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:180
 msgid "WARNING"
@@ -4780,8 +4780,8 @@ msgstr "ADVERTENCIA"
 msgid ""
 "This operation cannot be undone. Please test your data entry below first!"
 msgstr ""
-"Esta operación no se puede deshcer. ¡Por favor primero revise los datos que "
-"ingresó debajo!"
+"Esta operación no se puede deshcer. ¡Por favor primero revisa los datos que "
+"ingresaste debajo!"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:181
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:185
@@ -4790,7 +4790,7 @@ msgstr "Calculando, por favor se paciente..."
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:184
 msgid "TEST Distribution Here First !"
-msgstr "TEST de Distribución Aquí Primero!"
+msgstr "TEST de Distribución Aquí Primero !"
 
 #: valuenetwork/templates/valueaccounting/create_distribution_using_value_equation.html:188
 msgid "TEST ONLY - Agent Totals"
@@ -4802,7 +4802,7 @@ msgstr "SOLO TEST - Totales de Agente"
 #: work/templates/work/value_equation_sandbox_work.html:171
 #: work/templates/work/value_equation_work.html:135
 msgid "Distribution Amount"
-msgstr "Monto de Distribución"
+msgstr "Cantidad de la Distribución"
 
 #: valuenetwork/templates/valueaccounting/create_location.html:7
 #: valuenetwork/templates/valueaccounting/create_location.html:29
@@ -4870,7 +4870,7 @@ msgstr "Crear Proyecto I&D"
 
 #: valuenetwork/templates/valueaccounting/create_sale.html:7
 msgid "Cash Receipt"
-msgstr "Recibo de Caja"
+msgstr "Recibo de Efectivo"
 
 #: valuenetwork/templates/valueaccounting/create_sale.html:31
 msgid "Exchange to Outside the Network"
@@ -4925,7 +4925,7 @@ msgstr "Intercambios del lado de la demanda"
 #: work/templates/work/your_projects.html:133
 #: work/templates/work/your_projects.html:164
 msgid "Outgoing Exchanges"
-msgstr "Intercambios salientes"
+msgstr "Intercambios Salientes"
 
 #: valuenetwork/templates/valueaccounting/digital_currency_resource.html:7
 #: valuenetwork/templates/valueaccounting/digital_currency_resource.html:56
@@ -4952,7 +4952,7 @@ msgstr "Seguir Cadena"
 #: work/templates/work/exchange_logging_work.html:990
 #: work/templates/work/project_resource.html:137
 msgid "Resource access role"
-msgstr "Rol de acceso de recurso"
+msgstr "Rol de acceso al recurso"
 
 #: valuenetwork/templates/valueaccounting/digital_currency_resource.html:80
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:242
@@ -5117,11 +5117,11 @@ msgstr "Salida"
 #: valuenetwork/templates/valueaccounting/edit_stream_recipe.html:474
 #, python-format
 msgid "Add a process type to change %(resource_type)s"
-msgstr "Agregar un tipo de proceso a cambio %(resource_type)s"
+msgstr "Agregar un tipo de proceso para cambiar %(resource_type)s"
 
 #: valuenetwork/templates/valueaccounting/edit_stream_recipe.html:481
 msgid "Add next process type for "
-msgstr "Agregar el siguiente tipo de proceso para"
+msgstr "Agregar el siguiente tipo de proceso para "
 
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:101
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:115
@@ -5140,7 +5140,7 @@ msgstr "Crear Nueva Ecuación de Valor"
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:139
 #: work/templates/work/edit_value_equation_work.html:137
 msgid "Add a Bucket"
-msgstr "Agregar un contenedor"
+msgstr "Agregar un Contenedor"
 
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:145
 #: work/templates/work/edit_value_equation_work.html:152
@@ -5154,11 +5154,11 @@ msgstr "Crear Contenedor de Ecuación de Valor"
 
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:197
 msgid "Make This Test"
-msgstr "Hacer esto como Test"
+msgstr "Hacer Esto como Test"
 
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:197
 msgid "Make This Live"
-msgstr "Hacer esto en Directo"
+msgstr "Hacer Esto en Directo"
 
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:239
 #: work/templates/work/edit_value_equation_work.html:252
@@ -5173,12 +5173,12 @@ msgstr "Agregar una Regla de Contenedor"
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:260
 #: work/templates/work/edit_value_equation_work.html:273
 msgid "Create Bucket Rule for "
-msgstr "Crear una Regla de Contenedor para"
+msgstr "Crear una Regla de Contenedor para "
 
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:302
 #: work/templates/work/edit_value_equation_work.html:315
 msgid "Change Rule for "
-msgstr "Cambiar Regla por"
+msgstr "Cambiar Regla para "
 
 #: valuenetwork/templates/valueaccounting/edit_value_equation.html:328
 #: work/templates/work/edit_value_equation_work.html:341
@@ -5212,11 +5212,11 @@ msgstr "Reclamar Valor"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:8
 msgid " Edit Recipe for "
-msgstr "Editar Receta por"
+msgstr " Editar Receta para "
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:120
 msgid "Edit Recipe for "
-msgstr "Editar Receta por"
+msgstr "Editar Receta para "
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:123
 #: valuenetwork/templates/valueaccounting/extended_bill.html:118
@@ -5231,23 +5231,23 @@ msgstr "Cambiar Tipo de Recurso"
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:184
 #, python-format
 msgid "Add a process type to create %(resource_type)s"
-msgstr "Añadir tipo de proceso para crear %(resource_type)s"
+msgstr "Añadir un tipo de proceso para crear %(resource_type)s"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:365
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:373
 #, python-format
 msgid "Add a process type to produce %(rtype)s"
-msgstr "Añadir tipo de proceso para producir %(rtype)s"
+msgstr "Añadir un tipo de proceso para producir %(rtype)s"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:406
 #, python-format
 msgid "Add a source for %(rtype)s"
-msgstr "Añadir fuente de %(rtype)s"
+msgstr "Añadir una fuente para %(rtype)s"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:441
 #, python-format
 msgid "Add a consumable input to %(ptype)s"
-msgstr "Añadir una entrada de consumible para %(ptype)s"
+msgstr "Añadir una entrada de consumible a %(ptype)s"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:456
 msgid "at stage"
@@ -5262,17 +5262,17 @@ msgstr "en la fase"
 #: valuenetwork/templates/valueaccounting/resource_types.html:75
 #: valuenetwork/templates/valueaccounting/workbook.html:236
 msgid "Create a new Resource Type"
-msgstr "Crear un nuevo tipo de recurso"
+msgstr "Crear un nuevo Tipo de Recurso"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:523
 #, python-format
 msgid "Add a usable input to %(ptype)s"
-msgstr "Añade un entrada utilizable a %(ptype)s"
+msgstr "Añadir una entrada de utilizable a %(ptype)s"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:603
 #, python-format
 msgid "Add a citable to %(ptype)s"
-msgstr "Agregar un citable a %(ptype)s"
+msgstr "Añadir un citable a %(ptype)s"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:675
 #, python-format
@@ -5287,13 +5287,13 @@ msgstr "Patrón:"
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:771
 #, python-format
 msgid "Change options for %(xbill_object)s"
-msgstr "Cambiar las opciones para %(xbill_object)s"
+msgstr "Cambiar opciones para %(xbill_object)s"
 
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:791
 #: valuenetwork/templates/valueaccounting/edit_xbill.html:798
 #, python-format
 msgid "Select options for %(xbill_object)s"
-msgstr "Seleccionar opción para %(xbill_object)s"
+msgstr "Seleccionar opciones para %(xbill_object)s"
 
 #: valuenetwork/templates/valueaccounting/email_fdc_welcome_subject.txt:1
 #, python-format
@@ -5303,27 +5303,27 @@ msgstr "[%(site_name)s] Bienvenido a FreedomCoop"
 #: valuenetwork/templates/valueaccounting/event_history.html:5
 #: valuenetwork/templates/valueaccounting/event_history.html:32
 msgid "Event History for Resource"
-msgstr "Historial de eventos de los recursos"
+msgstr "Historial de Eventos del Recurso"
 
 #: valuenetwork/templates/valueaccounting/event_history.html:35
 msgid "Adjust Quantity"
-msgstr "Ajustar cantidad"
+msgstr "Ajustar Cantidad"
 
 #: valuenetwork/templates/valueaccounting/event_history.html:44
 msgid "Current Quantity"
-msgstr "Cantidad actual"
+msgstr "Cantidad Actual"
 
 #: valuenetwork/templates/valueaccounting/event_history.html:53
 msgid "Adjust quantity of"
-msgstr "Cantidad actual"
+msgstr "Ajustar cantidad de"
 
 #: valuenetwork/templates/valueaccounting/event_history.html:61
 msgid "of unit "
-msgstr "de la unidad"
+msgstr "de la unidad "
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:146
 msgid "Go to Order"
-msgstr "Ve al pedido"
+msgstr "Ve al Pedido"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:155
 msgid "Total transfer value"
@@ -5331,31 +5331,31 @@ msgstr "Valor total de la transferencia"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:156
 msgid "Total reciprocal transfer value"
-msgstr "Valor total de a transferencia recíproca"
+msgstr "Valor recíproco total de la transferencia"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:190
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:541
 #: work/templates/work/exchange_logging_work.html:344
 #: work/templates/work/exchange_logging_work.html:902
 msgid "New Commitment"
-msgstr "Nuevo compromiso"
+msgstr "Nuevo Compromiso"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:193
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:544
 #: work/templates/work/exchange_logging_work.html:348
 #: work/templates/work/exchange_logging_work.html:906
 msgid "New Transfer"
-msgstr "Nueva transferencia"
+msgstr "Nueva Transferencia"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:202
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:553
 msgid "Log a New "
-msgstr "Registre un nuevo"
+msgstr "Anota un Nuevo"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:266
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:617
 msgid "Log a New Commitment"
-msgstr "Registre un nuevo compromiso"
+msgstr "Anota un Nuevo Compromiso"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:296
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:647
@@ -5369,21 +5369,21 @@ msgstr "Compromiso"
 #: work/templates/work/exchange_logging_work.html:544
 #: work/templates/work/exchange_logging_work.html:1098
 msgid "Change Transfer Commitment"
-msgstr "Cambiar cometido de la transferencia"
+msgstr "Cambiar Compromiso de la Transferencia"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:341
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:692
 #: work/templates/work/exchange_logging_work.html:601
 #: work/templates/work/exchange_logging_work.html:1156
 msgid "Transfer This"
-msgstr "Transferir eso"
+msgstr "Transferir Esto"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:345
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:696
 #: work/templates/work/exchange_logging_work.html:605
 #: work/templates/work/exchange_logging_work.html:1160
 msgid "Make Transfer from Commitment"
-msgstr "Hacer la transferencia del cometido"
+msgstr "Hacer Transferencia desde el Compromiso"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:405
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:463
@@ -5406,7 +5406,7 @@ msgstr "Transferencia"
 #: work/templates/work/exchange_logging_work.html:1253
 #: work/templates/work/exchange_logging_work.html:1343
 msgid "Change Transfer"
-msgstr "Cambiar la transferencia"
+msgstr "Cambiar Transferencia"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:879
 #: valuenetwork/templates/valueaccounting/process.html:315
@@ -5421,19 +5421,19 @@ msgstr "Trabajo"
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:882
 #: work/templates/work/exchange_logging_work.html:1447
 msgid "Log a work event"
-msgstr "Registrar un evento del trabajo"
+msgstr "Anotar un evento de trabajo"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:895
 #: work/templates/work/exchange_logging_work.html:1460
 msgid "Add Work Done for This Exchange"
-msgstr "Añadir un trabajo hecho por este intercambio"
+msgstr "Añadir Trabajo Hecho para Este Intercambio"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:912
 #: valuenetwork/templates/valueaccounting/process_oriented_logging.html:715
 #: work/templates/work/exchange_logging_work.html:1489
 #: work/templates/work/process_logging.html:752
 msgid "Work event"
-msgstr "Evento del trabajo"
+msgstr "Evento de trabajo"
 
 #: valuenetwork/templates/valueaccounting/exchange_logging.html:912
 #: valuenetwork/templates/valueaccounting/process.html:366
@@ -5453,20 +5453,20 @@ msgstr "Hecho por"
 #: work/templates/work/process_logging.html:709
 #: work/templates/work/process_logging.html:764
 msgid "Change Time Contribution"
-msgstr "Cambiar tiempo de contribución"
+msgstr "Cambiar Tiempo de Contribución"
 
 #: valuenetwork/templates/valueaccounting/exchange_types.html:7
 msgid "Maintain Exchange Types"
-msgstr "Mantener tipo de intercambio"
+msgstr "Mantener Tipos de Intercambio"
 
 #: valuenetwork/templates/valueaccounting/exchange_types.html:40
 msgid "Maintain Exchange Types / Patterns"
-msgstr "Mantener tipo/patrón de trabajo"
+msgstr "Mantener Tipos de Intercambio / Patrones"
 
 #: valuenetwork/templates/valueaccounting/exchange_types.html:44
 #: work/templates/work/exchanges_all.html:1124
 msgid "New Exchange Type"
-msgstr "Un nuevo tipo de intercambio"
+msgstr "Nuevo Tipo de Intercambio"
 
 #: valuenetwork/templates/valueaccounting/exchange_types.html:49
 msgid "Create exchange type"
@@ -5474,15 +5474,15 @@ msgstr "Crear tipo de intercambio"
 
 #: valuenetwork/templates/valueaccounting/exchange_types.html:57
 msgid "Incoming / Supply Exchange Types"
-msgstr "Tipos de Intercambio Entrante / Suministros"
+msgstr "Tipos de Intercambio Entrantes / Suministros"
 
 #: valuenetwork/templates/valueaccounting/exchange_types.html:90
 msgid "Internal Exchange Types"
-msgstr "Tipos de cambio internos"
+msgstr "Tipos de Intercambio Internos"
 
 #: valuenetwork/templates/valueaccounting/exchange_types.html:123
 msgid "Outgoing / Demand Exchange Types"
-msgstr "Tipos de Intercambio Saliente / Demanda"
+msgstr "Tipos de Intercambio Salientes / Demandas"
 
 #: valuenetwork/templates/valueaccounting/exchanges.html:5
 #: valuenetwork/templates/valueaccounting/exchanges.html:37
@@ -5490,7 +5490,7 @@ msgstr "Tipos de Intercambio Saliente / Demanda"
 #: work/templates/work/your_projects.html:130
 #: work/templates/work/your_projects.html:161
 msgid "Incoming Exchanges"
-msgstr "Intercambios entrantes"
+msgstr "Intercambios Entrantes"
 
 #: valuenetwork/templates/valueaccounting/explore.html:6
 msgid "Explore"
@@ -5510,11 +5510,11 @@ msgstr "Algo más"
 #: valuenetwork/templates/valueaccounting/extended_bill.html:6
 #: valuenetwork/templates/valueaccounting/extended_bill.html:108
 msgid "Recipe for "
-msgstr "Factura para"
+msgstr "Receta para"
 
 #: valuenetwork/templates/valueaccounting/extended_bill.html:198
 msgid "Filter Recipe Contents"
-msgstr "Filtrar Contenido de Recibo"
+msgstr "Filtrar Contenidos de Receta"
 
 #: valuenetwork/templates/valueaccounting/extended_bill.html:202
 msgid "Depth"
@@ -5561,7 +5561,7 @@ msgstr "Recursos Adquiridos"
 #: valuenetwork/templates/valueaccounting/finished_processes.html:5
 #: valuenetwork/templates/valueaccounting/finished_processes.html:32
 msgid "Finished processes for "
-msgstr "Procesos finalizados para"
+msgstr "Procesos finalizados para "
 
 #: valuenetwork/templates/valueaccounting/finished_processes.html:42
 #: valuenetwork/templates/valueaccounting/project_wip.html:44
@@ -5603,7 +5603,7 @@ msgstr "Cantidad de producción"
 #: work/templates/work/your_projects.html:136
 #: work/templates/work/your_projects.html:167
 msgid "Internal Exchanges"
-msgstr "Intercambios internos"
+msgstr "Intercambios Internos"
 
 #: valuenetwork/templates/valueaccounting/inventory.html:49
 #: valuenetwork/templates/valueaccounting/locations.html:6
@@ -5621,7 +5621,7 @@ msgstr "Ubicaciones"
 #: valuenetwork/templates/valueaccounting/skill_suggestions.html:7
 #: valuenetwork/templates/valueaccounting/skill_suggestions.html:37
 msgid "Skill Suggestions"
-msgstr "Recomendaciones de Habilidades"
+msgstr "Sugerencias de Habilidades"
 
 #: valuenetwork/templates/valueaccounting/inventory.html:80
 #: work/templates/work/project_resources.html:223
@@ -5630,7 +5630,7 @@ msgstr "Documentación"
 
 #: valuenetwork/templates/valueaccounting/inventory_board_demo.html:8
 msgid "Inventory "
-msgstr "Inventario"
+msgstr "Inventario "
 
 #: valuenetwork/templates/valueaccounting/inventory_board_demo.html:144
 msgid "Add resource"
@@ -5648,7 +5648,7 @@ msgstr "Cambiar este proceso"
 
 #: valuenetwork/templates/valueaccounting/inventory_board_demo.html:294
 msgid "Farm to Harvester"
-msgstr "Granja a cosechadora"
+msgstr "Granja a Cosechadora"
 
 #: valuenetwork/templates/valueaccounting/inventory_board_demo.html:313
 #: valuenetwork/templates/valueaccounting/resource_type.html:127
@@ -5662,33 +5662,33 @@ msgstr "Crear Recurso de tipo"
 #: valuenetwork/templates/valueaccounting/workbook.html:101
 #: work/templates/work/work_timer.html:100
 msgid "Work Notes for "
-msgstr "Notas de Trabajo para"
+msgstr "Notas de Trabajo para "
 
 #: valuenetwork/templates/valueaccounting/labnote.html:6
 #: valuenetwork/templates/valueaccounting/labnote.html:30
 msgid "from "
-msgstr "de"
+msgstr "de "
 
 #: valuenetwork/templates/valueaccounting/labnote.html:43
 #: valuenetwork/templates/valueaccounting/labnotes.html:59
 msgid "Time contributions"
-msgstr "Contribuciones de tiempo"
+msgstr "Contribuciones de Tiempo"
 
 #: valuenetwork/templates/valueaccounting/labnote.html:74
 msgid "Outputs created by "
-msgstr "Salidas creadas por"
+msgstr "Salidas creadas por "
 
 #: valuenetwork/templates/valueaccounting/labnote.html:81
 msgid "Citations by "
-msgstr "Citaciones por"
+msgstr "Citaciones por "
 
 #: valuenetwork/templates/valueaccounting/labnote.html:88
 msgid "Inputs consumed by "
-msgstr "Inputs consumidos por"
+msgstr "Inputs consumidos por "
 
 #: valuenetwork/templates/valueaccounting/labnote.html:96
 msgid "Inputs used by "
-msgstr "Inputs usados por"
+msgstr "Inputs usados por "
 
 #: valuenetwork/templates/valueaccounting/labnote.html:103
 msgid "Failed outputs posted by "
@@ -5752,11 +5752,11 @@ msgstr "Crear una nueva Ubicación"
 
 #: valuenetwork/templates/valueaccounting/locations.html:38
 msgid "Agents at"
-msgstr "Agentes a"
+msgstr "Agentes en"
 
 #: valuenetwork/templates/valueaccounting/locations.html:45
 msgid "Resources at"
-msgstr "Recursos a"
+msgstr "Recursos en"
 
 #: valuenetwork/templates/valueaccounting/locations.html:52
 msgid "Locations without map coordinates"
@@ -5764,7 +5764,7 @@ msgstr "Ubicaciones sin coordenadas de mapa"
 
 #: valuenetwork/templates/valueaccounting/locations.html:156
 msgid "Change this Location"
-msgstr "Cambiar esta ubicación"
+msgstr "Cambiar esta Ubicación"
 
 #: valuenetwork/templates/valueaccounting/locations.html:157
 msgid "Add me,"
@@ -5777,7 +5777,7 @@ msgstr ", a esta Ubicación"
 #: valuenetwork/templates/valueaccounting/log_past_work.html:7
 #: valuenetwork/templates/valueaccounting/log_past_work.html:93
 msgid "Labnotes for "
-msgstr "Notas de laboratorio para"
+msgstr "Notas de laboratorio para "
 
 #: valuenetwork/templates/valueaccounting/log_past_work.html:95
 #: valuenetwork/templates/valueaccounting/log_past_work.html:115
@@ -5819,12 +5819,12 @@ msgstr "Descripción del trabajo realizado"
 #: valuenetwork/templates/valueaccounting/log_past_work.html:135
 #: valuenetwork/templates/valueaccounting/workbook.html:142
 msgid "My work is done"
-msgstr "Mi trabajo está terminado"
+msgstr "Mi trabajo está realizado"
 
 #: valuenetwork/templates/valueaccounting/log_past_work.html:137
 #: valuenetwork/templates/valueaccounting/workbook.html:144
 msgid "This process is done"
-msgstr "Este proceso está terminado"
+msgstr "Este proceso está realizado"
 
 #: valuenetwork/templates/valueaccounting/log_past_work.html:142
 #: valuenetwork/templates/valueaccounting/workbook.html:150
@@ -5913,7 +5913,7 @@ msgstr "Invitar a un ayudante"
 #: valuenetwork/templates/valueaccounting/log_past_work.html:336
 #: valuenetwork/templates/valueaccounting/workbook.html:359
 msgid "Invite helper"
-msgstr "Invitar yudante"
+msgstr "Invitar ayudante"
 
 #: valuenetwork/templates/valueaccounting/log_past_work.html:353
 #: valuenetwork/templates/valueaccounting/workbook.html:376
@@ -5949,17 +5949,17 @@ msgstr "Detalles"
 #: valuenetwork/templates/valueaccounting/workbook.html:400
 #: valuenetwork/templates/valueaccounting/workbook.html:448
 msgid "Failed"
-msgstr "Falló"
+msgstr "Fallado"
 
 #: valuenetwork/templates/valueaccounting/log_past_work.html:386
 #: valuenetwork/templates/valueaccounting/workbook.html:408
 msgid "Failures"
-msgstr "Fallas"
+msgstr "Fallos"
 
 #: valuenetwork/templates/valueaccounting/log_past_work.html:396
 #: valuenetwork/templates/valueaccounting/workbook.html:418
 msgid "Details for "
-msgstr "Detalles para"
+msgstr "Detalles para "
 
 #: valuenetwork/templates/valueaccounting/log_past_work.html:450
 #: valuenetwork/templates/valueaccounting/log_simple.html:86
@@ -6019,7 +6019,7 @@ msgstr "Anotar Contribuciones de Diseño"
 
 #: valuenetwork/templates/valueaccounting/log_simple.html:61
 msgid "Log Contribution for "
-msgstr "Anotar Contribución para"
+msgstr "Anotar Contribución para "
 
 #: valuenetwork/templates/valueaccounting/log_simple.html:68
 msgid "Resource Created"
@@ -6039,7 +6039,7 @@ msgstr "Anotar Contribuciones de Tiempo para"
 
 #: valuenetwork/templates/valueaccounting/log_time.html:39
 msgid "Contribution history for "
-msgstr "Historial de contribicón para"
+msgstr "Historial de contribuciones para "
 
 #: valuenetwork/templates/valueaccounting/maintain_patterns.html:7
 msgid "Maintain Patterns"
@@ -6084,7 +6084,7 @@ msgstr "Contribuciones Materiales"
 #: work/templates/work/membership_request_with_comments.html:8
 #: work/templates/work/membership_request_with_comments.html:66
 msgid "Freedom Coop Membership Request for "
-msgstr "Solicitud de membresía para Freedom Coop"
+msgstr "Solicitud de Alta en Freedom Coop para "
 
 #: valuenetwork/templates/valueaccounting/membership_request.html:89
 msgid "Created Agent"
@@ -6141,12 +6141,12 @@ msgstr "Referencias"
 
 #: valuenetwork/templates/valueaccounting/membership_request.html:114
 msgid "Not yet"
-msgstr "Todavía No"
+msgstr "No todavía"
 
 #: valuenetwork/templates/valueaccounting/membership_requests.html:7
 #: valuenetwork/templates/valueaccounting/membership_requests.html:43
 msgid "Freedom Coop Membership Requests"
-msgstr "Solicitud de membresía para Freedom Coop"
+msgstr "Solicitudes de Alta en Freedom Coop"
 
 #: valuenetwork/templates/valueaccounting/membership_requests.html:55
 #: valuenetwork/templates/valueaccounting/skill_suggestions.html:51
@@ -6230,7 +6230,7 @@ msgstr "Roles del proyecto"
 
 #: valuenetwork/templates/valueaccounting/misc.html:33
 msgid "All-time project stats"
-msgstr "Estadísticas del proyecto nunca vistas"
+msgstr "Estadísticas del proyecto en todo el tiempo"
 
 #: valuenetwork/templates/valueaccounting/misc.html:34
 msgid "Last 2 months project stats"
@@ -6255,7 +6255,7 @@ msgstr "o simplemente arrastre las cosas alrededor..."
 
 #: valuenetwork/templates/valueaccounting/network.html:32
 msgid "Blue oval = Project"
-msgstr "óvalo azul = Proyecto"
+msgstr "Óvalo azul = Proyecto"
 
 #: valuenetwork/templates/valueaccounting/network.html:33
 msgid "Red rectangle = Resource Type"
@@ -6273,7 +6273,7 @@ msgstr "No tiene permisos para acceder a la página solicitada."
 #: valuenetwork/templates/valueaccounting/open_todos.html:6
 #: valuenetwork/templates/valueaccounting/open_todos.html:50
 msgid "Open Todos"
-msgstr "Abrir Tareas por hacer"
+msgstr "Abrir Tareas Simples"
 
 #: valuenetwork/templates/valueaccounting/open_todos.html:55
 #: valuenetwork/templates/valueaccounting/today.html:376
@@ -6326,7 +6326,7 @@ msgstr ""
 #: work/templates/work/order_delete_confirmation_work.html:19
 #: work/templates/work/order_plan.html:139
 msgid "Order Items"
-msgstr "Pedir Artículos"
+msgstr "Artículos del Pedido"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:7
 #: valuenetwork/templates/valueaccounting/order_schedule.html:97
@@ -6371,7 +6371,7 @@ msgstr "Cambiar proyecto por plan de flujo de trabajo"
 #: valuenetwork/templates/valueaccounting/order_schedule.html:193
 #: work/templates/work/order_plan.html:220
 msgid "Add another Order Item"
-msgstr "Agregar otro item al Pedido"
+msgstr "Agregar otro Item al Pedido"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:213
 msgid "Production Schedule"
@@ -6380,16 +6380,16 @@ msgstr "Cronograma de Producción"
 #: valuenetwork/templates/valueaccounting/order_schedule.html:215
 #: valuenetwork/templates/valueaccounting/project_wip.html:34
 msgid "Process graph diagram"
-msgstr "Diagráma de gráfico de proceso"
+msgstr "Diagrama del gráfico de proceso"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:223
 msgid "Order Item"
-msgstr "Item de Pedido"
+msgstr "Item del Pedido"
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:231
 #: work/templates/work/order_plan.html:261
 msgid "Add Process to produce "
-msgstr "Agregar Proceso para producir"
+msgstr "Agregar Proceso para producir "
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:241
 #: work/templates/work/order_plan.html:272
@@ -6399,12 +6399,12 @@ msgstr "Agregar Proceso de Producción"
 #: valuenetwork/templates/valueaccounting/order_schedule.html:269
 #: work/templates/work/order_plan.html:301
 msgid "Insert a process here "
-msgstr "Insertar el proceso aquí"
+msgstr "Insertar un proceso aquí "
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:276
 #: work/templates/work/order_plan.html:308
 msgid "Insert process for "
-msgstr "Insertar proceso para"
+msgstr "Insertar proceso para "
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:322
 #: work/templates/work/order_plan.html:353
@@ -6419,24 +6419,24 @@ msgstr "Borrar proceso"
 #: valuenetwork/templates/valueaccounting/order_schedule.html:365
 #: work/templates/work/order_plan.html:397
 msgid "Add a process here "
-msgstr "Añadir proceso aquí"
+msgstr "Añadir un proceso aquí "
 
 #: valuenetwork/templates/valueaccounting/order_schedule.html:372
 #: work/templates/work/order_plan.html:404
 msgid "Add process for "
-msgstr "Añadir proceso para"
+msgstr "Añadir proceso para "
 
 #: valuenetwork/templates/valueaccounting/orders.html:7
 msgid "Orders for "
-msgstr "Pedidos para"
+msgstr "Pedidos para "
 
 #: valuenetwork/templates/valueaccounting/orders.html:103
 msgid "Active Orders for "
-msgstr "Pedidos Activos para"
+msgstr "Pedidos Activos para "
 
 #: valuenetwork/templates/valueaccounting/orders.html:112
 msgid "Due "
-msgstr "Vencimiento"
+msgstr "Vencimiento "
 
 #: valuenetwork/templates/valueaccounting/orders.html:115
 msgid "Detailed schedule"
@@ -6444,7 +6444,7 @@ msgstr "Cronograma detallado"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:7
 msgid "Work Order from Recipe"
-msgstr "Pedido de Trabajo de Receta"
+msgstr "Pedido de Trabajo desde Receta"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:53
 msgid "Plan Work Order Using Recipe"
@@ -6454,13 +6454,13 @@ msgstr "Planificar Pedido de Trabajo Usando Receta"
 #: valuenetwork/templates/valueaccounting/process_selections.html:68
 #: work/templates/work/plan_work.html:71
 msgid "Project "
-msgstr "Proyecto"
+msgstr "Proyecto "
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:66
 #: valuenetwork/templates/valueaccounting/process_selections.html:74
 #: work/templates/work/plan_work.html:79
 msgid "Choose a project "
-msgstr "Elegir el proyecto"
+msgstr "Elige un proyecto "
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:67
 msgid "Get recipes"
@@ -6468,7 +6468,7 @@ msgstr "Tomar recetas"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:78
 msgid "Choose a Resource Type..."
-msgstr "Elegir un Tipo de Recurso..."
+msgstr "Elige un Tipo de Recurso..."
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:101
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:37
@@ -6477,7 +6477,7 @@ msgstr "Esta receta necesita un recurso de partida"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:115
 msgid "...or choose a Resource Type List"
-msgstr "... o elija una Lista de Tipo de Recurso"
+msgstr "... o elige una Lista de Tipo de Recurso"
 
 #: valuenetwork/templates/valueaccounting/plan_from_recipe.html:162
 msgid "Create plan from recipe"
@@ -6492,7 +6492,7 @@ msgstr "Producción"
 
 #: valuenetwork/templates/valueaccounting/plan_from_rt.html:26
 msgid "Plan a Process for "
-msgstr "Planificar un Proceso para"
+msgstr "Planificar un Proceso para "
 
 #: valuenetwork/templates/valueaccounting/plan_from_rt.html:30
 msgid "Save planned process"
@@ -6500,7 +6500,7 @@ msgstr "Guardar proceso planeado"
 
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:30
 msgid "Create a Plan from Recipe for "
-msgstr "Crear un Plan a partir de Receta para"
+msgstr "Crear un Plan a partir de Receta para "
 
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:49
 #: valuenetwork/templates/valueaccounting/plan_from_rt_recipe.html:51
@@ -6913,12 +6913,12 @@ msgstr "Anotar Trabajo de Producción no Planeado"
 #: valuenetwork/templates/valueaccounting/process_selections.html:65
 #: work/templates/work/plan_work.html:74
 msgid "Pattern "
-msgstr "Patrón"
+msgstr "Patrón "
 
 #: valuenetwork/templates/valueaccounting/process_selections.html:73
 #: work/templates/work/plan_work.html:80
 msgid "Choose a pattern "
-msgstr "Elegir el patrón"
+msgstr "Elige un patrón "
 
 #: valuenetwork/templates/valueaccounting/process_selections.html:75
 #: work/templates/work/plan_work.html:81
@@ -6992,11 +6992,11 @@ msgstr "Contribuciones para"
 
 #: valuenetwork/templates/valueaccounting/project_wip.html:5
 msgid "WIP for "
-msgstr "Trabajo en Curso para"
+msgstr "Trabajo en Curso para "
 
 #: valuenetwork/templates/valueaccounting/project_wip.html:32
 msgid "Work in Process for "
-msgstr "Trabajo en Curso para"
+msgstr "Trabajo en Curso para "
 
 #: valuenetwork/templates/valueaccounting/project_wip.html:33
 msgid "Finished processes"
@@ -7079,17 +7079,17 @@ msgstr "De dónde"
 #: valuenetwork/templates/valueaccounting/resource.html:240
 #: work/templates/work/project_resource.html:322
 msgid "Contributions to payment for "
-msgstr "Contribuciones al pago por"
+msgstr "Contribuciones al pago por "
 
 #: valuenetwork/templates/valueaccounting/resource.html:265
 #: work/templates/work/project_resource.html:347
 msgid "Add process that created resource"
-msgstr "Agregar procesos que crearon el recurso"
+msgstr "Agregar el proceso que creó el recurso"
 
 #: valuenetwork/templates/valueaccounting/resource.html:270
 #: work/templates/work/project_resource.html:352
 msgid "Add Process"
-msgstr "Agregar proceso"
+msgstr "Agregar Proceso"
 
 #: valuenetwork/templates/valueaccounting/resource.html:291
 #: work/templates/work/project_resource.html:373
@@ -7147,11 +7147,11 @@ msgstr "Facilidad"
 
 #: valuenetwork/templates/valueaccounting/resource_flow_report.html:54
 msgid "Resource Flows for "
-msgstr "Flujo de Recurso para"
+msgstr "Flujo de Recurso para "
 
 #: valuenetwork/templates/valueaccounting/resource_flow_report.html:62
 msgid "Onhand or Sold"
-msgstr "A mano o Vendido"
+msgstr "En-mano o Vendido"
 
 #: valuenetwork/templates/valueaccounting/resource_flow_report.html:71
 msgid "Sales"
@@ -7442,7 +7442,7 @@ msgstr "Hizo"
 
 #: valuenetwork/templates/valueaccounting/start.html:678
 msgid "Other unassigned todos:"
-msgstr "Otras tareas sin asignar"
+msgstr "Otras tareas sin asignar:"
 
 #: valuenetwork/templates/valueaccounting/supply.html:94
 msgid "Requirements by Supplier"
@@ -7585,7 +7585,7 @@ msgid ""
 "These tutorials for NRP (Network Resource Planning) are for the software "
 "that is used for the OCP (Open Collaborative Platform) for Freedom Coop."
 msgstr ""
-"Estos tutoriales para PRR (Planeación de Recursos de Red) son para el "
+"Estos tutoriales para NRP (Planeación de Recursos de Red) son para el "
 "software que se usa en OCP (Plataforma Abierta Colaborativa) para la Freedom "
 "Coop."
 
@@ -7673,7 +7673,7 @@ msgstr "Anotar Contribuciones de Tiempo no Programadas"
 
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:46
 msgid "Log Unscheduled Time Contributions for "
-msgstr "Anotar Contribuciones de Tiempo no Programadas para"
+msgstr "Anotar Contribuciones de Tiempo no Programadas para "
 
 #: valuenetwork/templates/valueaccounting/unscheduled_time_contributions.html:59
 msgid "Credit for value equations"
@@ -7690,7 +7690,7 @@ msgstr "Total"
 #: work/templates/work/value_equation_work.html:7
 #: work/templates/work/value_equation_work.html:47
 msgid "Value Time Contributions for "
-msgstr "Contribuciones de Valor para"
+msgstr "Contribuciones de Valor para "
 
 #: valuenetwork/templates/valueaccounting/value_equation.html:59
 #: work/templates/work/value_equation_work.html:59
@@ -7808,7 +7808,7 @@ msgstr "Distribuir a"
 
 #: valuenetwork/templates/valueaccounting/value_equations.html:72
 msgid "Live"
-msgstr "Vivo"
+msgstr "En Vivo"
 
 #: valuenetwork/templates/valueaccounting/value_equations.html:72
 msgid "Test Only"
@@ -7816,15 +7816,15 @@ msgstr "Sólo Prueba"
 
 #: valuenetwork/templates/valueaccounting/view_stream_recipe.html:8
 msgid " View Workflow Recipe for "
-msgstr "Ver Receta de Flujo de Trabajo para"
+msgstr "Ver Receta de Flujo de Trabajo para "
 
 #: valuenetwork/templates/valueaccounting/view_stream_recipe.html:113
 msgid "View Workflow Recipe for "
-msgstr "Ver Receta de Flujo de Trabajo para"
+msgstr "Ver Receta de Flujo de Trabajo para "
 
 #: valuenetwork/templates/valueaccounting/virtual_accounts.html:43
 msgid "Payout from "
-msgstr "Desembolso desde"
+msgstr "Desembolso desde "
 
 #: valuenetwork/templates/valueaccounting/work.html:196
 msgid "Process Diagram"
@@ -7832,7 +7832,7 @@ msgstr "Diagrama de Proceso"
 
 #: valuenetwork/templates/valueaccounting/work.html:212
 msgid "Show processes scheduled during "
-msgstr "Mostrar procesos programados durante"
+msgstr "Mostrar procesos programados durante "
 
 #: valuenetwork/templates/valueaccounting/work.html:228
 #: work/templates/work/project_work.html:225
@@ -7884,7 +7884,7 @@ msgstr "Qué se hizo"
 #: valuenetwork/templates/valueaccounting/work_now.html:7
 #: work/templates/work/work_timer.html:7
 msgid "Work Notes on "
-msgstr "Notas de trabajo sobre"
+msgstr "Notas de trabajo sobre "
 
 #: valuenetwork/templates/valueaccounting/work_now.html:154
 msgid "Save and Close"
@@ -7913,15 +7913,15 @@ msgstr "Tiempo utilizado hoy"
 
 #: valuenetwork/templates/valueaccounting/workflow_board_demo.html:7
 msgid "Workflow "
-msgstr "Flujo de Trabajo"
+msgstr "Flujo de trabajo "
 
 #: valuenetwork/templates/valueaccounting/workflow_board_demo.html:122
 msgid "Plan Processes"
-msgstr "Procesos del plan"
+msgstr "Procesos del Plan"
 
 #: valuenetwork/templates/valueaccounting/workflow_board_demo.html:194
 msgid "Filter Board"
-msgstr "Filtrar Tablero"
+msgstr "Tablero Filtro"
 
 #: valuenetwork/templates/valueaccounting/workflow_board_demo.html:197
 msgid "Show All"
@@ -7981,7 +7981,7 @@ msgstr "Ubicación de Recurso Actual"
 
 #: valuenetwork/valueaccounting/forms.py:2267
 msgid "Check if the cash contribution comes from your virtual account"
-msgstr "Cotejar si la contribución de efectivo viene de su cuenta virtual"
+msgstr "Comprobar si la contribución de efectivo viene de su cuenta virtual"
 
 #: valuenetwork/valueaccounting/forms.py:2404
 msgid "Unit of Value"
@@ -8021,7 +8021,7 @@ msgstr "Monto a distribuir"
 
 #: valuenetwork/valueaccounting/forms.py:3359 work/forms.py:895
 msgid "Link to receipt(s)"
-msgstr "Víncular a receta(s)"
+msgstr "Víncular a recibo(s)"
 
 #: valuenetwork/valueaccounting/forms.py:3421
 msgid "Context (who interacts with the payer)"
@@ -8299,7 +8299,7 @@ msgstr "nombre"
 
 #: valuenetwork/valueaccounting/models.py:229
 msgid "clas"
-msgstr "clase"
+msgstr "clas"
 
 #: valuenetwork/valueaccounting/models.py:247
 msgid "facet"
@@ -8477,11 +8477,11 @@ msgstr "url de foto"
 
 #: valuenetwork/valueaccounting/models.py:514
 msgid "unit used in claims"
-msgstr "unidad usada en reclamos"
+msgstr "unidad usada en reclamaciones"
 
 #: valuenetwork/valueaccounting/models.py:515
 msgid "For a context agent, the unit of all claims"
-msgstr "Para un agente de contrexto, la unidad de todos los reclamos"
+msgstr "Para un agente de contexto, la unidad de todas las reclamaciones"
 
 #: valuenetwork/valueaccounting/models.py:517
 #: valuenetwork/valueaccounting/models.py:2454
@@ -8622,7 +8622,7 @@ msgstr "pago"
 
 #: valuenetwork/valueaccounting/models.py:2368
 msgid "receipt"
-msgstr "factura"
+msgstr "recibo"
 
 #: valuenetwork/valueaccounting/models.py:2369
 msgid "expense"
@@ -8638,7 +8638,7 @@ msgstr "contribución de recurso"
 
 #: valuenetwork/valueaccounting/models.py:2372
 msgid "cash receipt"
-msgstr "factura en efectivo"
+msgstr "recibo de efectivo"
 
 #: valuenetwork/valueaccounting/models.py:2373
 msgid "shipment"
@@ -8671,17 +8671,17 @@ msgstr "proceso"
 #: valuenetwork/valueaccounting/models.py:2388
 #: valuenetwork/valueaccounting/models.py:14948
 msgid "increase"
-msgstr "incremento"
+msgstr "incrementa"
 
 #: valuenetwork/valueaccounting/models.py:2389
 #: valuenetwork/valueaccounting/models.py:14949
 msgid "decrease"
-msgstr "disminución"
+msgstr "disminuye"
 
 #: valuenetwork/valueaccounting/models.py:2391
 #: valuenetwork/valueaccounting/models.py:12961
 msgid "transfer"
-msgstr "transferencia"
+msgstr "transfiere"
 
 #: valuenetwork/valueaccounting/models.py:2392
 msgid "no effect"
@@ -8689,7 +8689,7 @@ msgstr "sin efecto"
 
 #: valuenetwork/valueaccounting/models.py:2393
 msgid "failure"
-msgstr "falla"
+msgstr "fallo"
 
 #: valuenetwork/valueaccounting/models.py:2394
 msgid "create to change"
@@ -8714,7 +8714,7 @@ msgstr "relacionado a"
 
 #: valuenetwork/valueaccounting/models.py:2449
 msgid "resource effect"
-msgstr "efecto de recurso"
+msgstr "efecto del recurso"
 
 #: valuenetwork/valueaccounting/models.py:2612
 msgid "code"
@@ -8738,7 +8738,7 @@ msgstr "Tipo de Trabajo"
 
 #: valuenetwork/valueaccounting/models.py:2787
 msgid "Digital Currency"
-msgstr "Moneda digital"
+msgstr "Moneda Digital"
 
 #: valuenetwork/valueaccounting/models.py:2788
 msgid "Digital Currency Address"
@@ -8958,15 +8958,15 @@ msgstr "Hacer disponible"
 
 #: valuenetwork/valueaccounting/models.py:4235
 msgid "Internal Exchange"
-msgstr "Intercambio interno"
+msgstr "Intercambio Interno"
 
 #: valuenetwork/valueaccounting/models.py:4236
 msgid "Incoming Exchange"
-msgstr "Intercambio entrante"
+msgstr "Intercambio Entrante"
 
 #: valuenetwork/valueaccounting/models.py:4237
 msgid "Outgoing Exchange"
-msgstr "Intercambio saliente"
+msgstr "Intercambio Saliente"
 
 #: valuenetwork/valueaccounting/models.py:4247
 msgid "cites"
@@ -9594,7 +9594,7 @@ msgstr "se publicó una nueva tarea que se adecúa a tus habilidades"
 
 #: valuenetwork/valueaccounting/signals.py:10
 msgid "New Todo"
-msgstr "Nueva Por Hacer"
+msgstr "Nueva Tarea simple"
 
 #: valuenetwork/valueaccounting/signals.py:10
 msgid "a new todo was posted that is assigned to you"
@@ -9646,7 +9646,7 @@ msgstr "Nueva Cuenta OCP del Proyecto"
 
 #: valuenetwork/valueaccounting/signals.py:16
 msgid "a new OCP account details"
-msgstr "Detalles de una nueva cuenta de OCP"
+msgstr "detalles de una nueva cuenta OCP"
 
 #: valuenetwork/valueaccounting/signals.py:17
 msgid "Comment in Freedom Coop Membership Request"
@@ -9654,7 +9654,7 @@ msgstr "Comentario en Solicitud de Alta en Freedom Coop"
 
 #: valuenetwork/valueaccounting/signals.py:17
 msgid "we have received a new comment in a membership request"
-msgstr "nos ha llegado un nuevo comentario en una solicitud de alta"
+msgstr "nos ha llegado un nuevo comentario en una solicitud de membresía"
 
 #: valuenetwork/valueaccounting/signals.py:18
 msgid "Comment in Project Join Request"
@@ -9850,7 +9850,7 @@ msgstr "Este nombre ya se está usando en el sistema."
 
 #: work/forms.py:84
 msgid "This email is already present in the system."
-msgstr "El correo electrónico ya existe en el sistema."
+msgstr "Este correo electrónico ya existe en el sistema."
 
 #: work/forms.py:111
 msgid "Your skill suggestions will be sent to Freedom Coop Admins"
@@ -9917,7 +9917,7 @@ msgstr ""
 
 #: work/forms.py:317
 msgid "Bad type of user??"
-msgstr "Tipo de usuario malo??"
+msgstr "Tipo de usuario erroneo??"
 
 #: work/forms.py:324
 msgid ""
@@ -9940,7 +9940,7 @@ msgid ""
 "This username is already used in another request to join this same project. "
 "Please wait for an answer before applying again. "
 msgstr ""
-"Este nombre de usuario ya existe en otra petición de unirse a este mismo "
+"Este nombre de usuario ya existe en otra petición de alta en este mismo "
 "proyecto. Por favor espera una respuesta antes de aplicar de nuevo."
 
 #: work/forms.py:339
@@ -9949,7 +9949,7 @@ msgid ""
 "this same project. Please wait for an answer before applying again."
 msgstr ""
 "La dirección de correo ya esta registrada en el sistema como petición de "
-"unirse a este mismo proyecto. Por favor, espera una respuesta antes de "
+"alta en este mismo proyecto. Por favor, espera una respuesta antes de "
 "aplicar de nuevo."
 
 #: work/forms.py:346
@@ -9990,16 +9990,16 @@ msgstr "Contraseña de acceso"
 
 #: work/forms.py:478
 msgid "used Exchange type..."
-msgstr "Tipo de intercambio usado..."
+msgstr "tipo de Intercambio usado..."
 
 #: work/forms.py:489 work/forms.py:581
 msgid "search Exchange type..."
-msgstr "Buscar tipo de Intercambio..."
+msgstr "buscar tipo de Intercambio..."
 
 #: work/forms.py:501 work/forms.py:592 work/forms.py:660 work/forms.py:705
 #: work/forms.py:798
 msgid "search Resource type..."
-msgstr "Buscar tipo de Recurso..."
+msgstr "buscar tipo de Recurso..."
 
 #: work/forms.py:570
 msgid "Name (automatic?)"
@@ -10011,11 +10011,11 @@ msgstr "Tipo de Recurso relacionado"
 
 #: work/forms.py:600
 msgid "Related skill Service time"
-msgstr "Tiempo de servicio de la habilidad relacionada"
+msgstr "Tiempo de Servicio de la habilidad relacionada"
 
 #: work/forms.py:603
 msgid "search Skill service..."
-msgstr "Buscar servicio experto..."
+msgstr "buscar servicio Habilidad..."
 
 #: work/forms.py:609
 msgid ""
@@ -10031,7 +10031,7 @@ msgstr "Nombre del Tipo de Recurso"
 
 #: work/forms.py:658
 msgid "Parent resource type"
-msgstr "tipo de recurso padre"
+msgstr "Tipo de recurso padre"
 
 #: work/forms.py:669
 msgid ""
@@ -10055,12 +10055,12 @@ msgid ""
 "accounting or measure for the resources of this type, or leave empty if "
 "unsure."
 msgstr ""
-"Elige 'Cada' para unidades discretas, o el más general 'Unidad de medida' "
-"para los recursos de este tipo, o déjalo vacío si dudas."
+"Elige 'Cada' para unidades discretas, o la Unidad de medida o contabilidad "
+"principal para los recursos de este tipo, o déjalo vacío si dudas."
 
 #: work/forms.py:687 work/forms.py:815
 msgid "search Unit type..."
-msgstr "Buscar tipo de Unidad..."
+msgstr "buscar tipo de Unidad..."
 
 #: work/forms.py:693 work/forms.py:821
 msgid "Fixed Faircoin price per each unit?"
@@ -12240,7 +12240,7 @@ msgstr "Imagen"
 #: work/templates/work/members_agent.html:352
 #: work/templates/work/profile.html:274
 msgid "Upload Picture for "
-msgstr "Subir Imagen para"
+msgstr "Subir Imagen para "
 
 #: work/templates/work/members_agent.html:370
 msgid "Error: can't read the image."
@@ -12256,7 +12256,7 @@ msgstr "rol en OCP"
 
 #: work/templates/work/members_agent.html:422
 msgid "Address Missing!"
-msgstr "Falta la Dirección!"
+msgstr "Falta el Correo-e!"
 
 #: work/templates/work/members_agent.html:454
 msgid "Login as"
@@ -12460,7 +12460,7 @@ msgstr "candidato a"
 
 #: work/templates/work/members_agent.html:1012
 msgid "Edit member relations"
-msgstr "Editar relaciones entre miembros"
+msgstr "Editar relaciones internas"
 
 #: work/templates/work/members_agent.html:1016
 msgid "Maintain Associates for"
