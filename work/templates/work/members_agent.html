@@ -980,7 +980,7 @@
               <ul>
                 {% for assoc in is_associated_with  %}
                     {% ifchanged assoc.association_type and assoc.state %}
-                       <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.label|cut:" of"|cut:" de"|cut:" en" }} {% trans "candidate of" %}{% else %}
+                       <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.label|cut:" of"|cut:" de"|cut:" en"|cut:" a" }} {% trans "candidate of" %}{% else %}
                                 {{ assoc.association_type.label }}{% endif %}: </h4>
                     {% endifchanged %}
                     <li><a href="{% url "members_agent" agent_id=assoc.has_associate.id %}">{{ assoc.has_associate.name }}</a>

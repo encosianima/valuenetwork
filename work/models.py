@@ -195,8 +195,9 @@ class Project(models.Model):
 
     def shares_type(self):
         st = None
-        at = self.shares_account_type()
-        if at:
+        if self.joining_style == 'shares':
+          at = self.shares_account_type()
+          if at:
             if hasattr(at, 'ocp_artwork_type') and at.ocp_artwork_type:
                 if hasattr(at.ocp_artwork_type, 'rel_nonmaterial_type') and at.ocp_artwork_type.rel_nonmaterial_type:
                     if hasattr(at.ocp_artwork_type.rel_nonmaterial_type, 'resource_type') and at.ocp_artwork_type.rel_nonmaterial_type.resource_type:
@@ -210,7 +211,7 @@ class Project(models.Model):
             else:
                 print "ERROR: The at: "+str(at)+" has no 'ocp_artwork_type' !"
                 loger.error("ERROR: The at: "+str(at)+" has no 'ocp_artwork_type' !")
-        else:
+          else:
             print("ERROR: The project has no shares_account_type? pro:"+str(self.agent.nick))
             loger.error("ERROR: The project has no shares_account_type? pro:"+str(self.agent.nick))
         return st
@@ -2869,28 +2870,6 @@ class Ocp_Unit_TypeManager(TreeManager):
 
 
 class Ocp_Unit_Type(Unit_Type):
-    '''general_unit_type = models.OneToOneField(
-        Unit_Type,
-        on_delete=models.CASCADE,
-        primary_key=True,
-        parent_link=True
-    )
-    ocp_unit =  models.OneToOneField(
-        Unit,
-        on_delete=models.CASCADE,
-        verbose_name=_('ocp unit'),
-        related_name='ocp_unit_type',
-        blank=True, null=True,
-        help_text=_("a related OCP Unit")
-    )
-    general_unit = models.OneToOneField(
-        Gene_Unit,
-        on_delete=models.CASCADE,
-        verbose_name=_('general unit'),
-        related_name='ocp_unit_type',
-        blank=True, null=True,
-        help_text=_("a related General Unit")
-    )'''
 
     objects = Ocp_Unit_TypeManager()
 
@@ -2930,32 +2909,6 @@ class Ocp_Unit_Type(Unit_Type):
 
 
 
-'''class Gen_Unit(Gene_Unit):
-    """general_unit = models.OneToOneField(
-        Gene_Unit,
-        on_delete=models.CASCADE,
-        primary_key=True,
-        parent_link=True
-    )"""
-    ocp_unit =  models.OneToOneField(
-        Unit,
-        on_delete=models.CASCADE,
-        verbose_name=_('ocp unit'),
-        related_name='gen_unit',
-        blank=True, null=True,
-        help_text=_("a related OCP Unit")
-    )
-
-    class Meta:
-        verbose_name= _(u'General-OCP Unit')
-        verbose_name_plural= _(u'o-> General-OCP Units')
-
-    def __unicode__(self):
-        if self.ocp_unit:
-            return self.name+'('+self.ocp_unit.name+')'
-        else:
-            return self.name
-'''
 
 from django.db.models.signals import post_migrate
 #from work.apps import WorkAppConfig
