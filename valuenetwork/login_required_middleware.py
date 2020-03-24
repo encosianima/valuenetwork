@@ -29,7 +29,7 @@ class LoginRequiredMiddleware:
             # Ignore graph API URls, they manage their own auth internally
             return
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if not request.user.is_staff:
                 if "accounting" in request.path_info or "api" in request.path_info:
                     return HttpResponseRedirect(settings.WORKER_LOGIN_REDIRECT_URL)
