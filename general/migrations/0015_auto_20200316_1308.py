@@ -92,7 +92,7 @@ class Migration(migrations.Migration):
             name='name_ca',
             field=models.CharField(default=b'', help_text='The name of the Concept', max_length=200,
                                    null=True,
-                                   #unique=True,
+                                   unique=True,
                                    verbose_name='Name'),
         ),
         migrations.AddField(
@@ -100,7 +100,7 @@ class Migration(migrations.Migration):
             name='name_en',
             field=models.CharField(default=b'', help_text='The name of the Concept', max_length=200,
                                    null=True,
-                                   #unique=True,
+                                   unique=True,
                                    verbose_name='Name'),
         ),
         migrations.AddField(
@@ -108,7 +108,7 @@ class Migration(migrations.Migration):
             name='name_es',
             field=models.CharField(default=b'', help_text='The name of the Concept', max_length=200,
                                    null=True,
-                                   #unique=True,
+                                   unique=True,
                                    verbose_name='Name'),
         ),
     ]

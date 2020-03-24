@@ -2910,14 +2910,31 @@ class Ocp_Unit_Type(Unit_Type):
 
 
 
-from django.db.models.signals import post_migrate
+#from django.db.models.signals import post_migrate
 #from work.apps import WorkAppConfig
 
-from django.core.management import call_command
+
+def fill_empty_languages(**kwargs):
+
+    from django.core.management import call_command
+    import modeltranslation
+
+    lang = settings.LANGUAGE_CODE
+    print("default LANG: "+lang)
+    call_command('update_translation_fields', interactive=True)
+
+    for lan in settings.LANGUAGES:
+        if not lan[0] == lang:
+            print("other LANG: "+lan[0])
+            modeltranslation.management.commands.update_translation_fields.DEFAULT_LANGUAGE = lan[0]
+            call_command('update_translation_fields', interactive=True)
+
+    modeltranslation.management.commands.update_translation_fields.DEFAULT_LANGUAGE = lang
+    print("---- Language's empty strings has been filled with the default language string to keep uniqueness. ----")
+
+
 
 def create_unit_types(**kwargs):
-
-    call_command('update_translation_fields', interactive=True)
 
     ocp = EconomicAgent.objects.filter(nick='OCP')
     if not ocp:
@@ -3225,7 +3242,7 @@ def create_unit_types(**kwargs):
 
     #   F a i r C o i n
 
-    ocp_fair, created = Unit.objects.get_or_create(name='FairCoin', unit_type='value')
+    ocp_fair, created = Unit.objects.get_or_create(name_en='FairCoin', unit_type='value')
     if created:
         print "- created a main ocp Unit: 'FairCoin'!"
     ocp_fair.abbrev = 'fair'
