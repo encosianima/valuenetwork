@@ -398,11 +398,11 @@ LOCALE_PATHS = [
     os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "locale")),
 ]
 LANGUAGE_CODE = 'en'
-LANGUAGES = (
+LANGUAGES = [
   ('en', _('English')),
   ('es', _('Spanish')),
   ('ca', _('Catalan')),
-)
+]
 DEFAULT_LANGUAGE = LANGUAGE_CODE
 ACCOUNT_LANGUAGES = LANGUAGES
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en' # can be diferent
