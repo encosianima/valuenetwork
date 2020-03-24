@@ -817,17 +817,20 @@ class JoinRequest(models.Model):
 
     def total_price(self):
         #decimal.getcontext().prec = settings.CRYPTO_DECIMALS
-        shtype = self.project.shares_type()
-        shunit = shtype.unit_of_price
-        shprice = shtype.price_per_unit
         unit = self.payment_unit()
-        amount = amountpay = self.payment_amount() * shprice
-        if not unit == shunit and amount: #unit.abbrev == 'fair':
-            #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
-            from work.utils import convert_price, remove_exponent
-            amountpay, ratio = convert_price(amount, shunit, unit, self)
-            self.ratio = ratio
-            amountpay = remove_exponent(amountpay)
+        shtype = self.project.shares_type()
+        if shtype:
+            shunit = shtype.unit_of_price
+            shprice = shtype.price_per_unit
+            amount = amountpay = self.payment_amount() * shprice
+            if not unit == shunit and amount: #unit.abbrev == 'fair':
+                #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
+                from work.utils import convert_price, remove_exponent
+                amountpay, ratio = convert_price(amount, shunit, unit, self)
+                self.ratio = ratio
+                amountpay = remove_exponent(amountpay)
+        else:
+            amountpay = self.payment_amount()
         return amountpay
 
     def show_total_price(self):
