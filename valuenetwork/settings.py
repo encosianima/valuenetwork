@@ -101,7 +101,7 @@ LOGIN_EXEMPT_URLS = [
 PROJECTS_LOGIN = {} # Fill the object in local_settings.py with custom login data by project
 
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     #'django.middleware.locale.LocaleMiddleware',
