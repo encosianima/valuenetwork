@@ -477,7 +477,7 @@
                   {% if agent.faircoin_resources %}
                         <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "FairCoin address" %}</th>
-                            <td>{% for fcr in agent.faircoin_resources %} {{ fcr.faircoin_address.address }}
+                            <td>{% for fcr in agent.faircoin_resources %}<span class="small">{{ fcr.faircoin_address.address }}</span>
                                   {% if user_agent in agent.managers or user_is_agent %}
                                     {% if fcr.id %} &nbsp; <b><a href="{% url "manage_faircoin_account" resource_id=fcr.id %}"
                                                                  class="btn btn-primary btn-mini">Manage</a></b>
