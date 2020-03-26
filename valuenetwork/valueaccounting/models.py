@@ -470,14 +470,14 @@ class AgentManager(models.Manager):
 
     def freedom_coop_projects(self):
         try:
-            fc = EconomicAgent.objects.get(nick="FC_Projects")
+            fc = EconomicAgent.objects.get(nick_en="FC_Projects")
         except EconomicAgent.DoesNotExist:
             raise ValidationError("FreedomCoop Projects group does not exist by 'FC_Projects' nickname.")
         return fc
 
     def root_ocp_agent(self):
         try:
-            ocp = EconomicAgent.objects.get(nick="OCP")
+            ocp = EconomicAgent.objects.get(nick_en="OCP")
         except EconomicAgent.DoesNotExist:
             raise ValidationError("OCP main root Agent does not exist by 'OCP' nickname.")
         return ocp
