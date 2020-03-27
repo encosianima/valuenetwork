@@ -4169,7 +4169,7 @@ def create_unit_types(**kwargs):
     else:
         boc_ag = boc_ag[0]
 
-    ocpboc_shares = Unit.objects.filter(name='BankOfTheCommons Share')
+    ocpboc_shares = Unit.objects.filter(name_en='BankOfTheCommons Share')
     if not ocpboc_shares:
         ocpboc_share, created = Unit.objects.get_or_create(
             name='BankOfTheCommons Share',

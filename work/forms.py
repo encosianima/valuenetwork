@@ -753,7 +753,9 @@ class NewResourceTypeForm(forms.Form):
         else:
           edid = ''
         if hasattr(data, 'name'):
-          name_rts = Ocp_Artwork_Type.objects.filter(name_en=data["name"])
+          name_rts = Ocp_Artwork_Type.objects.filter(name=data["name"])
+          if not name_rts:
+            name_rts = Ocp_Artwork_Type.objects.filter(name_en=data["name"])
           if name_rts.count() and edid == '':
             self.add_error('name', "<b>"+data["name"]+"</b> already exists!")
           elif not edid == '' and edid.split('_')[1] != str(name_rts[0].id):

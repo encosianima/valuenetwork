@@ -2422,6 +2422,12 @@ def check_duplicate_agents(request, agent):
 
         for ag in ags:
             copis = EconomicAgent.objects.filter(name=ag.is_associate.name)
+            if not copis:
+                copis = EconomicAgent.objects.filter(name_en=ag.is_associate.name_en)
+            if not copis:
+                copis = EconomicAgent.objects.filter(name_en=ag.is_associate.name)
+            if not copis:
+                copis = EconomicAgent.objects.filter(name=ag.is_associate.name_en)
             if len(copis) > 1:
                 cases = []
                 usrs = ''
@@ -4306,8 +4312,12 @@ def validate_name(request):
         if typeofuser == 'individual':
             if surname:
                 ags = EconomicAgent.objects.filter(name__iexact=name+' '+surname)
+                if not ags:
+                    ags = EconomicAgent.objects.filter(name_en__iexact=name+' '+surname)
             else:
                 ags = EconomicAgent.objects.filter(name__iexact=name)
+                if not ags:
+                    ags = EconomicAgent.objects.filter(name_en__iexact=name)
             if agid:
                 ags = ags.exclude(id=int(agid))
             if ags:
@@ -4317,6 +4327,8 @@ def validate_name(request):
                     error = "Name of individual already known. Do you want to differentiate anyhow?"
         else:
             ags = EconomicAgent.objects.filter(name__iexact=name)
+            if not ags:
+                ags = EconomicAgent.objects.filter(name_en__iexact=name)
             if agid:
                 ags = ags.exclude(id=agid)
             if ags:
@@ -5312,6 +5324,8 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             new_ext.save() # here we get an id
 
                         new_recs = Ocp_Record_Type.objects.filter(name=name)
+                        if not new_recs:
+                            new_recs = Ocp_Record_Type.objects.filter(name_en=name)
                         if new_recs:
                             new_rec = new_recs[0]
                         else:
