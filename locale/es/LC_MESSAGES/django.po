@@ -4067,7 +4067,7 @@ msgstr "para"
 #: work/templates/work/project_resource.html:382
 #: work/templates/work/project_resource.html:390
 msgid "from"
-msgstr "de"
+msgstr "desde"
 
 #: valuenetwork/templates/valueaccounting/agent_value_accounting.html:78
 msgid "- outstanding"
@@ -11562,7 +11562,7 @@ msgstr "Esta transferencia aún no tiene ningún evento ni compromiso..."
 
 #: work/templates/work/exchange_logging_work.html:887
 msgid "Incoming Transfers"
-msgstr "Transfers Entrantes"
+msgstr "Transfers Entrada"
 
 #: work/templates/work/exchange_logging_work.html:912
 msgid "Total:"
