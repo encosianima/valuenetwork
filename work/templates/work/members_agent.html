@@ -1098,7 +1098,7 @@
                                 {% endwith %}
                                 {% with assoc.is_associate.newshares as shares %}
                                   {% if shares %}
-                                      &nbsp; <span style="color:#476B6B">({{ shares }} share{{ shares|pluralize }})</span>
+                                      &nbsp; <span style="color:#476B6B">({% blocktrans count shares=shares %}{{ shares }} share{% plural %}{{ shares }} shares{% endblocktrans %})</span>
                                   {% elif assoc.state == "active" %}
                                       &nbsp;<b class="error">warning</b>
                                   {% endif %}
