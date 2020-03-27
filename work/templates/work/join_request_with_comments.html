@@ -283,7 +283,13 @@ a.more-link {
               <tr><th>{% trans "Shares Pending" %}:</th>
                 <td><span class="error"><b>{{ req.pending_shares }}</b> shares</span>
                   {% if req.exchange %}
-                    &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
+                    &nbsp; {% trans "Related exchange" %}: <b>
+                    {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
+                      <a href="{% url "exchange_logging_work" context_agent_id=jn_req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange|show_name:jn_req.project.agent|safe }}</a>
+                    {% else %}
+                      <a href="{% url "exchange_logging_work" context_agent_id=jn_req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange|show_name:jn_req.agent|safe }}</a>
+                    {% endif %}
+                    </b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
                     {% if user_agent in req.project.agent.managers %}
                       {% if not req.project.agent.need_faircoins or not req.payment_pending_amount %} &nbsp; &nbsp;
                         {% with req.payment_unit as punit %}
@@ -391,8 +397,13 @@ a.more-link {
                           {% endif %}
                       {% endif %}
                       {% if req.exchange and not req.pending_shares %}
-                        &nbsp; {% trans "Related exchange" %}: <b><a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">
-                              {{ req.exchange|show_name:user_agent|safe }}</a></b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
+                        &nbsp; {% trans "Related exchange" %}: <b>
+                        {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
+                          <a href="{% url "exchange_logging_work" context_agent_id=jn_req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange|show_name:jn_req.project.agent|safe }}</a>
+                        {% else %}
+                          <a href="{% url "exchange_logging_work" context_agent_id=jn_req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange|show_name:jn_req.agent|safe }}</a>
+                        {% endif %}
+                        </b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
                         {% if user_agent in req.project.agent.managers or user_agent == req.project.agent %}
                           {% if not req.project.agent.need_faircoins and not req.exchange.status == 'complete' and not req.is_flexprice %} &nbsp; &nbsp;
                             <form
@@ -554,7 +565,7 @@ a.more-link {
         {% get_comment_count for jn_req as num_comm  %}
         {% if num_comm > 0 %}
           <div class="row-fluid">
-            {% trans "You have " %} {{ num_comm }} {% trans " comments:" %}
+            {% blocktrans count comms=num_comm %}You have only one comment{% plural %}You have {{ comms }} comments{% endblocktrans %}:
             {% get_comment_list for jn_req as comment_list %}
               <dl id="comments">
                 {% for comment in comment_list %}

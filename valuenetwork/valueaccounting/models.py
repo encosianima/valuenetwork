@@ -9026,6 +9026,8 @@ class Exchange(models.Model):
         if False and self.name:
             name = self.name
         else:
+            if self.customer:
+                name = self.customer.nick
             if self.exchange_type:
                 if hasattr(self.exchange_type, 'ocp_record_type') and self.exchange_type.ocp_record_type:
                     show_name = unicode(self.exchange_type.ocp_record_type.name)
@@ -9339,6 +9341,13 @@ class Exchange(models.Model):
 
     def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
+        if agent:
+            name = name.replace(agent.name, '')
+            name = name.replace(agent.nick+' ', '')
+            print('show_name! '+str(agent))
+            if agent.is_context and hasattr(agent, 'project'):
+                print('show_name!')
+                name = name.replace(agent.project.compact_name(), '')
         newname = None
         if forced:
             print ":: FORCED exchange show_name ex:"+str(self.id)+" "+str(self)
@@ -9352,7 +9361,7 @@ class Exchange(models.Model):
                                             Q(commitments__isnull=False, commitments__to_agent=agent)
                                            ).exclude(transfer_type__is_currency=False)
             et_name = str(self.exchange_type)
-            action = ''
+            #action = ''
             #print "ex show_name ag:"+str(agent)+" give_ts:"+str(give_ts)+" take_ts:"+str(take_ts)+" et_name:"+str(et_name)
             if hasattr(self.exchange_type, 'ocp_record_type'):
                 et_name = str(self.exchange_type.ocp_record_type)
