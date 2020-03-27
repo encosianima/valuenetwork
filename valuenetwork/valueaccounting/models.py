@@ -9023,18 +9023,21 @@ class Exchange(models.Model):
     def __unicode__(self):
         show_name = ""
         name = ""
-        if self.name:
+        if False and self.name:
             name = self.name
         else:
             if self.exchange_type:
-                show_name = self.exchange_type.name
+                if hasattr(self.exchange_type, 'ocp_record_type') and self.exchange_type.ocp_record_type:
+                    show_name = unicode(self.exchange_type.ocp_record_type.name)
+                else:
+                    show_name = self.exchange_type.name
             else:
                 if self.use_case:
                     show_name = self.use_case.name
         return " ".join([
             name,
             show_name,
-            "starting",
+            unicode(_("from")),
             self.start_date.strftime('%Y-%m-%d'),
             ])
 
