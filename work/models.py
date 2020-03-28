@@ -2239,7 +2239,7 @@ class JoinRequest(models.Model):
         return password
 
     def check_user_pass(self, showpass=False):
-        if self.agent and self.agent.user():
+        if hasattr(self, 'agent') and self.agent and self.agent.user():
           con_typ = ContentType.objects.get(model='joinrequest')
           coms = Comment.objects.filter(content_type=con_typ, object_pk=self.pk)
           for c in coms:
