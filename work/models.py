@@ -764,24 +764,26 @@ class JoinRequest(models.Model):
 
     def share_price(self):
         shrtyp = self.project.shares_type()
-        price = shrtyp.price_per_unit
-        unit = shrtyp.unit_of_price
-        requnit = self.payment_unit()
-        amount = price
-        if not requnit == unit and price:
-            from work.utils import remove_exponent
-            if hasattr(self, 'ratio'):
-                amount = price / self.ratio
-                print("using CACHED ratio at share_price!")
-                loger.warning("using CACHED ratio at share_price!")
-            else:
-                from work.utils import convert_price
-                amount, ratio = convert_price(price, unit, requnit, self)
-                self.ratio = ratio
-            amount = amount.quantize(settings.DECIMALS)
-        if not amount == price:
-            pass #print "Changed the price!"
-        return amount
+        if shrtyp:
+            price = shrtyp.price_per_unit
+            unit = shrtyp.unit_of_price
+            requnit = self.payment_unit()
+            amount = price
+            if not requnit == unit and price:
+                from work.utils import remove_exponent
+                if hasattr(self, 'ratio'):
+                    amount = price / self.ratio
+                    print("using CACHED ratio at share_price!")
+                    loger.warning("using CACHED ratio at share_price!")
+                else:
+                    from work.utils import convert_price
+                    amount, ratio = convert_price(price, unit, requnit, self)
+                    self.ratio = ratio
+                amount = amount.quantize(settings.DECIMALS)
+            if not amount == price:
+                pass #print "Changed the price!"
+            return amount
+        return False
 
     def show_share_price(self):
         unit = self.payment_unit()
@@ -795,17 +797,20 @@ class JoinRequest(models.Model):
     def total_price(self):
         #decimal.getcontext().prec = settings.CRYPTO_DECIMALS
         shtype = self.project.shares_type()
-        shunit = shtype.unit_of_price
-        shprice = shtype.price_per_unit
-        unit = self.payment_unit()
-        amount = amountpay = self.payment_amount() * shprice
-        if not unit == shunit and amount: #unit.abbrev == 'fair':
-            #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
-            from work.utils import convert_price, remove_exponent
-            amountpay, ratio = convert_price(amount, shunit, unit, self)
-            self.ratio = ratio
-            amountpay = remove_exponent(amountpay)
-        return amountpay
+        if shtype:
+            shunit = shtype.unit_of_price
+            shprice = shtype.price_per_unit
+            unit = self.payment_unit()
+            amount = amountpay = self.payment_amount() * shprice
+            if not unit == shunit and amount: #unit.abbrev == 'fair':
+                #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
+                from work.utils import convert_price, remove_exponent
+                amountpay, ratio = convert_price(amount, shunit, unit, self)
+                self.ratio = ratio
+                amountpay = remove_exponent(amountpay)
+            return amountpay
+        else:
+            return False
 
     def show_total_price(self):
         txt = str(self.total_price())+' '+self.show_payment_unit()
@@ -924,7 +929,8 @@ class JoinRequest(models.Model):
     def payment_amount(self): # TODO rename to payment_shares
         amount = 0
         shat = self.project.shares_account_type()
-        if self.project.is_moderated() and self.fobi_data and shat:
+        if self.project.is_moderated() and self.fobi_data:
+          if shat:
             for key in self.fobi_items_keys():
                 if key == shat.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
                     self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
@@ -948,6 +954,26 @@ class JoinRequest(models.Model):
                         elif type(val) is unicode and val:
                             amount = int(val)
                             break
+          else:
+            for key in self.fobi_items_keys():
+                if key == 'amount': # fieldname specially defined for subscription amount
+                    self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
+                    entry = self.entries[0]
+                    self.data = json.loads(entry.saved_data)
+                    val = self.data.get(key)
+                    if val:
+                        if type(val) is int:
+                            amount = val
+                            break
+                        elif type(val) is unicode:
+                            amount = int(val)
+                            break
+                        else:
+                            print("*?* type:"+str(type(val))+" val:"+str(val))
+                            loger.warning("*?* type:"+str(type(val))+" val:"+str(val))
+                    else:
+                        print("*?* no val for 'amount'? data:"+str(self.data))
+                        loger.warning("*?* no val for 'amount'? data:"+str(self.data))
                     #import pdb; pdb.set_trace()
         return amount
 
