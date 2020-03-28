@@ -825,14 +825,15 @@ class JoinRequest(models.Model):
             shunit = shtype.unit_of_price
             shprice = shtype.price_per_unit
             amount = amountpay = self.payment_amount() * shprice
-            if not unit == shunit and amount: #unit.abbrev == 'fair':
-                #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
-                from work.utils import convert_price, remove_exponent
-                amountpay, ratio = convert_price(amount, shunit, unit, self)
-                self.ratio = ratio
-                amountpay = remove_exponent(amountpay)
         else:
-            amountpay = self.payment_amount()
+            shunit = self.subscription_unit()
+            amount = amountpay = self.payment_amount()
+        if not unit == shunit and amount: #unit.abbrev == 'fair':
+            #amountpay = round(decimal.Decimal(self.payment_amount() * self.share_price()), 10)
+            from work.utils import convert_price, remove_exponent
+            amountpay, ratio = convert_price(amount, shunit, unit, self)
+            self.ratio = ratio
+            amountpay = remove_exponent(amountpay)
         return amountpay
 
     def show_total_price(self):
@@ -1002,7 +1003,9 @@ class JoinRequest(models.Model):
                             break
           else:
             for key in self.fobi_items_keys():
-                if key == 'amount': # fieldname specially defined for subscription amount
+                keyarr = key.split('_')
+                if key[0] == 'amount': # fieldname specially defined for subscription amount and base currency
+                    #shunit = Unit.objects.get(abbrev=key[1])
                     self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
                     entry = self.entries[0]
                     self.data = json.loads(entry.saved_data)
@@ -1038,8 +1041,12 @@ class JoinRequest(models.Model):
         unit = self.payment_unit()
         unit_rt = self.payment_unit_rt()
         shtype = self.project.shares_type()
-        shunit = shtype.unit_of_price
-        amount2 = shtype.price_per_unit * self.pending_shares()
+        if shtype:
+            shunit = shtype.unit_of_price
+            amount2 = shtype.price_per_unit * self.pending_shares()
+        else:
+            shunit = self.subscription_unit()
+            amount2 = shares
         amountpay = amount2
         if hasattr(self, 'pending_amount'):
             amountpay = self.pending_amount
@@ -1062,6 +1069,22 @@ class JoinRequest(models.Model):
 
     def payment_pending_to_pay(self):
         return round((self.pending_shares() * self.share_price()), settings.CRYPTO_DECIMALS)
+
+    def subscription_unit(self):
+        unit = None
+        if not hasattr(self, 'subscript_unit'):
+            for key in self.fobi_items_keys():
+                keyarr = key.split('_')
+                if key[0] == 'amount': # fieldname specially defined for subscription amount and base currency
+                    unit = Unit.objects.get(abbrev=key[1])
+            if not unit:
+                print("ERROR: Subscription Unit not found!! keys: "+str(self.fobi_items_keys()))
+                loger.error("ERROR: Subscription Unit not found!! keys: "+str(self.fobi_items_keys()))
+            else:
+                self.subscript_unit = unit
+        else:
+            unit = self.subscript_unit
+        return unit
 
     def is_flexprice(self):
         unit = self.payment_unit()
@@ -1494,10 +1517,14 @@ class JoinRequest(models.Model):
         unit, margin = self.payment_unit(True) # arg: ask unit margin to settings obj
         unit_rt = self.payment_unit_rt()
         shtype = self.project.shares_type()
-        shunit = shtype.unit_of_price
+        if shtype:
+            shunit = shtype.unit_of_price
+            amount2 = shtype.price_per_unit * self.pending_shares()
+        else:
+            shunit = self.subscription_unit()
+            amount2 = amount
         if not shunit:
-            raise ValidationError("Can't find the unit_of_price of the project share type: "+str(shtype))
-        amount2 = shtype.price_per_unit * self.pending_shares()
+            raise ValidationError("Can't find the unit_of_price of the project share type or subscription! pro: "+unicode(self.project))
 
         amountpay = amount2
 
@@ -4404,6 +4431,9 @@ def check_new_rt_price(rt=None, **kwargs):
 
     if pro:
         sht = pro.shares_type()
+        if not sht:
+            print("check_new_rt_price: No Project Share Type?? rt:"+str(rt))
+            loger.error("check_new_rt_price: No Project Share Type?? rt:"+str(rt))
     else:
         print("check_new_rt_price: No Project?? rt:"+str(rt))
         loger.error("check_new_rt_price: No Project?? rt:"+str(rt))
