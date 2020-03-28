@@ -95,7 +95,7 @@
         }*/
 
         $('div.control-group.error span').each(function(){
-            if($(this).text().indexOf(' login ') != -1){
+            if($(this).text().indexOf(' login ') != -1 || $(this).text().indexOf(' aquí ') != -1){
                 $(this).append(' &nbsp; <a href="{% url 'project_login' form_slug=project.fobi_slug %}" class="btn btn-primary btn-mini">{% trans "Login" %}</a>');
                 //alert($(this).text());
             }
