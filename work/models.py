@@ -2250,6 +2250,8 @@ class JoinRequest(models.Model):
                         return first
                     else:
                         return _("WARNING!")
+        else:
+            return _("ERROR!")
         return False
 
     def duplicated(self):
