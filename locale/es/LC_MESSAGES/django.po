@@ -10284,10 +10284,8 @@ msgid "this membership request became this EconomicAgent"
 msgstr "Esta solicitud de membresía dio lugar a este AgenteEconomico"
 
 #: work/models.py:113
-#, fuzzy
-#| msgid "Description"
 msgid "subscription"
-msgstr "Descripción"
+msgstr "subscripción"
 
 #: work/models.py:114 work/templates/work/exchanges_all.html:567
 msgid "shares"
@@ -12419,10 +12417,8 @@ msgid "Skills"
 msgstr "Habilidades"
 
 #: work/templates/work/members_agent.html:821
-#, fuzzy
-#| msgid "Registered Skills"
 msgid "Edit offered skills"
-msgstr "Habilidades registradas"
+msgstr "Edita oficios ofrecidos"
 
 #: work/templates/work/members_agent.html:827
 msgid "(created by you)"
