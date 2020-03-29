@@ -394,6 +394,39 @@ class Project(models.Model):
                 fobi_keys.append(name)
         return fobi_keys
 
+    def subscription_rt(self):
+        rt = None
+        sut = self.subscription_unit()
+        if sut:
+            surts = EconomicResourceType.objects.filter(name_en=self.compact_name()+" Subscription")
+            if not surts:
+                surts = EconomicResourceType.objects.filter(name_en=self.agent.nick_en+" Subscription")
+            if not surts:
+                surts = EconomicResourceType.objects.filter(name_en=self.agent.nick_es+" Subscription")
+            if not surts:
+                surts = EconomicResourceType.objects.filter(name_en=self.agent.nick+" Subscription")
+            if surts:
+                rt = surts[0]
+        return rt
+
+    def subscription_unit(self):
+        unit = None
+        if self.joining_style == 'subscription':
+          if not hasattr(self, 'subscript_unit'):
+            for key in self.fobi_items_keys():
+                if key:
+                    keyarr = key.split('_')
+                    if keyarr[0] == 'amount': # fieldname specially defined for subscription amount and base currency
+                        unit = Unit.objects.get(abbrev=keyarr[1])
+            if not unit:
+                print("ERROR: Subscription Unit not found!! keys: "+str(self.fobi_items_keys()))
+                loger.error("ERROR: Subscription Unit not found!! keys: "+str(self.fobi_items_keys()))
+            else:
+                self.subscript_unit = unit
+          else:
+            unit = self.subscript_unit
+        return unit
+
     def shares_account_type(self):
         account_type = None
         if self.is_moderated() and self.fobi_slug:
@@ -633,10 +666,20 @@ class JoinRequest(models.Model):
         if self.fobi_data and self.fobi_data.pk:
             self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
             entry = self.entries[0]
-            self.form_headers = json.loads(entry.form_data_headers)
-            for val in self.form_headers:
-                fobi_headers.append(self.form_headers[val])
-                fobi_keys.append(val)
+            form_headers = json.loads(entry.form_data_headers)
+            for elem in self.fobi_data.form_entry.formelemententry_set.all().order_by('position'):
+                data = json.loads(elem.plugin_data)
+                nam = data.get('name')
+                if nam:
+                    if not nam in form_headers:
+                        form_headers[nam] = data.get('label')
+                    if not form_headers[nam] in fobi_headers:
+                        fobi_headers.append(form_headers[nam])
+                    if not nam in fobi_keys:
+                        fobi_keys.append(nam)
+                else:
+                    pass
+            self.form_headers = fobi_headers
         return fobi_keys
 
     def fobi_items_data(self):
@@ -651,6 +694,72 @@ class JoinRequest(models.Model):
                 self.items_data.append(self.data.get(key))
         return self.items_data
 
+    def payment_regularity(self):
+        answer = {}
+        data2 = None
+        if self.project.is_moderated() and self.fobi_data:
+            for key in self.fobi_items_keys():
+                if key == "regularity": # fieldname specially defined in the fobi form
+                    self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
+                    entry = self.entries[0]
+                    self.data = json.loads(entry.saved_data)
+                    val = self.data.get(key)
+                    #import pdb; pdb.set_trace()
+                    answer['val'] = val
+                    for elem in self.fobi_data.form_entry.formelemententry_set.all(): #filter(plugin_data_en__isnull=False):
+                        data2 = json.loads(elem.plugin_data)
+                        nam = data2.get('name')
+                        if nam == key:
+                          choi = data2.get('choices') # works with radio or select
+                          if choi:
+                            opts = choi.split('\r\n')
+                            for op in opts:
+                                opa = op.split(',')
+                                #print('op:'+op)
+                                if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
+                                    answer['key'] = opa[0].strip()
+                          else:
+                            raise ValidationError("The regularity field has no choices? "+str(data2))
+                        if not 'key' in answer and hasattr(elem, 'plugin_data_en'):
+                            #print("not key? "+str(elem.plugin_data_en))
+                            data3 = json.loads(elem.plugin_data_en)
+                            nam = data3.get('name')
+                            if nam == key:
+                              choi = data3.get('choices') # works with radio or select
+                              if choi:
+                                opts = choi.split('\r\n')
+                                for op in opts:
+                                    opa = op.split(',')
+                                    #print('op1:'+op)
+                                    if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
+                                        answer['key'] = opa[0].strip()
+                              else:
+                                raise ValidationError("The regularity field has no choices 2? "+str(data3))
+                        if not 'key' in answer and hasattr(elem, 'plugin_data_es'):
+                            #print("not key? "+str(elem.plugin_data_en))
+                            data4 = json.loads(elem.plugin_data_es)
+                            nam = data4.get('name')
+                            if nam == key:
+                              choi = data4.get('choices') # works with radio or select
+                              if choi:
+                                opts = choi.split('\r\n')
+                                for op in opts:
+                                    opa = op.split(',')
+                                    #print('op1:'+op)
+                                    if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
+                                        answer['key'] = opa[0].strip()
+                              else:
+                                raise ValidationError("The regularity field has no choices 3? "+str(data4))
+                        #print('answer:'+str(answer))
+
+                    if not answer.has_key('key'):
+                        raise ValidationError(u"can't find the regularity key! answer: "+str(data2)+u' val: '+val)
+            if not answer.has_key('key') or not answer.has_key('val'):
+                print("Can't find the regularity key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
+                loger.warning("Can't find the regularity key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
+                #pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
+        return answer
+
     def pending_shares(self):
         answer = ''
         account_type = self.payment_account_type()
@@ -658,6 +767,11 @@ class JoinRequest(models.Model):
         amount = self.payment_amount()
 
         balance = self.total_shares()
+        subrt = self.subscription_rt()
+        if subrt and not balance:
+
+            balance = 0 # TODO calculate pending quota
+
         #import pdb; pdb.set_trace()
         if amount:
             answer = amount - balance
@@ -683,6 +797,16 @@ class JoinRequest(models.Model):
                         if rs.resource_type == rt:
                             balance = int(rs.price_per_unit) # TODO: update the price_per_unit with wallet balance
         return balance
+
+    def pending_payments(self):
+        if self.project.joining_style == 'subscription':
+            if self.exchange:
+                evts = self.exchange.events()
+                coms = self.exchange.commitments()
+            else:
+                pass
+
+        return self.payment_amount()
 
     def multiwallet_user(self, username=None):
         answer = ''
@@ -853,14 +977,16 @@ class JoinRequest(models.Model):
                 except:
                     pass
             if obj:
-                return obj['url']
+                if 'url' in obj:
+                    return obj['url']
         return False
 
     def payment_gateway(self):
         url = self.payment_url()
-        arr = url.split('/')
-        if len(arr) > 2:
-            return arr[2]
+        if url:
+            arr = url.split('/')
+            if len(arr) > 2:
+                return arr[2]
         return self.payment_option()['key']
 
     def payment_margin(self):
@@ -1004,8 +1130,8 @@ class JoinRequest(models.Model):
           else:
             for key in self.fobi_items_keys():
                 keyarr = key.split('_')
-                if key[0] == 'amount': # fieldname specially defined for subscription amount and base currency
-                    #shunit = Unit.objects.get(abbrev=key[1])
+                if 'amount' in str(keyarr[0]): # fieldname specially defined for subscription amount and base currency
+                    #shunit = Unit.objects.get(abbrev=keyarr[1])
                     self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
                     entry = self.entries[0]
                     self.data = json.loads(entry.saved_data)
@@ -1023,6 +1149,8 @@ class JoinRequest(models.Model):
                     else:
                         print("*?* no val for 'amount'? data:"+str(self.data))
                         loger.warning("*?* no val for 'amount'? data:"+str(self.data))
+                else:
+                    pass #print("keyarr[0]: "+str(keyarr[0]))
                     #import pdb; pdb.set_trace()
         return amount
 
@@ -1072,19 +1200,23 @@ class JoinRequest(models.Model):
 
     def subscription_unit(self):
         unit = None
-        if not hasattr(self, 'subscript_unit'):
+        if self.project.joining_style == 'subscription':
+          if not hasattr(self, 'subscript_unit'):
             for key in self.fobi_items_keys():
                 keyarr = key.split('_')
-                if key[0] == 'amount': # fieldname specially defined for subscription amount and base currency
-                    unit = Unit.objects.get(abbrev=key[1])
+                if keyarr[0] == 'amount': # fieldname specially defined for subscription amount and base currency
+                    unit = Unit.objects.get(abbrev=keyarr[1])
             if not unit:
                 print("ERROR: Subscription Unit not found!! keys: "+str(self.fobi_items_keys()))
                 loger.error("ERROR: Subscription Unit not found!! keys: "+str(self.fobi_items_keys()))
             else:
                 self.subscript_unit = unit
-        else:
+          else:
             unit = self.subscript_unit
         return unit
+
+    def subscription_rt(self):
+        return self.project.subscription_rt()
 
     def is_flexprice(self):
         unit = self.payment_unit()
@@ -1338,7 +1470,54 @@ class JoinRequest(models.Model):
             else:
                 pass #raise ValidationError("not found any ocp_record_type related: "+str(rt.ocp_artwork_type))
           else:
-            raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
+            if self.subscription_unit():
+                rt = self.project.subscription_rt()
+                if rt:
+                    recordts = Ocp_Record_Type.objects.filter(
+                        ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type,
+                        exchange_type__isnull=False)
+                    if not recordts:
+                        recordts = Ocp_Record_Type.objects.filter(
+                            ocpRecordType_ocp_artwork_type=rt.ocp_artwork_type.rel_nonmaterial_type,
+                            exchange_type__isnull=False)
+                    if len(recordts) > 0:
+                        for rec in recordts:
+                            ancs = rec.get_ancestors(True,True)
+                            if payopt['key'] == 'faircoin':
+                                for an in ancs:
+                                    if an.clas == 'fair_economy':
+                                        recs.append(rec)
+                            elif payopt['key'] in ('transfer','ccard','cash','debit','botcw'):
+                                for an in ancs:
+                                    if an.clas == 'fiat_economy':
+                                        recs.append(rec)
+                            elif payopt['key'] in settings.CRYPTOS:
+                                for an in ancs:
+                                    if an.clas == 'crypto_economy':
+                                        recs.append(rec)
+                            else:
+                                raise ValidationError("Payment mode not known: "+str(payopt['key'])+" at JR:"+str(self.id)+" pro:"+str(self.project))
+                        if len(recs) > 1:
+                            for rec in recs:
+                                ancs = rec.get_ancestors(True,True)
+                                for an in ancs:
+                                    if 'buy' == an.clas:
+                                        et = rec.exchange_type
+                        elif recs:
+                            et = recs[0].exchange_type
+
+                        #import pdb; pdb.set_trace()
+                        if not et or not len(recs):
+                            raise ValidationError("Can't find the exchange_type related the payment option: "+payopt['key']+" . The related account type ("+str(rt.ocp_artwork_type)+") has recordts: "+str(recordts))
+                    elif recordts:
+                        raise ValidationError("found ocp_record_type's ?? : "+str(recordts)) # pass #et = recordts[0].exchange_type
+                    else:
+                        pass
+                else:
+                    # not rt
+                    return 'error'
+            else:
+                raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
         else: # no payopt
             raise ValidationError("no payment option key? "+str(payopt))
         #et.crypto = self.crypto

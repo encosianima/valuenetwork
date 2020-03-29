@@ -3508,7 +3508,9 @@ def join_requests(request, agent_id):
         for req in requests:
             #print("--- req1: "+str(req)+" ----")
             if req.fobi_data and req.fobi_data.pk:
-                req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
+                fobi_keys = req.fobi_items_keys()
+                fobi_headers = req.form_headers
+                """req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
                 form_headers = json.loads(entry.form_data_headers)
                 for elem in req.fobi_data.form_entry.formelemententry_set.all().order_by('position'):
@@ -3526,6 +3528,7 @@ def join_requests(request, agent_id):
                         #raise ValidationError("Not found '%(nam)s' in req %(req)s. elem.plugin_data: %(data)s", params={'nam':nam, 'data':str(data), 'req':req.id})
                 if len(fobi_headers) and len(fobi_keys) == len(fobi_headers):
                     break
+                """
 
         com_content_type = ContentType.objects.get(model="joinrequest")
         csrf_token = csrf.get_token(request)
@@ -3560,6 +3563,7 @@ def join_requests(request, agent_id):
             reqstatus = ''
             if req.exchange:
                 reqstatus = req.exchange.status()
+            subscrunit = project.subscription_unit()
 
             deleteform = '<form class="action-form" id="delete-form'+str(req.id)+'" method="POST" '
             deleteform += 'action="'+reverse("delete_request", args=(req.id,))+'" >'
@@ -3576,9 +3580,14 @@ def join_requests(request, agent_id):
                 req.actions = '<span class="error">ERROR!</span> &nbsp;'
             if chekpass:
                 req.actions += '<span class="error">'+unicode(_("Not Valid yet!"))+'</span> &nbsp;'
-            elif proshrtyps and req.fobi_data:
+            elif proshrtyps or subscrunit:
+              if req.fobi_data:
                 if req.agent:
-                    req.actions += str(payamount)+'&nbsp;'+unicode(_("Shares:"))+'&nbsp;'
+                    req.actions += str(payamount)+'&nbsp;'
+                    if proshrtyps:
+                        req.actions += unicode(_("Shares:"))+'&nbsp;'
+                    elif subscrunit:
+                        req.actions += unicode(subscrunit.name)+' / '+unicode(req.payment_regularity()['key'])+'&nbsp;'
                     if pendshrs:
                         if totalshrs:
                             req.actions += '<span class="complete">'+unicode(totalshrs)+'</span>&nbsp;+&nbsp;<span class="error">'+unicode(req.pending_shares())+'</span>'
@@ -3612,6 +3621,14 @@ def join_requests(request, agent_id):
                         pass
                         #req.actions += '<span class="help-text" style="font-size:0.8em">ET: '+str(req.exchange_type())
                         #req.actions += ' <br />UT: '+str(req.payment_unit())+' RT: '+str(req.payment_unit_rt())+'</span><br />'
+              else:
+                # not fobi_data
+                print("Not fobi_data for req: "+str(req.id))
+
+            else:
+                # not proshrtyps nor subscrunit
+                print("Not proshrtyps nor subscrunit for req: "+str(req.id))
+
             dup = req.duplicated()
             if dup:
                 req.actions += u'<em class="error">'+unicode(_("Duplicated!"))+u'</em>'
@@ -3637,7 +3654,8 @@ def join_requests(request, agent_id):
             elif req.fobi_data:
                 if req.agent:
                     if not pendshrs or not proshrtyps:
-                        if not chekpass:
+                        if not subscrunit:
+                          if not chekpass:
                             req.actions += '<form class="action-form" id="accept-form'+str(req.id)+'" method="POST" '
                             req.actions += 'action="'+reverse("accept_request", args=(req.id,))+'" >'
                             req.actions += csrf_token_field
@@ -7258,17 +7276,17 @@ def create_shares_exchange_types(request, agent_id):
     loger.info("---------- start create_shares_exchange_types ("+str(agent)+") ----------")
 
     ocpag = EconomicAgent.objects.root_ocp_agent()
-    dummy = EconomicAgent.objects.get(nick="Dummy")
+    dummy = EconomicAgent.objects.get(nick_en="Dummy")
     if not dummy:
         dummy, created = EconomicAgent.objects.get_or_create(
-            nick="Dummy",
-            name="Dummy ContextAgent",
+            nick_en="Dummy",
+            name_en="Dummy ContextAgent",
             agent_type=AgentType.objects.get(name="Entity"),
             is_context=True)
         if created:
             print "- created EconomicAgent: 'Dummy'"
             loger.info("- created EconomicAgent: 'Dummy'")
-    dummy.name = "Dummy ContextAgent"
+    dummy.name_en = "Dummy ContextAgent"
     dummy.is_context = True
     dummy.save()
 
@@ -7593,7 +7611,7 @@ def create_shares_exchange_types(request, agent_id):
             slug = None
             nome = None
             ob = obj[0]
-            if ob == 'transfer' or ob == 'ccard':
+            if ob == 'transfer' or ob == 'ccard' or ob == 'debit' or ob == 'cash' or ob == 'botcw':
                 slug = 'fiat'
                 nome = 'Fiat'
                 title = 'Fiat-currency'
@@ -8077,6 +8095,621 @@ def create_shares_exchange_types(request, agent_id):
     #return exchanges_all(request, project.agent.id)
     return HttpResponseRedirect('/%s/%s/'
                 % ('work/agent', project.agent.id))
+
+
+
+#    S U B S C R I P T I O N   E X C H A N G E   T Y P E S
+
+
+def create_subscription_exchange_types(request, agent_id):
+
+    agent = EconomicAgent.objects.get(id=agent_id)
+    project = agent.project
+    user_agent = get_agent(request)
+    if not user_agent or not project.subscription_unit() or not request.user.is_superuser:
+        return render(request, 'work/no_permission.html')
+
+    print "---------- start create_subscription_exchange_types ("+str(agent)+") ----------"
+    loger.info("---------- start create_subscription_exchange_types ("+str(agent)+") ----------")
+
+    ocpag = EconomicAgent.objects.root_ocp_agent()
+
+    # common Exchange Types
+
+    ocpext = Ocp_Record_Type.objects.get(clas='ocp_exchange')
+    usecas = UseCase.objects.get(identifier='intrnl_xfer')
+
+    ocp_eachs = Unit.objects.filter(name_en='Each')
+    if ocp_eachs:
+        ocp_each = ocp_eachs[0]
+    else:
+        raise ValidationError("Not found the Each Unit?")
+
+    nonmat_typs = Ocp_Artwork_Type.objects.filter(clas='Nonmaterial')
+    if not nonmat_typs:
+        raise ValidationError("Not found the Ocp_Artwork_Type with clas 'Nonmaterial' ?!")
+    nonmat_typ = nonmat_typs[0]
+
+    rt_subs = EconomicResourceType.objects.filter(name_en='Subscriptions')
+    if not rt_subs:
+        rt_subs = EconomicResourceType.objects.filter(name_en='Subscription')
+    if rt_subs:
+        rt_sub = rt_subs[0]
+    else:
+        rt_sub, c = EconomicResourceType.objects.get_or_create(
+            name_en='Subscription')
+        if c:
+            print("- created EconomicResourceType: "+str(rt_sub))
+            loger.info("- created EconomicResourceType: "+str(rt_sub))
+    rt_sub.unit = ocp_each
+    rt_sub.unit_of_use = ocp_each
+    rt_sub.unit_of_value = None
+    #rt_sub.value_per_unit_of_use = 1
+    rt_sub.substitutable = False
+    rt_sub.inventory_rule = 'no'
+    #rt_sub.behavior =
+    rt_sub.context_agent = None
+    rt_sub.save()
+
+    artw_subsc = Ocp_Artwork_Type.objects.filter(name_en='Subscription')
+    if not artw_subsc:
+        artw_subsc = Ocp_Artwork_Type.objects.filter(name_en='Subscriptions')
+    if not artw_subsc:
+        artw_sub, created = Ocp_Artwork_Type.objects.get_or_create(
+            name_en='Subscriptions',
+            parent=nonmat_typ)
+        if created:
+            print("- created Ocp_Artwork_Type branch: 'Subscriptions'")
+            loger.info("- created Ocp_Artwork_Type branch: 'Subscriptions'")
+    else:
+        artw_sub = artw_subsc[0]
+    artw_sub.name_en = 'Subscriptions'
+    artw_sub.clas = 'subscriptions'
+    artw_sub.parent = nonmat_typ
+    artw_sub.resource_type = rt_sub
+    artw_sub.general_unit_type = None #gen_share_typ
+    artw_sub.save()
+
+    curfacet = Facet.objects.get(name="Currency")
+    nonfacet = Facet.objects.get(name="Non-material")
+
+    subfv, c = FacetValue.objects.get_or_create(
+        facet=nonfacet,
+        value="Project Subscriptions")
+    if c:
+        print("- created FacetValue: "+str(subfv))
+
+
+    #  generic   B u y   P r o j e c t   S u b s c r i p t i o n s
+
+    subunit = project.subscription_unit()
+    if not subunit:
+        raise ValidationError("The project has not a subscription_unit ! "+str(project))
+
+    sub_rt = project.subscription_rt()
+    if not sub_rt:
+        sub_rt, c = EconomicResourceType.objects.get_or_create(
+            name_en=project.agent.nick+" Subscription")
+        if c:
+            print("- created the EconomicResourceType: "+str(sub_rt))
+    sub_rt.name_en = project.agent.nick+" Subscription"
+    sub_rt.unit = project.subscription_unit()
+    sub_rt.unit_of_use = sub_rt.unit
+    sub_rt.unit_of_value = sub_rt.unit
+    sub_rt.unit_of_price = sub_rt.unit
+    sub_rt.substitutable = False
+    sub_rt.context_agent = project.agent
+    sub_rt.inventory_rule = 'no'
+    sub_rt.save()
+
+    if not hasattr(sub_rt, 'ocp_artwork_type'):
+        artw_prosubs = Ocp_Artwork_Type.objects.filter(name_en=project.compact_name()+' Subscription')
+        if not artw_prosubs:
+            artw_prosubs = Ocp_Artwork_Type.objects.filter(name_en=project.agent.nick+' Subscription')
+        if not artw_prosubs:
+            artw_prosubs = Ocp_Artwork_Type.objects.filter(name_en=project.agent.nick_en+' Subscription')
+        if not artw_prosubs:
+            artw_prosub, created = Ocp_Artwork_Type.objects.get_or_create(
+                name_en=project.agent.nick+' Subscription',
+                parent=artw_sub)
+            if created:
+                print("- created Ocp_Artwork_Type: "+str(artw_prosub))
+                loger.info("- created Ocp_Artwork_Type: "+str(artw_prosub))
+        else:
+            artw_prosub = artw_prosubs[0]
+    else:
+        artw_prosub = sub_rt.ocp_artwork_type
+    artw_prosub.name_en = project.agent.nick+' Subscription'
+    artw_prosub.clas = project.agent.nick+' subscription'
+    artw_prosub.parent = artw_sub
+    artw_prosub.resource_type = sub_rt
+    artw_prosub.general_unit_type = None #gen_share_typ
+    artw_prosub.save()
+    #raise ValidationError("The project sub_rt has not an ocp_artwork_type ! "+str(rt))
+
+    #elif not sub_rt.ocp_artwork_type.rel_nonmaterial_type:
+    #    raise ValidationError("The project sub_rt.ocp_artwork_type has not a rel_nonmaterial_type ! "+str(rt.ocp_artwork_type))
+    #elif not sub_rt.ocp_artwork_type.rel_nonmaterial_type.general_unit_type:
+    #    raise ValidationError("The project sub_rt.ocp_artwork_type.rel_nonmaterial_type has not a general_unit_type ! "+str(sub_rt.ocp_artwork_type.rel_nonmaterial_type))
+    #else:
+    #    pass
+
+    gate_keys = project.active_payment_options_obj()
+    for obj in gate_keys:
+        gatefv = None
+        parent_rectyp = None
+        slug = None
+        nome = None
+        ob = obj[0]
+        if ob == 'transfer' or ob == 'ccard' or ob == 'debit' or ob == 'cash' or ob == 'botcw':
+            slug = 'fiat'
+            nome = 'Fiat'
+            title = 'Fiat-currency'
+        elif ob == 'faircoin':
+            slug = 'fair'
+            nome = 'Fair'
+            title = 'Faircoin'
+        elif ob in settings.CRYPTOS:
+            slug = 'crypto'
+            nome = 'Crypto'
+            title = 'Cryptocoins'
+        #elif ob == 'share':
+        #    slug = 'share'
+        #    nome = 'Shares'
+        #    title = 'Shares'
+        #    gatefv = shrfv
+        #    continue # the share-buy et tree is already there
+        else:
+            raise ValidationError("Payment gateway not known: "+str(ob))
+
+        if not gatefv:
+            gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
+            if created:
+                print "- created FacetValue: '"+nome+" currency'"
+                loger.info("- created FacetValue: '"+nome+" currency'")
+
+        etfiats = ExchangeType.objects.filter(name=title+" Economy")
+        if etfiats:
+            etfiat = etfiats[0]
+            for tt in etfiat.transfer_types.all():
+                print "- delete tt? "+str(tt)
+                loger.info("- delete tt? "+str(tt))
+                if tt.is_deletable():
+                    tt.delete()
+            print "- delete etfiat? "+str(etfiat)
+            loger.info("- delete etfiat? "+str(etfiat))
+            if etfiat.is_deletable():
+                etfiat.delete()
+
+        #  Ocp_Record_Type  branch
+        parent_rectyps = Ocp_Record_Type.objects.filter(clas=slug+"_economy")
+        if not parent_rectyps:
+            parent_rectyps = Ocp_Record_Type.objects.filter(name_en__icontains=title+" Economy")
+        if parent_rectyps:
+            if len(parent_rectyps) > 1:
+                raise ValidationError("There are more than 1 Ocp_Record_Type named: '"+title+" Economy'")
+            parent_rectyp = parent_rectyps[0]
+            #print "- edited Ocp_Record_Type: '"+title+" Economy:'"
+        else:
+            parent_rectyp, created = Ocp_Record_Type.objects.get_or_create(
+                name_en=title+" Economy:",
+                clas=slug+"_economy",
+                parent=ocpext
+            )
+            if created:
+                print "- created Ocp_Record_Type: '"+title+" Economy:'"
+                loger.info("- created Ocp_Record_Type: '"+title+" Economy:'")
+        parent_rectyp.name_en = title+" Economy:"
+        parent_rectyp.parent = ocpext
+        parent_rectyp.clas = slug+"_economy"
+        parent_rectyp.exchange_type = None
+        parent_rectyp.save()
+
+        #   Buy  sub-branch
+        parent_rectypbuy, created = Ocp_Record_Type.objects.get_or_create(
+            name_en=slug+" Buy",
+            parent=parent_rectyp
+        )
+        if created:
+            print "- created Ocp_Record_Type: '"+slug+" Buy'"
+            loger.info("- created Ocp_Record_Type: '"+slug+" Buy'")
+        parent_rectypbuy.clas = "buy"
+        parent_rectypbuy.save()
+
+
+        #   G e n e r i c    B u y    N o n - m a t e r i a l
+
+        #  Ocp_Record_Type
+        parent_rectypbuy_nons = Ocp_Record_Type.objects.filter(name_en__icontains=slug+"-Buy Non-material resources")
+        if not parent_rectypbuy_nons:
+            parent_rectypbuy_nons = Ocp_Record_Type.objects.filter(name_en__icontains=slug+"-buy Non-materials")
+        if parent_rectypbuy_nons:
+            parent_rectypbuy_non = parent_rectypbuy_nons[0]
+        else:
+            parent_rectypbuy_non, created = Ocp_Record_Type.objects.get_or_create(
+                name_en=slug+"-buy Non-materials",
+                parent=parent_rectypbuy
+            )
+            if created:
+                print "- created Ocp_Record_Type: '"+slug+"-buy Non-materials'"
+                loger.info("- created Ocp_Record_Type: '"+slug+"-buy Non-materials'")
+        parent_rectypbuy_non.name_en = slug+"-buy Non-materials"
+        parent_rectypbuy_non.parent = parent_rectypbuy
+        parent_rectypbuy_non.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="Nonmaterial")
+        #parent_rectypbuy_non.save()
+
+        #  ExchangeType
+        etfiat_nons = ExchangeType.objects.filter(name__icontains=slug+"-Buy Non-material resources")
+        if not etfiat_nons:
+            etfiat_nons = ExchangeType.objects.filter(name=slug+"-buy Non-materials")
+        if etfiat_nons:
+            if len(etfiat_nons) > 1:
+                raise ValidationError("There are more than 1 ExchangeType with the name: '"+slug+"-buy Non-materials'")
+            etfiat_non = etfiat_nons[0]
+        else:
+            etfiat_non, created = ExchangeType.objects.get_or_create(
+                name=slug+"-buy Non-materials")
+            if created:
+                print "- created ExchangeType: '"+slug+"-buy Non-materials'"
+                loger.info("- created ExchangeType: '"+slug+"-buy Non-materials'")
+        etfiat_non.name = slug+"-buy Non-materials"
+        etfiat_non.use_case = usecas
+        etfiat_non.save()
+
+        parent_rectypbuy_non.exchange_type = etfiat_non
+        parent_rectypbuy_non.save()
+
+        ##  TransferType  ->  pay
+        ttpays = TransferType.objects.filter(exchange_type=etfiat_non, is_currency=True)
+        if ttpays:
+            if len(ttpays) > 1:
+                raise ValidationError("There are more than 1 TransferType with is_currency for the ET : "+str(etfiat_non))
+            ttpay = ttpays[0]
+        else:
+            ttpay, created = TransferType.objects.get_or_create(
+                name="Give the payment of the Non-material ("+slug+")",
+                exchange_type=etfiat_non
+                #give_agent_is_context=True,
+            )
+            if created:
+                print "- created TransferType: 'Give the payment of the Non-material ("+slug+")'"
+                loger.info("- created TransferType: 'Give the payment of the Non-material ("+slug+")'")
+
+        ttpay.name = "Give the payment of the Non-material ("+slug+")"
+        ttpay.exchange_type = etfiat_non
+        ttpay.sequence = 1
+        ttpay.give_agent_is_context = False
+        ttpay.receive_agent_is_context = True
+        ttpay.is_reciprocal = True
+        ttpay.is_currency = True
+        ttpay.inherit_types =  False
+        ttpay.is_to_distribute = True
+        ttpay.is_contribution = False
+        ttpay.can_create_resource = False
+        ttpay.save()
+
+        ###  TransferTypeFacetValue  ->  pay  ->  gatefv
+        for fv in ttpay.facet_values.all():
+            if not fv.facet_value == gatefv:
+                print "- delete fv: "+str(fv)
+                loger.info("- delete fv: "+str(fv))
+                fv.delete()
+        ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
+            transfer_type=ttpay,
+            facet_value=gatefv)
+        if created:
+            print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+            loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
+
+        ##  TransferType  ->  receive
+        ttnons = TransferType.objects.filter(exchange_type=etfiat_non, inherit_types=True)
+        if ttnons:
+            if len(ttnons) > 1:
+                raise ValidationError("There are more than 1 TransferType with inherit_types for the ET : "+str(etfiat_non))
+            ttnon = ttnons[0]
+        else:
+            ttnon, created = TransferType.objects.get_or_create(
+                name="Receive the Non-material",
+                exchange_type=etfiat_non
+                #receive_agent_is_context=True,
+            )
+            if created:
+                print "- created TransferType: 'Receive the Non-material' ("+slug+")"
+                loger.info("- created TransferType: 'Receive the Non-material' ("+slug+")")
+
+        ttnon.name = "Receive the Non-material"
+        ttnon.exchange_type = etfiat_non
+        ttnon.sequence = 2
+        ttnon.give_agent_is_context = True
+        ttnon.receive_agent_is_context = False
+        ttnon.is_reciprocal = False
+        ttnon.is_currency = False
+        ttnon.inherit_types = True
+        ttnon.is_to_distribute = False
+        ttnon.is_contribution = False
+        ttnon.can_create_resource = False
+        ttnon.save()
+
+        ###  TransferTypeFacetValue  ->  receive  ->  Nonmaterial
+        nonfvs = FacetValue.objects.filter(facet=nonfacet)
+        for fv in nonfvs:
+            ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
+                transfer_type=ttnon,
+                facet_value=fv)
+            if created:
+                print "- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv)
+                loger.info("- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv))
+
+        tts = etfiat_non.transfer_types.all()
+        if not len(tts) == 2:
+            print "The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts)
+            loger.info("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
+            raise ValidationError("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
+
+
+        #   S U B S C R I P T I O N S    B U Y
+
+        fiat_rectyps = Ocp_Record_Type.objects.filter(name_en=slug+"-buy Project Subscriptions")
+        if fiat_rectyps:
+            if len(fiat_rectyps) > 1:
+                raise ValidationError("There's more than 1 Ocp_Record_Type named: '"+slug+"-buy Project Subscriptions'")
+            fiat_rectyp = fiat_rectyps[0]
+        else:
+            fiat_rectyp, created = Ocp_Record_Type.objects.get_or_create(
+                name_en=slug+"-buy Project Subscriptions",
+                parent=parent_rectypbuy_non
+            )
+            if created:
+                print "- created Ocp_Record_Type: '"+slug+"-buy Project Subscriptions'"
+                loger.info("- created Ocp_Record_Type: '"+slug+"-buy Project Subscriptions'")
+        fiat_rectyp.name_en = slug+"-buy Project Subscriptions"
+        fiat_rectyp.parent = parent_rectypbuy_non
+        fiat_rectyp.ocpRecordType_ocp_artwork_type = Ocp_Artwork_Type.objects.get(clas="subscriptions")
+
+        #  ExchangeType shares
+        etfiat_shrs = ExchangeType.objects.filter(name__icontains=slug+"-buy Project Subscriptions")
+        if not etfiat_shrs:
+            etfiat_shrs = ExchangeType.objects.filter(name__icontains=slug+"-buy Subscriptions")
+        if etfiat_shrs:
+            if len(etfiat_shrs) > 1:
+                raise ValidationError("There's more than 1 ExchangeType! : "+str(etfiat_shrs))
+            etfiat_shr = etfiat_shrs[0]
+        else:
+            etfiat_shr, created = ExchangeType.objects.get_or_create(
+                name=slug+"-buy Project Subscriptions")
+            if created:
+                print "- created ExchangeType: '"+slug+"-buy Project Subscriptions'"
+                loger.info("- created ExchangeType: '"+slug+"-buy Project Subscriptions'")
+
+        etfiat_shr.name = slug+"-buy Project Subscriptions"
+        etfiat_shr.use_case = usecas
+        etfiat_shr.save()
+
+        fiat_rectyp.exchange_type = etfiat_shr
+        fiat_rectyp.save()
+
+        ##  TransferType  ->  pay
+        ttfiats = TransferType.objects.filter(exchange_type=etfiat_shr, is_currency=True)
+        if ttfiats:
+            if len(ttfiats) > 1:
+                raise ValidationError("There's more than 1 TransferType with is_currency for the ET: "+str(etfiat_shr))
+            ttfiat = ttfiats[0]
+        else:
+            ttfiat, created = TransferType.objects.get_or_create(
+                name="Payment of the Subscription ("+slug+")",
+                exchange_type=etfiat_shr,
+            )
+            if created:
+                print "- created TransferType: 'Payment of the Subscription ("+slug+")'"
+                loger.info("- created TransferType: 'Payment of the Subscription ("+slug+")'")
+        ttfiat.name = "Payment of the Subscription ("+slug+")"
+        ttfiat.sequence = 1
+        ttfiat.exchange_type = etfiat_shr
+        ttfiat.give_agent_is_context = False
+        ttfiat.receive_agent_is_context = True
+        ttfiat.is_reciprocal = True
+        ttfiat.is_currency = True
+        ttfiat.inherit_types =  False
+        ttfiat.is_to_distribute = True
+        ttfiat.is_contribution = False
+        ttfiat.can_create_resource = False
+        ttfiat.save()
+
+        ###  TransferTypeFacetValue  ->  pay  ->  gatefv
+        for fv in ttfiat.facet_values.all():
+            if not fv.facet_value == gatefv:
+                print "- delete fv: "+str(fv)
+                loger.info("- delete fv: "+str(fv))
+                fv.delete()
+        ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
+            transfer_type=ttfiat,
+            facet_value=gatefv)
+        if created:
+            print "- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv)
+            loger.info("- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv))
+
+        ##  TransferType  ->  receive
+        ttshrs = TransferType.objects.filter(exchange_type=etfiat_shr, inherit_types=True)
+        if ttshrs:
+            if len(ttshrs) > 1:
+                raise ValidationError("There's more than 1 TransferType with inherit_types in the ET: "+str(etfiat_shr))
+            ttshr = ttshrs[0]
+        else:
+            ttshr, created = TransferType.objects.get_or_create(
+                name="Activate the Subscription",
+                exchange_type=etfiat_shr,
+                #receive_agent_is_context=True,
+            )
+            if created:
+                print "- created TransferType: 'Activate the Subscription' ("+slug+")"
+                loger.info("- created TransferType: 'Activate the Subscription' ("+slug+")")
+        ttshr.name = "Activate the Subscription"
+        ttshr.exchange_type = etfiat_shr
+        ttshr.sequence = 2
+        ttshr.give_agent_is_context = True
+        ttshr.receive_agent_is_context = False
+        ttshr.is_reciprocal = False
+        ttshr.is_currency = False
+        ttshr.inherit_types =  True
+        ttshr.is_to_distribute = False
+        ttshr.is_contribution = False
+        ttshr.can_create_resource = False
+        ttshr.save()
+
+        ###  TransferTypeFacetValue  ->  receive  ->  shares
+        for fv in ttshr.facet_values.all():
+            if not fv.facet_value == subfv:
+                print "- delete fv: "+str(fv)
+                loger.info("- delete fv: "+str(fv))
+                fv.delete()
+        ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
+            transfer_type=ttshr,
+            facet_value=subfv)
+        if created:
+            print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv)
+            loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv))
+
+        tts = etfiat_shr.transfer_types.all()
+        if len(tts) > 2:
+            print "The ExchangeType '"+slug+"-buy Project Subscriptions' has more than 2 transfer types: "+str(tts)
+            loger.info("The ExchangeType '"+slug+"-buy Project Subscriptions' has more than 2 transfer types: "+str(tts))
+            raise ValidationError("The ExchangeType '"+slug+"-buy Project Subscriptions' has more than 2 transfer types: "+str(tts))
+
+
+
+        #   P R O J E C T    B U Y    S U B S C R I P T I O N S
+
+        slug_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Subscription")
+        if not slug_ets:
+            slug_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Subscription")
+
+        if slug_ets:
+            if len(slug_ets) > 1:
+                raise ValidationError("There's more than 1 ExchangeType named: '"+slug+"-buy "+str(project.compact_name())+" Subscription")
+            slug_et = slug_ets[0]
+        else:
+            slug_et, created = ExchangeType.objects.get_or_create(
+                name=slug+"-buy "+str(project.compact_name())+" Subscription"
+            )
+            if created:
+                print "- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Subscription'"
+                loger.info("- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Subscription'")
+        slug_et.name = slug+"-buy "+str(project.compact_name())+" Subscription"
+        slug_et.use_case = usecas
+        slug_et.context_agent = project.agent
+        slug_et.save()
+
+        # TransferType  ->  pay
+        ttpays = TransferType.objects.filter(exchange_type=slug_et, is_currency=True)
+        if ttpays:
+            if len(ttpays) > 1:
+                raise ValidationError("There's more than 1 TransferType with is_currency for the ET : "+str(slug_et))
+            ttpay = ttpays[0]
+        else:
+            ttpay.pk = None
+            ttpay.id = None
+            print "- created TransferType: 'Payment of the "+str(project.agent.name)+" subscription ("+slug+")'"
+            loger.info("- created TransferType: 'Payment of the "+str(project.agent.name)+" subscription ("+slug+")'")
+        ttpay.name = "Payment of the "+str(project.agent.name)+" subscription ("+slug+")"
+        ttpay.exchange_type = slug_et
+        ttpay.sequence = 1
+        ttpay.give_agent_is_context = False
+        ttpay.receive_agent_is_context = True
+        ttpay.is_reciprocal = True
+        ttpay.is_currency = True
+        ttpay.inherit_types =  False
+        ttpay.is_to_distribute = True
+        ttpay.is_contribution = False
+        ttpay.can_create_resource = False
+        ttpay.save()
+
+        for fv in ttpay.facet_values.all():
+            if not fv.facet_value == gatefv:
+                print "- delete fv: "+str(fv)
+                loger.info("- delete fv: "+str(fv))
+                fv.delete()
+        ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
+            transfer_type=ttpay,
+            facet_value=gatefv)
+        if created:
+            print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+            loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
+
+        # TransferType  ->  receive  ->  share
+        ttshrs = TransferType.objects.filter(exchange_type=slug_et, inherit_types=True)
+        if not ttshrs:
+            ttshrs = TransferType.objects.filter(exchange_type=slug_et, is_currency=False)
+        if ttshrs:
+            if len(ttshrs) > 1:
+                raise ValidationError("There are more than 1 TransferType with inherit_types (or not is_currency) for the ET : "+str(slug_et))
+            ttshr = ttshrs[0]
+        else:
+            ttshr.pk = None
+            ttshr.id = None
+            print "- created TransferType: 'Activate the "+str(project.agent.name)+" subscription' ("+slug+")"
+            loger.info("- created TransferType: 'Activate the "+str(project.agent.name)+" subscription' ("+slug+")")
+        ttshr.name = "Activate the "+str(project.agent.name)+" subscription"
+        ttshr.exchange_type = slug_et
+        ttshr.sequence = 2
+        ttshr.give_agent_is_context = True
+        ttshr.receive_agent_is_context = False
+        ttshr.is_reciprocal = False
+        ttshr.is_currency = False
+        ttshr.inherit_types =  True
+        ttshr.is_to_distribute = False
+        ttshr.is_contribution = False
+        ttshr.can_create_resource = False
+        ttshr.save()
+
+        for fv in ttshr.facet_values.all():
+            if not fv.facet_value == subfv:
+                print "- delete fv: "+str(fv)
+                loger.info("- delete fv: "+str(fv))
+                fv.delete()
+        ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
+            transfer_type=ttshr,
+            facet_value=subfv)
+        if created:
+            print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv)
+            loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv))
+
+
+        tts = slug_et.transfer_types.all()
+        if not len(tts) == 2:
+            raise ValidationError("WARNING: The ExchangeType '"+str(slug_et)+"' don't has 2 TransferType's: "+str(tts))
+
+
+        pro_sub_rectyps = Ocp_Record_Type.objects.filter(exchange_type=slug_et)
+        if not pro_sub_rectyps:
+            pro_sub_rectyps = Ocp_Record_Type.objects.filter(name_en__icontains=slug+"-buy "+str(project.compact_name())+" Subscriptions")
+        if not pro_sub_rectyps:
+            pro_sub_rectyps = Ocp_Record_Type.objects.filter(name_en__icontains=slug+"-buy "+str(project.agent.name_en)+" Subscriptions")
+        if pro_sub_rectyps:
+            if len(pro_sub_rectyps) > 1:
+                raise ValidationError("There are more than 1 Ocp_Record_Type with same name: "+str(pro_sub_rectyps))
+            pro_sub_rectyp = pro_sub_rectyps[0]
+        else:
+            pro_sub_rectyp, created = Ocp_Record_Type.objects.get_or_create(
+                name_en=slug+"-buy "+str(project.compact_name())+" Subscriptions",
+                parent=fiat_rectyp
+            )
+            if created:
+                print "- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Subscriptions'"
+                loger.info("- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Subscriptions'")
+        pro_sub_rectyp.name_en = slug+"-buy "+str(project.compact_name())+" Subscriptions"
+        pro_sub_rectyp.ocpRecordType_ocp_artwork_type = artw_prosub #sub_rt.ocp_artwork_type
+        pro_sub_rectyp.parent = fiat_rectyp
+        pro_sub_rectyp.exchange_type = slug_et
+        pro_sub_rectyp.save()
+
+    print "---------- end create_subscription_exchange_types ("+str(agent)+") ----------"
+    loger.info("---------- end create_subscription_exchange_types ("+str(agent)+") ----------")
+
+    #return exchanges_all(request, project.agent.id)
+    return HttpResponseRedirect('/%s/%s/'
+                % ('work/agent', project.agent.id))
+
+
 
 
 #    P R O J E C T   R E S O U R C E S

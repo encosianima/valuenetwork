@@ -129,6 +129,7 @@ urlpatterns = [
 
     url(r'^payment-url/(?P<paymode>.+)/(?P<join_request_id>\d+)/$', work.views.payment_url, name="payment_url"),
 
+    url(r'^create-subscription-exchange-types/(?P<agent_id>\d+)/$', work.views.create_subscription_exchange_types, name="create_subscription_exchange_types"),
     url(r'^create-shares-exchange-types/(?P<agent_id>\d+)/$', work.views.create_shares_exchange_types, name="create_shares_exchange_types"),
     url(r'^create-project-shares/(?P<agent_id>\d+)/$', work.views.create_project_shares, name="create_project_shares"),
 

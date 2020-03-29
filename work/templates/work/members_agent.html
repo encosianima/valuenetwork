@@ -608,6 +608,13 @@
                             {% endif %}
                             </td>
                           </tr>
+                          {% elif 'subscription' == agent.project.joining_style %}
+                          <tr>
+                              <th>{% trans "Subscription Details:" %}</th>
+                              <td>ResourceType: <b {% if not agent.project.subscription_rt %}class="error"{% endif %}>{{ agent.project.subscription_rt }}</b><br>
+                                  Unit: <b {% if not agent.project.subscription_unit %}class="error"{% endif %}>{{ agent.project.subscription_unit }}</b>
+                              </td>
+                          </tr>
                           {% endif %}
                         {% endif %}
                         {% if agent.project.share_totals %}
@@ -627,14 +634,29 @@
                             </ul>
                             {% if request.user.is_superuser %}
                                 <span class="smaller">(KEYS: {{ agent.project.active_payment_options_obj }} )<br>
-                                {% for et in agent.project.shares_account_type.ocp_artwork_type.rel_nonmaterial_type.ocp_record_types.all %}
+                                {% if agent.project.shares_account_type %}
+                                  {% for et in agent.project.shares_account_type.ocp_artwork_type.rel_nonmaterial_type.ocp_record_types.all %}
                                     <a href="{% url "change_exchange_type" exchange_type_id=et.exchange_type.id %}" >{{ et.exchange_type }}</a><br>
                                     {% for tt in et.exchange_type.transfer_types.all %}
                                       &nbsp; &nbsp;<span class="{% if not tt.get_resource_types %}error{% endif %}">{% if tt.inherit_types %}+{% else %}-{% endif %} {{ tt }} ({% for rt in tt.get_resource_types %}{{ rt }}, {% endfor %}) <em>(FV:{% for fv in tt.facet_values.all %}{{ fv.facet_value }}, {% endfor %})</em></span><br>
                                     {% endfor %}
-                                {% endfor %}
-                                </span>
-                                <br><b><a href="{% url "create_shares_exchange_types" agent_id=agent.id %}">Create Exchange Types</a></b><!--  -->
+                                  {% endfor %}
+                                  </span>
+                                  <br><b><a href="{% url "create_shares_exchange_types" agent_id=agent.id %}">Create Shares Exchange Types</a></b>
+                                {% elif agent.project.subscription_unit %}
+                                  {% for et in agent.project.subscription_rt.ocp_artwork_type.ocp_record_types.all %}
+                                    <a href="{% url "change_exchange_type" exchange_type_id=et.exchange_type.id %}" >{{ et.exchange_type }}</a><br>
+                                    {% for tt in et.exchange_type.transfer_types.all %}
+                                      &nbsp; &nbsp;<span class="{% if not tt.get_resource_types %}error{% endif %}">{% if tt.inherit_types %}+{% else %}-{% endif %} {{ tt }} ({% for rt in tt.get_resource_types %}{{ rt }}, {% endfor %}) <em>(FV:{% for fv in tt.facet_values.all %}{{ fv.facet_value }}, {% endfor %})</em></span><br>
+                                    {% endfor %}
+                                  {% endfor %}
+                                  </span>
+                                  <br><b><a href="{% url "create_subscription_exchange_types" agent_id=agent.id %}">Create Subscription Exchange Types</a></b>
+                                {% else %}
+                                    <b class="error">Error</b>
+                                    </span>
+                                {% endif %}
+
                             {% endif %}
                             </td>
                           </tr>
