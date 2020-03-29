@@ -5598,6 +5598,7 @@ class EconomicResource(models.Model):
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='resources_changed', blank=True, null=True, editable=False, on_delete=models.SET_NULL)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    expiration_date = models.DateField(verbose_name=_('expiration date'), blank=True, null=True)
 
     objects = EconomicResourceManager()
     goods = GoodResourceManager()
