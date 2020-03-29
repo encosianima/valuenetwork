@@ -353,6 +353,12 @@ form#stateForm {
   margin: 5px 5px 5px 0;
 }
 
+ul.dt-button-collection.dropdown-menu {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+
 /*   I N T E R N A L   J O I N   R E Q U E S T   */
 
 #joinForm {
