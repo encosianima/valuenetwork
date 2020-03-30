@@ -295,17 +295,21 @@ a.more-link {
                   {% if req.project.joining_style == "shares" %}
                     {% trans "shares" %}
                   {% elif req.project.joining_style == "subscription" %}
-                    {{ req.project.subscription_unit }}
+                    {{ req.project.subscription_unit }} / {{ req.payment_regularity.key }}
                   {% endif %}
                   </span>
                   {% if req.exchange %}
-                    &nbsp; {% trans "Related exchange" %}: <b>
-                    {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
-                      <a href="{% url "exchange_logging_work" context_agent_id=jn_req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange|show_name:jn_req.project.agent|safe }}</a>
+                    &nbsp; &nbsp; <b>
+                    {% if user_agent in req.project.agent.managers or user_agent == req.project.agent %}
+                      <a href="{% url "exchange_logging_work" context_agent_id=req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">
+                          <!-- {{ req.exchange|show_name:jn_req.project.agent|safe }} -->
+                          {% trans "Exchange" %}</a>:
                     {% else %}
-                      <a href="{% url "exchange_logging_work" context_agent_id=jn_req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">{{ req.exchange|show_name:jn_req.agent|safe }}</a>
+                      <a href="{% url "exchange_logging_work" context_agent_id=req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">
+                          <!-- {{ req.exchange|show_name:jn_req.agent|safe }} -->
+                          {% trans "Exchange" %}</a>:
                     {% endif %}
-                    </b> <span class="{{ req.exchange.status }}">{{ req.exchange.status|title }}</span>
+                    </b> <span class="{{ req.exchange.status }}">{{ req.exchange.status }}</span>
                     {% if user_agent in req.project.agent.managers %}
                       {% if not req.project.agent.need_faircoins or not req.payment_pending_amount %} &nbsp; &nbsp;
                         {% with req.payment_unit as punit %}
@@ -323,12 +327,21 @@ a.more-link {
                             {% endif %}
                             <input type="hidden" name="status" value="complete">
                             <input type="submit" class="btn btn-mini btn-primary" name="submit" value='{% trans "Set as Complete" %}' {% if req.check_user_pass %}disabled="disabled"{% endif %} />
-                            <br/><span class="help-text" style="font-size:0.8em">
-                            {% if not req.payment_pending_amount %}
-                                {% trans "(The payment is done, this will only transfer the pending shares)" %}
+                            <br/><span class="help-text" style="font-size:0.8em; display:inline-block; max-width:130px;">
+                            {% if req.project.joining_style == "subscription" %}
+                              {% if not req.payment_pending_amount %}
+                                {% trans "(The payment is done, this will only activate the subscription)" %}
+                              {% else %}
+                                {% trans "(This will set the payment as done and activate the subscription)" %}
+                              {% endif %}
                             {% else %}
+                              {% if not req.payment_pending_amount %}
+                                {% trans "(The payment is done, this will only transfer the pending shares)" %}
+                              {% else %}
                                 {% trans "(This will set the payment as done and transfer the shares)" %}
-                            {% endif %}</span>
+                              {% endif %}
+                            {% endif %}
+                            </span>
                         </form>
                         {% endwith %}
                       {% endif %}
@@ -393,16 +406,29 @@ a.more-link {
                   {% endif %}
                 </td>
               </tr>
-            {% elif req.project.joining_style == "subscription" %}
+            {% endif %}
+            {% if req.subscription_resource %}
               <tr>
-                  <th>
-
-                  </th>
-                  <td>
-                    {% if req.pending_payments %}
-                      <span class="error"><b>{{ req.pending_payments }} {{ req.subscription_unit }}</b></span>
+                <th>{% trans "Subscription" %}:</th>
+                <td>
+                    <b>{{ req.subscription_resource.identifier }}</b> &nbsp;
+                    {% if req.pending_shares %}
+                        <span class="error">{% trans "Expired by" %} {{ req.subscription_resource.expiration_date }}</span>
+                    {% else %}
+                        <span class="complete">{% trans "Valid" %}</span> {% trans "until" %} {{ req.subscription_resource.expiration_date }}
                     {% endif %}
-                  </td>
+                    {% if req.exchange and req.exchange.status == 'complete' %}
+                        &nbsp; Related <b>
+                        {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
+                          <a href="{% url "exchange_logging_work" context_agent_id=jn_req.project.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">
+                        {% else %}
+                          <a href="{% url "exchange_logging_work" context_agent_id=jn_req.agent.id exchange_type_id=0 exchange_id=req.exchange.id %}">
+                        {% endif %}
+                              {% trans "Exchange" %}
+                        </a></b>
+
+                    {% endif %}
+                </td>
               </tr>
             {% endif %}
             {% if req.total_shares %}

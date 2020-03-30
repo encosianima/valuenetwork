@@ -760,17 +760,18 @@ class JoinRequest(models.Model):
                 #pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
         return answer
 
-    def pending_shares(self):
+    def pending_shares(self): # also used for subscriptions
         answer = ''
         account_type = self.payment_account_type()
-        balance = 0
+        #balance = 0
         amount = self.payment_amount()
 
         balance = self.total_shares()
         subrt = self.subscription_rt()
         if subrt and not balance:
-
-            balance = 0 # TODO calculate pending quota
+            pendpay = self.pending_payments()
+            if pendpay == 0:
+                balance = amount
 
         #import pdb; pdb.set_trace()
         if amount:
@@ -799,14 +800,37 @@ class JoinRequest(models.Model):
         return balance
 
     def pending_payments(self):
+        amount = self.payment_amount()
         if self.project.joining_style == 'subscription':
-            if self.exchange:
-                evts = self.exchange.events()
-                coms = self.exchange.commitments()
-            else:
-                pass
+            subrt = self.project.subscription_rt()
+            arrs = self.agent.resource_relationships()
+            user_rts = list(set([arr.resource.resource_type for arr in arrs]))
+            for rt in user_rts:
+                if rt == subrt: #.ocp_artwork_type:
+                    rss = list(set([arr.resource for arr in arrs]))
+                    for rs in rss:
+                        if rs.resource_type == rt:
+                            expires = rs.expiration_date
+                            today = datetime.date.today()
+                            if expires:
+                                if today >= expires:
+                                    return amount
+                                else:
+                                    return 0
+        else:
+            return self.pending_shares()
+        return amount
 
-        return self.payment_amount()
+
+    def subscription_resource(self):
+        if self.project.joining_style == 'subscription':
+            subrt = self.project.subscription_rt()
+            if self.agent:
+                agsubres = self.agent.owned_resource_of_type(subrt)
+                if agsubres:
+                    return agsubres
+        return None
+
 
     def multiwallet_user(self, username=None):
         answer = ''
@@ -1174,7 +1198,7 @@ class JoinRequest(models.Model):
             amount2 = shtype.price_per_unit * self.pending_shares()
         else:
             shunit = self.subscription_unit()
-            amount2 = shares
+            amount2 = self.pending_shares()
         amountpay = amount2
         if hasattr(self, 'pending_amount'):
             amountpay = self.pending_amount
@@ -1189,7 +1213,7 @@ class JoinRequest(models.Model):
 
         amispay = self.payment_payed_amount()
         pendamo = amountpay
-        if amispay > 0 and amountpay:
+        if shtype and amispay > 0 and amountpay:
             pendamo = decimal.Decimal(amountpay) - amispay
         if pendamo < 0:
             pendamo = 0
@@ -1408,10 +1432,14 @@ class JoinRequest(models.Model):
         unit_rts = EconomicResourceType.objects.filter(ocp_artwork_type__general_unit_type__id=unit.gen_unit.unit_type.id)
         if unit_rts:
             if len(unit_rts) > 1:
+                if self.payment_gateway() == 'cash':
+                    clas = '_cash'
+                else:
+                    clas = '_digital'
                 try:
-                    unit_rt = unit_rts.get(ocp_artwork_type__clas__contains='_digital')
+                    unit_rt = unit_rts.get(ocp_artwork_type__clas__contains=clas)
                 except:
-                    raise ValidationError("None of the unit_rts is related an ocp_artwork_type with a clas that contains '_digital': "+str(unit_rts))
+                    raise ValidationError("None of the unit_rts is related an ocp_artwork_type with a clas that contains '"+clas+"'!! rts:"+str(unit_rts))
             else:
                 unit_rt = unit_rts[0]
         else:
@@ -1443,7 +1471,7 @@ class JoinRequest(models.Model):
                         for an in ancs:
                             if an.clas == 'fair_economy':
                                 recs.append(rec)
-                    elif payopt['key'] in ('transfer','ccard'):
+                    elif payopt['key'] in ('transfer','ccard','cash','debit','botcw'):
                         for an in ancs:
                             if an.clas == 'fiat_economy':
                                 recs.append(rec)
@@ -1688,6 +1716,117 @@ class JoinRequest(models.Model):
 
         return ex
 
+    def create_subscription_resource(self):
+        subrt = self.subscription_rt()
+        #un = self.subscript_unit()
+        role = AgentResourceRoleType.objects.get(is_owner=True, name_en="Owner")
+        agsubres = self.subscription_resource()
+        if not agsubres:
+            agsubres, c = EconomicResource.objects.get_or_create(
+                resource_type=subrt,
+                identifier=subrt.name_en+" of "+self.agent.nick_en,
+                quantity=1
+            )
+            if c:
+                print("- created EconomicResource: "+unicode(agsubres))
+                loger.info("- created EconomicResource: "+unicode(agsubres))
+        agsubres.identifier = subrt.name_en+" of "+self.agent.nick_en
+        agsubres.quantity = 1
+        agsubres.unit_of_quantity = Unit.objects.get(name_en="Each")
+        agsubres.expiration_date = datetime.date.today() + self.subscription_expiration_delta()
+        agsubres.save()
+        if role:
+            rra, c = AgentResourceRole.objects.get_or_create(
+                agent=self.agent,
+                role = role,
+                resource = agsubres
+            )
+            if c:
+                print("- created AgentResourceRole: "+str(rra))
+                loger.info("- created AgentResourceRole: "+str(rra))
+            rra.is_contact = False
+            rra.save()
+        return agsubres
+
+
+    def subscription_expiration_delta(self):
+        delta = None
+        regu = self.payment_regularity()
+        if regu and regu['key']:
+            if regu['key'] == 'month':
+                delta = datetime.timedelta(days=30)
+            elif regu['key'] == 'quarter':
+                delta = datetime.timedelta(days=91)
+            elif regu['key'] == 'semester':
+                delta = datetime.timedelta(days=182)
+            elif regu['key'] == 'year':
+                delta = datetime.timedelta(days=365)
+        if not delta:
+            raise ValidationError("Can't build delta! "+unicode(regu))
+        return delta
+
+    def check_subscription_expiration(self):
+        agsubres = self.subscription_resource()
+        ex = self.exchange
+        if agsubres and ex:
+            print("------ check_subscription_expiration ("+self.agent.nick+" at "+self.project.agent.nick+") ------")
+            expdt = agsubres.expiration_date
+            today = datetime.date.today()
+            if today >= expdt:
+                coms = None
+                txpay = ex.txpay()
+                for tx in ex.transfers.all():
+                    if tx == txpay:
+                        coms = tx.commitments.all()
+                        evts = tx.events.all()
+                if coms:
+                    comfils = []
+                    for com in coms:
+                        if com.fulfillment_events.all():
+                            comfils.append(com)
+                    #print("COMFILS: "+str(comfils))
+                    if len(comfils) == len(coms):
+                        newdate = expdt + self.subscription_expiration_delta()
+                        et_give = EventType.objects.get(name="Give")
+                        et_receive = EventType.objects.get(name="Receive")
+                        newcom, c = Commitment.objects.get_or_create(
+                            event_type = et_give,
+                            commitment_date = newdate,
+                            due_date = newdate, # + datetime.timedelta(days=7), # TODO custom process delaytime by project
+                            resource_type = self.payment_unit_rt(), # shtype, #account_type,
+                            exchange = ex,
+                            transfer = txpay,
+                            exchange_stage = ex.exchange_type,
+                            context_agent = self.project.agent,
+                            quantity = self.payment_pending_amount(),
+                            unit_of_quantity = self.payment_unit(),
+                            from_agent = self.agent,
+                            to_agent = self.project.agent
+                        )
+                        if c:
+                            print("- created Commitment: "+str(newcom))
+                            loger.info("- created Commitment: "+str(newcom))
+
+                        newcom2, c = Commitment.objects.get_or_create(
+                            event_type = et_receive,
+                            commitment_date = newdate,
+                            due_date = newdate, # + datetime.timedelta(days=7), # TODO custom process delaytime by project
+                            resource_type = self.payment_unit_rt(), # shtype, #account_type,
+                            exchange = ex,
+                            transfer = txpay,
+                            exchange_stage = ex.exchange_type,
+                            context_agent = self.project.agent,
+                            quantity = self.payment_pending_amount(),
+                            unit_of_quantity = self.payment_unit(),
+                            from_agent = self.agent,
+                            to_agent = self.project.agent
+                        )
+                        if c:
+                            print("- created Commitment2: "+str(newcom2))
+                            loger.info("- created Commitment2: "+str(newcom2))
+
+
+
 
     def update_payment_status(self, status=None, gateref=None, notes=None, request=None, realamount=None, txid=None):
         account_type = self.payment_account_type()
@@ -1695,13 +1834,20 @@ class JoinRequest(models.Model):
         amount = self.payment_amount()
         unit, margin = self.payment_unit(True) # arg: ask unit margin to settings obj
         unit_rt = self.payment_unit_rt()
+        subtyp = self.project.subscription_rt()
         shtype = self.project.shares_type()
+        shrunit = None
+        if account_type:
+            shrunit = account_type.unit_of_price
         if shtype:
             shunit = shtype.unit_of_price
             amount2 = shtype.price_per_unit * self.pending_shares()
-        else:
+        elif subtyp:
             shunit = self.subscription_unit()
             amount2 = amount
+            shtype = subtyp
+            shrunit = Unit.objects.get(name_en="Each")
+
         if not shunit:
             raise ValidationError("Can't find the unit_of_price of the project share type or subscription! pro: "+unicode(self.project))
 
@@ -1744,6 +1890,21 @@ class JoinRequest(models.Model):
                 if self.agent.user():
                     user = self.agent.user().user
                 agshac = self.agent_shares_account()
+                agsubac = self.subscription_resource()
+                shtotal = self.total_shares()
+                pendshr = self.pending_shares()
+                #shrunit = account_type.unit_of_price
+                if not agshac and subtyp: # is subscription
+                    if agsubac: # agent already has the subscres
+                        pass #agshac = agsubac
+
+                    elif status == 'complete' or status == 'published':
+                        agsubac = self.create_subscription_resource()
+                        #agshac = agsubac
+
+                    shtotal = 1
+                    pendshr = 1
+                    amount = 1
 
                 if not self.exchange:
                     ex = self.create_exchange(notes)
@@ -1796,7 +1957,7 @@ class JoinRequest(models.Model):
 
         #       C O M P L E T E
 
-                        if len(evts):
+                        if len(evts) and not subtyp:
                             if txid:
                                 pass #raise ValidationError("complete with txid a xfer_pay with existent events?? evts:"+str(evts))
                             print ("The payment transfer already has events! "+str(len(evts)))
@@ -1841,6 +2002,18 @@ class JoinRequest(models.Model):
 
 
                         elif amountpay and pendamo:
+                            if subtyp:
+                                commit_pays = coms.filter(fulfillment_events__isnull=True)
+                                if commit_pays and len(commit_pays) == 2:
+                                    for com in commit_pays:
+                                        if com.event_type == et_give:
+                                            commit_pay = com
+                                        elif com.event_type == et_receive:
+                                            commit_pay2 = com
+                                else:
+                                    print("There are no commitments to fulfill?")
+                                    loger.info("There are no commitments to fulfill?")
+                                    return False
                             event_res = event_res2 = None
                             if unit.abbrev == 'fair' and self.project.agent.need_faircoins():
                                 if not self.agent.faircoin_resource() or not self.agent.faircoin_resource().faircoin_address.is_mine():
@@ -1850,7 +2023,7 @@ class JoinRequest(models.Model):
                                 else:
                                     event_res = self.agent.faircoin_resource()
                                     event_res2 = self.project.agent.faircoin_resource()
-                            elif self.is_flexprice:
+                            elif self.is_flexprice():
                                 if txid:
                                     if 'multicurrency' in settings.INSTALLED_APPS:
                                         if unit.abbrev == "fair" and self.project.agent.nick == "BotC":
@@ -2032,7 +2205,7 @@ class JoinRequest(models.Model):
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
                                 quantity = amount,
-                                unit_of_quantity = account_type.unit_of_price,
+                                unit_of_quantity = shrunit,
                                 #value = amountpay,
                                 #unit_of_value = unit, #account_type.unit_of_price,
                                 from_agent = self.project.agent,
@@ -2055,7 +2228,7 @@ class JoinRequest(models.Model):
                                     exchange_stage = ex.exchange_type,
                                     context_agent = self.project.agent,
                                     quantity = amount,
-                                    unit_of_quantity = account_type.unit_of_price,
+                                    unit_of_quantity = shrunit,
                                     #value = amount,
                                     #unit_of_value = account_type.unit_of_price,
                                     from_agent = self.project.agent,
@@ -2068,6 +2241,13 @@ class JoinRequest(models.Model):
                                     loger.info("- created Commitment2: "+str(commit_share2))
 
 
+                        if agsubac:
+                            expdt = agsubac.expiration_date
+                            delta = self.subscription_expiration_delta()
+                            if datetime.date.today() > expdt:
+                                agsubac.expiration_date = expdt + delta
+                                agsubac.save()
+                            agshac = agsubac
 
                         # create share events
                         if not evts and msg == '':
@@ -2080,8 +2260,8 @@ class JoinRequest(models.Model):
                                 transfer = xfer_share,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = self.pending_shares(),
-                                unit_of_quantity = account_type.unit_of_price,
+                                quantity = pendshr,
+                                unit_of_quantity = shrunit,
                                 #value = amountpay,
                                 #unit_of_value = unit, #account_type.unit_of_price,
                                 from_agent = self.project.agent,
@@ -2105,8 +2285,8 @@ class JoinRequest(models.Model):
                                 transfer = xfer_share,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = self.pending_shares(),
-                                unit_of_quantity = account_type.unit_of_price,
+                                quantity = pendshr,
+                                unit_of_quantity = shrunit,
                                 #value = amountpay,
                                 #unit_of_value = unit, #account_type.unit_of_price,
                                 from_agent = self.project.agent,
@@ -2142,8 +2322,8 @@ class JoinRequest(models.Model):
                                                 messages.info(request, "Transfered new shares to the agent's shares account: "+str(sh_evt.quantity)+" "+str(rs))
                           else: # not pending_shares and not share events
                             date = agshac.created_date
-                            print "No pending shares and no events related shares. REPAIR! total_shares:"+str(self.total_shares())+" date:"+str(date)
-                            loger.info("No pending shares and no events related shares. REPAIR! total_shares:"+str(self.total_shares())+" date:"+str(date))
+                            print "No pending shares and no events related shares. REPAIR! total_shares:"+str(shtotal)+" date:"+str(date)
+                            loger.info("No pending shares and no events related shares. REPAIR! total_shares:"+str(shtotal)+" date:"+str(date))
 
                             sh_evt, created = EconomicEvent.objects.get_or_create(
                                 event_type = et_give,
@@ -2153,8 +2333,8 @@ class JoinRequest(models.Model):
                                 transfer = xfer_share,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = self.total_shares(),
-                                unit_of_quantity = account_type.unit_of_price,
+                                quantity = shtotal,
+                                unit_of_quantity = shrunit,
                                 #value = amountpay,
                                 #unit_of_value = unit, #account_type.unit_of_price,
                                 from_agent = self.project.agent,
@@ -2178,8 +2358,8 @@ class JoinRequest(models.Model):
                                 transfer = xfer_share,
                                 exchange_stage = ex.exchange_type,
                                 context_agent = self.project.agent,
-                                quantity = self.total_shares(),
-                                unit_of_quantity = account_type.unit_of_price,
+                                quantity = shtotal,
+                                unit_of_quantity = shrunit,
                                 #value = amountpay,
                                 #unit_of_value = unit, #account_type.unit_of_price,
                                 from_agent = self.project.agent,
@@ -2195,7 +2375,7 @@ class JoinRequest(models.Model):
                                 print "- created missing shares Event2: "+str(sh_evt2)
                                 loger.info("- created missing shares Event2: "+str(sh_evt2))
 
-                        else:
+                        elif not self.subscription_unit():
                             print "The shares transfer already has Events!! "+str(len(evts))
                             loger.warning("The shares transfer already has Events!! "+str(len(evts)))
                             for ev in evts:
@@ -2281,7 +2461,7 @@ class JoinRequest(models.Model):
                                     exchange_stage = ex.exchange_type,
                                     context_agent = self.project.agent,
                                     quantity = amount,
-                                    unit_of_quantity = account_type.unit_of_price,
+                                    unit_of_quantity = shrunit,
                                     #value = amountpay,
                                     #unit_of_value = unit,
                                     from_agent = self.project.agent,
@@ -2304,7 +2484,7 @@ class JoinRequest(models.Model):
                                         exchange_stage = ex.exchange_type,
                                         context_agent = self.project.agent,
                                         quantity = amount,
-                                        unit_of_quantity = account_type.unit_of_price,
+                                        unit_of_quantity = shrunit,
                                         #value = amount,
                                         #unit_of_value = account_type.unit_of_price,
                                         from_agent = self.project.agent,

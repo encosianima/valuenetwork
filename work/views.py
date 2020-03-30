@@ -2024,6 +2024,9 @@ def members_agent(request, agent_id):
     related_rts = []
     if agent.project_join_requests:
         for req in agent.project_join_requests.all():
+            if req.subscription_unit():
+                req.check_subscription_expiration()
+
             if req.project.agent in user_agent.managed_projects() or user_agent is req.project.agent:
                 rtsc = req.project.rts_with_clas()
                 rts = list(set([arr.resource.resource_type for arr in agent.resource_relationships()]))
@@ -3564,6 +3567,8 @@ def join_requests(request, agent_id):
             if req.exchange:
                 reqstatus = req.exchange.status()
             subscrunit = project.subscription_unit()
+            pendpays = req.pending_payments()
+            subscres = req.subscription_resource()
 
             deleteform = '<form class="action-form" id="delete-form'+str(req.id)+'" method="POST" '
             deleteform += 'action="'+reverse("delete_request", args=(req.id,))+'" >'
@@ -3583,22 +3588,35 @@ def join_requests(request, agent_id):
             elif proshrtyps or subscrunit:
               if req.fobi_data:
                 if req.agent:
-                    req.actions += str(payamount)+'&nbsp;'
                     if proshrtyps:
+                        req.actions += str(payamount)+'&nbsp;'
                         req.actions += unicode(_("Shares:"))+'&nbsp;'
                     elif subscrunit:
+                        if pendpays: req.actions += '<span class="error">'
+                        req.actions += str(payamount)+'&nbsp;'
                         req.actions += unicode(subscrunit.name)+' / '+unicode(req.payment_regularity()['key'])+'&nbsp;'
+                        if pendpays: req.actions += '</span>'
                     if pendshrs:
                         if totalshrs:
                             req.actions += '<span class="complete">'+unicode(totalshrs)+'</span>&nbsp;+&nbsp;<span class="error">'+unicode(req.pending_shares())+'</span>'
                         else:
-                            req.actions += '<span class="error">'+unicode(totalshrs)+'</span>'
+                            if pendpays:
+                                if subscres:
+                                    req.actions += '<span class="error">'+unicode(_("Expired"))+'</span>'
+                                    req.actions += '<br><span class="">'+unicode(_("by"))+' '+str(req.subscription_resource().expiration_date)+'</span>'
+                                else:
+                                    pass #req.actions += '<br><span class="error small">'+unicode(_("Never payed"))+'</span>'
+                            elif subscrunit:
+                                req.actions += '<span class="complete">'+unicode(_("Valid"))+'</span>'
+                                req.actions += '<br><span class="">'+unicode(_("until"))+' '+str(req.subscription_resource().expiration_date)+'</span>'
+                            else:
+                                req.actions += '<span class="error">'+unicode(totalshrs)+'</span>'
                     else:
                         if not totalshrs == payamount:
                             req.actions += '<span class="complete">'+unicode(totalshrs)+'</span>'
                         else:
                             req.actions += '<em class="complete"></em>'
-                    req.actions += '<br />'
+                    #req.actions += '<br />'
                 if reqstatus:
                     req.actions += '<a href="'+reverse("exchange_logging_work", args=(req.project.agent.id, 0, req.exchange.id))+'"'
                     req.actions += ' class="'+unicode(reqstatus)+'" >'+unicode(reqstatus.title())+'</a> '
@@ -4100,6 +4118,9 @@ def project_feedback(request, agent_id, join_request_id):
         return render(request, 'work/no_permission.html')
 
     migrate_fdc_shares(request, jn_req)
+
+    if jn_req.subscription_unit():
+        jn_req.check_subscription_expiration()
 
     fobi_slug = project.fobi_slug
     fobi_headers = []
@@ -5894,6 +5915,8 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
             if hasattr(exchange, 'join_request') and exchange.join_request: #hasattr(exchange, 'join_request')
                 #if exchange.join_request.agent == agent:
                 logger = False
+                if exchange.join_request.subscription_unit():
+                    exchange.join_request.check_subscription_expiration()
 
             for event in work_events:
                 event.changeform = WorkEventContextAgentForm(

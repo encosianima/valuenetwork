@@ -240,21 +240,33 @@ h3.trtheading {
                                 ({{ req.show_share_price }})
                             </p>
                         {% endif %}
-                        <p>
-                            {% trans "Quantity" %}: <b>{{ req.payment_amount }}</b> &nbsp;
-                            {% if req.total_shares %}
-                              {% if req.pending_shares %}
-                                ( <span class="complete">{{ req.total_shares }} {% trans "owned" %}</span> /
-                                    <span class="pending">{{ req.pending_shares }} {% trans "pending" %}</span> )
-                              {% else %}
-                                <span class="complete">{% trans "owned" %}</span>
-                              {% endif %}
-                            {% else %}
-                              <!-- <b class="pending">{% trans "pending" %}</b> -->
-                            {% endif %}
-                        </p>
+                        {% if req.subscription_resource %}
+                            <p>
+                                {% trans "Item" %}: <b>{{ req.subscription_resource.identifier }}</b>
+                            </p>
+                            <p>
+                                {% trans "Expiration date" %}: <b>{{ req.subscription_resource.expiration_date }}</b>
+                            </p>
+                        {% else %}
+                            <p>
+                                {% trans "Quantity" %}: <b>{{ req.payment_amount }}</b> &nbsp;
+                                {% if req.total_shares %}
+                                  {% if req.pending_shares %}
+                                    ( <span class="complete">{{ req.total_shares }} {% trans "owned" %}</span> /
+                                        <span class="pending">{{ req.pending_shares }} {% trans "pending" %}</span> )
+                                  {% else %}
+                                    <span class="complete">{% trans "owned" %}</span>
+                                  {% endif %}
+                                {% else %}
+                                  <!-- <b class="pending">{% trans "pending" %}</b> -->
+                                {% endif %}
+                            </p>
+                        {% endif %}
                         <p>
                             {% trans "Total" %}: <b>{{ req.show_total_price }}</b>
+                            {% if req.payment_regularity %}
+                                <b>/ {{ req.payment_regularity.key|title }}</b>
+                            {% endif %}
                             {% with req.payment_pending_amount as pendamo %}
                             {% if pendamo %} &nbsp;
                                 {% if pendamo|lower == req.total_price|lower %}
@@ -284,15 +296,16 @@ h3.trtheading {
                         {% endfor %}
                     </p>
                 {% endif %}
-                {% endwith %}
-                <p>
+                {% if not req.subscription_resource %}
+                  <p>
                     {% trans "Total transfered value" %}: <span class="total-top">{{ total_t }}
                     {% if total_t %}{% if total_t_unit.symbol %}{{ total_t_unit.symbol }}{% else %}{{ total_t_unit.abbrev }}{% endif %}{% endif %}</span>
-                </p>
-                <p>
+                  </p>
+                  <p>
                     {% trans "Total reciprocal transfered value" %}: <span class="total-top">{{ total_rect }}
                     {% if total_rect %}{% if total_rect_unit.symbol %}{{ total_rect_unit.symbol }}{% else %}{{ total_rect_unit.abbrev }}{% endif %}{% endif %}</span>
-                </p>
+                  </p>
+                {% endif %}
                 {% if request.user.is_superuser %}
                   <p>
                     <em>logger: {{ logger }} &nbsp; (tts:{% for tt in exchange.exchange_type.transfer_types.all %}{{ tt.id }},{% endfor %} txs:{{ exchange.transfers.all|length }}, coms:{{ exchange.commitments.all|length }}, evts:{{ exchange.events.all|length }})</em><br>
@@ -303,6 +316,7 @@ h3.trtheading {
                     <em>notes: {{ exchange.notes }}</em>
                   </p>
                 {% endif %}
+                {% endwith %}
             </div>
             {% if not exchange.join_request.agent == request.user.agent.agent and logger %}
             <form class="validateMe miniform" id="exchangeForm" method="POST" action="" style="padding-bottom:13px;">
@@ -360,7 +374,7 @@ h3.trtheading {
                                 {% elif slot.total_unit %}
                                   {% if slot.total_unit.symbol %}{{ slot.total_unit.symbol }}{% else %}{{ slot.total_unit.abbrev }}{% endif %}
                                 {% endif %}
-                                {% if exchange.join_request.payment_pending_amount and not slot.is_share %} &nbsp; &nbsp;
+                                {% if exchange.join_request.payment_pending_amount and slot.is_currency %} &nbsp; &nbsp;
                                   <b class="error">{% trans "Pending:" %} {% if exchange.join_request.is_flexprice %} ≈ {% endif %}{{ exchange.join_request.payment_pending_amount }}
                                   {{ exchange.join_request.show_payment_unit }}
                                   </b>
@@ -914,7 +928,7 @@ h3.trtheading {
                                 {% elif slot.total %}
                                   {% if slot.total_unit.symbol %}{{ slot.total_unit.symbol }}{% else %}{{ slot.total_unit.abbrev }}{% endif %}
                                 {% endif %}
-                                {% if exchange.join_request.payment_pending_amount and not slot.is_share %} &nbsp; &nbsp;
+                                {% if exchange.join_request.payment_pending_amount and slot.is_currency %} &nbsp; &nbsp;
                                   <b class="error">{% trans "Pending:" %} {% if exchange.join_request.is_flexprice %} ≈ {% endif %}{{ exchange.join_request.payment_pending_amount }}
                                   {{ exchange.join_request.show_payment_unit }}
                                   </b>
