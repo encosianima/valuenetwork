@@ -416,8 +416,9 @@ class Project(models.Model):
             for key in self.fobi_items_keys():
                 if key:
                     keyarr = key.split('_')
-                    if keyarr[0] == 'amount': # fieldname specially defined for subscription amount and base currency
-                        unit = Unit.objects.get(abbrev=keyarr[1])
+                    if len(keyarr) == 2:
+                        if keyarr[0] == 'amount': # fieldname specially defined for subscription amount and base currency
+                            unit = Unit.objects.get(abbrev=keyarr[1])
             if not unit:
                 print("ERROR: Subscription Unit not found!! keys: "+str(self.fobi_items_keys()))
                 loger.error("ERROR: Subscription Unit not found!! keys: "+str(self.fobi_items_keys()))
