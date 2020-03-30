@@ -3602,18 +3602,18 @@ def join_requests(request, agent_id):
                         else:
                             if pendpays:
                                 if subscres:
-                                    req.actions += '<span class="error">'+unicode(_("Expired"))+'</span>'
-                                    req.actions += '<br><span class="">'+unicode(_("by"))+' '+str(req.subscription_resource().expiration_date)+'</span>'
+                                    req.actions += '<span class="">'+unicode(_("Expired"))+'</span>'
+                                    req.actions += '<br><span class="">'+unicode(_("by"))+' '+str(req.subscription_resource().expiration_date)+'</span> '
                                 else:
                                     pass #req.actions += '<br><span class="error small">'+unicode(_("Never payed"))+'</span>'
                             elif subscrunit:
                                 req.actions += '<span class="complete">'+unicode(_("Valid"))+'</span>'
-                                req.actions += '<br><span class="">'+unicode(_("until"))+' '+str(req.subscription_resource().expiration_date)+'</span>'
+                                req.actions += '<br><span class="">'+unicode(_("until"))+' '+str(req.subscription_resource().expiration_date)+'</span> '
                             else:
-                                req.actions += '<span class="error">'+unicode(totalshrs)+'</span>'
+                                req.actions += '<span class="error">'+unicode(totalshrs)+'</span> '
                     else:
                         if not totalshrs == payamount:
-                            req.actions += '<span class="complete">'+unicode(totalshrs)+'</span>'
+                            req.actions += '<span class="complete">'+unicode(totalshrs)+'</span> '
                         else:
                             req.actions += '<em class="complete"></em>'
                     #req.actions += '<br />'
@@ -8605,6 +8605,8 @@ def create_subscription_exchange_types(request, agent_id):
         slug_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.compact_name())+" Subscription")
         if not slug_ets:
             slug_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name)+" Subscription")
+        if not slug_ets:
+            slug_ets = ExchangeType.objects.filter(name__icontains=slug+"-buy "+str(project.agent.name_en)+" Subscription")
 
         if slug_ets:
             if len(slug_ets) > 1:
@@ -8631,9 +8633,9 @@ def create_subscription_exchange_types(request, agent_id):
         else:
             ttpay.pk = None
             ttpay.id = None
-            print "- created TransferType: 'Payment of the "+str(project.agent.name)+" subscription ("+slug+")'"
-            loger.info("- created TransferType: 'Payment of the "+str(project.agent.name)+" subscription ("+slug+")'")
-        ttpay.name = "Payment of the "+str(project.agent.name)+" subscription ("+slug+")"
+            print "- created TransferType: 'Payment of the "+str(project.agent.name_en)+" subscription ("+slug+")'"
+            loger.info("- created TransferType: 'Payment of the "+str(project.agent.name_en)+" subscription ("+slug+")'")
+        ttpay.name = "Payment of the "+str(project.agent.name_en)+" subscription ("+slug+")"
         ttpay.exchange_type = slug_et
         ttpay.sequence = 1
         ttpay.give_agent_is_context = False
@@ -8669,9 +8671,9 @@ def create_subscription_exchange_types(request, agent_id):
         else:
             ttshr.pk = None
             ttshr.id = None
-            print "- created TransferType: 'Activate the "+str(project.agent.name)+" subscription' ("+slug+")"
-            loger.info("- created TransferType: 'Activate the "+str(project.agent.name)+" subscription' ("+slug+")")
-        ttshr.name = "Activate the "+str(project.agent.name)+" subscription"
+            print "- created TransferType: 'Activate the "+str(project.agent.name_en)+" subscription' ("+slug+")"
+            loger.info("- created TransferType: 'Activate the "+str(project.agent.name_en)+" subscription' ("+slug+")")
+        ttshr.name = "Activate the "+str(project.agent.name_en)+" subscription"
         ttshr.exchange_type = slug_et
         ttshr.sequence = 2
         ttshr.give_agent_is_context = True
