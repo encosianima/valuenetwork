@@ -3336,7 +3336,9 @@ def fill_empty_languages(**kwargs):
     lang = settings.LANGUAGE_CODE
     print("default LANG: "+lang)
     try:
-        ocp = EconomicAgent.objects.get(nick_en='OCP')
+        ocp = EconomicAgent.objects.filter(nick='OCP')
+        if hasattr(ocp, 'nick_en'):
+            print("OCP en:"+str(ocp.nick_en))
     except:
         print("OCP still has not translatable fields. SKIP!")
         return
