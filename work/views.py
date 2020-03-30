@@ -2106,7 +2106,7 @@ def members_agent(request, agent_id):
         "Stype_form": Stype_form,
         "auto_resource": auto_resource,
         "related_rts": related_rts,
-        "units": Unit.objects.filter(unit_type='value').exclude(name__icontains="share"),
+        "units": Unit.objects.filter(unit_type='value').exclude(name_en__icontains="share"),
     })
 
 
