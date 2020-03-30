@@ -240,13 +240,21 @@ h3.trtheading {
                                 ({{ req.show_share_price }})
                             </p>
                         {% endif %}
-                        {% if req.subscription_resource %}
+                        {% if req.subscription_rt %}
                             <p>
-                                {% trans "Item" %}: <b>{{ req.subscription_resource.identifier }}</b>
+                                {% trans "Item" %}: <b>
+                                {% if req.subscription_resource %}
+                                    {{ req.subscription_resource.identifier }}
+                                {% else %}
+                                    {{ req.subscription_rt.name }}
+                                {% endif %}
+                                </b>
                             </p>
-                            <p>
+                            {% if req.subscription_resource %}
+                              <p>
                                 {% trans "Expiration date" %}: <b>{{ req.subscription_resource.expiration_date }}</b>
-                            </p>
+                              </p>
+                            {% endif %}
                         {% else %}
                             <p>
                                 {% trans "Quantity" %}: <b>{{ req.payment_amount }}</b> &nbsp;
@@ -296,7 +304,7 @@ h3.trtheading {
                         {% endfor %}
                     </p>
                 {% endif %}
-                {% if not req.subscription_resource %}
+                {% if not req.subscription_rt %}
                   <p>
                     {% trans "Total transfered value" %}: <span class="total-top">{{ total_t }}
                     {% if total_t %}{% if total_t_unit.symbol %}{{ total_t_unit.symbol }}{% else %}{{ total_t_unit.abbrev }}{% endif %}{% endif %}</span>
