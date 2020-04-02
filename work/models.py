@@ -884,7 +884,7 @@ class JoinRequest(models.Model):
 
     def payment_option(self):
         answer = {}
-        data2 = None
+        #data2 = None
         if self.project.is_moderated() and self.fobi_data:
             for key in self.fobi_items_keys():
                 if key == "payment_mode": # fieldname specially defined in the fobi form
@@ -894,6 +894,7 @@ class JoinRequest(models.Model):
                     val = self.data.get(key)
                     #import pdb; pdb.set_trace()
                     answer['val'] = val
+                    #answer['key'] = key
                     for elem in self.fobi_data.form_entry.formelemententry_set.all(): #filter(plugin_data_en__isnull=False):
                         data2 = json.loads(elem.plugin_data)
                         nam = data2.get('name')
@@ -909,13 +910,17 @@ class JoinRequest(models.Model):
                           else:
                             raise ValidationError("The payment mode field has no choices? "+str(data2))
                         if not 'key' in answer:
+                            #print("Can't find payment mode key in elem.plugin_data, try langs....")
                             plugdata = None
                             if hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
                                 plugdata = elem.plugin_data_en
+                                #print("found elem.plugin_data_EN: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_es') and elem.plugin_data_es:
                                 plugdata = elem.plugin_data_es
+                                #print("found elem.plugin_data_ES: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_ca') and elem.plugin_data_ca:
                                 plugdata = elem.plugin_data_ca
+                                #print("found elem.plugin_data_CA: ") #+str(plugdata))
                             #print("not key? "+str(elem.plugin_data_en))
                             data3 = json.loads(plugdata)
                             nam = data3.get('name')
@@ -934,7 +939,7 @@ class JoinRequest(models.Model):
 
 
                     if not answer.has_key('key'):
-                        raise ValidationError(u"can't find the payment_option key! answer: "+str(data2)+u' val: '+val)
+                        raise ValidationError(u"can't find the payment_mode key! answer: "+str(answer)+u' val: '+val)
             if not answer.has_key('key') or not answer.has_key('val'):
                 print("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
                 loger.warning("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
