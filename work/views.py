@@ -2393,8 +2393,9 @@ def create_user_accounts(request, agent, project=None):
               elif rt.name_en == "Faircoin Ocp Account" and rt.context_agent.nick_en == "OCP":
                 pass
               else:
-                print "- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent)
-                loger.info("- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent))
+                pass
+                #print "- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent)
+                #loger.info("- rt with another context_agent, SKIP! rt:"+str(rt)+" ca:"+str(rt.context_agent)+" ass:"+str(ag.has_associate)+" agent:"+str(agent))
           else:
             pass # no permission
         else:
