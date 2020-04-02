@@ -912,14 +912,14 @@ class JoinRequest(models.Model):
                         if not 'key' in answer:
                             #print("Can't find payment mode key in elem.plugin_data, try langs....")
                             plugdata = None
-                            if hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
-                                plugdata = elem.plugin_data_en
+                            if hasattr(elem, 'plugin_data_ca') and elem.plugin_data_ca:
+                                plugdata = elem.plugin_data_ca
                                 #print("found elem.plugin_data_EN: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_es') and elem.plugin_data_es:
                                 plugdata = elem.plugin_data_es
                                 #print("found elem.plugin_data_ES: ") #+str(plugdata))
-                            elif hasattr(elem, 'plugin_data_ca') and elem.plugin_data_ca:
-                                plugdata = elem.plugin_data_ca
+                            elif hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
+                                plugdata = elem.plugin_data_en
                                 #print("found elem.plugin_data_CA: ") #+str(plugdata))
                             #print("not key? "+str(elem.plugin_data_en))
                             data3 = json.loads(plugdata)
