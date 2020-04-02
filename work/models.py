@@ -908,9 +908,16 @@ class JoinRequest(models.Model):
                                     answer['key'] = opa[0].strip()
                           else:
                             raise ValidationError("The payment mode field has no choices? "+str(data2))
-                        if not 'key' in answer and hasattr(elem, 'plugin_data_en'):
+                        if not 'key' in answer:
+                            plugdata = None
+                            if hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
+                                plugdata = elem.plugin_data_en
+                            elif hasattr(elem, 'plugin_data_es') and elem.plugin_data_es:
+                                plugdata = elem.plugin_data_es
+                            elif hasattr(elem, 'plugin_data_ca') and elem.plugin_data_ca:
+                                plugdata = elem.plugin_data_ca
                             #print("not key? "+str(elem.plugin_data_en))
-                            data3 = json.loads(elem.plugin_data_en)
+                            data3 = json.loads(plugdata)
                             nam = data3.get('name')
                             if nam == key:
                               choi = data3.get('choices') # works with radio or select
@@ -3082,19 +3089,19 @@ class Ocp_Skill_Type(Job):
     ocp_artwork_type = TreeForeignKey(
       Ocp_Artwork_Type,
       on_delete=models.SET_NULL,
-      verbose_name=_('general artwork_type'),
+      verbose_name=_('ocp artwork_type'),
       related_name='ocp_skill_types',
       blank=True, null=True,
-      help_text=_("a related General Artwork Type")
+      help_text=_("a related Ocp Artwork Type")
     )
-    '''event_type = models.ForeignKey( # only for verbs that are ocp event types
+    event_type = models.OneToOneField( # only for verbs that are ocp event types
       EventType,
       on_delete=models.SET_NULL,
       verbose_name=_('ocp event_type'),
       related_name='ocp_skill_type',
       blank=True, null=True,
       help_text=_("a related OCP EventType")
-    )'''
+    )
 
     objects = Ocp_Skill_TypeManager()
 
