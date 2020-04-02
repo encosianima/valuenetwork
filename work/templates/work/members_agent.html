@@ -77,6 +77,10 @@
   .smaller {
       font-size: .9em;
   }
+  span.small img {
+      padding: 5px 0;
+      width:30%;
+  }
   .button-row {
       margin-top: 0;
       margin-bottom: 10px;
@@ -373,17 +377,40 @@
                           {% if request.user.is_superuser %}<br>{{ agent.photo.url }}{% endif %}
                         {% endif %}
                       {% elif agent.photo_url %}
-                        <img src="{{ agent.photo_url }}" style="width:auto;"/>
+                        <img src="{{ agent.photo_url }}" style="width:auto;"/><br>
                       {% endif %}
                       {% if user_agent in agent.managers or user_is_agent %}
-                        <a href="#uploadPicture" role="button" class="btn btn-primary btn-mini" data-toggle="modal" style="float:right;">{% if agent.photo or agent.photo_url %}{% trans "Change" %}{% else %}{% trans "Set" %}{% endif %}</a>
+                        <a href="#uploadPicture" role="button" class="btn btn-primary btn-mini" data-toggle="modal" style="float:right; margin-top:5px;">{% if agent.photo or agent.photo_url %}{% trans "Change" %}{% else %}{% trans "Set" %}{% endif %}</a>
+
+                        {% if not agent.photo_url == agent.photo_url_en %}
+                          <br><span class="small">(en: <img src="{{ agent.photo_url_en }}" /> )</span>
+                        {% endif %}
+                        {% if not agent.photo_url == agent.photo_url_es %}
+                          <br><span class="small">(es: <img src="{{ agent.photo_url_es }}" /> )</span>
+                        {% endif %}
+                        {% if not agent.photo_url == agent.photo_url_ca %}
+                          <br><span class="small">(ca: <img src="{{ agent.photo_url_ca }}" /> )</span>
+                        {% endif %}
                       {% endif %}
                     </td>
                   </tr>
 
                   <tr>
                         <th style="width: 150px; text-align: right;">{% trans "Nickname" %}</th>
-                        <td>{{ agent.nick }} {% if agn_form.nick.errors %}<br> -> <span class="error">"{{ agn_form.nick.value }}": {{ agn_form.nick.errors|first }}</span>{% endif %}</td>
+                        <td>{{ agent.nick }}
+                            {% if agn_form.nick.errors %}<br> ->
+                                <span class="error">"{{ agn_form.nick.value }}": {{ agn_form.nick.errors|first }}</span>
+                            {% endif %}
+                            {% if not agent.nick == agent.nick_en %}
+                                <br><span class="small">(en: {{ agent.nick_en }})</span>
+                            {% endif %}
+                            {% if not agent.nick == agent.nick_es %}
+                                <br><span class="small">(es: {{ agent.nick_es }})</span>
+                            {% endif %}
+                            {% if not agent.nick == agent.nick_ca %}
+                                <br><span class="small">(ca: {{ agent.nick_ca }})</span>
+                            {% endif %}
+                        </td>
                   </tr>
                   {% if request.user.is_superuser and agent.user.user %}
                         <tr>
@@ -393,7 +420,17 @@
                   {% endif %}
                   <tr>
                         <th style="text-align: right;">{% trans "Full Name" %}</th>
-                        <td>{{ agent.name }} {% if agn_form.name.errors %}<br> -> <span class="error">"{{ agn_form.name.value }}": {{ agn_form.name.errors|first }}</span>{% endif %}</td>
+                        <td>{{ agent.name }} {% if agn_form.name.errors %}<br> -> <span class="error">"{{ agn_form.name.value }}": {{ agn_form.name.errors|first }}</span>{% endif %}
+                        {% if not agent.name == agent.name_en %}
+                            <br><span class="small">(en: {{ agent.name_en }})</span>
+                        {% endif %}
+                        {% if not agent.name == agent.name_es %}
+                            <br><span class="small">(es: {{ agent.name_es }})</span>
+                        {% endif %}
+                        {% if not agent.name == agent.name_ca %}
+                            <br><span class="small">(ca: {{ agent.name_ca }})</span>
+                        {% endif %}
+                        </td>
                   </tr>
                   <tr>
                         <th style="text-align: right;">{% trans "Type" %}</th>
@@ -408,7 +445,17 @@
                   {% if agent.url %}
                       <tr>
                           <th style="text-align: right;">{% trans "URL" %}</th>
-                          <td><a href="{{ agent.url }}" target="_blank">{{ agent.url }}</a></td>
+                          <td><a href="{{ agent.url }}" target="_blank">{{ agent.url }}</a>
+                              {% if not agent.url == agent.url_en %}
+                                  <br><span class="small">(en: {{ agent.url_en }})</span>
+                              {% endif %}
+                              {% if not agent.url == agent.url_es %}
+                                  <br><span class="small">(es: {{ agent.url_es }})</span>
+                              {% endif %}
+                              {% if not agent.url == agent.url_ca %}
+                                  <br><span class="small">(ca: {{ agent.url_ca }})</span>
+                              {% endif %}
+                          </td>
                       </tr>
                   {% endif %}
                   {% if agent.description %}
@@ -421,7 +468,17 @@
 
                     <tr>
                         <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
-                        <td>{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %} {% if agn_form.email.errors %}<br> -> <span class="error">"{{ agn_form.email.value }}": {{ agn_form.email.errors|first }}</span>{% endif %}</td>
+                        <td>{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %} {% if agn_form.email.errors %}<br> -> <span class="error">"{{ agn_form.email.value }}": {{ agn_form.email.errors|first }}</span>{% endif %}
+                            {% if not agent.email == agent.email_en %}
+                                <br><span class="small">(en: {{ agent.email_en }})</span>
+                            {% endif %}
+                            {% if not agent.email == agent.email_es %}
+                                <br><span class="small">(es: {{ agent.email_es }})</span>
+                            {% endif %}
+                            {% if not agent.email == agent.email_ca %}
+                                <br><span class="small">(ca: {{ agent.email_ca }})</span>
+                            {% endif %}
+                        </td>
                     </tr>
 
                         {% if user_agent in agent.managers or user_is_agent or agent.primary_location %}
@@ -436,13 +493,32 @@
                                 {% else %}
                                   {{ agent.address }}
                                 {% endif %}
+                                {% if not agent.address == agent.address_en %}
+                                    <br><span class="small">(en: {{ agent.address_en }})</span>
+                                {% endif %}
+                                {% if not agent.address == agent.address_es %}
+                                    <br><span class="small">(es: {{ agent.address_es }})</span>
+                                {% endif %}
+                                {% if not agent.address == agent.address_ca %}
+                                    <br><span class="small">(ca: {{ agent.address_ca }})</span>
+                                {% endif %}
                             </td>
                           </tr>
                         {% endif %}
                      {% if agent.phone_primary %}
                          <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "Phone" %}</th>
-                            <td>{{ agent.phone_primary }}</td>
+                            <td>{{ agent.phone_primary }}
+                                {% if not agent.phone_primary == agent.phone_primary_en %}
+                                    <br><span class="small">(en: {{ agent.phone_primary_en }})</span>
+                                {% endif %}
+                                {% if not agent.phone_primary == agent.phone_primary_es %}
+                                    <br><span class="small">(es: {{ agent.phone_primary_es }})</span>
+                                {% endif %}
+                                {% if not agent.phone_primary == agent.phone_primary_ca %}
+                                    <br><span class="small">(ca: {{ agent.phone_primary_ca }})</span>
+                                {% endif %}
+                            </td>
                         </tr>
                      {% endif %}
                   {% endif %}
