@@ -24,7 +24,7 @@
 </div>
 <div class="container">
     {% include "_messages.html" %}
-    <p>&nbsp;</p>
+    <p>&nbsp;<br></p>
     {% if existuser or existemail %}
         <!-- {% if existuser and not existemail %}
             <h2>
@@ -67,7 +67,8 @@
         <p> &nbsp; </p>
         {% if project.payment_options and jn_req.pending_shares %}
             <p style="text-align:center; font-size:120%; ">
-                {% trans "You've choosed to pay your" %} <b>{{ jn_req.pending_shares }}</b> {% trans "Shares via" %} <span style="font-weight:bold;">{{ jn_req.payment_option.val }}</span>
+                {% trans "You've choosed to make a payment of" %} <b>{{ jn_req.payment_amount }} {{ jn_req.payment_unit.abbrev }}</b>
+                <!-- {% trans "via" %} <span style="font-weight:bold;">{{ jn_req.payment_option.val }}</span> -->
             </p>
             {% if jn_req.payment_url or jn_req.multiwallet_user %}
                 <p style="text-align:center; font-size:120%; ">
@@ -81,7 +82,7 @@
                 </p>
 
             {% elif jn_req.payment_html %}
-                <p style="text-align:center">{{ jn_req.payment_html|safe }}</p>
+                <p style="text-align:center; font-size:120%; max-width:85%;">{{ jn_req.payment_html|safe }}</p>
             {% endif %}
         {% endif %}
     </div>
