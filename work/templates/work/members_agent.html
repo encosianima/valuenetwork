@@ -446,6 +446,7 @@
                       <tr>
                           <th style="text-align: right;">{% trans "URL" %}</th>
                           <td><a href="{{ agent.url }}" target="_blank">{{ agent.url }}</a>
+                            {% if user_agent in agent.members or user_is_agent %}
                               {% if not agent.url == agent.url_en %}
                                   <br><span class="small">(en: {{ agent.url_en }})</span>
                               {% endif %}
@@ -455,6 +456,7 @@
                               {% if not agent.url == agent.url_ca %}
                                   <br><span class="small">(ca: {{ agent.url_ca }})</span>
                               {% endif %}
+                            {% endif %}
                           </td>
                       </tr>
                   {% endif %}
@@ -469,6 +471,7 @@
                     <tr>
                         <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
                         <td>{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %} {% if agn_form.email.errors %}<br> -> <span class="error">"{{ agn_form.email.value }}": {{ agn_form.email.errors|first }}</span>{% endif %}
+                          {% if user_agent in agent.managers or user_is_agent %}
                             {% if not agent.email == agent.email_en %}
                                 <br><span class="small">(en: {{ agent.email_en }})</span>
                             {% endif %}
@@ -478,6 +481,7 @@
                             {% if not agent.email == agent.email_ca %}
                                 <br><span class="small">(ca: {{ agent.email_ca }})</span>
                             {% endif %}
+                          {% endif %}
                         </td>
                     </tr>
 
@@ -493,14 +497,16 @@
                                 {% else %}
                                   {{ agent.address }}
                                 {% endif %}
-                                {% if not agent.address == agent.address_en %}
-                                    <br><span class="small">(en: {{ agent.address_en }})</span>
-                                {% endif %}
-                                {% if not agent.address == agent.address_es %}
-                                    <br><span class="small">(es: {{ agent.address_es }})</span>
-                                {% endif %}
-                                {% if not agent.address == agent.address_ca %}
-                                    <br><span class="small">(ca: {{ agent.address_ca }})</span>
+                                {% if user_agent in agent.members or user_is_agent %}
+                                    {% if not agent.address == agent.address_en %}
+                                        <br><span class="small">(en: {{ agent.address_en }})</span>
+                                    {% endif %}
+                                    {% if not agent.address == agent.address_es %}
+                                        <br><span class="small">(es: {{ agent.address_es }})</span>
+                                    {% endif %}
+                                    {% if not agent.address == agent.address_ca %}
+                                        <br><span class="small">(ca: {{ agent.address_ca }})</span>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                           </tr>
@@ -509,6 +515,7 @@
                          <tr>
                             <th style="text-align: right; vertical-align: top; ">{% trans "Phone" %}</th>
                             <td>{{ agent.phone_primary }}
+                              {% if user_agent in agent.managers or user_is_agent %}
                                 {% if not agent.phone_primary == agent.phone_primary_en %}
                                     <br><span class="small">(en: {{ agent.phone_primary_en }})</span>
                                 {% endif %}
@@ -518,6 +525,7 @@
                                 {% if not agent.phone_primary == agent.phone_primary_ca %}
                                     <br><span class="small">(ca: {{ agent.phone_primary_ca }})</span>
                                 {% endif %}
+                              {% endif %}
                             </td>
                         </tr>
                      {% endif %}
