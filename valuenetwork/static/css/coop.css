@@ -176,14 +176,19 @@ td.login-block div#div_id_username {
 	width: 80px !important;
   text-align: left;
 }
+.login-block #div_id_remember .controls {
+    margin-left: 0 !important;
+    margin-bottom: 20px;
+}
 .login-block div.control-group {
-	padding: 20px 0;
+	padding: 2px 0;
 	margin-bottom: 0;
 	margin-top: 10px;
+    overflow: auto;
 }
 .login-block .controls {
-	float: right;
-	margin-left: 0 !important;
+	/*float: right;*/
+	margin-left: 90px !important;
 }
 .login-block .form-actions {
 	padding: 17px 0 20px !important;
