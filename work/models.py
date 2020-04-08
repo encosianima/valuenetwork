@@ -914,13 +914,13 @@ class JoinRequest(models.Model):
                             plugdata = None
                             if hasattr(elem, 'plugin_data_ca') and elem.plugin_data_ca:
                                 plugdata = elem.plugin_data_ca
-                                loger.info("found1 elem.plugin_data_CA: ") #+str(plugdata))
+                                #loger.info("found1 elem.plugin_data_CA: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_es') and elem.plugin_data_es:
                                 plugdata = elem.plugin_data_es
-                                loger.info("found1 elem.plugin_data_ES: ") #+str(plugdata))
+                                #loger.info("found1 elem.plugin_data_ES: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
                                 plugdata = elem.plugin_data_en
-                                loger.info("found1 elem.plugin_data_EN: ") #+str(plugdata))
+                                #loger.info("found1 elem.plugin_data_EN: ") #+str(plugdata))
                             else:
                                 raise ValidationError("Can't find translations of plugin_data for elem: "+str(elem))
                             #print("not key? "+str(elem.plugin_data_en))
@@ -939,17 +939,17 @@ class JoinRequest(models.Model):
                                 raise ValidationError("The payment mode field has no choices 2? "+str(data3))
 
                         if not 'key' in answer:
-                            #print("Can't find payment mode key in elem.plugin_data, try langs....")
+                            loger.info("Can't find payment mode key in elem.plugin_data in second round try third ...")
                             plugdata = None
                             if hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
                                 plugdata = elem.plugin_data_en
-                                loger.info("found2 elem.plugin_data_EN: ") #+str(plugdata))
+                                #loger.info("found2 elem.plugin_data_EN: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_es') and elem.plugin_data_es:
                                 plugdata = elem.plugin_data_es
-                                loger.info("found2 elem.plugin_data_ES: ") #+str(plugdata))
+                                #loger.info("found2 elem.plugin_data_ES: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_ca') and elem.plugin_data_ca:
                                 plugdata = elem.plugin_data_ca
-                                loger.info("found2 elem.plugin_data_CA: ") #+str(plugdata))
+                                #loger.info("found2 elem.plugin_data_CA: ") #+str(plugdata))
                             else:
                                 raise ValidationError("Can't find translations of plugin_data for elem: "+str(elem))
                             #print("not key? "+str(elem.plugin_data_en))
