@@ -921,6 +921,8 @@ class JoinRequest(models.Model):
                             elif hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
                                 plugdata = elem.plugin_data_en
                                 #print("found elem.plugin_data_CA: ") #+str(plugdata))
+                            else:
+                                raise ValidationError("Can't find translations of plugin_data for elem: "+str(elem))
                             #print("not key? "+str(elem.plugin_data_en))
                             data3 = json.loads(plugdata)
                             nam = data3.get('name')
@@ -939,7 +941,7 @@ class JoinRequest(models.Model):
 
 
                     if not answer.has_key('key'):
-                        raise ValidationError(u"can't find the payment_mode key! answer: "+str(answer)+u' val: '+val)
+                        raise ValidationError(u"can't find the payment_mode key! data3: "+str(data3)+u' val: '+val)
             if not answer.has_key('key') or not answer.has_key('val'):
                 print("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
                 loger.warning("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
