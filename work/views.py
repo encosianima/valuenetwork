@@ -2875,6 +2875,9 @@ def joinaproject_request(request, form_slug = False):
                         if not password:
 
                             join_form.add_error('email_address', "Seems like the address don't exist?")
+                            jn_req.fobi_data.delete()
+                            jn_req.delete()
+
                             return render(request, "work/joinaproject_request.html", {
                                 "help": get_help("work_join_request"),
                                 "join_form": join_form,
