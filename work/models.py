@@ -914,13 +914,13 @@ class JoinRequest(models.Model):
                             plugdata = None
                             if hasattr(elem, 'plugin_data_ca') and elem.plugin_data_ca:
                                 plugdata = elem.plugin_data_ca
-                                #print("found elem.plugin_data_EN: ") #+str(plugdata))
+                                loger.info("found1 elem.plugin_data_CA: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_es') and elem.plugin_data_es:
                                 plugdata = elem.plugin_data_es
-                                #print("found elem.plugin_data_ES: ") #+str(plugdata))
+                                loger.info("found1 elem.plugin_data_ES: ") #+str(plugdata))
                             elif hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
                                 plugdata = elem.plugin_data_en
-                                #print("found elem.plugin_data_CA: ") #+str(plugdata))
+                                loger.info("found1 elem.plugin_data_EN: ") #+str(plugdata))
                             else:
                                 raise ValidationError("Can't find translations of plugin_data for elem: "+str(elem))
                             #print("not key? "+str(elem.plugin_data_en))
@@ -937,6 +937,35 @@ class JoinRequest(models.Model):
                                         answer['key'] = opa[0].strip()
                               else:
                                 raise ValidationError("The payment mode field has no choices 2? "+str(data3))
+
+                        if not 'key' in answer:
+                            #print("Can't find payment mode key in elem.plugin_data, try langs....")
+                            plugdata = None
+                            if hasattr(elem, 'plugin_data_en') and elem.plugin_data_en:
+                                plugdata = elem.plugin_data_en
+                                loger.info("found2 elem.plugin_data_EN: ") #+str(plugdata))
+                            elif hasattr(elem, 'plugin_data_es') and elem.plugin_data_es:
+                                plugdata = elem.plugin_data_es
+                                loger.info("found2 elem.plugin_data_ES: ") #+str(plugdata))
+                            elif hasattr(elem, 'plugin_data_ca') and elem.plugin_data_ca:
+                                plugdata = elem.plugin_data_ca
+                                loger.info("found2 elem.plugin_data_CA: ") #+str(plugdata))
+                            else:
+                                raise ValidationError("Can't find translations of plugin_data for elem: "+str(elem))
+                            #print("not key? "+str(elem.plugin_data_en))
+                            data3 = json.loads(plugdata)
+                            nam = data3.get('name')
+                            if nam == key:
+                              choi = data3.get('choices') # works with radio or select
+                              if choi:
+                                opts = choi.split('\r\n')
+                                for op in opts:
+                                    opa = op.split(',')
+                                    #print('op1:'+op)
+                                    if val.strip() == opa[1].strip() or val.strip() == opa[0].strip():
+                                        answer['key'] = opa[0].strip()
+                              else:
+                                raise ValidationError("The payment mode field has no choices 3? "+str(data3))
                         #print('answer:'+str(answer))
 
 
