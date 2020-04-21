@@ -3140,7 +3140,7 @@ def joinaproject_request_internal(request, agent_id = False):
                     saved_data = json.dumps(cleaned_data)
                     )
                 saved_form_data_entry.save()
-                jn_req = JoinRequest.objects.get(pk=jn_req.pk)
+                #jn_req = JoinRequest.objects.get(pk=jn_req.pk)
                 jn_req.fobi_data = saved_form_data_entry
                 #messages.info(
                 #    request,
