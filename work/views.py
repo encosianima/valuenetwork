@@ -3067,7 +3067,7 @@ def joinaproject_request_internal(request, agent_id = False):
             if usr_agent:
               jn_req.agent = usr_agent
               jn_req.name = usr_agent.name
-            jn_req.save()
+            #jn_req.save()
 
             #request.POST._mutable = True
             #request.POST['join_request'] = str(jn_req.pk)
@@ -3148,6 +3148,9 @@ def joinaproject_request_internal(request, agent_id = False):
                 #)
                 jn_req.save()
 
+            else:
+                jn_req.save()
+
             # add relation candidate
             if jn_req.agent:
                 if jn_req.project.shares_account_type():
@@ -3217,9 +3220,9 @@ def joinaproject_request_internal(request, agent_id = False):
 
             return HttpResponseRedirect(reverse('members_agent', args=(proj_agent.id,))) #'/%s/' % ('work/your-projects'))
 
-
-    kwargs = {'initial': {'fobi_initial_data':form_slug} }
-    fobi_form = FormClass(**kwargs)
+    else:
+        kwargs = {'initial': {'fobi_initial_data':form_slug} }
+        fobi_form = FormClass(**kwargs)
 
     return render(request, "work/joinaproject_request_internal.html", {
         "help": get_help("work_join_request_internal"),
