@@ -1795,6 +1795,10 @@ def members_agent(request, agent_id):
         oldnick = agent.nick
         nick = agent.nick
         name = agent.name
+        oldemail = agent.email
+        usr = agent.my_user()
+        #usremail = usr.email if usr else None
+
         if agent.is_individual():
             #agn_form = WorkAgentCreateForm(instance=agent, data=request.POST)
             if agn_form.is_valid():
@@ -1879,6 +1883,13 @@ def members_agent(request, agent_id):
                         loger.warning("- ERROR, resource with strange name? "+str(rs))
         agent.name = name
         agent.nick = nick
+        if not oldemail == agent.email and usr:
+            if not usr.email == agent.email:
+                loger.info("- Changed also the agent's User email to "+str(agent.email))
+                usr.email = agent.email
+                usr.save()
+
+
         agent.save()
         #print "- saved agent "+str(agent)
       else:
