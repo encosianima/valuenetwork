@@ -3072,7 +3072,7 @@ def joinaproject_request_internal(request, agent_id = False):
             #request.POST._mutable = True
             #request.POST['join_request'] = str(jn_req.pk)
 
-            if form_slug:
+            if fobi_form: #form_slug:
               #fobi_form = FormClass(request.POST, request.FILES)
 
               # Fire pre form validation callbacks
@@ -3146,79 +3146,59 @@ def joinaproject_request_internal(request, agent_id = False):
                 #    request,
                 #    _("JoinRequest {0} was submitted successfully. {1}").format(jn.fobi_data, saved_form_data_entry.pk)
                 #)
-                jn_req.save()
+                if jn_req.fobi_data:
+                    jn_req.save()
+
+                    # add relation candidate
+                    if jn_req.agent:
+                        if jn_req.project.shares_account_type():
+                            ass_type = get_object_or_404(AgentAssociationType, identifier="member")
+                        else:
+                            ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
+                        ass = AgentAssociation.objects.filter(is_associate=jn_req.agent, has_associate=jn_req.project.agent)
+                        if ass_type and not ass:
+                          fc_aa = AgentAssociation(
+                            is_associate=jn_req.agent,
+                            has_associate=jn_req.project.agent,
+                            association_type=ass_type,
+                            state="potential",
+                            )
+                          fc_aa.save()
+
+                    description = "A new Join Request from OCP user "
+                    description += name
+                    join_url = get_url_starter(request) + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
+
+                    #omit task-commitment?
+
+                    if notification:
+                        managers = jn_req.project.agent.managers()
+                        users = []
+                        for manager in managers:
+                          if manager.user():
+                            users.append(manager.user().user)
+                        if users:
+                            site_name = jn_req.project.agent.nick #get_site_name(request)
+                            notification.send(
+                                users,
+                                "work_join_request",
+                                {"name": name,
+                                "surname": surname,
+                                "type_of_user": type_of_user,
+                                "description": description,
+                                "site_name": site_name,
+                                "current_site": request.get_host(),
+                                "join_url": join_url,
+                                "context_agent": proj_agent,
+                                "request_host": request.get_host(),
+                                }
+                            )
+
+                    return HttpResponseRedirect(reverse('members_agent', args=(proj_agent.id,))) #'/%s/' % ('work/your-projects'))
 
             else:
-                jn_req.save()
-
-            # add relation candidate
-            if jn_req.agent:
-                if jn_req.project.shares_account_type():
-                    ass_type = get_object_or_404(AgentAssociationType, identifier="member")
-                else:
-                    ass_type = get_object_or_404(AgentAssociationType, identifier="participant")
-                ass = AgentAssociation.objects.filter(is_associate=jn_req.agent, has_associate=jn_req.project.agent)
-                if ass_type and not ass:
-                  fc_aa = AgentAssociation(
-                    is_associate=jn_req.agent,
-                    has_associate=jn_req.project.agent,
-                    association_type=ass_type,
-                    state="potential",
-                    )
-                  fc_aa.save()
-
-            description = "A new Join Request from OCP user "
-            description += name
-            join_url = get_url_starter(request) + "/work/agent/" + str(jn_req.project.agent.id) +"/join-requests/"
-
-            '''event_type = EventType.objects.get(relationship="todo")
-            context_agent = jn_req.project.agent #EconomicAgent.objects.get(name__icontains="Membership Request")
-            resource_types = EconomicResourceType.objects.filter(behavior="work")
-            rts = resource_types.filter(
-                Q(name__icontains="Admin")|
-                Q(name__icontains="Coop")|
-                Q(name__icontains="Work"))
-            if rts:
-                rt = rts[0]
-            else:
-                rt = resource_types[0]
-
-            task = Commitment(
-                event_type=event_type,
-                description=description,
-                resource_type=rt,
-                context_agent=context_agent,
-                url=join_url,
-                due_date=datetime.date.today(),
-                quantity=Decimal("1")
-                )
-            task.save()'''
-
-
-            if notification:
-                managers = jn_req.project.agent.managers()
-                users = []
-                for manager in managers:
-                  if manager.user():
-                    users.append(manager.user().user)
-                if users:
-                    site_name = jn_req.project.agent.nick #get_site_name(request)
-                    notification.send(
-                        users,
-                        "work_join_request",
-                        {"name": name,
-                        "surname": surname,
-                        "type_of_user": type_of_user,
-                        "description": description,
-                        "site_name": site_name,
-                        "current_site": request.get_host(),
-                        "join_url": join_url,
-                        "context_agent": proj_agent,
-                        "request_host": request.get_host(),
-                        }
-                    )
-
-            return HttpResponseRedirect(reverse('members_agent', args=(proj_agent.id,))) #'/%s/' % ('work/your-projects'))
+                raise ValidationError("Can't find the fobi form? jn_req:"+str(jn_req.id))
+                #jn_req.save()
 
     else:
         kwargs = {'initial': {'fobi_initial_data':form_slug} }
