@@ -3929,11 +3929,16 @@ def create_unit_types(**kwargs):
     intfairtts = intfairet.transfer_types.all()
     if intfairtts:
         intfairtt = intfairtts[0]
-        print("- found first TT id:"+str(intfairtt.id)+" name:"+str(intfairtt)+" txs:"+str(len(intfairtt.transfers.all())))
+        print("- found first intTT id:"+str(intfairtt.id)+" name:"+str(intfairtt)+" txs:"+str(len(intfairtt.transfers.all())))
     if len(intfairtts) > 1:
         for tt in intfairtts:
             if not tt == intfairtt:
-                print(" - found other TT id:"+str(tt.id)+" name:"+str(tt)+" txs:"+str(tt.transfers.all()))
+                txs = tt.transfers.all()
+                print(" - found other intTT id:"+str(tt.id)+" name:"+str(tt)+" txs:"+str(txs))
+                for tx in txs:
+                    print("- REPAIRED transfer_type of the tx:"+str(tx.id)+" from:"+str(tx.transfer_type.id)+" to:"+str(intfairtt.id))
+                    tx.transfer_type = intfairtt
+                    tx.save()
 
     extfairets = ExchangeType.objects.filter(name="Send FairCoins")
     if not extfairets:
@@ -3950,6 +3955,20 @@ def create_unit_types(**kwargs):
     extfairet.name = "Send Faircoins"
     extfairet.use_case = out_usecase
     extfairet.save()
+
+    extfairtts = extfairet.transfer_types.all()
+    if extfairtts:
+        extfairtt = extfairtts[0]
+        print("- found first extTT id:"+str(extfairtt.id)+" name:"+str(extfairtt)+" txs:"+str(len(extfairtt.transfers.all())))
+    if len(extfairtts) > 1:
+        for tt in extfairtts:
+            if not tt == extfairtt:
+                txs = tt.transfers.all()
+                print(" - found other extTT id:"+str(tt.id)+" name:"+str(tt)+" txs:"+str(txs))
+                for tx in txs:
+                    print("- REPAIRED transfer_type of the tx:"+str(tx.id)+" from:"+str(tx.transfer_type.id)+" to:"+str(extfairtt.id))
+                    tx.transfer_type = extfairtt
+                    tx.save()
 
     incfairets = ExchangeType.objects.filter(name="Receive FairCoins")
     if not incfairets:
@@ -3968,6 +3987,19 @@ def create_unit_types(**kwargs):
     incfairet.use_case = inc_usecase
     incfairet.save()
 
+    incfairtts = incfairet.transfer_types.all()
+    if incfairtts:
+        incfairtt = incfairtts[0]
+        print("- found first incTT id:"+str(incfairtt.id)+" name:"+str(incfairtt)+" txs:"+str(len(incfairtt.transfers.all())))
+    if len(incfairtts) > 1:
+        for tt in incfairtts:
+            if not tt == incfairtt:
+                txs = tt.transfers.all()
+                print(" - found other incTT id:"+str(tt.id)+" name:"+str(tt)+" txs:"+str(txs))
+                for tx in txs:
+                    print("- REPAIRED transfer_type of the tx:"+str(tx.id)+" from:"+str(tx.transfer_type.id)+" to:"+str(incfairtt.id))
+                    tx.transfer_type = incfairtt
+                    tx.save()
 
     genrec = Artwork_Type.objects.get(clas="Record")
     ocprecs = Artwork_Type.objects.filter(clas='ocp_record')
