@@ -3926,6 +3926,15 @@ def create_unit_types(**kwargs):
     intfairet.name = "Transfer Faircoins"
     intfairet.save()
 
+    intfairtts = intfairet.transfer_types.all()
+    if intfairtts:
+        intfairtt = intfairtts[0]
+        print("- found first TT id:"+str(intfairtt.id)+" name:"+str(intfairtt)+" txs:"+str(len(intfairtt.transfers.all())))
+    if len(intfairtts) > 1:
+        for tt in intfairtts:
+            if not tt == intfairtt:
+                print(" - found other TT id:"+str(tt.id)+" name:"+str(tt)+" txs:"+str(tt.transfers.all()))
+
     extfairets = ExchangeType.objects.filter(name="Send FairCoins")
     if not extfairets:
         extfairets = ExchangeType.objects.filter(name="Send Faircoins")
