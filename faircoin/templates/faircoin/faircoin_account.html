@@ -263,7 +263,7 @@
                                     <form
                                         class="pay_for_shares"
                                         id="sharePaymentForm"
-                                        action="{% url "share_payment" agent_id=agent.id %}"
+                                        action="{% url "share_payment_fair" agent_id=agent.id %}"
                                         method="POST" >
                                         {% csrf_token %}
                                         <input type="hidden" name="join_request" value="{{ jn_req.id }}">

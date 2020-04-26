@@ -284,9 +284,9 @@ def register_skills(request):
 #    M E M B E R S H I P
 
 
-"""
+
 @login_required
-def share_payment(request, agent_id):
+def share_payment_fair(request, agent_id):
     agent = get_object_or_404(EconomicAgent, id=agent_id)
     agent_account = agent.faircoin_resource()
     balance = agent_account.digital_currency_balance()
@@ -359,7 +359,7 @@ def share_payment(request, agent_id):
 
         state =  "new"
 
-        updated = req.update_payment_status('complete', address_end, address_origin)
+        updated = req.update_payment_status('complete', address_end, address_origin, request)
         if not updated:
             raise ValidationError("Error updating the payment status to complete.")
         evts = req.exchange.all_events()
@@ -397,7 +397,7 @@ def share_payment(request, agent_id):
 
         messages.info(request, _("You've payed the shares with your faircoins! The exchange is now complete and the shares has been transfered."))
 
-        resource = agent_account
+        #resource = agent_account
 
 
       else:
@@ -412,7 +412,7 @@ def share_payment(request, agent_id):
 
     return redirect('project_feedback', agent_id=req.agent.id, join_request_id=req.id) #HttpResponseRedirect('/%s/'
         #% ('work/home'))
-"""
+
 
 """
 def membership_request(request):

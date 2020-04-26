@@ -133,7 +133,7 @@ urlpatterns = [
     url(r'^create-shares-exchange-types/(?P<agent_id>\d+)/$', work.views.create_shares_exchange_types, name="create_shares_exchange_types"),
     url(r'^create-project-shares/(?P<agent_id>\d+)/$', work.views.create_project_shares, name="create_project_shares"),
 
-    #url(r'^share-payment/(?P<agent_id>\d+)/$', work.views.share_payment, name="share_payment"),
+    url(r'^share-payment-fair/(?P<agent_id>\d+)/$', work.views.share_payment_fair, name="share_payment_fair"),
     url(r"^validate-nick/$", work.views.validate_nick, name="validate_nick"),
     url(r"^validate-username/$", work.views.validate_username, name="validate_username"),
     #url(r"^validate-email/$", work.views.validate_email, name="validate_email"),
