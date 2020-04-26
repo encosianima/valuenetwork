@@ -104,7 +104,7 @@ class TransferInline(admin.TabularInline):
     fields = ('name', 'transfer_type', 'transfer_date')
 
 class TransferTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'sequence', 'exchange_type', )
+    list_display = ('id', 'name', 'sequence', 'exchange_type', )
     list_filter = ['exchange_type']
 
 admin.site.register(TransferType, TransferTypeAdmin)
