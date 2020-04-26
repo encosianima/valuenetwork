@@ -47,23 +47,28 @@ class ExchangeService(object):
     @classmethod
     def faircoin_internal_transfer_type(cls):
         xt = cls.faircoin_internal_exchange_type()
-        tt = TransferType.objects.filter(
+        tts = TransferType.objects.filter(
             exchange_type=xt,
-            name="Transfer FairCoins")
-        if tt:
-            tt = tt[0]
+            name=xt.name)
+        if not tts:
+            tts = TransferType.objects.filter(
+                exchange_type=xt,
+                name="Transfer FairCoins")
+        if tts:
+            tt = tts[0]
             if tt.name != xt.name:
                 print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
                 tt.name = xt.name
                 tt.save()
         else:
-            tt = TransferType(
+            tt, c = TransferType.objects.get_or_create(
                 exchange_type=xt,
                 name=xt.name,
                 sequence=1,
-                is_currency=True,
-            )
-            tt.save()
+                is_currency=True)
+            if c:
+                print("- created TransferType: "+str(tt))
+
         return tt
 
     @classmethod
@@ -84,11 +89,15 @@ class ExchangeService(object):
     @classmethod
     def faircoin_outgoing_transfer_type(cls):
         xt = cls.faircoin_outgoing_exchange_type()
-        tt = TransferType.objects.filter(
+        tts = TransferType.objects.filter(
             exchange_type=xt,
-            name="Send FairCoins")
-        if tt:
-            tt = tt[0]
+            name=xt.name)
+        if not tts:
+            tts = TransferType.objects.filter(
+                exchange_type=xt,
+                name="Send FairCoins")
+        if tts:
+            tt = tts[0]
             if tt.name != xt.name:
                 print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
                 tt.name = xt.name
@@ -121,11 +130,15 @@ class ExchangeService(object):
     @classmethod
     def faircoin_incoming_transfer_type(cls):
         xt = cls.faircoin_incoming_exchange_type()
-        tt = TransferType.objects.filter(
+        tts = TransferType.objects.filter(
             exchange_type=xt,
-            name="Receive FairCoins")
-        if tt:
-            tt = tt[0]
+            name=xt.name)
+        if not tts:
+            tts = TransferType.objects.filter(
+                exchange_type=xt,
+                name="Receive FairCoins")
+        if tts:
+            tt = tts[0]
             if tt.name != xt.name:
                 print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
                 tt.name = xt.name

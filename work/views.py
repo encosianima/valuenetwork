@@ -5873,8 +5873,16 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
         total_agents = []
         work_events = exchange.work_events()
         slots = exchange.slots_with_detail(context_agent)
-
+        if slots:
+            mem = slots[0]
         for slot in slots:
+            if not slot == mem and slot.name == mem.name:
+                print("Duplicate TT (slot), delete? "+str(slot)+" fvs:"+str(slot.facet_values.all()))
+                loger.info("Duplicate TT (slot), delete? "+str(slot)+" fvs:"+str(slot.facet_values.all()))
+                if slot.is_deletable():
+                    print("DELETE empty slot: "+str(slot))
+                    loger.info("DELETE? empty slot: "+str(slot))
+                    #slot.delete()
             #tos = slot.agents_to()
             for to in slot.agents_to:
                 if not to in total_agents:
