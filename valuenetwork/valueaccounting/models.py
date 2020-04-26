@@ -8806,7 +8806,7 @@ class TransferType(models.Model):
             loger.info("WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id))
 
         print "- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id)
-        loger.info("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal))
+        loger.info("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id))
         return self.is_reciprocal
 
     def is_share(self):

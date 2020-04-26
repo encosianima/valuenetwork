@@ -3914,6 +3914,8 @@ def create_unit_types(**kwargs):
         intfairets = ExchangeType.objects.filter(name="Transfer Faircoins")
     if intfairets:
         intfairet = intfairets[0]
+        if len(intfairets) > 1:
+            print("Repeated ET, delete? "+str(intfairets[1].id))
     else:
         intfairet, c = ExchangeType.objects.get_or_create(
             name="Transfer Faircoins",
@@ -3929,6 +3931,8 @@ def create_unit_types(**kwargs):
         extfairets = ExchangeType.objects.filter(name="Send Faircoins")
     if extfairets:
         extfairet = extfairets[0]
+        if len(extfairets) > 1:
+            print("Repeated ET, delete? "+str(extfairets[1].id))
     else:
         extfairet = ExchangeType(
             use_case=out_usecase,
@@ -3943,6 +3947,8 @@ def create_unit_types(**kwargs):
         incfairets = ExchangeType.objects.filter(name="Receive Faircoins")
     if incfairets:
         incfairet = incfairets[0]
+        if len(incfairets) > 1:
+            print("Repeated ET, delete? "+str(incfairets[1].id))
     else:
         incfairet, c = ExchangeType.objects.get_or_create(
             name="Receive Faircoins",
