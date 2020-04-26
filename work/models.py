@@ -3939,6 +3939,10 @@ def create_unit_types(**kwargs):
                     print("- REPAIRED transfer_type of the tx:"+str(tx.id)+" from:"+str(tx.transfer_type.id)+" to:"+str(intfairtt.id))
                     tx.transfer_type = intfairtt
                     tx.save()
+                if tt.is_deletable():
+                    if not tt.facet_values.all():
+                        print("- DELETE intTT ? id:"+str(tt.id))
+                        tt.delete()
 
     extfairets = ExchangeType.objects.filter(name="Send FairCoins")
     if not extfairets:
@@ -3969,6 +3973,10 @@ def create_unit_types(**kwargs):
                     print("- REPAIRED transfer_type of the tx:"+str(tx.id)+" from:"+str(tx.transfer_type.id)+" to:"+str(extfairtt.id))
                     tx.transfer_type = extfairtt
                     tx.save()
+                if tt.is_deletable():
+                    if not tt.facet_values.all():
+                        print("- DELETE extTT ? id:"+str(tt.id))
+                        tt.delete()
 
     incfairets = ExchangeType.objects.filter(name="Receive FairCoins")
     if not incfairets:
@@ -4000,6 +4008,10 @@ def create_unit_types(**kwargs):
                     print("- REPAIRED transfer_type of the tx:"+str(tx.id)+" from:"+str(tx.transfer_type.id)+" to:"+str(incfairtt.id))
                     tx.transfer_type = incfairtt
                     tx.save()
+                if tt.is_deletable():
+                    if not tt.facet_values.all():
+                        print("- DELETE incTT ? id:"+str(tt.id))
+                        tt.delete()
 
     genrec = Artwork_Type.objects.get(clas="Record")
     ocprecs = Artwork_Type.objects.filter(clas='ocp_record')
