@@ -696,6 +696,8 @@ class JoinRequest(models.Model):
         return self.items_data
 
     def payment_regularity(self):
+        if not self.joining_style == 'subscription':
+            return None
         answer = {}
         data2 = None
         if self.project.is_moderated() and self.fobi_data:
