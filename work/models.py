@@ -696,7 +696,7 @@ class JoinRequest(models.Model):
         return self.items_data
 
     def payment_regularity(self):
-        if not self.joining_style == 'subscription':
+        if not self.project.joining_style == 'subscription':
             return None
         answer = {}
         data2 = None
@@ -2674,7 +2674,7 @@ class JoinRequest(models.Model):
                                 )
                             except:
                                 if request:
-                                    messages.error(request, _("Email failed! The destination address seems not real (or there's another email error): ")+str(email))
+                                    messages.error(request, unicode(_("Email failed! The destination address seems not real (or there's another email error): "))+str(email))
                                 loger.error("Email failed! The destination address seems not real (or there's another email error): "+str(email))
 
                                 aa.delete()
