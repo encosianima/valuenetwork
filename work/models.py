@@ -1067,7 +1067,7 @@ class JoinRequest(models.Model):
             if len(arr) > 2:
                 return arr[2]
 
-        popt = self.payment_option():
+        popt = self.payment_option()
         if popt and 'key' in popt:
             return popt['key']
         return None
