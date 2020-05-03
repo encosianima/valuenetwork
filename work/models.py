@@ -1066,7 +1066,11 @@ class JoinRequest(models.Model):
             arr = url.split('/')
             if len(arr) > 2:
                 return arr[2]
-        return self.payment_option()['key']
+
+        popt = self.payment_option():
+        if popt and 'key' in popt:
+            return popt['key']
+        return None
 
     def payment_margin(self):
         payopt = self.payment_option()
