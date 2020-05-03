@@ -1605,8 +1605,8 @@ class JoinRequest(models.Model):
                     return 'error'
             else:
                 raise ValidationError("not rt or not rt.ocp_artwork_type : "+str(rt))
-        else: # no payopt
-            raise ValidationError("no payment option key? "+str(payopt))
+        else: # no payopt, can be if no payment defined
+            pass #raise ValidationError("no payment option key? "+str(payopt))
         #et.crypto = self.crypto
         return et
 
