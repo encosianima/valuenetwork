@@ -983,9 +983,9 @@ class JoinRequest(models.Model):
                     if not answer.has_key('key'):
                         raise ValidationError(u"can't find the payment_mode key! data3: "+str(data3)+u' val: '+val)
             if not answer.has_key('key') or not answer.has_key('val'):
-                print("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
-                loger.warning("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
-                #pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
+                #print("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
+                #loger.warning("Can't find the payment_mode key! answer: "+str(answer)+" keys:"+str(self.fobi_items_keys()))
+                pass #raise ValidationError("can't find the payment_option key! data2: "+str(data2)) #answer key: "+str(answer['key'])+' val: '+str(answer['val'])+" for jn_req: "+str(self))
         return answer
 
     def share_price(self):
@@ -1303,7 +1303,7 @@ class JoinRequest(models.Model):
 
     def is_flexprice(self):
         unit = self.payment_unit()
-        if unit.abbrev in settings.CRYPTOS:
+        if unit and unit.abbrev in settings.CRYPTOS:
             return True
         return False
 
