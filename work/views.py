@@ -1790,7 +1790,7 @@ def members_agent(request, agent_id):
 
     agn_form = WorkAgentCreateForm(instance=agent, agent=agent, data=request.POST or None)
 
-    if user_is_agent or user_agent in agent.managers() or user.is_superuser:
+    if user_is_agent or user_agent in agent.managers() or request.user.is_superuser:
       if request.method == "POST":
         oldnick = agent.nick
         nick = agent.nick
