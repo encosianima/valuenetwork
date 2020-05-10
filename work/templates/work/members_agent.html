@@ -303,7 +303,8 @@
                         <h3 id="agent-change-label">{% trans "Change" %} {{ agent.name }}</h3>
                     </div>
                     <div class="modal-body">
-                        <form id="agentForm" enctype="multipart/form-data" action="{% url 'members_agent' agent_id=agent.id %}" method="POST" name="{{ agent.id }}" >
+                        <form id="agentForm" enctype="multipart/form-data" action="{% url 'members_agent' agent_id=agent.id %}"
+                              method="POST" name="{{ agent.id }}" >
                             {% csrf_token %}
                             {{ agn_form|as_bootstrap }}
                             {% if pro_form %}

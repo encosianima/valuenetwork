@@ -4367,7 +4367,7 @@ def validate_name(request):
             if not ags:
                 ags = EconomicAgent.objects.filter(name_en__iexact=name)
             if agid:
-                ags = ags.exclude(id=agid)
+                ags = ags.exclude(id=int(agid))
             if ags:
                 error = "Name of collective already known. Do you want to differentiate anyhow?"
     #import pdb; pdb.set_trace()
