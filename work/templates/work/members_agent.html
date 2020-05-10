@@ -379,8 +379,9 @@
                       {% elif agent.photo_url %}
                         <img src="{{ agent.photo_url }}" style="width:auto;"/><br>
                       {% endif %}
-                      {% if user_agent in agent.managers or user_is_agent %}
-                        <a href="#uploadPicture" role="button" class="btn btn-primary btn-mini" data-toggle="modal" style="float:right; margin-top:5px;">{% if agent.photo or agent.photo_url %}{% trans "Change" %}{% else %}{% trans "Set" %}{% endif %}</a>
+                      {% if user_agent in agent.managers or user_is_agent or user.is_superuser %}
+                        <a href="#uploadPicture" role="button" class="btn btn-primary btn-mini" data-toggle="modal"
+                           style="float:right; margin-top:5px;">{% if agent.photo or agent.photo_url %}{% trans "Change" %}{% else %}{% trans "Set" %}{% endif %}</a>
 
                         {% if not agent.photo_url == agent.photo_url_en %}
                           <br><span class="small">(en: <img src="{{ agent.photo_url_en }}" /> )</span>
