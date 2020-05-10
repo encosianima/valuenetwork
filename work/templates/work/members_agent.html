@@ -1317,7 +1317,7 @@
           <p>{% trans "This project has a moderated access workflow. Please fill the following form to request access, and then you will have a special feedback page to comunicate with the project coordinators" %}:</p>
           <p> {% if agent.project.fobi_form %}<b><a href="{% url 'project_joinform' agent_id=agent.id %}"
                                                     class="btn btn-primary">{% trans "Form to join" %} "{{ agent.name }}"</a></b>
-              {% else %} <em class="alert">{% trans "Sorry, the form is not ready, try tomorrow" %}</em> {% endif %}
+              {% else %} <div class="alert"><em>{% trans "Sorry, the form is not ready, try tomorrow" %}</em></div> {% endif %}
           </p>
         {% endif %}
       {% elif agent.project.joining_style == "autojoin" %}
