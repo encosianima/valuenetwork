@@ -199,7 +199,7 @@ class EconomicAgentContextAgentFilter(admin.SimpleListFilter):
         return queryset
 
 class EconomicAgentAdmin(TranslationAdmin):
-    list_display = ('nick', 'name', 'agent_type', 'url', 'address', 'email', 'slug', 'created_date')
+    list_display = ('id', 'nick', 'name', 'agent_type', 'email', 'url', 'address', 'slug', 'created_date')
     list_filter = ('agent_type', EconomicAgentContextAgentFilter)
     search_fields = ['name', 'address']
     inlines = [ AgentUserInline, ]
