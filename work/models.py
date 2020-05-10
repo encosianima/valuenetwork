@@ -918,6 +918,8 @@ class JoinRequest(models.Model):
                             for lan in settings.LANGUAGES:
                                 if hasattr(elem, 'plugin_data_'+lan[0]):
                                     plugdata = getattr(elem, 'plugin_data_'+lan[0])
+                                    if not plugdata:
+                                        continue
                                     data3 = json.loads(plugdata)
                                     nam = data3.get('name')
                                     if nam == key:
@@ -3416,10 +3418,27 @@ def fill_empty_languages(**kwargs):
 
 def create_unit_types(**kwargs):
 
+    atnet = AgentType.objects.filter(name="Network")
+    if not atnet:
+        atnet, c = AgentType.objects.get_or_create(
+            name="Network",
+            party_type="network",
+            is_context=True)
+        if c:
+            print("- created AgentType: Network")
+    else:
+        atnet = atnet[0]
     ocp = EconomicAgent.objects.filter(nick='OCP')
     if not ocp:
         print("- 'OCP' nick not found, fill from nick_en!")
-        ocp = EconomicAgent.objects.get(nick_en='OCP')
+        ocp = EconomicAgent.objects.filter(nick_en='OCP')
+        if not ocp:
+            ocp, c = EconomicAgent.objects.get_or_create(
+                nick="OCP",
+                name="General OCP",
+                agent_type=atnet)
+            if c:
+                print("- created EconomicAgent: OCP")
         ocp.nick = 'OCP'
         ocp.save()
     else:
@@ -3433,11 +3452,27 @@ def create_unit_types(**kwargs):
             ocp.save()
             print("- missing nick_ca! fill it: "+ocp.nick_ca)
 
+    atcop = AgentType.objects.filter(name="Cooperative")
+    if not atcop:
+        atcop, c = AgentType.objects.get_or_create(
+            name="Cooperative",
+            party_type="organization",
+            is_context=True)
+        if c:
+            print("- created AgentType: Cooperative")
+    else:
+        atcop = atcop[0]
 
     fdc = EconomicAgent.objects.filter(nick='Freedom Coop')
     if not fdc:
         print("- 'Freedom Coop' nick not found, fill from nick_en!")
-        fdc = EconomicAgent.objects.get(nick_en='Freedom Coop')
+        fdc = EconomicAgent.objects.filter(nick_en='Freedom Coop')
+        if not fdc:
+            fdc, c = EconomicAgent.objects.get_or_create(
+                name='Freedom Coop', nick='Freedom Coop',
+                agent_type=atcop, is_context=True)
+            if c: print("t- created EconomicAgent: 'Freedom Coop'")
+
         fdc.nick = 'Freedom Coop'
         fdc.save()
     else:
