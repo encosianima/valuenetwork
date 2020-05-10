@@ -489,7 +489,7 @@ class AgentManager(models.Manager):
 
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
-    nick = models.CharField(_('ID'), max_length=32, unique=True,
+    nick = models.CharField(_('nick'), max_length=32, unique=True,
         help_text=_("Must be unique, and no more than 32 characters"))
     url = models.CharField(_('url'), max_length=255, blank=True)
     agent_type = models.ForeignKey(AgentType,
