@@ -8805,8 +8805,9 @@ def project_all_resources(request, agent_id):
                         if otyp.facet_value:
                            fvs.append(otyp.facet_value)
                         elif otyp.resource_type:
-                           fv = otyp.resource_type.facets.all()[0].facet_value
-                           fvs.append(fv)
+                            if otyp.resource_type.facets.all():
+                                fv = otyp.resource_type.facets.all()[0].facet_value
+                                fvs.append(fv)
 
                 rts = select_resource_types(fvs)
                 for rt in rts:
