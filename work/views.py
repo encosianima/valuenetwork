@@ -2619,7 +2619,7 @@ def project_login(request, form_slug = False):
     #import pdb; pdb.set_trace()
     if form_slug:
         project = get_object_or_404(Project, fobi_slug=form_slug)
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             return members_agent(request, agent_id=project.agent.id)
 
     form = LoginUsernameForm(data=request.POST or None)
