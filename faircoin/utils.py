@@ -159,7 +159,7 @@ def get_address_index(address):
 
 def faircoin_rt():
     from valuenetwork.valueaccounting.models import EconomicResourceType
-    fc = EconomicResourceType.objects.get(name='FairCoin')
+    fc = EconomicResourceType.objects.get(name_en='FairCoin')
     return fc
 
 

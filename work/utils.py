@@ -155,15 +155,15 @@ def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
             if obj and hasattr(obj, 'ratio'):
                 ratio = obj.ratio
                 price = amount/ratio
-                print("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+str(obj))
-                logger.warning("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+str(obj))
+                #print("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+unicode(obj))
+                logger.warning("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+unicode(obj))
             else:
                 if unit.abbrev in settings.CRYPTOS and not unit.abbrev == 'fair':
                     if hasattr(settings, 'CRYPTO_LAPSUS'):
                         secs = settings.CRYPTO_LAPSUS
                     else:
                         secs = 60
-                    lapsus = datetime.timedelta(seconds=60)
+                    lapsus = datetime.timedelta(seconds=secs)
                 else:
                     lapsus = None
                 urs = UnitRatio.objects.filter(in_unit=shunit.gen_unit, out_unit=unit.gen_unit)
@@ -177,6 +177,20 @@ def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
                         if ur.changed_date < now - lapsus:
                             #print("Update UnitRatio?")
                             ratio = update_unitratio(shunit, unit, ur)
+
+                            price = amount/ratio
+                            if obj and hasattr(obj, 'exchange'):
+                                for tr in obj.exchange.transfers.all():
+                                    if tr.transfer_type.is_currency:
+                                        if not len(tr.events.all()):
+                                            for com in tr.commitments.all():
+                                                if not com.quantity == price:
+                                                    print("- UPDATED commitment qty from: "+str(com.quantity)+" to:"+str(price))
+                                                    logger.info("- UPDATED commitment qty from: "+str(com.quantity)+" to:"+str(price))
+                                                    com.quantity = price
+                                                    com.save()
+                                            #print("tr: price:"+str(price)+" qty:"+str(tr.quantity())+" coms:"+str(tr.commitments.all()))
+
                         else:
                             print("- use stored ratio...")
                             ratio = ur.rate
@@ -186,10 +200,8 @@ def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
                     price = amount/ratio
                     #print("price:"+str(price)+" (type:"+str(type(price))+")")
                 else:
-                #except:
                     print("No UnitRatio with in_unit '"+str(shunit.gen_unit.name)+"' and out_unit: "+str(unit.gen_unit.name)+". Trying reversed...")
                     #logger.info("No UnitRatio with in_unit 'faircoin' and out_unit: "+str(unit.gen_unit)+". Trying reversed...")
-                    #try:
                     urs = UnitRatio.objects.filter(in_unit=unit.gen_unit, out_unit=shunit.gen_unit)
                     if urs:
                         ur = urs[0]
@@ -199,7 +211,6 @@ def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
                         ratio = ur.rate
                         price = amount*ratio
                     else:
-                        #except:
                         print "No UnitRatio with out_unit '"+str(shunit.gen_unit.name)+"' and in_unit: "+str(unit.gen_unit.name)+". Trying via botc api..."
                         logger.info("No UnitRatio with out_unit '"+str(shunit.gen_unit.name)+"' and in_unit: "+str(unit.gen_unit.name)+". Trying via botc api...")
 
@@ -236,7 +247,7 @@ def remove_exponent(num):
       if '.' in str(num):
         return num.to_integral() if num == num.to_integral() else num.normalize()
     else:
-        print("Is a FLOAT??")
+        print("Is a FLOAT?? "+str(num))
     return num
 
 
