@@ -463,21 +463,21 @@ class AgentManager(models.Manager):
 
     def freedom_coop(self):
         try:
-            fc = EconomicAgent.objects.get(name="Freedom Coop")
+            fc = EconomicAgent.objects.get(name_en="Freedom Coop")
         except EconomicAgent.DoesNotExist:
             raise ValidationError("Freedom Coop does not exist by that name")
         return fc
 
     def freedom_coop_projects(self):
         try:
-            fc = EconomicAgent.objects.get(nick="FC_Projects")
+            fc = EconomicAgent.objects.get(nick_en="FC_Projects")
         except EconomicAgent.DoesNotExist:
             raise ValidationError("FreedomCoop Projects group does not exist by 'FC_Projects' nickname.")
         return fc
 
     def root_ocp_agent(self):
         try:
-            ocp = EconomicAgent.objects.get(nick="OCP")
+            ocp = EconomicAgent.objects.get(nick_en="OCP")
         except EconomicAgent.DoesNotExist:
             raise ValidationError("OCP main root Agent does not exist by 'OCP' nickname.")
         return ocp
@@ -489,7 +489,7 @@ class AgentManager(models.Manager):
 
 class EconomicAgent(models.Model):
     name = models.CharField(_('name'), max_length=255)
-    nick = models.CharField(_('ID'), max_length=32, unique=True,
+    nick = models.CharField(_('nick'), max_length=32, unique=True,
         help_text=_("Must be unique, and no more than 32 characters"))
     url = models.CharField(_('url'), max_length=255, blank=True)
     agent_type = models.ForeignKey(AgentType,
@@ -2185,13 +2185,13 @@ class AgentUser(models.Model):
 
 
 ASSOCIATION_BEHAVIOR_CHOICES = (
-    ('supplier', _('supplier')),
-    ('customer', _('customer')),
-    ('member', _('member')),
-    ('child', _('child')),
-    ('custodian', _('custodian')),
-    ('manager', _('manager')),
-    ('peer', _('peer'))
+    ('supplier', 'supplier'),
+    ('customer', 'customer'),
+    ('member', 'member'),
+    ('child', 'child'),
+    ('custodian', 'custodian'),
+    ('manager', 'manager'),
+    ('peer', 'peer')
 )
 
 class AgentAssociationTypeManager(models.Manager):
@@ -2677,7 +2677,7 @@ class EconomicResourceTypeManager(models.Manager):
 
     def membership_share(self):
         try:
-            share = EconomicResourceType.objects.get(name="FreedomCoop Share")
+            share = EconomicResourceType.objects.get(name_en="FreedomCoop Share")
         except EconomicResourceType.DoesNotExist:
             raise ValidationError("FreedomCoop Share does not exist by that name")
         return share
@@ -5598,6 +5598,7 @@ class EconomicResource(models.Model):
     changed_by = models.ForeignKey(User, verbose_name=_('changed by'),
         related_name='resources_changed', blank=True, null=True, editable=False, on_delete=models.SET_NULL)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
+    expiration_date = models.DateField(verbose_name=_('expiration date'), blank=True, null=True)
 
     objects = EconomicResourceManager()
     goods = GoodResourceManager()
@@ -8805,7 +8806,7 @@ class TransferType(models.Model):
             loger.info("WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id))
 
         print "- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id)
-        loger.info("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal))
+        loger.info("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id))
         return self.is_reciprocal
 
     def is_share(self):
@@ -9023,18 +9024,23 @@ class Exchange(models.Model):
     def __unicode__(self):
         show_name = ""
         name = ""
-        if self.name:
+        if False and self.name:
             name = self.name
         else:
+            if self.customer:
+                name = self.customer.nick
             if self.exchange_type:
-                show_name = self.exchange_type.name
+                if hasattr(self.exchange_type, 'ocp_record_type') and self.exchange_type.ocp_record_type:
+                    show_name = unicode(self.exchange_type.ocp_record_type.name)
+                else:
+                    show_name = self.exchange_type.name
             else:
                 if self.use_case:
                     show_name = self.use_case.name
         return " ".join([
             name,
             show_name,
-            "starting",
+            unicode(_("from")),
             self.start_date.strftime('%Y-%m-%d'),
             ])
 
@@ -9178,11 +9184,11 @@ class Exchange(models.Model):
                             if rt and not rt in slot.rts:
                                 slot.rts.append(rt)
 
-                    if slot.total_com_unit and str(slot.total_com_unit) == 'Each':
+                    if slot.total_com_unit and slot.total_com_unit.name_en == 'Each':
                         slot.total_com_unit = ''
                         if rt and not rt in slot.rts:
                             slot.rts.append(rt)
-                    if slot.total_com_unit and str(slot.total_com_unit) == 'Hours':
+                    if slot.total_com_unit and slot.total_com_unit.name_en == 'Hours':
                         #slot.total_com_unit = ''
                         slot.hours = True
                         if rt and not rt in slot.rts:
@@ -9207,8 +9213,8 @@ class Exchange(models.Model):
                                 #print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
                                 rt = prt
                             if not receive:
-                                print("get the to payment_amount for the slot.total_com")
                                 slot.total_com = jn_req.payment_amount()
+                                print("get the to payment_amount for the slot.total_com: "+str(slot.total_com))
                             slot.total_com_unit = '' # unit is set later because rt is defined
                     if not fro and jn_req:
                         if ttpay.name == slot.name:
@@ -9226,8 +9232,8 @@ class Exchange(models.Model):
                                 print "x shr from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
                                 rt = prt
                             if not receive:
-                                print("get the fro payment_amount for the slot.total_com")
                                 slot.total_com = jn_req.payment_amount()
+                                print("get the fro payment_amount for the slot.total_com: "+str(slot.total_com))
                             slot.total_com_unit = ''
 
                     if not to in slot.agents_to:
@@ -9336,6 +9342,13 @@ class Exchange(models.Model):
 
     def show_name(self, agent=None, forced=False):
         name = self.__unicode__()
+        if agent:
+            name = name.replace(agent.name, '')
+            name = name.replace(agent.nick+' ', '')
+            print('show_name! '+str(agent))
+            if agent.is_context and hasattr(agent, 'project'):
+                print('show_name!')
+                name = name.replace(agent.project.compact_name(), '')
         newname = None
         if forced:
             print ":: FORCED exchange show_name ex:"+str(self.id)+" "+str(self)
@@ -9349,7 +9362,7 @@ class Exchange(models.Model):
                                             Q(commitments__isnull=False, commitments__to_agent=agent)
                                            ).exclude(transfer_type__is_currency=False)
             et_name = str(self.exchange_type)
-            action = ''
+            #action = ''
             #print "ex show_name ag:"+str(agent)+" give_ts:"+str(give_ts)+" take_ts:"+str(take_ts)+" et_name:"+str(et_name)
             if hasattr(self.exchange_type, 'ocp_record_type'):
                 et_name = str(self.exchange_type.ocp_record_type)
@@ -15099,7 +15112,7 @@ class CachedEventSummary(models.Model):
         event_list = EconomicEvent.objects.filter(is_contribution="true")
         summaries = {}
         #todo: very temporary hack
-        context_agent = EconomicAgent.objects.get(name="Not defined")
+        context_agent = EconomicAgent.objects.get(name_en="Not defined")
         for event in event_list:
             #todo: very temporary hack
             if not event.context_agent:
