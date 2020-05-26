@@ -57,7 +57,7 @@ def initial_test_data():
     if c: print "t- created EconomicAgent: 'Freedom Coop'"
 
     # Project for FreedomCoop
-    pro, c = Project.objects.get_or_create(agent=fdc, joining_style="moderated", fobi_slug='freedom-coop')
+    pro, c = Project.objects.get_or_create(agent=fdc, joining_style="shares", fobi_slug='freedom-coop')
     if c: print "t- created Project: "+str(pro)
     pro.visibility = 'public'
     pro.save()
