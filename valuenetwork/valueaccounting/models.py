@@ -390,11 +390,11 @@ class AgentType(models.Model):
             if updated:
                 agent_type.save()
                 if verbosity > 1:
-                    print "- Updated %s AgentType" % name
+                    print("- Updated {} AgentType".format(name))
         except cls.DoesNotExist:
             cls(name=name, party_type=party_type, is_context=is_context).save()
             if verbosity > 1:
-                print "- Created %s AgentType" % name
+                print("- Created {} AgentType".format(name))
 
     @property #ValueFlows
     def note(self):
@@ -718,7 +718,7 @@ class EconomicAgent(models.Model):
         if not address:
             address = str(time.time())
             resource = self.create_faircoin_resource(address)
-            print "created fake faircoin address"
+            print("created fake faircoin address")
         return address
 
     def create_faircoin_resource(self, address):
@@ -1548,7 +1548,7 @@ class EconomicAgent(models.Model):
                 rtun = rt.unit
                 #rtut = rtun.unit_type
               else:
-                print "....tx has no resource_type? tx:"+str(tx.id)+" "+str(tx)
+                print("....tx has no resource_type? tx:"+str(tx.id)+" "+str(tx))
                 loger.info("....tx has no resource_type? tx:"+str(tx.id)+" "+str(tx))
               if rtun:
                 if not hasattr(rtun, 'gen_unit'):
@@ -1557,10 +1557,10 @@ class EconomicAgent(models.Model):
                   if not rtun.gen_unit.unit_type.id in uids:
                     uids.append(rtun.gen_unit.unit_type.id)
               else:
-                print "....tx.resource_type has no unit? rt:"+str(rt)
+                print("....tx.resource_type has no unit? rt:"+str(rt))
                 loger.info("....tx.resource_type has no unit? rt:"+str(rt))
         if not uids:
-            print ".... empty uids set? ag:"+str(self)+" exs:"+str(len(exs))
+            print(".... empty uids set? ag:"+str(self)+" exs:"+str(len(exs)))
             loger.info(".... empty uids set? ag:"+str(self)+" exs:"+str(len(exs)))
 
         return uids
@@ -1848,7 +1848,7 @@ class EconomicAgent(models.Model):
                         if rs.resource_type.context_agent == context:
                             shares.append(rs)
                     else:
-                        print "... rs.rt without ca..."
+                        print("... rs.rt without ca...")
                 else:
                     shares.append(rs)
         return shares
@@ -2242,11 +2242,11 @@ class AgentAssociationType(models.Model):
             if updated:
                 agent_association_type.save()
                 if verbosity > 1:
-                    print "Updated %s AgentAssociationType" % name
+                    print("Updated {} AgentAssociationType".format(name))
         except cls.DoesNotExist:
             cls(identifier=identifier, name=name, plural_name=plural_name, association_behavior=association_behavior, label=label, inverse_label=inverse_label).save()
             if verbosity > 1:
-                print "Created %s AgentAssociationType" % name
+                print("Created {} AgentAssociationType".format(name))
 
     @property #ValueFlows
     def category(self):
@@ -2279,7 +2279,7 @@ def create_agent_types(**kwargs):
     AgentType.create('Project', 'team', True)
     #AgentType.create('Community', 'community', True)
     AgentType.create('Company', 'company', True)
-    print "created agent types"
+    print("created agent types")
 
 #post_migrate.connect(create_agent_types, sender=ValueAccountingAppConfig)
 
@@ -2291,7 +2291,7 @@ def create_agent_association_types(**kwargs):
     AgentAssociationType.create('member', 'Member', 'Members', 'member', 'is member of', 'has member')
     AgentAssociationType.create('supplier', 'Supplier', 'Suppliers', 'supplier', 'is supplier of', 'has supplier')
     AgentAssociationType.create('customer', 'Customer', 'Customers', 'customer', 'is customer of', 'has customer')
-    print "created agent association types"
+    print("created agent association types")
 
 #post_migrate.connect(create_agent_association_types, sender=ValueAccountingAppConfig)
 
@@ -2501,12 +2501,12 @@ class EventType(models.Model):
             if updated:
                 event_type.save()
                 if verbosity > 1:
-                    print "Updated %s EventType" % name
+                    print("Updated {} EventType".format(name))
         except cls.DoesNotExist:
             cls(name=name, label=label, inverse_label=inverse_label, relationship=relationship,
                 related_to=related_to, resource_effect=resource_effect, unit_type=unit_type).save()
             if verbosity > 1:
-                print "Created %s EventType" % name
+                print("Created {} EventType".format(name))
 
     @property #ValueFlows
     def action(self):
@@ -4177,11 +4177,11 @@ class UseCase(models.Model):
             if updated:
                 use_case.save()
                 if verbosity > 1:
-                    print "Updated %s UseCase" % identifier
+                    print("Updated {} UseCase".format(identifier))
         except cls.DoesNotExist:
             cls(identifier=identifier, name=name, restrict_to_one_pattern=restrict_to_one_pattern).save()
             if verbosity > 1:
-                print "Created %s UseCase" % identifier
+                print("Created {} UseCase".format(identifier))
 
     def allows_more_patterns(self):
         patterns_count = self.patterns.all().count()
@@ -4235,7 +4235,7 @@ def create_use_cases(**kwargs):
     UseCase.create('intrnl_xfer', _('Internal Exchange'))
     UseCase.create('supply_xfer', _('Incoming Exchange'))
     UseCase.create('demand_xfer', _('Outgoing Exchange'))
-    print "created use cases"
+    print("created use cases")
 
 #post_migrate.connect(create_use_cases, sender=ValueAccountingAppConfig)
 
@@ -4278,7 +4278,7 @@ def create_event_types(**kwargs):
     EventType.create('Receive', _('receives'), _('received by'), 'receive', 'exchange', '+', 'quantity')
     #EventType.create('Make Available', _('makes available'), _('made available by'), 'available', 'agent', '+', 'quantity')
 
-    print "created event types"
+    print("created event types")
 
 #post_migrate.connect(create_event_types, sender=ValueAccountingAppConfig)
 
@@ -4303,7 +4303,7 @@ class UseCaseEventType(models.Model):
             ucet = cls._default_manager.get(use_case=use_case, event_type=event_type)
         except cls.DoesNotExist:
             cls(use_case=use_case, event_type=event_type).save()
-            print "Created %s UseCaseEventType" % (use_case_identifier + " " + event_type_name)
+            print("Created {} UseCaseEventType".format(use_case_identifier + " " + event_type_name))
 
 #def create_usecase_eventtypes(app, **kwargs):
 #    if app != "valueaccounting":
@@ -4373,7 +4373,7 @@ def create_usecase_eventtypes(**kwargs):
     #UseCaseEventType.create('demand_xfer', 'Reciprocal Transfer')
     #UseCaseEventType.create('demand_xfer', 'Time Contribution')
 
-    print "created use case event type associations"
+    print("created use case event type associations")
 
 #post_migrate.connect(create_usecase_eventtypes, sender=ValueAccountingAppConfig)
 
@@ -5421,12 +5421,12 @@ class ExchangeTypeManager(models.Manager):
         return ExchangeType.objects.filter(use_case__identifier='demand_xfer')
 
     def membership_share_exchange_type(self):
-        print "The old membership_share_exchange_type was called!! "
+        print("The old membership_share_exchange_type was called!! ")
         loger.info("The old membership_share_exchange_type was called!! ")
         try:
             xt = ExchangeType.objects.get(name='Membership Contribution')
         except ExchangeType.DoesNotExist:
-            print "Membership Contribution et does not exist anymore..."
+            print("Membership Contribution et does not exist anymore...")
             loger.info("Membership Contribution et does not exist anymore...")
             xt = None
             #raise ValidationError("Membership Contribution does not exist by that name")
@@ -5959,7 +5959,7 @@ class EconomicResource(models.Model):
         path = []
         depth = 0
         value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
-        print "value_per_unit:", value_per_unit
+        print("value_per_unit:", value_per_unit)
         return path
 
     def compute_value_per_unit(self, value_equation=None):
@@ -6722,7 +6722,7 @@ class EconomicResource(models.Model):
     def transfer_events(self):
         #obsolete
         #todo exchange redesign fallout
-        print "obsolete resource.transfer_event"
+        print("obsolete resource.transfer_event")
         tx_et = EventType.objects.get(name="Receive")
         return self.events.filter(event_type=tx_et)
 
@@ -8785,10 +8785,10 @@ class TransferType(models.Model):
                             self.is_income = False
                             return False
                     else:
-                        print "WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req)
+                        print("WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req))
                         loger.info("WARNING context_agent not related the ex.jn_req ?? self(tt):"+str(self.id)+" ex:"+str(exchange.id)+" tx:"+str(tx.id)+" jn_req:"+str(jn_req))
                 else:
-                    print "... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" cms:"+str(len(tx.commitments.all()))+" evs:"+str(len(tx.events.all()))+" "+str(tx)
+                    print("... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" cms:"+str(len(tx.commitments.all()))+" evs:"+str(len(tx.events.all()))+" "+str(tx))
                     loger.info("... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" "+str(tx))
             elif not mem:
                 #print "... set mem: "+str(tx.id)+" tt:"+str(tx.transfer_type.id)+" self:"+str(self.id)
@@ -8802,10 +8802,10 @@ class TransferType(models.Model):
           #  print "- not found mem, return True ? self:"+str(self.id)
             #return True
         else:
-            print "WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id)
+            print("WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id))
             loger.info("WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id))
 
-        print "- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id)
+        print("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id))
         loger.info("- not to or from, return is_reciprocal ? "+str(self.is_reciprocal)+" tt(id):"+str(self.id)+" ex:"+str(exchange.id))
         return self.is_reciprocal
 
@@ -8923,7 +8923,7 @@ class ExchangeManager(models.Manager):
         exs_bdc = exchanges_by_type.filter(start_date__range=[start, end]).order_by('created_date')
         count2 = len(exs_bdc)
         if not count == count2:
-            print "- filtered exchanges_by_date_and_context start: "+str(start)+" end: "+str(end)+" agent: "+str(agent)+" count: "+str(count)+" count2: "+str(count2)
+            print("- filtered exchanges_by_date_and_context start: "+str(start)+" end: "+str(end)+" agent: "+str(agent)+" count: "+str(count)+" count2: "+str(count2))
 
         return exs_bdc
 
@@ -8935,7 +8935,7 @@ class ExchangeManager(models.Manager):
         if agent.id in agids2:
             agids2.remove(agent.id)
         otheragids = [c.id for c in EconomicAgent.objects.all().exclude(id__in=agids)]
-        print "- ebt agent: "+str(agent)+" ("+str(agent.id)+") context:"+str(agent.is_context)+" agids2: "+str(agids2)
+        print("- ebt agent: "+str(agent)+" ("+str(agent.id)+") context:"+str(agent.is_context)+" agids2: "+str(agids2))
 
         exs_bt = Exchange.objects.filter(
           Q(transfers__events__isnull=True, transfers__commitments__isnull=True, context_agent__isnull=False, context_agent__id=agent.id) |
@@ -8961,7 +8961,7 @@ class ExchangeManager(models.Manager):
             ) #.order_by('-start_date')
             count2 = len(exs_bt2)
             if not count == count2:
-                print "- filtered exchanges_by_type context: "+str(agent)+" count1:"+str(count)+" count2: "+str(count2)
+                print("- filtered exchanges_by_type context: "+str(agent)+" count1:"+str(count)+" count2: "+str(count2))
                 if count2:
                     exs_bt = exs_bt2
         else:
@@ -8975,7 +8975,7 @@ class ExchangeManager(models.Manager):
             ) #.order_by('-start_date')
             count2 = len(exs_bt)
             if not count == count2:
-                print "- filtered exchanges_by_type individual: "+str(agent)+" count:"+str(count)+" coun2: "+str(count2)
+                print("- filtered exchanges_by_type individual: "+str(agent)+" count:"+str(count)+" coun2: "+str(count2))
 
         return exs_bt #.order_by(Lower('exchange_type__ocp_record_type__name').asc())
 
@@ -9171,7 +9171,7 @@ class Exchange(models.Model):
                             slot.total_com += val
                             slot.total_com_unit = valunit
                         else:
-                            print "-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
+                            print("-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
                             loger.info("-- found value "+str(val)+" "+str(valunit)+" but not slot.is_currency, SKIP! ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
                     qua = transfer.quantity(receive)
                     if qua and not slot.total_com_unit:
@@ -9202,7 +9202,7 @@ class Exchange(models.Model):
                             to = jn_req.project.agent
                             prt = jn_req.payment_unit_rt()
                             if not prt == rt:
-                                print "x pay to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                print("x pay to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt))
                                 rt = prt
                             #slot.total_com = jn_req.total_price()
                             #slot.total_com_unit = ''
@@ -9221,7 +9221,7 @@ class Exchange(models.Model):
                             fro = jn_req.agent
                             prt = jn_req.payment_unit_rt()
                             if not prt == rt:
-                                print "x pay from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                print("x pay from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt))
                                 rt = prt
                             #slot.total_com = jn_req.total_price()
                             #slot.total_com_unit = ''
@@ -9229,7 +9229,7 @@ class Exchange(models.Model):
                             fro = jn_req.project.agent
                             prt = jn_req.project.shares_type()
                             if not prt == rt:
-                                print "x shr from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                print("x shr from Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt))
                                 rt = prt
                             if not receive:
                                 slot.total_com = jn_req.payment_amount()
@@ -9243,7 +9243,7 @@ class Exchange(models.Model):
 
                     if not slot.total_com_unit:
                         if rt and not rt in slot.rts:
-                            print "--- not total_com_unit, add rt:"+str(rt)+" in ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)
+                            print("--- not total_com_unit, add rt:"+str(rt)+" in ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot))
                             slot.rts.append(rt)
 
 
@@ -9256,7 +9256,7 @@ class Exchange(models.Model):
             if slot.rts:
               #print "- slot.rts:"+str(slot.rts)
               if len(slot.rts) > 1:
-                print "-- multiple rts: "+str(len(slot.rts))+" for ex:"+str(self)+" slot:"+str(slot.id)
+                print("-- multiple rts: "+str(len(slot.rts))+" for ex:"+str(self)+" slot:"+str(slot.id))
                 par = None
                 for t in slot.rts:
                     if hasattr(t, 'ocp_artwork_type') and t.ocp_artwork_type:
@@ -9265,7 +9265,7 @@ class Exchange(models.Model):
                         if not par:
                             par = pare
                         elif par.id == pare.id:
-                            print "--- found parent: "+str(pare)
+                            print("--- found parent: "+str(pare))
                             rtz = EconomicResourceType.objects.filter(ocp_artwork_type__id=par.id)
                             if rtz:
                                 slot.total_com_unit = "<em>"+str(rtz[0])+"</em>"
@@ -9274,7 +9274,7 @@ class Exchange(models.Model):
               else:
                 slot.total_com_unit = slot.rts[0]
                 if hasattr(slot.total_com_unit, 'ocp_artwork_type') and slot.total_com_unit.ocp_artwork_type.is_account():
-                    print "--- is account, change slot_com_unit to:"+str(slot.rts[0].unit)+" ex:"+str(self.id)+" slot:"+str(slot.id)
+                    print("--- is account, change slot_com_unit to:"+str(slot.rts[0].unit)+" ex:"+str(self.id)+" slot:"+str(slot.id))
                     slot.total_com_unit = slot.rts[0].unit
                 else:
                     if slot.hours:
@@ -9287,7 +9287,7 @@ class Exchange(models.Model):
             elif hasattr(self, 'join_request'):
                 pass #print #"has jreq, is ok? "+str(self)
             else:
-              print "- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit)
+              print("- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit))
               loger.info("- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit))
 
             if not memslot:
@@ -9351,7 +9351,7 @@ class Exchange(models.Model):
                 name = name.replace(agent.project.compact_name(), '')
         newname = None
         if forced:
-            print ":: FORCED exchange show_name ex:"+str(self.id)+" "+str(self)
+            print(":: FORCED exchange show_name ex:"+str(self.id)+" "+str(self))
             loger.info(":: FORCED exchange show_name ex:"+str(self.id)+" "+str(self))
         trans = self.transfers.all()
         if len(trans) > 1:
@@ -9385,7 +9385,7 @@ class Exchange(models.Model):
                         #import pdb; pdb.set_trace()
                         #return str(action.clas)+' -> '+str(opposite.clas)+': '+name #+' GIVE: '+str(give_ts)+' - TAKE: '+str(take_ts)
         elif not trans:
-            print "WARN Exchange has no transfers ?? ex:"+str(self.id)+" "+str(self)
+            print("WARN Exchange has no transfers ?? ex:"+str(self.id)+" "+str(self))
             loger.info("WARN Exchange has no transfers ?? ex:"+str(self.id)+" "+str(self))
         return name
 
@@ -9425,7 +9425,7 @@ class Exchange(models.Model):
             for event in transfer.events.all():
                 if not event in events:
                     events.append(event)
-                    print "event without direct exchange... id:"+str(event.id)+" "+str(event)
+                    print("event without direct exchange... id:"+str(event.id)+" "+str(event))
                     loger.info("event without direct exchange... id:"+str(event.id)+" "+str(event))
         return events
 
@@ -9447,7 +9447,7 @@ class Exchange(models.Model):
         #todo exchange redesign fallout?
         #obsolete? or just used wrong?
         #exchange method
-        print "obsolete exchange.transfer_event?"
+        print("obsolete exchange.transfer_event?")
         events = []
         for transfer in self.transfers.all():
             if not transfer.is_reciprocal():
@@ -10088,7 +10088,7 @@ class Transfer(models.Model):
         if rts:
             #print "- rts:"+str(rts)
             if len(rts) > 1:
-                print "-- multiple rts: "+str(len(rts))+" for tx:"+str(self)
+                print("-- multiple rts: "+str(len(rts))+" for tx:"+str(self))
                 loger.info("-- multiple rts: "+str(len(rts))+" for tx:"+str(self))
                 par = None
                 for t in rts:
@@ -10107,7 +10107,7 @@ class Transfer(models.Model):
                 else:
                     rt = self.exchange.join_request.project.shares_type()
             else:
-                print "- don't find rts nor jr? self(tx):"+str(self.id)+" ex:"+str(self.exchange.id)
+                print("- don't find rts nor jr? self(tx):"+str(self.id)+" ex:"+str(self.exchange.id))
                 loger.info("- don't find rts nor jr? self(tx):"+str(self.id)+" ex:"+str(self.exchange.id))
         return rt
 
@@ -10159,7 +10159,7 @@ class Transfer(models.Model):
         for com in comits:
             for ev in com.fulfillment_events.all_give():
                 if not ev in events:
-                    print " append ev:"+str(ev)
+                    print(" append ev:"+str(ev))
                     loger.info(" append ev:"+str(ev))
                     events.append(ev)
         if len(comits):
@@ -10513,7 +10513,7 @@ class Transfer(models.Model):
                     #return com.from_agent
         if frs:
             if len(frs) > 1:
-                print "WARN! the tx:"+str(self.id)+" has various FROM agents: "+str(frs)
+                print("WARN! the tx:"+str(self.id)+" has various FROM agents: "+str(frs))
                 loger.info("WARN! the tx:"+str(self.id)+" has various FROM agents: "+str(frs))
             return frs[0]
 
@@ -10535,7 +10535,7 @@ class Transfer(models.Model):
                     #return com.to_agent
         if tos:
             if len(tos) > 1:
-                print "WARN! the tx:"+str(self.id)+" has various TO agents: "+str(tos)
+                print("WARN! the tx:"+str(self.id)+" has various TO agents: "+str(tos))
                 loger.info("WARN! the tx:"+str(self.id)+" has various TO agents: "+str(tos))
             return tos[0]
         return None
@@ -10901,7 +10901,7 @@ class CommitmentManager(models.Manager):
                 internal = bkp.filter(transfer__exchange__isnull=False, transfer__exchange__exchange_type__use_case__identifier='intrnl_xfer')
                 #print "x filter using ev tx ex. internal:"+str(len(internal))
             if internal:
-                print "WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str([ev.event_type for ev in bkp])
+                print("WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str([ev.event_type for ev in bkp]))
                 loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all! ")
             return bkp
         return filtered
@@ -11056,7 +11056,7 @@ class Commitment(models.Model):
             takes = self.to_agent == agent
             if not self.exchange:
                 if not self.transfer.exchange:
-                    print "error showing name: not self.exchange?"
+                    print("error showing name: not self.exchange?")
                     return "error showing name: not self.exchange?"
                 else:
                     loger.warning("The Commitment has no exchange but its transfer has, FIXING!")
@@ -11079,7 +11079,7 @@ class Commitment(models.Model):
                         if action.clas == 'sell' or action.clas == 'give':
                             name = newname
             else:
-                print "The comm exchange.exchange_type has not ocp_record_type ? cm:"+str(self.id)+" et:"+str(self.exchange.exchange_type)
+                print("The comm exchange.exchange_type has not ocp_record_type ? cm:"+str(self.id)+" et:"+str(self.exchange.exchange_type))
                 loger.info("The comm exchange.exchange_type has not ocp_record_type ? cm:"+str(self.id)+" et:"+str(self.exchange.exchange_type))
         #else:
         #    print "No agent??"
@@ -12910,7 +12910,7 @@ class EconomicEventManager(models.Manager):
                 internal = bkp.filter(transfer__exchange__isnull=False, transfer__exchange__exchange_type__use_case__identifier='intrnl_xfer')
                 #print "x filter using ev tx ex. internal:"+str(len(internal))
             if internal:
-                print "WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp)
+                print("WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp))
                 loger.info("WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp))
             return bkp
         if agent:
@@ -13110,7 +13110,7 @@ class EconomicEvent(models.Model):
                             name = newname
                     if not takes and not gives:
                         if not self.from_agent and not self.to_agent:
-                            print "The event has no 'to' nor 'from' agents ?? ev:"+str(self.id)+" "+str(self)
+                            print("The event has no 'to' nor 'from' agents ?? ev:"+str(self.id)+" "+str(self))
                             loger.warning("The event has no 'to' nor 'from' agents ?? ev:"+str(self.id)+" "+str(self))
                         elif self.to_agent == agent.parent() and self.faircoin_transaction: # only used when a fairaccount is inherited from parent
                             if action.clas == 'sell' or action.clas == 'give':
@@ -13119,13 +13119,13 @@ class EconomicEvent(models.Model):
                             if action.clas == 'buy' or action.clas == 'receive':
                                 name = newname
                         else:
-                            print "no gives nor takes? "+str(self.id)+" ag:"+str(agent)+" to:"+str(self.to_agent)+" from:"+str(self.from_agent)
+                            print("no gives nor takes? "+str(self.id)+" ag:"+str(agent)+" to:"+str(self.to_agent)+" from:"+str(self.from_agent))
 
 
             else:
                 if self.from_agent and self.to_agent:
                     name = '?'+name
-                print "The ev:"+str(self.id)+" exchange.exchange_type has not ocp_record_type ? ag:"+str(agent)+" gives:"+str(gives)+" takes:"+str(takes)+" ex:"+str(self.exchange.id)+" et:"+str(self.exchange.exchange_type.id)+" "+str(self.exchange.exchange_type)
+                print("The ev:"+str(self.id)+" exchange.exchange_type has not ocp_record_type ? ag:"+str(agent)+" gives:"+str(gives)+" takes:"+str(takes)+" ex:"+str(self.exchange.id)+" et:"+str(self.exchange.exchange_type.id)+" "+str(self.exchange.exchange_type))
         return name
 
 
