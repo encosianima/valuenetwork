@@ -191,7 +191,7 @@ class SettingsForm(forms.Form):
     email = forms.EmailField(label=_("Email"), required=True)
     timezone = forms.ChoiceField(
         label=_("Timezone"),
-        choices=[("", "---------")]+settings.ACCOUNT_TIMEZONES,
+        choices=[("", "---------")]+list(settings.ACCOUNT_TIMEZONES),
         required=False,
         widget=forms.Select(attrs={'class': 'chzn-select'})
     )

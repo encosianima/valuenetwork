@@ -310,7 +310,7 @@ def share_payment_fair(request, agent_id):
       share_price = share_price * number_of_shares
       pend_amount = req.payment_pending_amount()
       if not share_price == pend_amount:
-        print "Switch share_price:"+str(share_price)+" to pending_amount:"+str(pend_amount)+" for req:"+str(req)
+        print("Switch share_price:"+str(share_price)+" to pending_amount:"+str(pend_amount)+" for req:"+str(req))
         loger.warning("Switch share_price:"+str(share_price)+" to pending_amount:"+str(pend_amount)+" for req:"+str(req))
         share_price = Decimal(pend_amount)
 
@@ -373,23 +373,23 @@ def share_payment_fair(request, agent_id):
                     minus_fee = True,
                 )
                 fairtx.save()
-                print "- created FaircoinTransaction: "+str(fairtx)
+                print("- created FaircoinTransaction: "+str(fairtx))
                 loger.info("- created FaircoinTransaction: "+str(fairtx))
                 if not ev.event_reference == address_end:
                     ev.event_reference = address_end
-                    print "-- added event_reference to ev:"+str(ev.id)+" "+str(ev)
+                    print("-- added event_reference to ev:"+str(ev.id)+" "+str(ev))
                     loger.info("-- added event_reference to ev:"+str(ev.id)+" "+str(ev))
                 if not ev.description:
                     ev.description = ev.transfer.transfer_type.name
-                    print "-- added description to ev:"+str(ev.id)+" "+str(ev)
+                    print("-- added description to ev:"+str(ev.id)+" "+str(ev))
                     loger.info("-- added description to ev:"+str(ev.id)+" "+str(ev))
                 if not ev.from_agent:
                     ev.from_agent = from_agent
-                    print "-- added from_agent to ev:"+str(ev.id)+" ag:"+str(agent)
+                    print("-- added from_agent to ev:"+str(ev.id)+" ag:"+str(agent))
                     loger.info("-- added from_agent to ev:"+str(ev.id)+" ag:"+str(agent))
                 if not ev.to_agent:
                     ev.to_agent = to_agent
-                    print "-- added to_agent to ev:"+str(ev.id)+" ag:"+str(agent)
+                    print("-- added to_agent to ev:"+str(ev.id)+" ag:"+str(agent))
                     loger.info("-- added to_agent to ev:"+str(ev.id)+" ag:"+str(agent))
 
                 ev.save()
@@ -495,7 +495,7 @@ def membership_discussion(request, membership_request_id):
         fdc = fdc[0].agent
         for jr in mbr_req.agent.project_join_requests.all():
             if jr.project.agent == fdc:
-                print "Already existent join request!! "+str(jr)
+                print("Already existent join request!! "+str(jr))
                 loger.info("Already existent join request!! "+str(jr))
                 #return project_feedback(request, agent_id=fdc.id, join_request_id=jr.id)
                 #migrate_fdc_shares(request, jr)
@@ -537,7 +537,7 @@ def membership_discussion(request, membership_request_id):
                 if filnam == 'payment_mode':
                     obj[filnam] = 'faircoin'
             #print "OBJ: "+str(obj)
-            print "FdC shares: "+str(fdc.project.share_types())
+            print("FdC shares: "+str(fdc.project.share_types()))
             loger.info("FdC shares: "+str(fdc.project.share_types()))
             #print "FdC req_date: "+str(mbr_req.request_date)
 
@@ -560,7 +560,7 @@ def membership_discussion(request, membership_request_id):
                     state=mbr_req.state
                 )
                 if created:
-                    print "- created JoinRequest for FdC migration: "+str(jn_req)
+                    print("- created JoinRequest for FdC migration: "+str(jn_req))
                     loger.info("- created JoinRequest for FdC migration: "+str(jn_req))
                 jn_req.created_date = mbr_req.request_date
                 jn_req.request_date = mbr_req.request_date
@@ -580,7 +580,7 @@ def membership_discussion(request, membership_request_id):
                     created = mbr_req.request_date
                 )
                 if created:
-                    print "- created fobi SavedFormDataEntry for FdC migration: "+str(json.dumps(cleaned_data))
+                    print("- created fobi SavedFormDataEntry for FdC migration: "+str(json.dumps(cleaned_data)))
                     loger.info("- created fobi SavedFormDataEntry for FdC migration: "+str(json.dumps(cleaned_data)))
 
                 jn_req.fobi_data = fob_dat
@@ -601,7 +601,7 @@ def membership_discussion(request, membership_request_id):
                         site=com.site
                     )
                     if created:
-                        print "- created Comment for JoinRequest (FdC migration): "+str(jn_req.id)+" by "+str(jn_com.user_name)+" to join "+str(jn_req.project.agent.nick) #com.comment.encode('utf-8'))
+                        print("- created Comment for JoinRequest (FdC migration): "+str(jn_req.id)+" by "+str(jn_com.user_name)+" to join "+str(jn_req.project.agent.nick)) #com.comment.encode('utf-8'))
                         loger.info("- created Comment for JoinRequest (FdC migration): "+str(jn_req.id)+" by "+str(jn_com.user_name)+" to join "+str(jn_req.project.agent.nick)) #com.comment.encode('utf-8')))
 
                 messages.info(request, _("The old FdC membership request has been converted to the new modular join_request system, copying all the fields and the comments in the thread."))
@@ -615,13 +615,13 @@ def membership_discussion(request, membership_request_id):
                 return project_feedback(request, agent_id=fdc.id, join_request_id=jn_req.id)
                 #return HttpResponseRedirect(reverse('project_feedback', args=(fdc.id, jn_req.id)))
             else:
-                print "Fobi form not valid: "+str(fobi_form.errors)
+                print("Fobi form not valid: "+str(fobi_form.errors))
                 loger.error("Fobi form not valid: "+str(fobi_form.errors))
         else:
-            print "ERROR form_entry not found"
+            print("ERROR form_entry not found")
             loger.error("ERROR form_entry not found")
     else:
-        print "ERROR FdC not found"
+        print("ERROR FdC not found")
         loger.error("ERROR FdC not found")
 
     return render(request, "work/membership_request_with_comments.html", {
@@ -654,10 +654,10 @@ def migrate_fdc_shares(request, jr):
     else:
         mem = mems[0]
         if not mem.state == 'accepted':
-            print "FdC membership still not accepted! "+str(mem)
+            print("FdC membership still not accepted! "+str(mem))
             loger.info("FdC membership still not accepted! "+str(mem))
         if False and not jr.state == mem.state:
-            print "- FdC update state of jn_req: "+str(mem.state)
+            print("- FdC update state of jn_req: "+str(mem.state))
             loger.info("- FdC update state of jn_req: "+str(jr))
             #messages.warning(request, "- FdC update state of jn_req: "+str(jr))
             jr.state = mem.state
@@ -671,16 +671,16 @@ def migrate_fdc_shares(request, jr):
         if agrel.state == 'active' and not jr.state == 'accepted':
             agrel.state = 'potential'
             agrel.save()
-            print "WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel)
+            print("WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel))
             loger.info("WRONG member Relation! without accepted jn_req should be 'candidate': "+str(agrel))
             if user_agent in fdc.managers():
                 messages.warning(request, "Converted the agent relation to 'candidate' because the join request is not accepted yet.")
         elif agrel.state == 'candidate':
             agrel.state = 'potential'
             agrel.save()
-            print "Changed 'candidate' for 'potential' state of the agent relation: "+str(agrel)
+            print("Changed 'candidate' for 'potential' state of the agent relation: "+str(agrel))
         if not agrel.association_type == aamem:
-            print "WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr)
+            print("WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
             loger.info("WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
             if user_agent in fdc.managers():
                 messages.warning(request, "WRONG agent association type! "+str(agrel.association_type)+" now converted to 'member': "+str(jr))
@@ -693,12 +693,12 @@ def migrate_fdc_shares(request, jr):
             state = 'potential',
             association_type = aamem)
         if created:
-            print "- created missing AgentAssociation: "+str(agrel)
+            print("- created missing AgentAssociation: "+str(agrel))
             loger.info("- created missing AgentAssociation: "+str(agrel))
             messages.info(request, "- created missing AgentAssociation: "+str(agrel))
     else:
         #agrels = jr.agent.is_associate_of.all() #filter(has_associate=jr.project.agent)
-        print "FdC migrating agent has more than one relation with FdC?? "+str(agrels)+" jr:"+str(jr)
+        print("FdC migrating agent has more than one relation with FdC?? "+str(agrels)+" jr:"+str(jr))
         loger.info("FdC migrating agent has more than one relation with FdC?? "+str(agrels)+" jr:"+str(jr))
         messages.error(request, "FdC migrating agent has more than one relation with FdC?? "+str(agrels)) #+" jr:"+str(jr))
 
@@ -740,12 +740,12 @@ def migrate_fdc_shares(request, jr):
                         messages.warning(request, "FdC shares of the old system has been deleted, now they are as the value of the new FdC Shares Account for agent: "+str(jr.agent))
 
         else:
-            print "FdC migrating agent has no old owned shares: "+str(jr.agent)+' jr.state:'+str(jr.state) #share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
+            print("FdC migrating agent has no old owned shares: "+str(jr.agent)+' jr.state:'+str(jr.state)) #share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price)
             loger.info("FdC migrating agent has no old owned shares: "+str(jr.agent)+' jr.state:'+str(jr.state)) #+' share:'+str(fdcshrt)+' unit:'+str(shacct.unit_of_price))
             if jr.state == 'accepted' and not account.price_per_unit:
                 jr.state = 'new'
                 jr.save()
-                print "WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr)
+                print("WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr))
                 loger.info("WRONG STATE! jr without shares should be 'new' or 'declined': "+str(jr))
                 messages.warning(request, "Converted the join request state to 'new' because the member has no shares yet.")
 
@@ -753,7 +753,7 @@ def migrate_fdc_shares(request, jr):
                     agrel.state = 'potential'
                     agrel.association_type = aamem
                     agrel.save()
-                    print "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel)
+                    print("- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
                     loger.info("- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
                     messages.warning(request, "- Repaired also an AgentAssociation 'active' state! like the jn_req, is now candidate ('potential') "+str(agrel))
 
@@ -761,7 +761,7 @@ def migrate_fdc_shares(request, jr):
             if user_agent in fdc.managers() or user_agent == fdc or request.user.is_superuser:
               if jr.pending_shares() and jr.payment_payed_amount() >= jr.total_price():
 
-                print "Found payed tx but shares missing, TRANSFER project shares! jr:"+str(jr)
+                print("Found payed tx but shares missing, TRANSFER project shares! jr:"+str(jr))
 
     else:
         #print str(shacct)+' not in res: '+str(res)
@@ -771,19 +771,19 @@ def migrate_fdc_shares(request, jr):
 
     et = jr.exchange_type()
     if not et:
-        print "Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent)
+        print("Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent))
         loger.info("Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent))
         if user_agent in fdc.managers():
             messages.warning(request, "Can't migrate FdC shares before the joinrequest has an exchange type! "+str(jr.agent))
         return
 
     if et.context_agent and not et.context_agent == fdc:
-        print "- Change exchange_type context agent to FdC! "+str(et.context_agent)
+        print("- Change exchange_type context agent to FdC! "+str(et.context_agent))
         loger.info("- Change exchange_type context agent to FdC! "+str(et.context_agent))
         et.context_agent = fdc
         et.save()
     elif not et.context_agent:
-        print "- Add exchange_type context_agent to FdC! "+str(et) #.context_agent)
+        print("- Add exchange_type context_agent to FdC! "+str(et)) #.context_agent)
         loger.info("- Add exchange_type context_agent to FdC! "+str(et)) #.context_agent))
         et.context_agent = fdc
         et.save()
@@ -797,11 +797,11 @@ def migrate_fdc_shares(request, jr):
         else:
             shrtt = tt
     if not paytt:
-        print "Can't find a transfer type about 'payment' in the exchange type: "+str(et)+". Abort!"
+        print("Can't find a transfer type about 'payment' in the exchange type: "+str(et)+". Abort!")
         loger.error("Can't find a transfer type about 'payment' in the exchange type: "+str(et)+" Abort!")
         return
     if not shrtt:
-        print "Can't find a transfer type about 'shares' in the exchange type: "+str(et)+". Abort!"
+        print("Can't find a transfer type about 'shares' in the exchange type: "+str(et)+". Abort!")
         loger.error("Can't find a transfer type about 'shares' in the exchange type: "+str(et)+" Abort!")
         return
 
@@ -832,7 +832,7 @@ def migrate_fdc_shares(request, jr):
                 txshr = tx
         if not txpay and not txshr:
             if ex.exchange_type == et:
-                print "-Error! no txpay nor txshr but same et, recreate exchange? "+str(ex)
+                print("-Error! no txpay nor txshr but same et, recreate exchange? "+str(ex))
                 loger.info("-Error! no txpay nor txshr but same et, recreate exchange? "+str(ex))
                 note = 'repaired '+str(datetime.date.today())+'. '
                 #jr.create_exchange(note, ex)
@@ -841,7 +841,7 @@ def migrate_fdc_shares(request, jr):
                 #loger.debug("--Not found txpay with paytt:"+str(paytt.id)+" nor txshr with shrtt:"+str(shrtt.id)+" SKIP! ex:"+str(ex.id)+" "+str(ex))
                 continue
         elif not txpay or not txshr:
-            print "- - found just one tx? (will rebuild) txpay:"+str(txpay)+" txshr:"+str(txshr)
+            print("- - found just one tx? (will rebuild) txpay:"+str(txpay)+" txshr:"+str(txshr))
             loger.debug("- - found just one tx? (will rebuild) txpay:"+str(txpay)+" txshr:"+str(txshr))
 
         for txtp in txtps:
@@ -850,9 +850,9 @@ def migrate_fdc_shares(request, jr):
             if tx.transfer_type == txtp:
               txtp.found = tx
               if tx.to_agent() == fdc: #and tx.from_agent():
-                print "------------------"
+                print("------------------")
                 if exmem and ex.exchange_type == exmem.exchange_type:
-                    print "DUPLICATE exchanges? "+str(ex.id)+": txs:"+str(len(ex.transfers.all()))+": cms:"+str(len(ex.commitments.all()))+": evs:"+str(len(ex.events.all()))+" <> "+str(exmem.id)+": txs:"+str(len(exmem.transfers.all()))+": cms:"+str(len(exmem.commitments.all()))+": evs:"+str(len(exmem.events.all()))
+                    print("DUPLICATE exchanges? "+str(ex.id)+": txs:"+str(len(ex.transfers.all()))+": cms:"+str(len(ex.commitments.all()))+": evs:"+str(len(ex.events.all()))+" <> "+str(exmem.id)+": txs:"+str(len(exmem.transfers.all()))+": cms:"+str(len(exmem.commitments.all()))+": evs:"+str(len(exmem.events.all())))
                     loger.info("DUPLICATE exchanges? "+str(ex.id)+" <> "+str(exmem.id))
                     memcms = exmem.commitments.all()
                     memevs = exmem.events.all()
@@ -867,7 +867,7 @@ def migrate_fdc_shares(request, jr):
 
                     for tf in ex.transfers.all():
                         if not tf in memtxs:
-                            print "- Found transfer related a duplicate exchange, merge to the same unique exchange of this type! "+str(tx)
+                            print("- Found transfer related a duplicate exchange, merge to the same unique exchange of this type! "+str(tx))
                             loger.info("Found transfer related a duplicate exchange, merge to the same unique exchange of this type! "+str(tx))
                             for mtx in memtxs:
                                 coms = mtx.commitments.all()
@@ -875,23 +875,23 @@ def migrate_fdc_shares(request, jr):
                                 if mtx.transfer_type == tf.transfer_type:
                                     koms = tf.commitments.all()
                                     evns = tf.events.all()
-                                    print "-- Found same transfer_type: "+str(tf.transfer_type)+" - id:"+str(tf.id)+" in mtx:"+str(mtx.id)+" coms:"+str(len(koms))+" evns:"+str(len(evns))
+                                    print("-- Found same transfer_type: "+str(tf.transfer_type)+" - id:"+str(tf.id)+" in mtx:"+str(mtx.id)+" coms:"+str(len(koms))+" evns:"+str(len(evns)))
                                     loger.info("-- Found same transfer_type: "+str(tf.transfer_type)+" - id:"+str(tf.id)+" in mtx:"+str(mtx.id)+" coms:"+str(len(koms))+" evns:"+str(len(evns)))
                                     if koms:
-                                        print "--- Merge comment to the transfer of the duplicate exchange? TODO coms: "+str(koms)
+                                        print("--- Merge comment to the transfer of the duplicate exchange? TODO coms: "+str(koms))
                                         loger.info("--- Merge comment to the transfer of the duplicate exchange? TODO coms: "+str(koms))
                                     if evns:
                                         for ev in evns:
                                           if not ev in evts:
-                                            print "--- tx ca:"+str(tf.context_agent)+" txdate:"+str(tf.transfer_date)+" crdate:"+str(tf.created_date) #+" notes:"+str(tf.notes)
-                                            print "--- mtx ca:"+str(mtx.context_agent)+" txdate:"+str(mtx.transfer_date)+" crdate:"+str(mtx.created_date) #+" notes:"+str(mtx.notes)
-                                            print "--- ev ca:"+str(ev.context_agent)+" qty:"+str(ev.quantity)+" u:"+str(ev.unit_of_quantity)+" rs:"+str(ev.resource)
+                                            print("--- tx ca:"+str(tf.context_agent)+" txdate:"+str(tf.transfer_date)+" crdate:"+str(tf.created_date)) #+" notes:"+str(tf.notes)
+                                            print("--- mtx ca:"+str(mtx.context_agent)+" txdate:"+str(mtx.transfer_date)+" crdate:"+str(mtx.created_date)) #+" notes:"+str(mtx.notes)
+                                            print("--- ev ca:"+str(ev.context_agent)+" qty:"+str(ev.quantity)+" u:"+str(ev.unit_of_quantity)+" rs:"+str(ev.resource))
                                             for e in evts:
-                                                print "---- mtx.ev: "+str(e.id)+" ca:"+str(e.context_agent)+" qty:"+str(e.quantity)+" u:"+str(e.unit_of_quantity)+" rs:"+str(e.resource)
-                                            print "--- Merged event to the transfer of the duplicated exchange! evid:"+str(ev.id)+" txid:"+str(tf.id)+" exid:"+str(ex.id)+" --> txid:"+str(mtx.id)+" exid:"+str(exmem.id)+" evs:"+str(len(memevs))
+                                                print("---- mtx.ev: "+str(e.id)+" ca:"+str(e.context_agent)+" qty:"+str(e.quantity)+" u:"+str(e.unit_of_quantity)+" rs:"+str(e.resource))
+                                            print("--- Merged event to the transfer of the duplicated exchange! evid:"+str(ev.id)+" txid:"+str(tf.id)+" exid:"+str(ex.id)+" --> txid:"+str(mtx.id)+" exid:"+str(exmem.id)+" evs:"+str(len(memevs)))
                                             loger.info("--- Merged event to the transfer of the duplicated exchange! evid:"+str(ev.id)+" txid:"+str(tf.id)+" exid:"+str(ex.id)+" --> txid:"+str(mtx.id)+" exid:"+str(exmem.id)+" evs:"+str(len(memevs)))
                                             if not jr.exchange == exmem:
-                                                print "WARN: Not changed the join_request to the other exchange! SKIP."
+                                                print("WARN: Not changed the join_request to the other exchange! SKIP.")
                                                 loger.info("WARN: Not changed the join_request to the other exchange! SKIP.")
                                                 continue
                                             mtx.notes = "merged events on "+str(tf.created_date)+" from exchange id:"+str(ex.id)+" and transfer id:"+str(ev.transfer.id)
@@ -902,13 +902,13 @@ def migrate_fdc_shares(request, jr):
                                             mtx.save()
                                             #tf.delete()
                                     else:
-                                        print "-- Can't find events for this transfer: "+str(tf)
+                                        print("-- Can't find events for this transfer: "+str(tf))
                                         loger.info("-- Can't find events for this transfer: "+str(tf))
 
                     if not jrmem and jrex:
                         jrex.exchange = exmem
                         jrex.save()
-                        print "- Updated join_request exchange from id:"+str(ex.id)+" to id:"+str(exmem.id)
+                        print("- Updated join_request exchange from id:"+str(ex.id)+" to id:"+str(exmem.id))
                         loger.info("- Updated join_request exchange from id:"+str(ex.id)+" to id:"+str(exmem.id))
 
                     return
@@ -917,18 +917,18 @@ def migrate_fdc_shares(request, jr):
                     exmem = ex
 
 
-                print "- Found exchange: "+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" tx-ca:"+str(tx.context_agent)+" tx-coms:"+str(len(tx.commitments.all()))+" tx-evts:"+str(len(tx.events.all()))
+                print("- Found exchange: "+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" tx-ca:"+str(tx.context_agent)+" tx-coms:"+str(len(tx.commitments.all()))+" tx-evts:"+str(len(tx.events.all())))
                 loger.info("- Found exchange: "+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx)+" tx-qty:"+str(tx.actual_quantity())+" tx-val:"+str(tx.actual_value())+" tx-ca:"+str(tx.context_agent)+" tx-coms:"+str(len(tx.commitments.all()))+" tx-evts:"+str(len(tx.events.all())))
 
 
                 if not ex.exchange_type == et:
-                    print "- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" (ca:"+str(et.context_agent)+")"
+                    print("- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" (ca:"+str(et.context_agent)+")")
                     loger.warning("- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" (ca:"+str(et.context_agent)+")")
                     ex.exchange_type = et
                     ex.save()
                     messages.warning(request, "- Changed et: "+str(ex.exchange_type)+" -> "+str(et)+" for the exchange: "+str(ex))
                 if not ex.name == et.name or not ex.context_agent == fdc:
-                    print "- Changed ex.name: "+str(ex)
+                    print("- Changed ex.name: "+str(ex))
                     loger.warning("- Changed ex.name: "+str(ex))
                     ex.name = et.name
                     ex.context_agent = fdc
@@ -937,7 +937,7 @@ def migrate_fdc_shares(request, jr):
 
                 #print "nom: "+str(nom) # - Trans: "+str(tx.transfer_type.name)+" to:"+str(tx.to_agent().name)+' from:'+str(tx.from_agent().name)
                 if not tx.name == paytt.name or not tx.transfer_type == paytt:
-                    print "-- Changed tt:"+str(tx.transfer_type)+" -> "+str(paytt)
+                    print("-- Changed tt:"+str(tx.transfer_type)+" -> "+str(paytt))
                     loger.warning("-- Changed tt:"+str(tx.transfer_type)+" -> "+str(paytt))
                     tx.transfer_type = paytt
                     tx.name = paytt.name
@@ -946,20 +946,20 @@ def migrate_fdc_shares(request, jr):
 
                 if not jr.exchange:
                     jr.exchange = ex
-                    print "- Connected exchange to join request: "+str(ex)
+                    print("- Connected exchange to join request: "+str(ex))
                     loger.warning("- Connected exchange to join request: "+str(ex))
                     jr.save()
                     messages.warning(request, "- Connected exchange to join request: "+str(ex))
                 for tt in ex.transfers.all():
                     if not tt.transfer_type == paytt and not tt.transfer_type == shrtt:
                         if not tt.events.all() and not tt.commitments.all():
-                            print "- delete empty transfer: "+str(tt.id)
+                            print("- delete empty transfer: "+str(tt.id))
                             loger.warning("- delete empty transfer: "+str(tt.id))
                             messages.warning(request, "- delete empty transfer: "+str(tt))
                             if tt.is_deletable():
                                 tt.delete()
                         else:
-                            print "WARNING: Not deleted Transfer because has events or shares!! "+str(tt)
+                            print("WARNING: Not deleted Transfer because has events or shares!! "+str(tt))
                             loger.error("WARNING: Not deleted Transfer because has events or shares!! "+str(tt))
 
                 evnts = tx.events.all()
@@ -972,15 +972,15 @@ def migrate_fdc_shares(request, jr):
                     #print "Evt: action:"+str(evt.action)+" unit:"+str(evt.unit())+" fairtx:"+str(fairtx)+" state:"+str(fairtx.tx_state)+" hash:"+str(fairtx.tx_hash)
                     if evt.event_type: # == et_give:
                         if not evt.resource_type == unit_rt:
-                            print "- change resource_type? "+str(evt.resource_type)+" -> "+str(unit_rt)+" et:"+str(evt.exchange_stage)
+                            print("- change resource_type? "+str(evt.resource_type)+" -> "+str(unit_rt)+" et:"+str(evt.exchange_stage))
                             loger.info("- change resource_type? "+str(evt.resource_type)+" -> "+str(unit_rt)+" et:"+str(evt.exchange_stage))
                         #if not evt.resource == fairres:
                         #    print "- Don't change event resource: "+str(evt.resource)+" -> "+str(fairres)
                         if not evt.exchange:
-                            print "- add exchange to event? "+str(evt)+" ex:"+str(tx.exchange)
+                            print("- add exchange to event? "+str(evt)+" ex:"+str(tx.exchange))
                             loger.info("- add exchange to event? "+str(evt)+" ex:"+str(tx.exchange))
                         if not evt.to_agent == fdc:
-                            print "- change event to_agent to FdC! "+str(evt.to_agent)
+                            print("- change event to_agent to FdC! "+str(evt.to_agent))
                             loger.info("- change event to_agent to FdC! "+str(evt.to_agent))
                             #evt.to_agent = fdc
                         sh_unit = None
@@ -996,27 +996,27 @@ def migrate_fdc_shares(request, jr):
                                     if us:
                                         sh_unit = us[0]
                                     else:
-                                        print "-- Error: Can't find units for the unit_type: "+str(ocput)+" for event:"+str(evt.id)
+                                        print("-- Error: Can't find units for the unit_type: "+str(ocput)+" for event:"+str(evt.id))
                                         loger.error("-- Error: Can't find units for the unit_type: "+str(ocput)+" for event:"+str(evt.id))
                                 else:
-                                    print "-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for event:"+str(evt.id)
+                                    print("-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for event:"+str(evt.id))
                                     loger.error("-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for event:"+str(evt.id))
                             else:
-                                print "-- Error: The event resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(evt.resource_type.ocp_artwork_type)+" for event:"+str(evt.id)
+                                print("-- Error: The event resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(evt.resource_type.ocp_artwork_type)+" for event:"+str(evt.id))
                                 loger.error("-- Error: The event resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(evt.resource_type.ocp_artwork_type)+" for event:"+str(evt.id))
                           else:
-                            print "-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id)
+                            print("-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id))
                             loger.error("-- The event resource_type has no ocp_artwork_type? rt:"+str(evt.resource_type)+" for event:"+str(evt.id))
                         else:
                             #print "- the event has fairtx! id:"+str(evt.id)+" "+str(evt)
                             #loger.info("- the event has fairtx! id:"+str(evt.id)+" "+str(evt))
                             pass
                         if not sh_unit and not fairtx:
-                            print "x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt)
+                            print("x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
                             loger.error("x Not found share unit in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
                             continue
                         if not unit_rt:
-                            print "x Not found unit_rt in the event, SKIP! id:"+str(evt.id)+" "+str(evt)
+                            print("x Not found unit_rt in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
                             loger.error("x Not found unit_rt in the event, SKIP! id:"+str(evt.id)+" "+str(evt))
                             continue
 
@@ -1025,19 +1025,19 @@ def migrate_fdc_shares(request, jr):
                         evt.context_agent = fdc
                         if tx.transfer_type == paytt:
                             if not evt.resource_type == unit_rt:
-                                print "-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(unit_rt)
+                                print("-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(unit_rt))
                                 loger.info("-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(unit_rt))
                             if not evt.unit_of_quantity == unit:
-                                print "-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(unit)
+                                print("-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(unit))
                                 loger.info("-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(unit))
                             evt.resource_type = unit_rt
                             evt.unit_of_quantity = unit
                         elif tx.transfer_type == shrtt and sh_unit:
                             if not evt.resource_type == shrtyp:
-                                print "-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(shrtyp)
+                                print("-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(shrtyp))
                                 loger.info("-- CHANGED pay_evt:"+str(evt.id)+" resource_type from "+str(evt.resource_type)+" to "+str(shrtyp))
                             if not evt.unit_of_quantity == sh_unit:
-                                print "-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(sh_unit)
+                                print("-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(sh_unit))
                                 loger.info("-- CHANGED pay_evt:"+str(evt.id)+" unitofqty from "+str(evt.unit_of_quantity)+" to "+str(sh_unit))
                             evt.resource_type = shrtyp
                             evt.unit_of_quantity = sh_unit
@@ -1048,19 +1048,19 @@ def migrate_fdc_shares(request, jr):
                 if not comms:
                     pass #print "The Transfer has no commitments! "+str(tx)
                 else:
-                    print "The Transfer has commitments... txid:"+str(tx.id)+" coms: "+str(comms)
+                    print("The Transfer has commitments... txid:"+str(tx.id)+" coms: "+str(comms))
                     loger.warning("The Transfer has commitments... txid:"+str(tx.id)+" coms: "+str(comms))
                     for comm in comms:
                         if not comm.resource_type == unit_rt:
-                            print "- change comm resource_type? "+str(comm.resource_type)+" -> "+str(unit_rt)+" comm:"+str(comm.id)+" ex:"+str(ex.id)+" tx:"+str(tx.id)+" et:"+str(comm.exchange_stage)
+                            print("- change comm resource_type? "+str(comm.resource_type)+" -> "+str(unit_rt)+" comm:"+str(comm.id)+" ex:"+str(ex.id)+" tx:"+str(tx.id)+" et:"+str(comm.exchange_stage))
                             loger.info("- change comm resource_type? "+str(comm.resource_type)+" -> "+str(unit_rt)+" comm:"+str(comm.id)+" ex:"+str(ex.id)+" tx:"+str(tx.id)+" et:"+str(comm.exchange_stage))
                         #if not comm.resource == fairres:
                         #    print "- Don't change commitment resource: "+str(comm.resource)+" -> "+str(fairres)
                         if not comm.exchange:
-                            print "- add exchange to commitment? "+str(comm)+" ex:"+str(comm.exchange)
+                            print("- add exchange to commitment? "+str(comm)+" ex:"+str(comm.exchange))
                             loger.info("- add exchange to commitment? "+str(comm)+" ex:"+str(comm.exchange))
                         if not comm.to_agent == fdc:
-                            print "- change commitment to_agent to FdC! "+str(comm.to_agent)
+                            print("- change commitment to_agent to FdC! "+str(comm.to_agent))
                             loger.info("- change commitment to_agent to FdC! "+str(comm.to_agent))
                             #evt.to_agent = fdc
                         sh_unit = None
@@ -1075,24 +1075,24 @@ def migrate_fdc_shares(request, jr):
                                     if us:
                                         sh_unit = us[0]
                                     else:
-                                        print "-- Error: Can't find units for the unit_type: "+str(ocput)+" for commitment:"+str(comm.id)
+                                        print("-- Error: Can't find units for the unit_type: "+str(ocput)+" for commitment:"+str(comm.id))
                                         loger.error("-- Error: Can't find units for the unit_type: "+str(ocput)+" for commitment:"+str(comm.id))
                                 else:
-                                    print "-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for commitment:"+str(comm.id)
+                                    print("-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for commitment:"+str(comm.id))
                                     loger.error("-- Error: Can't find Ocp_Unit_Type with id:"+str(genut.id)+" ut:"+str(genut)+" for commitment:"+str(comm.id))
                             else:
-                                print "-- Error: The commitment resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(comm.resource_type.ocp_artwork_type)+" for commitment:"+str(comm.id)
+                                print("-- Error: The commitment resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(comm.resource_type.ocp_artwork_type)+" for commitment:"+str(comm.id))
                                 loger.error("-- Error: The commitment resource_type.ocp_artwork_type has no general_unit_type? oat:"+str(comm.resource_type.ocp_artwork_type)+" for commitment:"+str(comm.id))
                         else:
-                            print "-- The commitment resource_type has no ocp_artwork_type? rt:"+str(comm.resource_type)+" for commitment:"+str(comm.id)
+                            print("-- The commitment resource_type has no ocp_artwork_type? rt:"+str(comm.resource_type)+" for commitment:"+str(comm.id))
                             loger.error("-- The commitment resource_type has no ocp_artwork_type? rt:"+str(comm.resource_type)+" for commitment:"+str(comm.id))
 
                         if not sh_unit and not fairtx:
-                            print "x Not found share unit in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm)
+                            print("x Not found share unit in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm))
                             loger.error("x Not found share unit in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm))
                             continue
                         if not unit_rt:
-                            print "x Not found unit_rt in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm)
+                            print("x Not found unit_rt in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm))
                             loger.error("x Not found unit_rt in the commitment, SKIP! id:"+str(comm.id)+" "+str(comm))
                             continue
 
@@ -1101,19 +1101,19 @@ def migrate_fdc_shares(request, jr):
                         comm.exchange_stage = et
                         if tx.transfer_type == paytt:
                             if not comm.resource_type == unit_rt:
-                                print "-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(unit_rt)
+                                print("-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(unit_rt))
                                 loger.info("-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(unit_rt))
                             if not comm.unit_of_quantity == unit:
-                                print "-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(unit)
+                                print("-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(unit))
                                 loger.info("-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(unit))
                             comm.resource_type = unit_rt
                             comm.unit_of_quantity = unit
                         elif tx.transfer_type == shrtt and sh_unit:
                             if not comm.resource_type == shrtyp:
-                                print "-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(shrtyp)
+                                print("-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(shrtyp))
                                 loger.info("-- CHANGED pay_comm:"+str(comm.id)+" resource_type from "+str(comm.resource_type)+" to "+str(shrtyp))
                             if not comm.unit_of_quantity == sh_unit:
-                                print "-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(sh_unit)
+                                print("-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(sh_unit))
                                 loger.info("-- CHANGED pay_comm:"+str(comm.id)+" unitofqty from "+str(comm.unit_of_quantity)+" to "+str(sh_unit))
                             comm.resource_type = shrtyp
                             comm.unit_of_quantity = sh_unit
@@ -1122,23 +1122,23 @@ def migrate_fdc_shares(request, jr):
                         comm.save()
 
                         if not comm.fulfilling_events() and evnts:
-                            print "Warning! events to connect to the commitment? comm:"+str(comm.id)+" "+str(comm)+" evnts:"+str(evnts)
+                            print("Warning! events to connect to the commitment? comm:"+str(comm.id)+" "+str(comm)+" evnts:"+str(evnts))
                             for ev in evnts:
                                 if not ev.commitment == comm:
                                     if comm.resource_type == ev.resource_type:
-                                        print "- CONNECTED evt of same tx to the comm:"+str(comm.id)+" evt:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id)
+                                        print("- CONNECTED evt of same tx to the comm:"+str(comm.id)+" evt:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id))
                                         loger.info("- CONNECTED evt of same tx to the comm:"+str(comm.id)+" evt:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id))
                                         messages.info(request, "- CONNECTED evt of same tx to the comm:"+str(comm.id)+" evt:"+str(ev.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id))
                                         ev.commitment = comm
                                         ev.save()
                                     else:
-                                        print "- tx evt not related the tx commitment, CONNECT as fulfilling_evt ?? Different RT, SKIP! com:"+str(comm.id)+" ev:"+str(ev.id)+" "+str(ev)
+                                        print("- tx evt not related the tx commitment, CONNECT as fulfilling_evt ?? Different RT, SKIP! com:"+str(comm.id)+" ev:"+str(ev.id)+" "+str(ev))
                                         loger.info("- tx evt not related the tx commitment, CONNECT as fulfilling_evt ?? Different RT, SKIP! com:"+str(comm.id)+" comrt:"+str(comm.resource_type)+" ev:"+str(ev.id)+" evrt:"+str(ev.resource_type)) #+" "+str(ev))
 
 
 
               elif tx.from_agent() == fdc:
-                print " - Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share())
+                print(" - Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
                 loger.info("- Found transfer FROM FdC: "+str(tx.id)+": "+str(tx)+" tx_typ:"+str(tx.transfer_type.id)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
                 #messages.info(request, "- Found transfer FROM FdC: "+str(tx)+" tx_typ:"+str(tx.transfer_type)+" (shtt:"+str(shrtt.id)+") is_shr:"+str(tx.transfer_type.is_share()))
                 txevs = tx.events.all()
@@ -1151,12 +1151,12 @@ def migrate_fdc_shares(request, jr):
                     if comevs:
                       for ev in comevs:
                         if not ev in evnz:
-                            print "- - BAD event, missing connection to exchange. Repair! id:"+str(ev.id)+" "+str(ev)
+                            print("- - BAD event, missing connection to exchange. Repair! id:"+str(ev.id)+" "+str(ev))
                             loger.warning("- - BAD event, missing connection to exchange. Repair! id:"+str(ev.id)+" "+str(ev))
                             ev.exchange = ex
                             ev.save()
                     else:
-                        print "- - TODO com: "+str(com)+" without events, com_id:"+str(com.id)
+                        print("- - TODO com: "+str(com)+" without events, com_id:"+str(com.id))
                         loger.info("- - TODO com: "+str(com)+", without events, com_id:"+str(com.id))
 
                 else:
@@ -1166,13 +1166,13 @@ def migrate_fdc_shares(request, jr):
                         rel_rt = rel_rt.resource_type
                         #print "--- rel_rt:"+str(rel_rt)
                         if not rel_rt == evt.resource_type:
-                            print " - CHANGED the resource_type of the event "+str(evt.id)+" from '"+str(evt.resource_type)+"' to '"+str(rel_rt)+"'"
+                            print(" - CHANGED the resource_type of the event "+str(evt.id)+" from '"+str(evt.resource_type)+"' to '"+str(rel_rt)+"'")
                             loger.info(" - CHANGE resource_type of the event "+str(evt.id)+" from '"+str(evt.resource_type)+"' to '"+str(rel_rt)+"'")
                             messages.info(request, " - CHANGE resource_type of the event "+str(evt.id)+" from '"+str(evt.resource_type)+"' to '"+str(rel_rt)+"'")
                             evt.resource_type = rel_rt
                             evt.save()
                         if not tx.transfer_type == shrtt and rel_rt and txshr:
-                            print " -- CHANGED the event transfer from '"+str(tx)+"' to '"+str(txshr)+"', evt:"+str(evt.id)
+                            print(" -- CHANGED the event transfer from '"+str(tx)+"' to '"+str(txshr)+"', evt:"+str(evt.id))
                             loger.info(" -- CHANGED the event transfer from '"+str(tx)+"' to '"+str(txshr)+"', evt:"+str(evt.id))
                             messages.info(request, " -- CHANGED the event transfer from '"+str(tx)+"' to '"+str(txshr)+"', evt:"+str(evt.id))
                             evt.transfer = txshr
@@ -1183,73 +1183,73 @@ def migrate_fdc_shares(request, jr):
               elif tx.to_agent() == fdc.parent():
                 evs = tx.events.all()
                 cms = tx.commitments.all()
-                print "Found exchange related to FdC parent! "+str(tx)+" ca:"+str(tx.context_agent)+" evts:"+str(len(evs))+" coms:"+str(len(cms))
+                print("Found exchange related to FdC parent! "+str(tx)+" ca:"+str(tx.context_agent)+" evts:"+str(len(evs))+" coms:"+str(len(cms)))
                 loger.info("Found exchange related to FdC parent! "+str(tx))
                 for ev in evs:
                     if ev.to_agent == fdc.parent():
-                        print "- found event related fdc parent! change to_agent to fdc... "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address)
+                        print("- found event related fdc parent! change to_agent to fdc... "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address))
                         loger.info("- found event related fdc parent! change to_agent to fdc... "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address))
                         messages.info(request, "- found event related fdc parent! change to_agent to fdc... "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address))
                         ev.to_agent = fdc
                         ev.save()
                     if ev.from_agent == fdc.parent():
-                        print "- found event related fdc parent! change from_agent to fdc... SKIP!"+str(ev)
+                        print("- found event related fdc parent! change from_agent to fdc... SKIP!"+str(ev))
                         loger.info("- found event related fdc parent! change from_agent to fdc... SKIP! "+str(ev)+" fairtx:"+str(ev.faircoin_transaction.tx_state)+" to: "+str(ev.faircoin_transaction.to_address))
                         ev.from_agent = fdc
                         #ev.save()
                 for cm in cms:
                     if cm.to_agent == fdc.parent():
-                        print "- found commitment related fdc parent! change to_agent to fdc... "+str(cm)
+                        print("- found commitment related fdc parent! change to_agent to fdc... "+str(cm))
                         loger.info("- found commitment related fdc parent! change to_agent to fdc... "+str(cm))
                         messages.info(request, "- found commitment related fdc parent! change to_agent to fdc... "+str(cm))
                         cm.to_agent = fdc
                         cm.save()
                     if cm.from_agent == fdc.parent():
-                        print "- found commitment related fdc parent! change from_agent to fdc... SKIP! "+str(cm)
+                        print("- found commitment related fdc parent! change from_agent to fdc... SKIP! "+str(cm))
                         loger.info("- found commitment related fdc parent! change from_agent to fdc... SKIP! "+str(cm))
                         cm.from_agent = fdc
                         #cm.save()
                 return
               elif tx.from_agent() == fdc.parent():
-                print "Found exchange related from FdC parent! ex:"+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx)
+                print("Found exchange related from FdC parent! ex:"+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx))
                 loger.info("Found exchange related from FdC parent! ex:"+str(ex.id)+" tx:"+str(tx.id)+" "+str(tx))
                 txcoms = tx.commitments.all()
                 txevts = tx.events.all()
                 if tx.transfer_type == shrtt: # is share
                     for txcom in txcoms:
                         if not txcom.from_agent == fdc:
-                            print "- CHANGED txcom.from_agent to FdC in shrtt! (was "+str(txcom.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom)
+                            print("- CHANGED txcom.from_agent to FdC in shrtt! (was "+str(txcom.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom))
                             loger.info("- CHANGED txcom.from_agent to FdC in shrtt! (was "+str(txcom.from_agent)+")ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom))
                             txcom.from_agent = fdc
                             txcom.save()
                         for ev in txcom.fulfilling_events():
                             if not ev.from_agent == fdc:
-                                print "- CHANGED txcom.event.from_agent to FdC in shrtt! (was "+str(ev.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev)
+                                print("- CHANGED txcom.event.from_agent to FdC in shrtt! (was "+str(ev.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev))
                                 loger.info("- CHANGED txcom.event.from_agent to FdC in shrtt! (was "+str(ev.from_agent)+")ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev))
                                 ev.from_agent = fdc
                                 ev.save()
                     for txevt in txevts:
                         if not txevt.from_agent == fdc:
-                            print "- CHANGED txevt.from_agent to FdC in shrtt! (was "+str(txevt.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt)
+                            print("- CHANGED txevt.from_agent to FdC in shrtt! (was "+str(txevt.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt))
                             loger.info("- CHANGED txevt.from_agent to FdC in shrtt! (was "+str(txevt.from_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt))
                             txevt.from_agent = fdc
                             txevt.save()
                 elif tx.transfer_type == paytt: # is payment
                     for txcom in txcoms:
                         if not txcom.to_agent == fdc:
-                            print "- CHANGED txcom.to_agent to FdC in shrtt! (was "+str(txcom.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom)
+                            print("- CHANGED txcom.to_agent to FdC in shrtt! (was "+str(txcom.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom))
                             loger.info("- CHANGED txcom.to_agent to FdC in shrtt! (was "+str(txcom.to_agent)+")ex:"+str(ex.id)+" tx:"+str(tx.id)+" txcom:"+str(txcom.id)+" "+str(txcom))
                             txcom.to_agent = fdc
                             txcom.save()
                         for ev in txcom.fulfilling_events():
                             if not ev.to_agent == fdc:
-                                print "- CHANGED txcom.event.to_agent to FdC in shrtt! (was "+str(ev.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev)
+                                print("- CHANGED txcom.event.to_agent to FdC in shrtt! (was "+str(ev.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev))
                                 loger.info("- CHANGED txcom.event.to_agent to FdC in shrtt! (was "+str(ev.to_agent)+")ex:"+str(ex.id)+" tx:"+str(tx.id)+" ev:"+str(ev.id)+" "+str(ev))
                                 ev.to_agent = fdc
                                 ev.save()
                     for txevt in txevts:
                         if not txevt.to_agent == fdc:
-                            print "- CHANGED txevt.to_agent to FdC in shrtt! (was "+str(txevt.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt)
+                            print("- CHANGED txevt.to_agent to FdC in shrtt! (was "+str(txevt.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt))
                             loger.info("- CHANGED txevt.to_agent to FdC in shrtt! (was "+str(txevt.to_agent)+") ex:"+str(ex.id)+" tx:"+str(tx.id)+" txevt:"+str(txevt.id)+" "+str(txevt))
                             txevt.to_agent = fdc
                             txevt.save()
@@ -1257,53 +1257,53 @@ def migrate_fdc_shares(request, jr):
               else:
                 txcoms = tx.commitments.all()
                 txevts = tx.events.all()
-                print "Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(txcoms))+" evts:"+str(len(txevts))
+                print("Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(txcoms))+" evts:"+str(len(txevts)))
                 loger.debug("Another tx? "+str(tx)+" id:"+str(tx.id)+" ex:"+str(tx.exchange.id)+" tt:"+str(tx.transfer_type.id)+" to:"+str(tx.to_agent())+" from:"+str(tx.from_agent())+" ca:"+str(tx.context_agent)+" coms:"+str(len(txcoms))+" evts:"+str(len(txevts)))
                 if not tx.context_agent and tx.transfer_type == shrtt:
-                    print "- ADDED context_agent FdC to shrtt tx:"+str(tx.id)+" ex:"+str(ex.id)
+                    print("- ADDED context_agent FdC to shrtt tx:"+str(tx.id)+" ex:"+str(ex.id))
                     loger.info("- ADDED context_agent FdC to shrtt tx:"+str(tx.id)+" ex:"+str(ex.id))
                     tx.context_agent = fdc
                     tx.save()
                 if tx.context_agent == fdc:
                     if tx.transfer_type == shrtt:
                         if jr.total_shares():
-                            print "- FOUND tx related shares without to-from related fdc, but the agent has shares! Add event? tx:"+str(tx.id)+" jr:"+str(jr.id)+" shares:"+str(jr.total_shares())
+                            print("- FOUND tx related shares without to-from related fdc, but the agent has shares! Add event? tx:"+str(tx.id)+" jr:"+str(jr.id)+" shares:"+str(jr.total_shares()))
                             loger.info("- FOUND tx related shares without to-from related fdc, but the agent has shares! Add event? tx:"+str(tx.id)+" jr:"+str(jr.id)+" shares:"+str(jr.total_shares()))
                             evs = EconomicEvent.objects.filter(to_agent=jr.agent, from_agent=fdc)
                             if evs:
                               for ev in evs:
-                                print "- - found event:"+str(ev.id)+" "+str(ev)
+                                print("- - found event:"+str(ev.id)+" "+str(ev))
                                 loger.debug("- - found event:"+str(ev.id)+" "+str(ev))
                                 continue
                             else:
-                                print "Call update_payment_status complete to repair the missing share event... jr:"+str(jr.id)
+                                print("Call update_payment_status complete to repair the missing share event... jr:"+str(jr.id))
                                 loger.info("Call update_payment_status complete to repair the missing share event... jr:"+str(jr.id))
                                 jr.update_payment_status('complete')
                         else:
                             if not jr.payment_pending_amount():
-                                print "- CREATE missing Commitment for Shares..."
+                                print("- CREATE missing Commitment for Shares...")
                                 jr.update_payment_status('pending')
                             else:
-                                print "- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id)
+                                print("- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id))
                                 loger.info("- FOUND tx related shares without to-from related fdc, but the agent has no shares! Add commitment? tx:"+str(tx.id)+" jr:"+str(jr.id))
 
 
                     elif tx.transfer_type == paytt:
                         if not txcoms and not txevts:
                             exevts = tx.exchange.xfer_events()
-                            print "- empty paytt tx:"+str(tx.id)+" "+str(tx)+" ex.evts:"+str(len(exevts))
+                            print("- empty paytt tx:"+str(tx.id)+" "+str(tx)+" ex.evts:"+str(len(exevts)))
                             loger.info("- empty paytt tx:"+str(tx.id)+" "+str(tx)+" ex.evts:"+str(len(exevts)))
                             for exev in exevts:
-                                print "- - found event:"+str(exev.id)+" "+str(exev)+" tx:"+str(exev.transfer.id)+" fairtx:"+str(exev.faircoin_transaction)
+                                print("- - found event:"+str(exev.id)+" "+str(exev)+" tx:"+str(exev.transfer.id)+" fairtx:"+str(exev.faircoin_transaction))
                                 loger.info("- - found event:"+str(exev.id)+" "+str(exev)+" tx:"+str(exev.transfer.id)+" fairtx:"+str(exev.faircoin_transaction))
                                 if exev.faircoin_transaction and not exev.transfer == tx:
-                                    print "- - CHANGED exev.transfer? "+str(exev.transfer)+" -> "+str(exev.transfer.transfer_type.name)+" tt:"+str(exev.transfer.transfer_type.id)
+                                    print("- - CHANGED exev.transfer? "+str(exev.transfer)+" -> "+str(exev.transfer.transfer_type.name)+" tt:"+str(exev.transfer.transfer_type.id))
                                     loger.info("- - CHANGED exev.transfer? "+str(exev.transfer)+" -> "+str(exev.transfer.transfer_type.name)+" tt:"+str(exev.transfer.transfer_type.id))
                                     exev.transfer.transfer_type = paytt
                                     exev.transfer.name = paytt.name
                                     exev.transfer.save()
                                     if tx.is_deletable():
-                                        print "- - DELETED tx:"+str(tx.id)+" "+str(tx)
+                                        print("- - DELETED tx:"+str(tx.id)+" "+str(tx))
                                         loger.info("- - DELETED tx:"+str(tx.id)+" "+str(tx))
                                         tx.delete()
 
@@ -1312,7 +1312,7 @@ def migrate_fdc_shares(request, jr):
                 pass #print "Other tt: "+str(tt)
 
           if not txtp.found and et == ex.exchange_type:
-            print "WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange! et:"+str(et)
+            print("WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange! et:"+str(et))
             loger.warning("WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange!")
             messages.warning(request, "WARN: Missing transfer! "+str(txtp)+' pending:'+str(jr.pending_shares())+", Recreate exchange!")
             note = 'repaired '+str(datetime.date.today())+'. '
@@ -1326,8 +1326,8 @@ def migrate_fdc_shares(request, jr):
             pass
 
     exs2 = Exchange.objects.filter(exchange_type=et, events__isnull=True)
-    print
-    print "exs2: "+str(len(exs2))
+    print()
+    print("exs2: "+str(len(exs2)))
     for ex in exs2:
         kms = ex.xfer_commitments()
         evs = ex.xfer_events()
@@ -1336,11 +1336,11 @@ def migrate_fdc_shares(request, jr):
             if hasattr(ex, 'join_request') and ex.join_request:
                 jr2 = ex.join_request
             if not jr2 and not kms and not evs:
-                print "- delete empty Exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent) #+" JR:"+str(jr2)
+                print("- delete empty Exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2)
                 loger.info("- delete empty Exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2))
                 messages.info(request, "- delete empty Exchange: id:"+str(ex.id)+" - "+str(ex)+" ca:"+str(ex.context_agent)) #+" JR:"+str(jr2))
                 for tr in ex.transfers.all():
-                    print "-- delete empty Transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes)
+                    print("-- delete empty Transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
                     loger.info("-- delete empty Transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
                     messages.info(request, "-- delete empty Transfer: id:"+str(tr.id)+" - "+str(tr)+" ca:"+str(tr.context_agent)+" coms:"+str(len(tr.commitments.all()))+" evts:"+str(len(tr.events.all()))+" notes:"+str(tr.notes))
                     if tr.is_deletable():
@@ -1371,12 +1371,12 @@ def run_fdc_scripts(request, agent):
         #raise ValidationError("The FdC project still has not a shares_account_type ?")
         return
     if not acctyp.context_agent == fdc:
-        print "Change context_agent of the shares account to fdc!! "+str(acctyp)
+        print("Change context_agent of the shares account to fdc!! "+str(acctyp))
         loger.info("Change context_agent of the shares account to fdc!! "+str(acctyp))
         acctyp.context_agent = fdc
         acctyp.save()
     if not shrtyp.context_agent == fdc:
-        print "Change context_agent of the shares type to fdc!! "+str(shrtyp)
+        print("Change context_agent of the shares type to fdc!! "+str(shrtyp))
         loger.info("Change context_agent of the shares type to fdc!! "+str(shrtyp))
         shrtyp.context_agent = fdc
         shrtyp.save()
@@ -1422,12 +1422,12 @@ def run_fdc_scripts(request, agent):
                         if re.association_type == aamem:
                             rel = re
                         else:
-                            print "NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state)
+                            print("NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state))
                             loger.info("NOTE agent "+str(ag)+" has another association type with FdC parent: "+str(re)+" state:"+str(re.state))
                 elif rels:
                     rel = rels[0]
                 if rel:
-                    print "FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state)
+                    print("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state))
                     loger.info("FOUND fdc parent ("+str(fdc.parent())+") in related agents, REPAIR rel:"+str(rel)+" state:"+str(rel.state))
                     ress = list(arr.resource.resource_type for arr in ag.agent_resource_roles.all())
                     if acctyp in ress or oldshr in ress:
@@ -1439,7 +1439,7 @@ def run_fdc_scripts(request, agent):
                                 state=rel.state
                             )
                             if created:
-                                print "- created new active AgentAssociation: "+str(agas)
+                                print("- created new active AgentAssociation: "+str(agas))
                                 loger.info("- created new active AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new active AgentAssociation: "+str(agas))
                             else:
@@ -1453,7 +1453,7 @@ def run_fdc_scripts(request, agent):
                                     pass #print "- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state)
                                     #loger.info("- DON'T REPAIR? rel:"+str(rel)+" state:"+str(rel.state))
                         else:
-                            print "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state)
+                            print("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                             loger.info("- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                             messages.error(request, "- Found FdC shares but relation with FdC parent is not 'active': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                     else: # missing shares
@@ -1465,11 +1465,11 @@ def run_fdc_scripts(request, agent):
                                 state=rel.state
                             )
                             if created:
-                                print "- created new candidate AgentAssociation: "+str(agas)
+                                print("- created new candidate AgentAssociation: "+str(agas))
                                 loger.info("- created new candidate AgentAssociation: "+str(agas))
                                 messages.info(request, "- created new candidate AgentAssociation: "+str(agas))
                             if rel.association_type == aamem and agas:
-                                print "- deleted relation: "+str(rel)
+                                print("- deleted relation: "+str(rel))
                                 loger.warning("- deleted relation: "+str(rel))
                                 messages.warning(request, "- deleted relation: "+str(rel))
                                 rel.delete() #association_type = aapar
@@ -1478,7 +1478,7 @@ def run_fdc_scripts(request, agent):
                             if rel.association_type == aamem:
                                 rel.association_type = aapar
                                 rel.save()
-                                print "- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel)
+                                print("- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel))
                                 loger.info("- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel))
                                 messages.info(request, "- REPAIRED agent active association with FdC parent to 'participant' (was 'member'): "+str(rel))
                             if not fdc in relags:
@@ -1489,15 +1489,15 @@ def run_fdc_scripts(request, agent):
                                     state='potential'
                                 )
                                 if created:
-                                    print "- created new candidate AgentAssociation (no shares): "+str(agas)
+                                    print("- created new candidate AgentAssociation (no shares): "+str(agas))
                                     loger.info("- created new candidate AgentAssociation (no shares): "+str(agas))
                                     messages.info(request, "- created new candidate AgentAssociation (no shares): "+str(agas))
                         else:
-                            print "- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state)
+                            print("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                             loger.info("- Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                             messages.error(request, "Missing FdC shares but relation with FdC parent is not 'candidate': SKIP repair! "+str(rel)+" state:"+str(rel.state))
                 else: # missing rel
-                    print "ERROR Not found a relation with FdC parent for agent: "+str(ag)
+                    print("ERROR Not found a relation with FdC parent for agent: "+str(ag))
                     loger.info("ERROR Not found a relation with FdC parent for agent: "+str(ag))
             elif fdc in relags:
                 rels = ag.is_associate_of.filter(has_associate=fdc)
@@ -1508,7 +1508,7 @@ def run_fdc_scripts(request, agent):
                         if re.association_type == aamem:
                             rel = re
                         else:
-                            print "NOTE agent "+str(ag)+" has another association type with FdC: "+str(re)+" state:"+str(re.state)
+                            print("NOTE agent "+str(ag)+" has another association type with FdC: "+str(re)+" state:"+str(re.state))
                             loger.info("NOTE agent "+str(ag)+" has another association type with FdC: "+str(re)+" state:"+str(re.state))
                 elif rels:
                     rel = rels[0]
@@ -1516,16 +1516,16 @@ def run_fdc_scripts(request, agent):
                     if rel.association_type.name == 'Participant':
                         rel.association_type = aamem
                         rel.save()
-                        print "- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+str(rel.state)
+                        print("- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+str(rel.state))
                         loger.info("- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+str(rel.state))
                         messages.info(request, "- REPAIRED agent association with FdC to 'member' (was participant): "+str(rel)+" state:"+str(rel.state))
                     elif not rel.association_type == aamem:
-                        print "WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+str(rel.state)
+                        print("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+str(rel.state))
                         loger.info("WARNING! Another type of association with FdC is found! "+str(rel)+" state:"+str(rel.state))
                 else:
                     raise ValidationError("IMPOSSIBLE! FdC is related this agent? "+str(ag))
             else: # No relation with FdC or its parent
-                print "- Not found agent "+str(ag)+" in participants or candidates of FdC (but has membership request: "+str(ag.membership_requests.all().values_list('name', 'state'))+"), found: "+str(ag.is_associate_of.all())
+                print("- Not found agent "+str(ag)+" in participants or candidates of FdC (but has membership request: "+str(ag.membership_requests.all().values_list('name', 'state'))+"), found: "+str(ag.is_associate_of.all()))
                 ress = list(rel.resource.resource_type for rel in ag.agent_resource_roles.all())
                 if not acctyp in ress and not oldshr in ress:
                     #print "- Not found "+str(acctyp)+" nor any old "+str(oldshr)+" in the agent resources" #: "+str(ress)
@@ -1534,7 +1534,7 @@ def run_fdc_scripts(request, agent):
                         raise ValidationError("There are more than one FdC membership requests for agent "+str(ag))
                     for req in reqs:
                         if req.state == 'accepted': # Error: accepted without shares
-                            print "Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, SKIP repair! Relations: "+str(relags)+" - Resources: "+str(ress)
+                            print("Found accepted membership request but the agent '"+str(ag)+"' is not member of FdC (or its parent) and has not any FdC shares, SKIP repair! Relations: "+str(relags)+" - Resources: "+str(ress))
                             messages.error(request,
                                 "Found accepted <a href='"+str(reverse('membership_discussion',
                                 args=(req.id,)))+"'>membership request</a> but the agent <b>"+str(ag)
@@ -1553,10 +1553,10 @@ def run_fdc_scripts(request, agent):
                             req.state = 'new'
                             req.save()
                         elif req.state == 'declined':
-                            print "Found declined membership request, don't do nothing? "+str(req)
+                            print("Found declined membership request, don't do nothing? "+str(req))
                             loger.info("Found declined membership request, don't do nothing? "+str(req))
                         elif req.state == 'new':
-                            print "FOUND new membership request for agent: "+str(ag)+" with no shares, repair association!"
+                            print("FOUND new membership request for agent: "+str(ag)+" with no shares, repair association!")
                             loger.info("FOUND new membership request for agent: "+str(ag)+" with no shares, repair association!")
                             agas, created = AgentAssociation.objects.get_or_create(
                                 is_associate=ag,
@@ -1565,11 +1565,11 @@ def run_fdc_scripts(request, agent):
                                 state='potential'
                             )
                             if created:
-                                print "- Created new association as FdC candidate: "+str(agas)
+                                print("- Created new association as FdC candidate: "+str(agas))
                                 loger.info("- Created new association as FdC candidate: "+str(agas))
                                 messages.info(request, "- Created new association as FdC candidate: "+str(agas))
                 else:
-                    print "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair"
+                    print("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
                     loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
                     messages.warning(request, "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
 
@@ -1601,7 +1601,7 @@ def run_fdc_scripts(request, agent):
                     if rel.association_type == aamem: #and rel.has_associate == fdc.parent():
                         rel.association_type = AgentAssociationType.objects.get(identifier="participant")
                         rel.save()
-                        print "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state)
+                        print("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                         loger.info("- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                         messages.info(request, "- REPAIRED agent association with FdC parent to 'participant' (was 'member'): "+str(rel)+" state:"+str(rel.state))
                     else:
@@ -1617,18 +1617,18 @@ def run_fdc_scripts(request, agent):
                 ag.association_type = aamem
                 ag.has_associate = fdc
                 ag.save()
-                print "- Repaired candidate of fdc-parent was not related fdc: "+str(ag)+" state:"+str(ag.state)
+                print("- Repaired candidate of fdc-parent was not related fdc: "+str(ag)+" state:"+str(ag.state))
                 loger.info("- Repaired candidate of fdc-parent was not related fdc: "+str(ag)+" state:"+str(ag.state))
                 messages.info(request, "- Repaired candidate of fdc-parent was not related fdc: "+str(ag)+" state:"+str(ag.state))
         else:
             if ag.state == 'potential' or ag.state == 'candidate':
                 if ag.is_associate in candis:
-                    print "- deleted relation! "+str(ag)+" state:"+str(ag.state)
+                    print("- deleted relation! "+str(ag)+" state:"+str(ag.state))
                     loger.info("- deleted relation! "+str(ag)+" state:"+str(ag.state))
                     messages.warning(request, "- deleted relation! "+str(ag)+" state:"+str(ag.state))
                     ag.delete()
                 else:
-                    print "--- delete relation? "+str(ag)+" state:"+str(ag.state)
+                    print("--- delete relation? "+str(ag)+" state:"+str(ag.state))
             else:
                 pass #print "-- delete relation? "+str(ag)+" state:"+str(ag.state)
 
@@ -1761,7 +1761,7 @@ def members_agent(request, agent_id):
     if not user_agent or not user_agent.is_participant: # or not agent in user_agent.related_all_agents(): # or not user_agent.is_active_freedom_coop_member:
         return render(request, 'work/no_permission.html')
 
-    print "--------- start members_agent ("+str(agent)+") ----------"
+    print("--------- start members_agent ("+str(agent)+") ----------")
     loger.info("--------- start members_agent ("+str(agent)+") ----------")
     if agent.nick == "Freedom Coop": run_fdc_scripts(request, agent)
 
@@ -1866,7 +1866,7 @@ def members_agent(request, agent_id):
                             rs.identifier = nick+' '+arr[1]
                         rs.save()
                     else:
-                        print "- ERROR, resource with strange name? "+str(rs)
+                        print("- ERROR, resource with strange name? "+str(rs))
                         loger.warning("- ERROR, resource with strange name? "+str(rs))
 
             rss = EconomicResource.objects.filter(identifier__icontains=' '+oldnick)
@@ -1879,7 +1879,7 @@ def members_agent(request, agent_id):
                         #print "-2 rs.identifier: "+rs.identifier
                         rs.save()
                     else:
-                        print "- ERROR, resource with strange name? "+str(rs)
+                        print("- ERROR, resource with strange name? "+str(rs))
                         loger.warning("- ERROR, resource with strange name? "+str(rs))
         agent.name = name
         agent.nick = nick
@@ -1939,7 +1939,7 @@ def members_agent(request, agent_id):
         for ce in contributions:
             agents_stats.setdefault(ce.resource_type, Decimal("0"))
             agents_stats[ce.resource_type] += ce.quantity
-        for key, value in agents_stats.items():
+        for key, value in list(agents_stats.items()):
             individual_stats.append((key, value))
         individual_stats.sort(lambda x, y: cmp(y[1], x[1]))
 
@@ -1985,7 +1985,7 @@ def members_agent(request, agent_id):
             for event in events:
                 agents_stats.setdefault(event.from_agent.name, Decimal("0"))
                 agents_stats[event.from_agent.name] += event.quantity
-            for key, value in agents_stats.items():
+            for key, value in list(agents_stats.items()):
                 member_hours_recent.append((key, value))
             member_hours_recent.sort(lambda x, y: cmp(y[1], x[1]))
 
@@ -1999,7 +1999,7 @@ def members_agent(request, agent_id):
             for ce in ces:
                 agents_stats.setdefault(ce.agent.name, Decimal("0"))
                 agents_stats[ce.agent.name] += ce.quantity
-            for key, value in agents_stats.items():
+            for key, value in list(agents_stats.items()):
                 member_hours_stats.append((key, value))
             member_hours_stats.sort(lambda x, y: cmp(y[1], x[1]))
 
@@ -2018,7 +2018,7 @@ def members_agent(request, agent_id):
                     agents_roles[key][idx] += ce.quantity
             headings = ["Member",]
             headings.extend(roles)
-            for row in agents_roles.values():
+            for row in list(agents_roles.values()):
                 member_hours_roles.append(row)
             member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
             roles_height = len(member_hours_roles) * 20
@@ -2085,7 +2085,7 @@ def members_agent(request, agent_id):
               'members':asso_members
              }
 
-    print "--------- end members_agent ("+str(agent)+") ----------"
+    print("--------- end members_agent ("+str(agent)+") ----------")
     loger.info("--------- end members_agent ("+str(agent)+") ----------")
 
     return render(request, "work/members_agent.html", {
@@ -2286,7 +2286,7 @@ def change_your_project(request, agent_id):
                             rs.identifier = nick+' '+arr[1]
                         rs.save()
                     else:
-                        print "- ERROR, resource with strange name? "+str(rs)
+                        print("- ERROR, resource with strange name? "+str(rs))
 
             rss = EconomicResource.objects.filter(identifier__icontains=' '+agent.nick)
             if rss:
@@ -2298,7 +2298,7 @@ def change_your_project(request, agent_id):
                         #print "-2 rs.identifier: "+rs.identifier
                         rs.save()
                     else:
-                        print "- ERROR, resource with strange name? "+str(rs)
+                        print("- ERROR, resource with strange name? "+str(rs))
           agent.name = name
           agent.nick = nick
           agent.save()
@@ -2449,8 +2449,8 @@ def check_duplicate_agents(request, agent):
                 for co in copis:
                     users = co.users.all()
                     if users and request.user.is_superuser:
-                        if len(users) > 1 or not unicode(users[0].user) == unicode(co.nick):
-                            usrs = ' (user'+('s!' if len(users)>1 else '')+': '+(', '.join([unicode(us.user) for us in users]))+')'
+                        if len(users) > 1 or not str(users[0].user) == str(co.nick):
+                            usrs = ' (user'+('s!' if len(users)>1 else '')+': '+(', '.join([str(us.user) for us in users]))+')'
                         else:
                             usrs = ' (=user)'
                     else:
@@ -2501,11 +2501,11 @@ def check_duplicate_agents(request, agent):
                         if not aa == ag:
                             if not aa.state == 'active':
                                 aa.delete()
-                                print "- Deleted a duplicate relation! "+str(ag)
+                                print("- Deleted a duplicate relation! "+str(ag))
                                 loger.info("- Deleted a duplicate relation! "+str(ag))
                                 messages.info(request, "- Deleted a duplicate relation! "+str(ag))
                             else:
-                                print "Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa)
+                                print("Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa))
                                 loger.warning("Error: The found duplicated AgentAssociation is active, not deleted! "+str(aa))
 
         loger.info("------ end check_duplicate_agents ("+str(agent)+") ------")
@@ -2544,9 +2544,9 @@ def repair_duplicate_agents(request, agent):
                     if len(res): #len(txt) > 0 and not txt == '>': # and not str(met) in tps:
                         its = []
                         for rs in res:
-                            txt = u''+str(rs.id)
+                            txt = ''+str(rs.id)
                             if att == "is_associate_of":
-                                txt += u" to "+rs.has_associate.nick+" ("+str(rs.state)+")"
+                                txt += " to "+rs.has_associate.nick+" ("+str(rs.state)+")"
                             its.append(txt)
                         its = ', '.join(its)
                         tps.append('- <em>'+att+'</em>: '+str(len(res))+' - ids['+its+']') #+str(txt)+' Res:')
@@ -2558,7 +2558,7 @@ def repair_duplicate_agents(request, agent):
             for pro in co.__dict__:
                 fld = getattr(co, pro)
                 if not fld == None and not fld == '':
-                    if not isinstance(fld, unicode):
+                    if not isinstance(fld, str):
                         fld = str(fld)
                     props.append('<em>'+pro+'</em>: &nbsp;<b>'+fld+'</b>')
             pros = '<br>'.join(props)
@@ -2707,7 +2707,7 @@ def joinaproject_request(request, form_slug = False):
         try:
             form_entry = FormEntry.objects.get(slug=fobi_slug)
         except:
-            print "ERROR: Not found the FormEntry with fobi_slug: "+fobi_slug
+            print("ERROR: Not found the FormEntry with fobi_slug: "+fobi_slug)
             loger.error("ERROR: Not found the FormEntry with fobi_slug: "+fobi_slug)
             #pass
 
@@ -2736,7 +2736,7 @@ def joinaproject_request(request, form_slug = False):
           jdata = json.loads(request.body.decode("utf-8"))
           if 'ocp_api_key' in jdata and jdata['ocp_api_key']:
             POST = {}
-            for key, val in jdata.items():
+            for key, val in list(jdata.items()):
                 POST[ key ] = val
             wallet_user = jdata['wallet_user']
             api_key = jdata['ocp_api_key']
@@ -2977,7 +2977,7 @@ def joinaproject_request(request, form_slug = False):
                 # send errors as json if api_key call
                 if api_key:
                     errs = ''
-                    for err in fobi_form.errors.iteritems():
+                    for err in fobi_form.errors.items():
                         errs += '"'+striptags(err[0])+'": "'+striptags(err[1])+'"'
                     #import pdb; pdb.set_trace()
                     return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
@@ -2994,7 +2994,7 @@ def joinaproject_request(request, form_slug = False):
             # send errors as json if api_key call
             if api_key:
                 errs = ''
-                for err in join_form.errors.iteritems():
+                for err in join_form.errors.items():
                     errs += '"'+striptags(err[0])+'": "'+striptags(err[1])+'"'
                 #import pdb; pdb.set_trace()
                 return HttpResponse('{"errors": {'+str(errs)+'}}', content_type="application/json")
@@ -3236,7 +3236,7 @@ def edit_form_field_data(request, joinrequest_id):
 
                 req.headers = json.loads(entry.form_data_headers)
                 if not key in req.headers:
-                    print "Fix fobi header! "+key
+                    print("Fix fobi header! "+key)
                     for elm in entry.form_entry.formelemententry_set.all():
                         pdata = json.loads(elm.plugin_data)
                         if key == pdata['name']:
@@ -3481,7 +3481,7 @@ def join_requests(request, agent_id):
         pass
     else:
         raise ValidationError("User not allowed to see this page.")
-    print "-------------- start join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------"
+    print("-------------- start join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------")
     loger.debug("-------------- start join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------")
     state = "new"
     state_form = RequestStateForm(
@@ -3555,7 +3555,7 @@ def join_requests(request, agent_id):
               req.entries = []
 
             # calculate the actions table cell to speedup the template
-            req.actions = u''
+            req.actions = ''
             chekpass = req.check_user_pass()
             payamount = req.payment_amount()
             totalshrs = req.total_shares()
@@ -3571,53 +3571,53 @@ def join_requests(request, agent_id):
             deleteform = '<form class="action-form" id="delete-form'+str(req.id)+'" method="POST" '
             deleteform += 'action="'+reverse("delete_request", args=(req.id,))+'" >'
             deleteform += csrf_token_field
-            deleteform += '<input type="submit" class="btn btn-mini btn-danger" name="submit" value="'+unicode(_("Delete"))+'" /></form>'
+            deleteform += '<input type="submit" class="btn btn-mini btn-danger" name="submit" value="'+str(_("Delete"))+'" /></form>'
 
             declineform = '<form class="action-form" id="decline-form'+str(req.id)+'" method="POST" '
             declineform += 'action="'+reverse("decline_request", args=(req.id,))+'" >'
             declineform += csrf_token_field
-            declineform += '<input type="submit" class="btn btn-mini btn-warning" name="submit" value="'+unicode(_("Decline"))+'" /></form>'
+            declineform += '<input type="submit" class="btn btn-mini btn-warning" name="submit" value="'+str(_("Decline"))+'" /></form>'
 
 
             if not req.fobi_data:
                 req.actions = '<span class="error">ERROR!</span> &nbsp;'
             if chekpass:
-                req.actions += '<span class="error">'+unicode(_("Not Valid yet!"))+'</span> &nbsp;'
+                req.actions += '<span class="error">'+str(_("Not Valid yet!"))+'</span> &nbsp;'
             elif proshrtyps or subscrunit:
               if req.fobi_data:
                 if req.agent:
                     if proshrtyps:
                         req.actions += str(payamount)+'&nbsp;'
-                        req.actions += unicode(_("Shares:"))+'&nbsp;'
+                        req.actions += str(_("Shares:"))+'&nbsp;'
                     elif subscrunit:
                         if pendpays: req.actions += '<span class="error">'
                         req.actions += str(payamount)+'&nbsp;'
-                        req.actions += unicode(subscrunit.name)+' / '+unicode(req.payment_regularity()['key'])+'&nbsp;'
+                        req.actions += str(subscrunit.name)+' / '+str(req.payment_regularity()['key'])+'&nbsp;'
                         if pendpays: req.actions += '</span>'
                     if pendshrs:
                         if totalshrs:
-                            req.actions += '<span class="complete">'+unicode(totalshrs)+'</span>&nbsp;+&nbsp;<span class="error">'+unicode(req.pending_shares())+'</span>'
+                            req.actions += '<span class="complete">'+str(totalshrs)+'</span>&nbsp;+&nbsp;<span class="error">'+str(req.pending_shares())+'</span>'
                         else:
                             if pendpays:
                                 if subscres:
-                                    req.actions += '<span class="">'+unicode(_("Expired"))+'</span>'
-                                    req.actions += '<br><span class="">'+unicode(_("by"))+' '+str(req.subscription_resource().expiration_date)+'</span> '
+                                    req.actions += '<span class="">'+str(_("Expired"))+'</span>'
+                                    req.actions += '<br><span class="">'+str(_("by"))+' '+str(req.subscription_resource().expiration_date)+'</span> '
                                 else:
                                     pass #req.actions += '<br><span class="error small">'+unicode(_("Never payed"))+'</span>'
                             elif subscrunit:
-                                req.actions += '<span class="complete">'+unicode(_("Valid"))+'</span>'
-                                req.actions += '<br><span class="">'+unicode(_("until"))+' '+str(req.subscription_resource().expiration_date)+'</span> '
+                                req.actions += '<span class="complete">'+str(_("Valid"))+'</span>'
+                                req.actions += '<br><span class="">'+str(_("until"))+' '+str(req.subscription_resource().expiration_date)+'</span> '
                             else:
-                                req.actions += '<span class="error">'+unicode(totalshrs)+'</span> '
+                                req.actions += '<span class="error">'+str(totalshrs)+'</span> '
                     else:
                         if not totalshrs == payamount:
-                            req.actions += '<span class="complete">'+unicode(totalshrs)+'</span> '
+                            req.actions += '<span class="complete">'+str(totalshrs)+'</span> '
                         else:
                             req.actions += '<em class="complete"></em>'
                     #req.actions += '<br />'
                 if reqstatus:
                     req.actions += '<a href="'+reverse("exchange_logging_work", args=(req.project.agent.id, 0, req.exchange.id))+'"'
-                    req.actions += ' class="'+unicode(reqstatus)+'" >'+unicode(reqstatus.title())+'</a> '
+                    req.actions += ' class="'+str(reqstatus)+'" >'+str(reqstatus.title())+'</a> '
                 elif pendshrs:
                     if not req.payment_option()['key'] == 'ccard' and req.agent and req.exchange_type():
                         if managing:
@@ -3626,7 +3626,7 @@ def join_requests(request, agent_id):
                             req.actions += csrf_token_field
                             req.actions += '<input type="hidden" name="status" value="pending"> '
                             req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" '
-                            req.actions += ' value="'+unicode(_("Set as Pending"))+'" '
+                            req.actions += ' value="'+str(_("Set as Pending"))+'" '
                             if chekpass:
                                 req.actions += 'disabled="disabled" '
                             req.actions += ' /></form>'
@@ -3639,28 +3639,28 @@ def join_requests(request, agent_id):
                         #req.actions += ' <br />UT: '+str(req.payment_unit())+' RT: '+str(req.payment_unit_rt())+'</span><br />'
               else:
                 # not fobi_data
-                print("Not fobi_data for req: "+str(req.id))
+                print(("Not fobi_data for req: "+str(req.id)))
 
             else:
                 # not proshrtyps nor subscrunit
-                print("Not proshrtyps nor subscrunit for req: "+str(req.id))
+                print(("Not proshrtyps nor subscrunit for req: "+str(req.id)))
 
             dup = req.duplicated()
             if dup:
-                req.actions += u'<em class="error">'+unicode(_("Duplicated!"))+u'</em>'
-                req.actions += u'('+unicode(_("see the other"))+' <a href="'+reverse('project_feedback', args=(req.project.agent.id, dup.id))+'" >'
-                req.actions += unicode(_("request"))+'</a>) <br /> '+unicode(_("This request:"))+' '
+                req.actions += '<em class="error">'+str(_("Duplicated!"))+'</em>'
+                req.actions += '('+str(_("see the other"))+' <a href="'+reverse('project_feedback', args=(req.project.agent.id, dup.id))+'" >'
+                req.actions += str(_("request"))+'</a>) <br /> '+str(_("This request:"))+' '
                 req.actions += deleteform
 
             ncom = len(Comment.objects.filter(content_type=com_content_type, object_pk=req.pk))
-            req.actions += u'<a class="btn btn-info btn-mini" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'"> '
-            req.actions += u'<b>'+unicode(_("Feedback:"))+'</b> '+str(ncom)+'</a>&nbsp;'
+            req.actions += '<a class="btn btn-info btn-mini" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'"> '
+            req.actions += '<b>'+str(_("Feedback:"))+'</b> '+str(ncom)+'</a>&nbsp;'
 
             if state == "declined":
                 req.actions += '<form class="action-form" id="undecline-form'+str(req.id)+'" method="POST" '
                 req.actions += 'action="'+reverse("undecline_request", args=(req.id,))+'" >'
                 req.actions += csrf_token_field
-                req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+unicode(_("Undecline"))+'" /></form>'
+                req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Undecline"))+'" /></form>'
 
                 req.actions += deleteform
 
@@ -3679,11 +3679,11 @@ def join_requests(request, agent_id):
 
                     if chekpass:
                         if req.agent.is_deletable():
-                            req.actions += ' &nbsp; <span class="help-text">'+unicode(_("Wait to confirm, or delete agent, user and request"))+':</span>'
+                            req.actions += ' &nbsp; <span class="help-text">'+str(_("Wait to confirm, or delete agent, user and request"))+':</span>'
                             req.actions += '<form style="display: inline;" class="delete-agent-form indent" id="delete-agent-form'+str(req.id)+'" '
                             req.actions += 'action="'+reverse("delete_request_agent_and_user", args=(req.id,))+' " method="POST" >'
                             req.actions += csrf_token_field
-                            req.actions += '<button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >'+unicode(_("Delete all"))+'</button></form>'
+                            req.actions += '<button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >'+str(_("Delete all"))+'</button></form>'
                         elif request.user.is_superuser:
                             req.actions += ' &nbsp; (agent no deletable)'
                     else:
@@ -3692,15 +3692,15 @@ def join_requests(request, agent_id):
                 else:
                     posag = req.possible_agent
                     if posag:
-                        req.actions += '<br>"<a href="'+reverse('members_agent', args=(posag.id,))+'">'+unicode(posag)+'</a>" '+unicode(_("is taken, choose this agent?"))
+                        req.actions += '<br>"<a href="'+reverse('members_agent', args=(posag.id,))+'">'+str(posag)+'</a>" '+str(_("is taken, choose this agent?"))
                         req.actions += '<a href="'+reverse("connect_agent_to_join_request", args=(posag.id, req.id))+'" class="btn btn-primary" '
-                        req.actions += 'style="margin-bottom:20px;">'+str(_("Connect to"))+' '+unicode(posag)+'</a> <br />'
+                        req.actions += 'style="margin-bottom:20px;">'+str(_("Connect to"))+' '+str(posag)+'</a> <br />'
 
                     req.actions += '<form class="action-form" id="create-form'+str(req.id)+'" '
                     req.actions += 'action="'+reverse("confirm_request", args=(req.id,))+'" method="POST" >'
                     req.actions += csrf_token_field
-                    req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+unicode(_("Confirm Email"))+'" /> '
-                    req.actions += '<span class="help-text">'+unicode(_("sends random pass and creates user+agent"))+'</span></form>'
+                    req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Confirm Email"))+'" /> '
+                    req.actions += '<span class="help-text">'+str(_("sends random pass and creates user+agent"))+'</span></form>'
 
                     req.actions += deleteform
 
@@ -3714,8 +3714,8 @@ def join_requests(request, agent_id):
     if project.is_moderated() and not agent.email:
         messages.error(request, _("Please provide an email for the \"{0}\" project to use as a remitent for the moderated joining process notifications!").format(agent.name))
 
-    print "-------------- end join_requests ("+unicode(agent)+") (user:"+unicode(user_agent)+") ----------------"
-    loger.debug("-------------- end join_requests ("+unicode(agent)+") (user:"+unicode(user_agent)+") ----------------")
+    print("-------------- end join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------")
+    loger.debug("-------------- end join_requests ("+str(agent)+") (user:"+str(user_agent)+") ----------------")
 
     return render(request, "work/join_requests.html", {
         "help": get_help("join_requests"),
@@ -3887,7 +3887,7 @@ def accept_request(request, join_request_id):
         association, created = AgentAssociation.objects.get_or_create(
             is_associate=mbr_req.agent, has_associate=mbr_req.project.agent, association_type=association_type)
         if created:
-            print "- created AgentAssociation: "+str(association)
+            print("- created AgentAssociation: "+str(association))
             loger.info("- created AgentAssociation: "+str(association))
     association.state = "active"
     association.save()
@@ -4124,7 +4124,7 @@ def project_feedback(request, agent_id, join_request_id):
     fobi_headers = []
     fobi_keys = []
 
-    out_text = u''
+    out_text = ''
 
     if fobi_slug:
         form_entry = FormEntry.objects.get(slug=fobi_slug)
@@ -4183,7 +4183,7 @@ def project_feedback(request, agent_id, join_request_id):
                 #import pdb; pdb.set_trace()
 
             #jn_req.tworows = two_dicts_to_string(jn_req.form_headers, jn_req.data, 'th', 'td')
-            jn_req.items = jn_req.data.items()
+            jn_req.items = list(jn_req.data.items())
             jn_req.items_data = []
             for key in fobi_keys:
                 if not key in jn_req.form_headers:
@@ -4226,8 +4226,8 @@ def project_feedback(request, agent_id, join_request_id):
                     if 'url_w2w' in settings.MULTICURRENCY:
                         pay_form = PaySharesForm(initial=reqdata)
                     else:
-                        out_text += u" &nbsp; &nbsp; <div style='display: inline-block;'><input type='button' class='btn btn-primary' value='"+unicode(_("Pay the shares (coming soon)"))+"' disabled='disabled'> "
-                        out_text += u"<br>("+unicode(_("meanwhile pay from"))+" <a href='https://wallet.bankofthecommons.coop' target='_blank'>https://wallet.bankofthecommons.coop</a>)</div>"
+                        out_text += " &nbsp; &nbsp; <div style='display: inline-block;'><input type='button' class='btn btn-primary' value='"+str(_("Pay the shares (coming soon)"))+"' disabled='disabled'> "
+                        out_text += "<br>("+str(_("meanwhile pay from"))+" <a href='https://wallet.bankofthecommons.coop' target='_blank'>https://wallet.bankofthecommons.coop</a>)</div>"
             else:
                 wallet_form = MulticurrencyAuthCreateForm(initial={
                     'username': walletuser,
@@ -4264,7 +4264,7 @@ def validate_nick(request):
     nick = data.get('nick')
     agent_id = data.get('agent_id')
     agent = None
-    values = data.values()
+    values = list(data.values())
     if not nick:
         nick = values[0]
     if nick:
@@ -4313,7 +4313,7 @@ def validate_username(request):
     answer = True
     error = ""
     data = request.GET
-    values = data.values()
+    values = list(data.values())
     if values:
         username = values[0]
         try:
@@ -5355,7 +5355,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                               #context_agent=agnt
                             )
                             if created:
-                                print "- created ExchangeType: "+str(new_ext)
+                                print("- created ExchangeType: "+str(new_ext))
                             new_ext.use_case = uc
                             new_ext.context_agent = agnt
                             new_ext.save() # here we get an id
@@ -5370,7 +5370,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             new_rec.pk = None
                             new_rec.id = None
                             new_rec.name = name
-                            print "- created Ocp_Record_Type: "+name
+                            print("- created Ocp_Record_Type: "+name)
                             # mptt: insert_node(node, target, position='last-child', save=False)
                             new_rec = Ocp_Record_Type.objects.insert_node(new_rec, gen_ext, 'last-child', True)
                         new_rec.name = name
@@ -5549,10 +5549,10 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
               uv = transfer.unit_of_value()
               if uq and uq.name == "Each" and uv: # and not uq and
                 if rt.is_account():
-                    print ",, Switch uq each from uv:"+str(uv)+" in ex:"+str(x.id)+" tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account())
+                    print(",, Switch uq each from uv:"+str(uv)+" in ex:"+str(x.id)+" tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account()))
                     uq = uv
               if not uq and rt:
-                print ",, Switch missing uq from rt.unit:"+str(rt.unit)+" in ex:"+str(x.id)+" tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account())
+                print(",, Switch missing uq from rt.unit:"+str(rt.unit)+" in ex:"+str(x.id)+" tx:"+str(transfer.id)+" rt:"+str(rt)+" acc:"+str(rt.is_account()))
                 uq = rt.unit
 
               toag = transfer.to_agent()
@@ -5616,7 +5616,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                         rt.cur = rt.ocp_artwork_type.is_currency()
 
                         if rt.cur: # and rt.ocp_artwork_type.general_unit_type:
-                          print "--- found rt.is_currency, add to totals. "+str(rt)+" ex:"+str(x.id)+" tx:"+str(transfer.id)
+                          print("--- found rt.is_currency, add to totals. "+str(rt)+" ex:"+str(x.id)+" tx:"+str(transfer.id))
                           if rt.ocp_artwork_type.general_unit_type:
                             to['debug'] += str(transfer.quantity())+'-'+str(rt.ocp_artwork_type.general_unit_type.name)+sign+'(ex:'+str(x.id)+') - '
                           else:
@@ -5624,7 +5624,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                           for ttr in total_transfers:
                             if ttr['unit'] == rt.ocp_artwork_type.general_unit_type.id:
                               nom = rt.ocp_artwork_type.general_unit_type.name
-                              print "---- found other unit to add currency rt. nom:"+str(nom)+" tx:"+str(transfer.id)+" tx.qty:"+str(transfer.quantity())+" evs:"+str(len(transfer.events.all()))
+                              print("---- found other unit to add currency rt. nom:"+str(nom)+" tx:"+str(transfer.id)+" tx.qty:"+str(transfer.quantity())+" evs:"+str(len(transfer.events.all())))
                               ttr['name'] = nom
                               ttr['clas'] = rt.ocp_artwork_type.general_unit_type.clas
 
@@ -5649,7 +5649,7 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                             pass #raise ValidationError("Not rt.cur or rt.ocp_artwork_type.general_unit_type! rt: "+str(rt))
 
                       elif rt:
-                        print "--- found rt without ocp_artwork_type, skip "+str(rt)
+                        print("--- found rt without ocp_artwork_type, skip "+str(rt))
                         to['debug'] += ':'+str(rt)+'!!'+sign+':'
 
                       #to['debug'] += str(x.transfer_give_events())+':'
@@ -5722,14 +5722,14 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         to['incommit'] = remove_exponent(to['incommit'])
         if to['incommit']:
             if to['abbr'] in settings.CRYPTOS:
-                to['incommit'] = (u'\u2248 ')+str(to['incommit'])
+                to['incommit'] = ('\u2248 ')+str(to['incommit'])
             else:
                 to['incommit'] = '+'+str(to['incommit'])
         to['outgo'] = remove_exponent(to['outgo'])
         to['outcommit'] = remove_exponent(to['outcommit'])
         if to['outcommit']:
             if to['abbr'] in settings.CRYPTOS:
-                to['outcommit'] = (u'\u2248 ')+str(to['outcommit'])
+                to['outcommit'] = ('\u2248 ')+str(to['outcommit'])
             else:
                 to['outcommit'] = '-'+str(to['outcommit'])
 
@@ -5748,17 +5748,17 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
                         #print ".... comp:"+str(comp)+" abbr:"+str(abbr)+" nom2:"+str(nom2)
                         if not nom == nom2:
                             to['name'] = nom2
-                            print "- Changed unit name for the abbrev form of project't name: "+str(nom2)
+                            print("- Changed unit name for the abbrev form of project't name: "+str(nom2))
                             break
     if eachunit:
         total_transfers = [to for to in total_transfers if not to['unit'] == eachunit]
 
 
-    print "......... start slots_with_detail .........."
+    print("......... start slots_with_detail ..........")
     loger.info("......... start slots_with_detail ..........")
     for x in exchanges:
         x.slots = x.slots_with_detail(agent)
-    print "......... end slots_with_detail .........."
+    print("......... end slots_with_detail ..........")
     loger.info("......... end slots_with_detail ..........")
 
     return render(request, "work/exchanges_all.html", {
@@ -5877,10 +5877,10 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
             mem = slots[0]
         for slot in slots:
             if not slot == mem and slot.name == mem.name:
-                print("Duplicate TT (slot), delete? "+str(slot)+" fvs:"+str(slot.facet_values.all()))
+                print(("Duplicate TT (slot), delete? "+str(slot)+" fvs:"+str(slot.facet_values.all())))
                 loger.info("Duplicate TT (slot), delete? "+str(slot)+" fvs:"+str(slot.facet_values.all()))
                 if slot.is_deletable() and not slot.facet_values.all():
-                    print("DELETE? empty slot: "+str(slot))
+                    print(("DELETE? empty slot: "+str(slot)))
                     loger.info("DELETE? empty slot: "+str(slot))
                     #slot.delete()
             #tos = slot.agents_to()
@@ -5906,12 +5906,12 @@ def exchange_logging_work(request, context_agent_id, exchange_type_id=None, exch
                 #pass
             elif slot.is_reciprocal:
                 total_rect = total_rect + slot.total
-                print ".. change reci is_income to True? "+str(slot.is_income)
+                print(".. change reci is_income to True? "+str(slot.is_income))
                 #slot.is_income = True
                 total_rect_unit = slot.total_unit
             else:
                 total_t = total_t + slot.total
-                print ".. change reci is_income to False? "+str(slot.is_income)
+                print(".. change reci is_income to False? "+str(slot.is_income))
                 #slot.is_income = False
                 total_t_unit = slot.total_unit
 
@@ -6986,7 +6986,7 @@ def create_project_shares(request, agent_id):
 
     nome = project.compact_name()
     abbr = project.abbrev_name()
-    print "---------- start create_project_shares ("+str(nome)+":"+str(abbr)+") ----------"
+    print("---------- start create_project_shares ("+str(nome)+":"+str(abbr)+") ----------")
     loger.info("---------- start create_project_shares ("+str(nome)+":"+str(abbr)+") ----------")
     if request.method == "POST":
         shareprice = request.POST.get('shareprice')
@@ -6995,7 +6995,7 @@ def create_project_shares(request, agent_id):
         #print "shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr)
         prunit = Unit.objects.get(id=priceunit)
         if not shareprice or not priceunit or not shareabbr or not prunit:
-            print "some vars missing!! shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" prunit:"+str(prunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr)
+            print("some vars missing!! shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" prunit:"+str(prunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr))
             loger.info("some vars missing!! shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" prunit:"+str(prunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr))
             messages.error(request, "Some vars missing!! shareprice:"+str(shareprice)+" priceunit:"+str(priceunit)+" prunit:"+str(prunit)+" shareabbr:"+str(shareabbr)+" <> "+str(abbr))
             return render(request, 'work/no_permission.html')
@@ -7028,7 +7028,7 @@ def create_project_shares(request, agent_id):
             abbrev=abbr
         )
         if created:
-            print "- created OCP Unit: '"+nome+" Share ("+abbr+")'"
+            print("- created OCP Unit: '"+nome+" Share ("+abbr+")'")
             loger.info("- created OCP Unit: '"+nome+" Share ("+abbr+")'")
             messages.info(request, "- created OCP Unit: '"+nome+" Share ("+abbr+")'")
     else:
@@ -7038,7 +7038,7 @@ def create_project_shares(request, agent_id):
     ocpboc_share.name_en = nome+' Share'
     ocpboc_share.unit_type = 'value'
     if ocpboc_share.abbrev and not ocpboc_share.abbrev == abbr:
-        print "- changed shares Unit abbrev, from "+str(ocpboc_share.abbrev)+" to "+str(abbr)
+        print("- changed shares Unit abbrev, from "+str(ocpboc_share.abbrev)+" to "+str(abbr))
         loger.info("- changed shares Unit abbrev, from "+str(ocpboc_share.abbrev)+" to "+str(abbr))
         messages.info(request, "- changed shares Unit abbrev, from "+str(ocpboc_share.abbrev)+" to "+str(abbr))
     ocpboc_share.abbrev = abbr
@@ -7053,7 +7053,7 @@ def create_project_shares(request, agent_id):
             name_en=nome+' Shares',
             parent=gen_share_typ)
         if created:
-            print "- created Ocp_Unit_Type: '"+nome+" Shares'"
+            print("- created Ocp_Unit_Type: '"+nome+" Shares'")
             loger.info("- created Ocp_Unit_Type: '"+nome+" Shares'")
             messages.info(request, "- created Ocp_Unit_Type: '"+nome+" Shares'")
     else:
@@ -7076,7 +7076,7 @@ def create_project_shares(request, agent_id):
             name=nome+' Share',
             code=abbr)
         if created:
-            print "- created General.Unit: '"+nome+" Share'"
+            print("- created General.Unit: '"+nome+" Share'")
             loger.info("- created General.Unit: '"+nome+" Share'")
             messages.info(request, "- created General.Unit: '"+nome+" Share'")
     boc_share.name = nome+" Share"
@@ -7107,13 +7107,13 @@ def create_project_shares(request, agent_id):
             behavior='other'
         )
         if created:
-            print "- created EconomicResourceType: '"+nome+" Share'"
+            print("- created EconomicResourceType: '"+nome+" Share'")
             loger.info("- created EconomicResourceType: '"+nome+" Share'")
             messages.info(request, "- created EconomicResourceType: '"+nome+" Share'")
     share_rt.name_en = nome+" Share"
     if hasattr(share_rt, 'unit'):
         if not share_rt.unit == ocpboc_share:
-            print "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share)
+            print("- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
             loger.info("- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
             messages.info(request, "- CHANGED share_rt.unit from "+str(share_rt.unit)+" to "+str(ocpboc_share))
     share_rt.unit = ocpboc_share #ocp_each
@@ -7127,7 +7127,7 @@ def create_project_shares(request, agent_id):
     shrfv = FacetValue.objects.get(value="Project Shares")
     for fv in share_rt.facets.all():
         if not fv.facet_value == shrfv:
-            print "- delete: "+str(fv)
+            print("- delete: "+str(fv))
             loger.info("- delete: "+str(fv))
             messages.info(request, "- delete: "+str(fv))
             fv.delete()
@@ -7135,7 +7135,7 @@ def create_project_shares(request, agent_id):
         resource_type=share_rt,
         facet_value=shrfv)
     if created:
-        print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+        print("- created ResourceTypeFacetValue: "+str(share_rtfv))
         loger.info("- created ResourceTypeFacetValue: "+str(share_rtfv))
         messages.info(request, "- created ResourceTypeFacetValue: "+str(share_rtfv))
 
@@ -7159,7 +7159,7 @@ def create_project_shares(request, agent_id):
             parent=Type.objects.get(id=artw_sh.id)
         )
         if created:
-            print "- created Ocp_Artwork_Type: '"+nome+" Share'"
+            print("- created Ocp_Artwork_Type: '"+nome+" Share'")
             loger.info("- created Ocp_Artwork_Type: '"+nome+" Share'")
             messages.info(request, "- created Ocp_Artwork_Type: '"+nome+" Share'")
     artw_boc.name_en = nome+" Share"
@@ -7186,7 +7186,7 @@ def create_project_shares(request, agent_id):
             inventory_rule='yes',
             behavior='account')
         if created:
-            print "- created EconomicResourceType: "+str(ert_acc)
+            print("- created EconomicResourceType: "+str(ert_acc))
             loger.info("- created EconomicResourceType: "+str(ert_acc))
             messages.info(request, "- created EconomicResourceType: "+str(ert_acc))
     ert_acc.name_en = agent.name_en+" Shares Account"
@@ -7211,7 +7211,7 @@ def create_project_shares(request, agent_id):
             name_en=agent.name_en+" Shares Account",
             parent=parent_accs)
         if created:
-            print "- created Ocp_Artwork_Type: '"+nome+" Shares Account'"
+            print("- created Ocp_Artwork_Type: '"+nome+" Shares Account'")
             loger.info("- created Ocp_Artwork_Type: '"+nome+" Shares Account'")
             messages.info(request, "- created Ocp_Artwork_Type: '"+nome+" Shares Account'")
     proacc.name_en = agent.name_en+" Shares Account"
@@ -7250,7 +7250,7 @@ def create_project_shares(request, agent_id):
                 quantity=1
             )
             if created:
-                print "- created EconomicResource: "+str(res)
+                print("- created EconomicResource: "+str(res))
                 loger.info("- created EconomicResource: "+str(res))
                 messages.info(request, "- created EconomicResource: "+str(res))
     old_ident = res.identifier
@@ -7259,7 +7259,7 @@ def create_project_shares(request, agent_id):
     res.quantity = 1
     res.save()
     if not res.identifier == old_ident:
-        print "The resource name has changed! rename member accounts?"
+        print("The resource name has changed! rename member accounts?")
         loger.info("The resource name has changed! rename member accounts?")
         messages.info(request, "The resource name has changed! rename member accounts?")
         for ag in agent.all_has_associates():
@@ -7267,7 +7267,7 @@ def create_project_shares(request, agent_id):
                 if abbr+" shares account" in rs.identifier:
                     rs.identifier = agent.nick_en+" shares account for "+ag.has_associate.nick_en
                     rs.save()
-                    print "- Renamed account! "+rs.identifier
+                    print("- Renamed account! "+rs.identifier)
                     loger.info("- Renamed account! "+rs.identifier)
                     messages.info(request, "- Renamed account! "+rs.identifier)
 
@@ -7278,11 +7278,11 @@ def create_project_shares(request, agent_id):
             resource=res,
             role=owner)
         if created:
-            print "- created AgentResourceRole: "+str(aresrol)
+            print("- created AgentResourceRole: "+str(aresrol))
             loger.info("- created AgentResourceRole: "+str(aresrol))
             messages.info(request, "- created AgentResourceRole: "+str(aresrol))
 
-    print "---------- end create_project_shares ("+str(nome)+":"+str(abbr)+") ----------"
+    print("---------- end create_project_shares ("+str(nome)+":"+str(abbr)+") ----------")
     loger.info("---------- end create_project_shares ("+str(nome)+":"+str(abbr)+") ----------")
 
     return HttpResponseRedirect('/%s/%s/'
@@ -7301,7 +7301,7 @@ def create_shares_exchange_types(request, agent_id):
     if not user_agent or not project.share_types() or not request.user.is_superuser:
         return render(request, 'work/no_permission.html')
 
-    print "---------- start create_shares_exchange_types ("+str(agent)+") ----------"
+    print("---------- start create_shares_exchange_types ("+str(agent)+") ----------")
     loger.info("---------- start create_shares_exchange_types ("+str(agent)+") ----------")
 
     ocpag = EconomicAgent.objects.root_ocp_agent()
@@ -7313,7 +7313,7 @@ def create_shares_exchange_types(request, agent_id):
             agent_type=AgentType.objects.get(name="Entity"),
             is_context=True)
         if created:
-            print "- created EconomicAgent: 'Dummy'"
+            print("- created EconomicAgent: 'Dummy'")
             loger.info("- created EconomicAgent: 'Dummy'")
     dummy.name_en = "Dummy ContextAgent"
     dummy.is_context = True
@@ -7323,7 +7323,7 @@ def create_shares_exchange_types(request, agent_id):
     if not botc:
         botc = EconomicAgent.objects.filter(nick_en="BotC")
     if not botc:
-        print "- WARNING: the BotC agent don't exist, not created any exchange type for shares"
+        print("- WARNING: the BotC agent don't exist, not created any exchange type for shares")
         loger.info("- WARNING: the BotC agent don't exist, not created any exchange type for shares")
         raise ValidationError("- WARNING: the BotC agent don't exist, not created any exchange type for shares")
     else:
@@ -7345,7 +7345,7 @@ def create_shares_exchange_types(request, agent_id):
             name_en="Shares Economy:",
             parent=ocpext)
         if created:
-            print "- created Ocp_Record_Type branch: 'Shares Economy'"
+            print("- created Ocp_Record_Type branch: 'Shares Economy'")
             loger.info("- created Ocp_Record_Type branch: 'Shares Economy'")
     et_shareco.name_en = "Shares Economy:"
     et_shareco.clas = "shares_economy"
@@ -7353,7 +7353,7 @@ def create_shares_exchange_types(request, agent_id):
     shareco, created = ExchangeType.objects.get_or_create(
         name="Shares Economy")
     if created:
-        print "- created ExchangeType: 'Shares Economy'"
+        print("- created ExchangeType: 'Shares Economy'")
         loger.info("- created ExchangeType: 'Shares Economy'")
 
     shareco.context_agent = botc
@@ -7375,7 +7375,7 @@ def create_shares_exchange_types(request, agent_id):
             name_en="shares Buy",
             parent=et_shareco)
         if created:
-            print "- created Ocp_Record_Type branch: 'shares Buy'"
+            print("- created Ocp_Record_Type branch: 'shares Buy'")
             loger.info("- created Ocp_Record_Type branch: 'shares Buy'")
     et_sharebuy.name_en = 'shares Buy'
     et_sharebuy.clas = 'buy'
@@ -7392,7 +7392,7 @@ def create_shares_exchange_types(request, agent_id):
             name="share-buy Project Shares",
             use_case=usecas)
         if created:
-            print "- created ExchangeType: 'share-buy Project Shares'"
+            print("- created ExchangeType: 'share-buy Project Shares'")
             loger.info("- created ExchangeType: 'share-buy Project Shares'")
     etsh.name = "share-buy Project Shares"
     etsh.use_case = usecas
@@ -7414,7 +7414,7 @@ def create_shares_exchange_types(request, agent_id):
             exchange_type=etsh
         )
         if created:
-            print "- created TransferType: 'Give the payment of the Project shares'"
+            print("- created TransferType: 'Give the payment of the Project shares'")
             loger.info("- created TransferType: 'Give the payment of the Project shares'")
     ttpay.name = "Give the payment of the Project shares"
     ttpay.exchange_type = etsh
@@ -7433,14 +7433,14 @@ def create_shares_exchange_types(request, agent_id):
 
     for fv in ttpay.facet_values.all():
         if not fv.facet_value == fvmoney:
-            print "- delete fv: "+str(fv)
+            print("- delete fv: "+str(fv))
             loger.info("- delete fv: "+str(fv))
             fv.delete()
     ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttpay,
         facet_value=fvmoney)
     if created:
-        print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney)
+        print("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney))
         loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney))
 
     #  TransferType  ->  receive
@@ -7455,7 +7455,7 @@ def create_shares_exchange_types(request, agent_id):
             exchange_type=etsh
         )
         if created:
-            print "- created TransferType: 'Receive the Project shares'"
+            print("- created TransferType: 'Receive the Project shares'")
             loger.info("- created TransferType: 'Receive the Project shares'")
     ttshr.name = "Receive the Project shares"
     ttshr.exchange_type = etsh
@@ -7474,14 +7474,14 @@ def create_shares_exchange_types(request, agent_id):
 
     for fv in ttshr.facet_values.all():
         if not fv.facet_value == shrfv:
-            print "- delete: "+str(fv)
+            print("- delete: "+str(fv))
             loger.info("- delete: "+str(fv))
             fv.delete()
     ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
         transfer_type=ttshr,
         facet_value=shrfv)
     if created:
-        print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+        print("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
         loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
 
@@ -7514,7 +7514,7 @@ def create_shares_exchange_types(request, agent_id):
                 name="share-buy "+str(project.compact_name())+" Shares",
                 use_case=usecas)
             if created:
-                print "- created ExchangeType: 'share-buy "+str(project.compact_name())+" Shares'"
+                print("- created ExchangeType: 'share-buy "+str(project.compact_name())+" Shares'")
                 loger.info("- created ExchangeType: 'share-buy "+str(project.compact_name())+" Shares'")
         extyp.name = "share-buy "+str(project.compact_name())+" Shares"
         extyp.use_case = usecas
@@ -7541,7 +7541,7 @@ def create_shares_exchange_types(request, agent_id):
                 name_en="share-buy "+str(project.compact_name())+" Shares",
                 parent=et_sharebuy)
             if created:
-                print "- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'"
+                print("- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'")
                 loger.info("- created Ocp_Record_Type: 'share-buy "+str(project.compact_name())+" Shares'")
         rectyp.name_en = "share-buy "+str(project.compact_name())+" Shares"
         rectyp.parent = et_sharebuy
@@ -7562,7 +7562,7 @@ def create_shares_exchange_types(request, agent_id):
                 name="Give the payment of the "+str(project.agent.name)+" shares",
                 exchange_type=extyp)
             if created:
-                print "- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares'"
+                print("- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares'")
                 loger.info("- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares'")
         ttpay.name = "Give the payment of the "+str(project.agent.name)+" shares"
         ttpay.exchange_type = extyp
@@ -7582,7 +7582,7 @@ def create_shares_exchange_types(request, agent_id):
             transfer_type=ttpay,
             facet_value=fvmoney)
         if created:
-            print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney)
+            print("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney))
             loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(fvmoney))
 
         ##  TransferType  ->  project  ->  receive
@@ -7600,7 +7600,7 @@ def create_shares_exchange_types(request, agent_id):
                 name="Receive the "+str(project.agent.name)+" shares",
                 exchange_type=extyp)
             if created:
-                print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares'"
+                print("- created TransferType: 'Receive the "+str(project.agent.name)+" shares'")
                 loger.info("- created TransferType: 'Receive the "+str(project.agent.name)+" shares'")
         ttshr.name = "Receive the "+str(project.agent.name)+" shares"
         ttshr.exchange_type = extyp
@@ -7618,14 +7618,14 @@ def create_shares_exchange_types(request, agent_id):
         ###  TransferTypeFacetValue  ->  receive  ->  share
         for fv in ttshr.facet_values.all():
             if not fv.facet_value == shrfv:
-                print "- delete fv: "+str(fv)
+                print("- delete fv: "+str(fv))
                 loger.info("- delete fv: "+str(fv))
                 fv.delete()
         ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttshr,
             facet_value=shrfv)
         if created:
-            print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+            print("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
             loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
 
@@ -7665,18 +7665,18 @@ def create_shares_exchange_types(request, agent_id):
             if not gatefv:
                 gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
                 if created:
-                    print "- created FacetValue: '"+nome+" currency'"
+                    print("- created FacetValue: '"+nome+" currency'")
                     loger.info("- created FacetValue: '"+nome+" currency'")
 
             etfiats = ExchangeType.objects.filter(name=title+" Economy")
             if etfiats:
                 etfiat = etfiats[0]
                 for tt in etfiat.transfer_types.all():
-                    print "- delete tt? "+str(tt)
+                    print("- delete tt? "+str(tt))
                     loger.info("- delete tt? "+str(tt))
                     if tt.is_deletable():
                         tt.delete()
-                print "- delete etfiat? "+str(etfiat)
+                print("- delete etfiat? "+str(etfiat))
                 loger.info("- delete etfiat? "+str(etfiat))
                 if etfiat.is_deletable():
                     etfiat.delete()
@@ -7697,7 +7697,7 @@ def create_shares_exchange_types(request, agent_id):
                     parent=ocpext
                 )
                 if created:
-                    print "- created Ocp_Record_Type: '"+title+" Economy:'"
+                    print("- created Ocp_Record_Type: '"+title+" Economy:'")
                     loger.info("- created Ocp_Record_Type: '"+title+" Economy:'")
             parent_rectyp.name_en = title+" Economy:"
             parent_rectyp.parent = ocpext
@@ -7711,7 +7711,7 @@ def create_shares_exchange_types(request, agent_id):
                 parent=parent_rectyp
             )
             if created:
-                print "- created Ocp_Record_Type: '"+slug+" Buy'"
+                print("- created Ocp_Record_Type: '"+slug+" Buy'")
                 loger.info("- created Ocp_Record_Type: '"+slug+" Buy'")
             parent_rectypbuy.clas = "buy"
             parent_rectypbuy.save()
@@ -7731,7 +7731,7 @@ def create_shares_exchange_types(request, agent_id):
                     parent=parent_rectypbuy
                 )
                 if created:
-                    print "- created Ocp_Record_Type: '"+slug+"-buy Non-materials'"
+                    print("- created Ocp_Record_Type: '"+slug+"-buy Non-materials'")
                     loger.info("- created Ocp_Record_Type: '"+slug+"-buy Non-materials'")
             parent_rectypbuy_non.name_en = slug+"-buy Non-materials"
             parent_rectypbuy_non.parent = parent_rectypbuy
@@ -7750,7 +7750,7 @@ def create_shares_exchange_types(request, agent_id):
                 etfiat_non, created = ExchangeType.objects.get_or_create(
                     name=slug+"-buy Non-materials")
                 if created:
-                    print "- created ExchangeType: '"+slug+"-buy Non-materials'"
+                    print("- created ExchangeType: '"+slug+"-buy Non-materials'")
                     loger.info("- created ExchangeType: '"+slug+"-buy Non-materials'")
             etfiat_non.name = slug+"-buy Non-materials"
             etfiat_non.use_case = usecas
@@ -7772,7 +7772,7 @@ def create_shares_exchange_types(request, agent_id):
                     #give_agent_is_context=True,
                 )
                 if created:
-                    print "- created TransferType: 'Give the payment of the Non-material ("+slug+")'"
+                    print("- created TransferType: 'Give the payment of the Non-material ("+slug+")'")
                     loger.info("- created TransferType: 'Give the payment of the Non-material ("+slug+")'")
 
             ttpay.name = "Give the payment of the Non-material ("+slug+")"
@@ -7791,14 +7791,14 @@ def create_shares_exchange_types(request, agent_id):
             ###  TransferTypeFacetValue  ->  pay  ->  gatefv
             for fv in ttpay.facet_values.all():
                 if not fv.facet_value == gatefv:
-                    print "- delete fv: "+str(fv)
+                    print("- delete fv: "+str(fv))
                     loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
             if created:
-                print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+                print("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
                 loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
 
             ##  TransferType  ->  receive
@@ -7814,7 +7814,7 @@ def create_shares_exchange_types(request, agent_id):
                     #receive_agent_is_context=True,
                 )
                 if created:
-                    print "- created TransferType: 'Receive the Non-material' ("+slug+")"
+                    print("- created TransferType: 'Receive the Non-material' ("+slug+")")
                     loger.info("- created TransferType: 'Receive the Non-material' ("+slug+")")
 
             ttnon.name = "Receive the Non-material"
@@ -7837,12 +7837,12 @@ def create_shares_exchange_types(request, agent_id):
                     transfer_type=ttnon,
                     facet_value=fv)
                 if created:
-                    print "- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv)
+                    print("- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv))
                     loger.info("- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv))
 
             tts = etfiat_non.transfer_types.all()
             if not len(tts) == 2:
-                print "The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts)
+                print("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
                 loger.info("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
                 raise ValidationError("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
 
@@ -7862,7 +7862,7 @@ def create_shares_exchange_types(request, agent_id):
                     parent=parent_rectypbuy_non
                 )
                 if created:
-                    print "- created Ocp_Record_Type: '"+slug+"-buy Project Shares'"
+                    print("- created Ocp_Record_Type: '"+slug+"-buy Project Shares'")
                     loger.info("- created Ocp_Record_Type: '"+slug+"-buy Project Shares'")
             fiat_rectyp.name_en = slug+"-buy Project Shares"
             fiat_rectyp.parent = parent_rectypbuy_non
@@ -7880,7 +7880,7 @@ def create_shares_exchange_types(request, agent_id):
                 etfiat_shr, created = ExchangeType.objects.get_or_create(
                     name=slug+"-buy Project Shares")
                 if created:
-                    print "- created ExchangeType: '"+slug+"-buy Project Shares'"
+                    print("- created ExchangeType: '"+slug+"-buy Project Shares'")
                     loger.info("- created ExchangeType: '"+slug+"-buy Project Shares'")
 
             etfiat_shr.name = slug+"-buy Project Shares"
@@ -7902,7 +7902,7 @@ def create_shares_exchange_types(request, agent_id):
                     exchange_type=etfiat_shr,
                 )
                 if created:
-                    print "- created TransferType: 'Give the payment of the Shares ("+slug+")'"
+                    print("- created TransferType: 'Give the payment of the Shares ("+slug+")'")
                     loger.info("- created TransferType: 'Give the payment of the Shares ("+slug+")'")
             ttfiat.name = "Give the payment of the Shares ("+slug+")"
             ttfiat.sequence = 1
@@ -7920,14 +7920,14 @@ def create_shares_exchange_types(request, agent_id):
             ###  TransferTypeFacetValue  ->  pay  ->  gatefv
             for fv in ttfiat.facet_values.all():
                 if not fv.facet_value == gatefv:
-                    print "- delete fv: "+str(fv)
+                    print("- delete fv: "+str(fv))
                     loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttfiat,
                 facet_value=gatefv)
             if created:
-                print "- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv)
+                print("- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv))
                 loger.info("- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv))
 
             ##  TransferType  ->  receive
@@ -7943,7 +7943,7 @@ def create_shares_exchange_types(request, agent_id):
                     #receive_agent_is_context=True,
                 )
                 if created:
-                    print "- created TransferType: 'Receive the Shares' ("+slug+")"
+                    print("- created TransferType: 'Receive the Shares' ("+slug+")")
                     loger.info("- created TransferType: 'Receive the Shares' ("+slug+")")
             ttshr.name = "Receive the Shares"
             ttshr.exchange_type = etfiat_shr
@@ -7961,19 +7961,19 @@ def create_shares_exchange_types(request, agent_id):
             ###  TransferTypeFacetValue  ->  receive  ->  shares
             for fv in ttshr.facet_values.all():
                 if not fv.facet_value == shrfv:
-                    print "- delete fv: "+str(fv)
+                    print("- delete fv: "+str(fv))
                     loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
                 facet_value=shrfv)
             if created:
-                print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+                print("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
                 loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
             tts = etfiat_shr.transfer_types.all()
             if len(tts) > 2:
-                print "The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts)
+                print("The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts))
                 loger.info("The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts))
                 raise ValidationError("The ExchangeType '"+slug+"-buy Project Shares' has more than 2 transfer types: "+str(tts))
 
@@ -7993,7 +7993,7 @@ def create_shares_exchange_types(request, agent_id):
                 if not slug_ets:
                     slug_ets = [fdc_et]
                 else:
-                    print "## Repair old fdc_et uses because there is the new et? fdc_et:"+str(fdc_et)+" old_exs:"+str(len(fdc_et.exchanges.all()))+" new_et:"+str(slug_ets[0])+" new_exs:"+str(len(slug_ets[0].exchanges.all()))
+                    print("## Repair old fdc_et uses because there is the new et? fdc_et:"+str(fdc_et)+" old_exs:"+str(len(fdc_et.exchanges.all()))+" new_et:"+str(slug_ets[0])+" new_exs:"+str(len(slug_ets[0].exchanges.all())))
                     loger.info("## Repair old fdc_et uses because there is the new et? fdc_et:"+str(fdc_et)+" old_exs:"+str(len(fdc_et.exchanges.all()))+" new_et:"+str(slug_ets[0])+" new_exs:"+str(len(slug_ets[0].exchanges.all())))
                     for ex in fdc_et.exchanges.all():
                         pass
@@ -8008,7 +8008,7 @@ def create_shares_exchange_types(request, agent_id):
                     name=slug+"-buy "+str(project.compact_name())+" Shares"
                 )
                 if created:
-                    print "- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Shares'"
+                    print("- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Shares'")
                     loger.info("- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Shares'")
             slug_et.name = slug+"-buy "+str(project.compact_name())+" Shares"
             slug_et.use_case = usecas
@@ -8024,7 +8024,7 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 ttpay.pk = None
                 ttpay.id = None
-                print "- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares ("+slug+")'"
+                print("- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares ("+slug+")'")
                 loger.info("- created TransferType: 'Give the payment of the "+str(project.agent.name)+" shares ("+slug+")'")
             ttpay.name = "Give the payment of the "+str(project.agent.name)+" shares ("+slug+")"
             ttpay.exchange_type = slug_et
@@ -8041,14 +8041,14 @@ def create_shares_exchange_types(request, agent_id):
 
             for fv in ttpay.facet_values.all():
                 if not fv.facet_value == gatefv:
-                    print "- delete fv: "+str(fv)
+                    print("- delete fv: "+str(fv))
                     loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttpay,
                 facet_value=gatefv)
             if created:
-                print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+                print("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
                 loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
 
             # TransferType  ->  receive  ->  share
@@ -8062,7 +8062,7 @@ def create_shares_exchange_types(request, agent_id):
             else:
                 ttshr.pk = None
                 ttshr.id = None
-                print "- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")"
+                print("- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")")
                 loger.info("- created TransferType: 'Receive the "+str(project.agent.name)+" shares' ("+slug+")")
             ttshr.name = "Receive the "+str(project.agent.name)+" shares"
             ttshr.exchange_type = slug_et
@@ -8079,14 +8079,14 @@ def create_shares_exchange_types(request, agent_id):
 
             for fv in ttshr.facet_values.all():
                 if not fv.facet_value == shrfv:
-                    print "- delete fv: "+str(fv)
+                    print("- delete fv: "+str(fv))
                     loger.info("- delete fv: "+str(fv))
                     fv.delete()
             ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
                 transfer_type=ttshr,
                 facet_value=shrfv)
             if created:
-                print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv)
+                print("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
                 loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(shrfv))
 
 
@@ -8110,7 +8110,7 @@ def create_shares_exchange_types(request, agent_id):
                     parent=fiat_rectyp
                 )
                 if created:
-                    print "- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Shares'"
+                    print("- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Shares'")
                     loger.info("- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Shares'")
             pro_shr_rectyp.name_en = slug+"-buy "+str(project.compact_name())+" Shares"
             pro_shr_rectyp.ocpRecordType_ocp_artwork_type = rt.ocp_artwork_type.rel_nonmaterial_type
@@ -8118,7 +8118,7 @@ def create_shares_exchange_types(request, agent_id):
             pro_shr_rectyp.exchange_type = slug_et
             pro_shr_rectyp.save()
 
-    print "---------- end create_shares_exchange_types ("+str(agent)+") ----------"
+    print("---------- end create_shares_exchange_types ("+str(agent)+") ----------")
     loger.info("---------- end create_shares_exchange_types ("+str(agent)+") ----------")
 
     #return exchanges_all(request, project.agent.id)
@@ -8138,7 +8138,7 @@ def create_subscription_exchange_types(request, agent_id):
     if not user_agent or not project.subscription_unit() or not request.user.is_superuser:
         return render(request, 'work/no_permission.html')
 
-    print "---------- start create_subscription_exchange_types ("+str(agent)+") ----------"
+    print("---------- start create_subscription_exchange_types ("+str(agent)+") ----------")
     loger.info("---------- start create_subscription_exchange_types ("+str(agent)+") ----------")
 
     ocpag = EconomicAgent.objects.root_ocp_agent()
@@ -8168,7 +8168,7 @@ def create_subscription_exchange_types(request, agent_id):
         rt_sub, c = EconomicResourceType.objects.get_or_create(
             name_en='Subscription')
         if c:
-            print("- created EconomicResourceType: "+str(rt_sub))
+            print(("- created EconomicResourceType: "+str(rt_sub)))
             loger.info("- created EconomicResourceType: "+str(rt_sub))
     rt_sub.unit = ocp_each
     rt_sub.unit_of_use = ocp_each
@@ -8206,7 +8206,7 @@ def create_subscription_exchange_types(request, agent_id):
         facet=nonfacet,
         value="Project Subscriptions")
     if c:
-        print("- created FacetValue: "+str(subfv))
+        print(("- created FacetValue: "+str(subfv)))
 
 
     #  generic   B u y   P r o j e c t   S u b s c r i p t i o n s
@@ -8220,7 +8220,7 @@ def create_subscription_exchange_types(request, agent_id):
         sub_rt, c = EconomicResourceType.objects.get_or_create(
             name_en=project.agent.nick+" Subscription")
         if c:
-            print("- created the EconomicResourceType: "+str(sub_rt))
+            print(("- created the EconomicResourceType: "+str(sub_rt)))
     sub_rt.name_en = project.agent.nick+" Subscription"
     sub_rt.unit = project.subscription_unit()
     sub_rt.unit_of_use = sub_rt.unit
@@ -8242,7 +8242,7 @@ def create_subscription_exchange_types(request, agent_id):
                 name_en=project.agent.nick+' Subscription',
                 parent=artw_sub)
             if created:
-                print("- created Ocp_Artwork_Type: "+str(artw_prosub))
+                print(("- created Ocp_Artwork_Type: "+str(artw_prosub)))
                 loger.info("- created Ocp_Artwork_Type: "+str(artw_prosub))
         else:
             artw_prosub = artw_prosubs[0]
@@ -8294,18 +8294,18 @@ def create_subscription_exchange_types(request, agent_id):
         if not gatefv:
             gatefv, created = FacetValue.objects.get_or_create(value=nome+" currency", facet=curfacet)
             if created:
-                print "- created FacetValue: '"+nome+" currency'"
+                print("- created FacetValue: '"+nome+" currency'")
                 loger.info("- created FacetValue: '"+nome+" currency'")
 
         etfiats = ExchangeType.objects.filter(name=title+" Economy")
         if etfiats:
             etfiat = etfiats[0]
             for tt in etfiat.transfer_types.all():
-                print "- delete tt? "+str(tt)
+                print("- delete tt? "+str(tt))
                 loger.info("- delete tt? "+str(tt))
                 if tt.is_deletable():
                     tt.delete()
-            print "- delete etfiat? "+str(etfiat)
+            print("- delete etfiat? "+str(etfiat))
             loger.info("- delete etfiat? "+str(etfiat))
             if etfiat.is_deletable():
                 etfiat.delete()
@@ -8326,7 +8326,7 @@ def create_subscription_exchange_types(request, agent_id):
                 parent=ocpext
             )
             if created:
-                print "- created Ocp_Record_Type: '"+title+" Economy:'"
+                print("- created Ocp_Record_Type: '"+title+" Economy:'")
                 loger.info("- created Ocp_Record_Type: '"+title+" Economy:'")
         parent_rectyp.name_en = title+" Economy:"
         parent_rectyp.parent = ocpext
@@ -8340,7 +8340,7 @@ def create_subscription_exchange_types(request, agent_id):
             parent=parent_rectyp
         )
         if created:
-            print "- created Ocp_Record_Type: '"+slug+" Buy'"
+            print("- created Ocp_Record_Type: '"+slug+" Buy'")
             loger.info("- created Ocp_Record_Type: '"+slug+" Buy'")
         parent_rectypbuy.clas = "buy"
         parent_rectypbuy.save()
@@ -8360,7 +8360,7 @@ def create_subscription_exchange_types(request, agent_id):
                 parent=parent_rectypbuy
             )
             if created:
-                print "- created Ocp_Record_Type: '"+slug+"-buy Non-materials'"
+                print("- created Ocp_Record_Type: '"+slug+"-buy Non-materials'")
                 loger.info("- created Ocp_Record_Type: '"+slug+"-buy Non-materials'")
         parent_rectypbuy_non.name_en = slug+"-buy Non-materials"
         parent_rectypbuy_non.parent = parent_rectypbuy
@@ -8379,7 +8379,7 @@ def create_subscription_exchange_types(request, agent_id):
             etfiat_non, created = ExchangeType.objects.get_or_create(
                 name=slug+"-buy Non-materials")
             if created:
-                print "- created ExchangeType: '"+slug+"-buy Non-materials'"
+                print("- created ExchangeType: '"+slug+"-buy Non-materials'")
                 loger.info("- created ExchangeType: '"+slug+"-buy Non-materials'")
         etfiat_non.name = slug+"-buy Non-materials"
         etfiat_non.use_case = usecas
@@ -8401,7 +8401,7 @@ def create_subscription_exchange_types(request, agent_id):
                 #give_agent_is_context=True,
             )
             if created:
-                print "- created TransferType: 'Give the payment of the Non-material ("+slug+")'"
+                print("- created TransferType: 'Give the payment of the Non-material ("+slug+")'")
                 loger.info("- created TransferType: 'Give the payment of the Non-material ("+slug+")'")
 
         ttpay.name = "Give the payment of the Non-material ("+slug+")"
@@ -8420,14 +8420,14 @@ def create_subscription_exchange_types(request, agent_id):
         ###  TransferTypeFacetValue  ->  pay  ->  gatefv
         for fv in ttpay.facet_values.all():
             if not fv.facet_value == gatefv:
-                print "- delete fv: "+str(fv)
+                print("- delete fv: "+str(fv))
                 loger.info("- delete fv: "+str(fv))
                 fv.delete()
         ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttpay,
             facet_value=gatefv)
         if created:
-            print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+            print("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
             loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
 
         ##  TransferType  ->  receive
@@ -8443,7 +8443,7 @@ def create_subscription_exchange_types(request, agent_id):
                 #receive_agent_is_context=True,
             )
             if created:
-                print "- created TransferType: 'Receive the Non-material' ("+slug+")"
+                print("- created TransferType: 'Receive the Non-material' ("+slug+")")
                 loger.info("- created TransferType: 'Receive the Non-material' ("+slug+")")
 
         ttnon.name = "Receive the Non-material"
@@ -8466,12 +8466,12 @@ def create_subscription_exchange_types(request, agent_id):
                 transfer_type=ttnon,
                 facet_value=fv)
             if created:
-                print "- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv)
+                print("- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv))
                 loger.info("- created TransferTypeFacetValue: "+str(ttnon)+" <> "+str(fv))
 
         tts = etfiat_non.transfer_types.all()
         if not len(tts) == 2:
-            print "The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts)
+            print("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
             loger.info("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
             raise ValidationError("The ExchangeType '"+slug+"-buy Non-materials' has not 2 transfer types: "+str(tts))
 
@@ -8489,7 +8489,7 @@ def create_subscription_exchange_types(request, agent_id):
                 parent=parent_rectypbuy_non
             )
             if created:
-                print "- created Ocp_Record_Type: '"+slug+"-buy Project Subscriptions'"
+                print("- created Ocp_Record_Type: '"+slug+"-buy Project Subscriptions'")
                 loger.info("- created Ocp_Record_Type: '"+slug+"-buy Project Subscriptions'")
         fiat_rectyp.name_en = slug+"-buy Project Subscriptions"
         fiat_rectyp.parent = parent_rectypbuy_non
@@ -8507,7 +8507,7 @@ def create_subscription_exchange_types(request, agent_id):
             etfiat_shr, created = ExchangeType.objects.get_or_create(
                 name=slug+"-buy Project Subscriptions")
             if created:
-                print "- created ExchangeType: '"+slug+"-buy Project Subscriptions'"
+                print("- created ExchangeType: '"+slug+"-buy Project Subscriptions'")
                 loger.info("- created ExchangeType: '"+slug+"-buy Project Subscriptions'")
 
         etfiat_shr.name = slug+"-buy Project Subscriptions"
@@ -8529,7 +8529,7 @@ def create_subscription_exchange_types(request, agent_id):
                 exchange_type=etfiat_shr,
             )
             if created:
-                print "- created TransferType: 'Payment of the Subscription ("+slug+")'"
+                print("- created TransferType: 'Payment of the Subscription ("+slug+")'")
                 loger.info("- created TransferType: 'Payment of the Subscription ("+slug+")'")
         ttfiat.name = "Payment of the Subscription ("+slug+")"
         ttfiat.sequence = 1
@@ -8547,14 +8547,14 @@ def create_subscription_exchange_types(request, agent_id):
         ###  TransferTypeFacetValue  ->  pay  ->  gatefv
         for fv in ttfiat.facet_values.all():
             if not fv.facet_value == gatefv:
-                print "- delete fv: "+str(fv)
+                print("- delete fv: "+str(fv))
                 loger.info("- delete fv: "+str(fv))
                 fv.delete()
         ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttfiat,
             facet_value=gatefv)
         if created:
-            print "- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv)
+            print("- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv))
             loger.info("- created TransferTypeFacetValue: "+str(ttfiat)+" <> "+str(gatefv))
 
         ##  TransferType  ->  receive
@@ -8570,7 +8570,7 @@ def create_subscription_exchange_types(request, agent_id):
                 #receive_agent_is_context=True,
             )
             if created:
-                print "- created TransferType: 'Activate the Subscription' ("+slug+")"
+                print("- created TransferType: 'Activate the Subscription' ("+slug+")")
                 loger.info("- created TransferType: 'Activate the Subscription' ("+slug+")")
         ttshr.name = "Activate the Subscription"
         ttshr.exchange_type = etfiat_shr
@@ -8588,19 +8588,19 @@ def create_subscription_exchange_types(request, agent_id):
         ###  TransferTypeFacetValue  ->  receive  ->  shares
         for fv in ttshr.facet_values.all():
             if not fv.facet_value == subfv:
-                print "- delete fv: "+str(fv)
+                print("- delete fv: "+str(fv))
                 loger.info("- delete fv: "+str(fv))
                 fv.delete()
         ttnonfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttshr,
             facet_value=subfv)
         if created:
-            print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv)
+            print("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv))
             loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv))
 
         tts = etfiat_shr.transfer_types.all()
         if len(tts) > 2:
-            print "The ExchangeType '"+slug+"-buy Project Subscriptions' has more than 2 transfer types: "+str(tts)
+            print("The ExchangeType '"+slug+"-buy Project Subscriptions' has more than 2 transfer types: "+str(tts))
             loger.info("The ExchangeType '"+slug+"-buy Project Subscriptions' has more than 2 transfer types: "+str(tts))
             raise ValidationError("The ExchangeType '"+slug+"-buy Project Subscriptions' has more than 2 transfer types: "+str(tts))
 
@@ -8623,7 +8623,7 @@ def create_subscription_exchange_types(request, agent_id):
                 name=slug+"-buy "+str(project.compact_name())+" Subscription"
             )
             if created:
-                print "- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Subscription'"
+                print("- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Subscription'")
                 loger.info("- created ExchangeType: '"+slug+"-buy "+str(project.compact_name())+" Subscription'")
         slug_et.name = slug+"-buy "+str(project.compact_name())+" Subscription"
         slug_et.use_case = usecas
@@ -8639,7 +8639,7 @@ def create_subscription_exchange_types(request, agent_id):
         else:
             ttpay.pk = None
             ttpay.id = None
-            print "- created TransferType: 'Payment of the "+str(project.agent.name_en)+" subscription ("+slug+")'"
+            print("- created TransferType: 'Payment of the "+str(project.agent.name_en)+" subscription ("+slug+")'")
             loger.info("- created TransferType: 'Payment of the "+str(project.agent.name_en)+" subscription ("+slug+")'")
         ttpay.name = "Payment of the "+str(project.agent.name_en)+" subscription ("+slug+")"
         ttpay.exchange_type = slug_et
@@ -8656,14 +8656,14 @@ def create_subscription_exchange_types(request, agent_id):
 
         for fv in ttpay.facet_values.all():
             if not fv.facet_value == gatefv:
-                print "- delete fv: "+str(fv)
+                print("- delete fv: "+str(fv))
                 loger.info("- delete fv: "+str(fv))
                 fv.delete()
         ttpayfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttpay,
             facet_value=gatefv)
         if created:
-            print "- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv)
+            print("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
             loger.info("- created TransferTypeFacetValue: "+str(ttpay)+" <> "+str(gatefv))
 
         # TransferType  ->  receive  ->  share
@@ -8677,7 +8677,7 @@ def create_subscription_exchange_types(request, agent_id):
         else:
             ttshr.pk = None
             ttshr.id = None
-            print "- created TransferType: 'Activate the "+str(project.agent.name_en)+" subscription' ("+slug+")"
+            print("- created TransferType: 'Activate the "+str(project.agent.name_en)+" subscription' ("+slug+")")
             loger.info("- created TransferType: 'Activate the "+str(project.agent.name_en)+" subscription' ("+slug+")")
         ttshr.name = "Activate the "+str(project.agent.name_en)+" subscription"
         ttshr.exchange_type = slug_et
@@ -8694,14 +8694,14 @@ def create_subscription_exchange_types(request, agent_id):
 
         for fv in ttshr.facet_values.all():
             if not fv.facet_value == subfv:
-                print "- delete fv: "+str(fv)
+                print("- delete fv: "+str(fv))
                 loger.info("- delete fv: "+str(fv))
                 fv.delete()
         ttshrfv, created = TransferTypeFacetValue.objects.get_or_create(
             transfer_type=ttshr,
             facet_value=subfv)
         if created:
-            print "- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv)
+            print("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv))
             loger.info("- created TransferTypeFacetValue: "+str(ttshr)+" <> "+str(subfv))
 
 
@@ -8725,7 +8725,7 @@ def create_subscription_exchange_types(request, agent_id):
                 parent=fiat_rectyp
             )
             if created:
-                print "- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Subscriptions'"
+                print("- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Subscriptions'")
                 loger.info("- created Ocp_Record_Type: '"+slug+"-buy "+str(project.agent.name_en)+" Subscriptions'")
         pro_sub_rectyp.name_en = slug+"-buy "+str(project.compact_name())+" Subscriptions"
         pro_sub_rectyp.ocpRecordType_ocp_artwork_type = artw_prosub #sub_rt.ocp_artwork_type
@@ -8733,7 +8733,7 @@ def create_subscription_exchange_types(request, agent_id):
         pro_sub_rectyp.exchange_type = slug_et
         pro_sub_rectyp.save()
 
-    print "---------- end create_subscription_exchange_types ("+str(agent)+") ----------"
+    print("---------- end create_subscription_exchange_types ("+str(agent)+") ----------")
     loger.info("---------- end create_subscription_exchange_types ("+str(agent)+") ----------")
 
     #return exchanges_all(request, project.agent.id)
@@ -11053,7 +11053,7 @@ def plan_work(request, rand=0):
             consumed_rts = []
             used_rts = []
             work_rts = []
-            for key, value in dict(rp).iteritems():
+            for key, value in dict(rp).items():
                 if "selected-context-agent" in key:
                     context_agent_id = key.split("~")[1]
                     selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
@@ -11641,7 +11641,7 @@ def value_equation_sandbox_work(request, value_equation_id):
                 sub.rate = 0
                 if sub.distr_amt and sub.quantity:
                     sub.rate = (sub.distr_amt / sub.quantity).quantize(Decimal('.01'), rounding=ROUND_HALF_UP)
-            agent_subtotals = agent_subtotals.values()
+            agent_subtotals = list(agent_subtotals.values())
             agent_subtotals = sorted(agent_subtotals, key=methodcaller('key'))
 
             details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))

@@ -32,7 +32,7 @@ from rdflib.serializer import Serializer
 from rdflib import Namespace, URIRef
 from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
  
-from urllib2 import urlopen
+from urllib.request import urlopen
 from io import StringIO
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -433,17 +433,17 @@ def simplyframe(data):
         itemid = item.get('@id')
         if itemid:
             items[itemid] = item
-        for vs in item.values():
+        for vs in list(item.values()):
             for v in [vs] if not isinstance(vs, list) else vs:
                 if isinstance(v, dict):
                     refid = v.get('@id')
                     if refid and refid.startswith('_:'):
                         refs.setdefault(refid, (v, []))[1].append(item)
-    for ref, subjects in refs.values():
+    for ref, subjects in list(refs.values()):
         if len(subjects) == 1:
             ref.update(items.pop(ref['@id']))
             del ref['@id']
-    data['@graph'] = items.values()
+    data['@graph'] = list(items.values())
     
 def agent_jsonld(request):
     #test = "{'@context': 'http://json-ld.org/contexts/person.jsonld', '@id': 'http://dbpedia.org/resource/John_Lennon', 'name': 'John Lennon', 'born': '1940-10-09', 'spouse': 'http://dbpedia.org/resource/Cynthia_Lennon' }"
@@ -539,7 +539,7 @@ def agent_jsonld_query(request):
     context = dict_data["@context"]
     graph = dict_data["@graph"]
     local_graph = simplejson.dumps(graph)
-    g.parse(StringIO(unicode(local_graph)), context=context, format="json-ld")
+    g.parse(StringIO(str(local_graph)), context=context, format="json-ld")
     local_expanded_json = g.serialize(format="json-ld", indent=4)
     local_expanded_dict = simplejson.loads(local_expanded_json)
     
@@ -582,12 +582,12 @@ def agent_jsonld_query(request):
     result += "========== Gory details from http://nrp.webfactional.com/accounting/agent-jsonld/ ==========\n"
     
     for item in local_expanded_dict:
-        for key, value in item.iteritems():
+        for key, value in item.items():
             if type(value) is list:
                 value = value[0]
                 if type(value) is dict:
                     valist = []
-                    for key2, value2 in value.iteritems():
+                    for key2, value2 in value.items():
                         valist.append(": ".join([key2, value2]))
                     value = ", ".join(valist)
             line = ": ".join([key, value])

@@ -35,7 +35,7 @@ class ChipChapAuthConnection(object):
             if not hasattr(cdata, 'ocp_api_key'):
                 self.ocp_api_key = None
                 #raise ValidationError("Is needed the API key given by BotC wallet to this platform (settings).")
-                print "WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings)."
+                print("WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings).")
                 self.logger.error("WARN: Multiwallet Read-Only! To make payments is needed the API key given by OCP to the BotC wallet platform (in local_settings).")
             else:
                 self.ocp_api_key = cdata['ocp_api_key']
