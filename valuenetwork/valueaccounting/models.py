@@ -1475,7 +1475,7 @@ class EconomicAgent(models.Model):
           return False
 
     def used_units_ids(self, exs=None):
-        #print "..used_units_ids:"
+        #print("..used_units_ids:")
         if not exs:
             exs = Exchange.objects.exchanges_by_type(self)
         uids = []
@@ -1500,7 +1500,7 @@ class EconomicAgent(models.Model):
               #pass #uids.append(rt.unit_of_value.ocp_unit_type.id)
             uq = tx.unit_of_quantity()
             if uq:
-              #print "....found uq: "+str(uq)
+              #print("....found uq: "+str(uq))
               if not hasattr(uq, 'gen_unit'):
                 raise ValidationError("The unit has not gen_unit! "+str(uq))
               else:
@@ -1527,7 +1527,7 @@ class EconomicAgent(models.Model):
                     loger.info("WARN! The resource type has not a related ocp_artwork_type! id:"+str(rt.id)+" "+str(rt))
                     #raise ValidationError("The resource type has not a related ocp_artwork_type! "+str(rt))
                 else:
-                    #print "The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.gen_unit.unit_type.clas)
+                    #print("The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.gen_unit.unit_type.clas))
                     if uq.gen_unit.unit_type.id not in uids and uq.is_currency(): #gen_unit.unit_type.clas == 'each':
                         uids.append(uq.gen_unit.unit_type.id)
                     #pass #raise ValidationError("The unit of quantity ocp_unit_type.clas is not 'each': "+str(uq.ocp_unit_type))
@@ -1540,7 +1540,7 @@ class EconomicAgent(models.Model):
                     rt = shr.resource_type
               if not rt:
                 if tx.transfer_type == ex.ttpay() and ex.join_request:
-                    #print "TX: "+str(ex.join_request.payment_unit())
+                    #print("TX: "+str(ex.join_request.payment_unit()))
                     rt = ex.join_request.payment_unit_rt()
               if rt:
                 rtun = rt.unit
@@ -2742,7 +2742,7 @@ class EconomicResourceTypeManager(models.Manager):
                     if fv.facet not in aspects:
                         aspects[fv.facet] = []
                     aspects[fv.facet].append(fv)
-                for facet, fvs in aspects.items():
+                for facet, fvs in list(aspects.items()):
                     if len(fvs) > 1:
                         for fv in fvs:
                             multis.append(fv)
@@ -3877,9 +3877,9 @@ class ProcessPattern(models.Model):
 
         matches = []
 
-        for rt, facet_values in rts.iteritems():
+        for rt, facet_values in rts.items():
             match = True
-            for facet, values in facets.iteritems():
+            for facet, values in facets.items():
                 rt_fv = [fv for fv in facet_values if fv.facet == facet]
                 if rt_fv:
                     rt_fv = rt_fv[0]
@@ -5984,9 +5984,9 @@ class EconomicResource(models.Model):
                 #padding = ""
                 #for x in range(0,depth):
                 #    padding += "."
-                #print padding, depth, evt.id, evt
-                #print padding, "--- evt_vpu: ", evt_vpu
-                #print padding, "--- values:", values
+                #print(padding, depth, evt.id, evt)
+                #print(padding, "--- evt_vpu: ", evt_vpu)
+                #print(padding, "--- values:", values)
             depth += 1
             evt.depth = depth
             path.append(evt)
@@ -6005,19 +6005,19 @@ class EconomicResource(models.Model):
             value = evt.value
             if evt.transfer:
                 if evt.transfer.exchange:
-                    #print "value b4:", value
+                    #print("value b4:", value)
                     exchange = evt.transfer.exchange
                     value = exchange.roll_up_value(evt, path, depth, visited, value_equation)
-                    #print "value after:", value
+                    #print("value after:", value)
             evt_vpu = value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
                 #padding = ""
                 #for x in range(0,depth):
                 #    padding += "."
-                #print padding, depth, evt.id, evt
-                #print padding, "--- evt_vpu: ", evt_vpu
-                #print padding, "--- values:", values
+                #print(padding, depth, evt.id, evt)
+                #print(padding, "--- evt_vpu: ", evt_vpu)
+                #print(padding, "--- values:", values)
             depth -= 1
         #todo exchange redesign fallout
         #this is obsolete
@@ -6029,18 +6029,18 @@ class EconomicResource(models.Model):
             path.append(evt)
             value = evt.value
             if evt.exchange:
-                #print "value b4:", value
+                #print("value b4:", value)
                 value = evt.exchange.roll_up_value(evt, path, depth, visited, value_equation)
-                #print "value after:", value
+                #print("value after:", value)
             evt_vpu = value / evt.quantity
             if evt_vpu:
                 values.append([evt_vpu, evt.quantity])
                 #padding = ""
                 #for x in range(0,depth):
                 #    padding += "."
-                #print padding, depth, evt.id, evt
-                #print padding, "--- evt_vpu: ", evt_vpu
-                #print padding, "--- values:", values
+                #print(padding, depth, evt.id, evt)
+                #print(padding, "--- evt_vpu: ", evt_vpu)
+                #print(padding, "--- values:", values)
             depth -= 1
         """
         citations = []
@@ -6069,18 +6069,18 @@ class EconomicResource(models.Model):
                                 if br:
                                     #value_b4 = value
                                     value = br.compute_claim_value(ip)
-                                    #print br.id, br
-                                    #print ip
-                                    #print "--- value b4:", value_b4, "value after:", value
+                                    #print(br.id, br)
+                                    #print(ip)
+                                    #print("--- value b4:", value_b4, "value after:", value)
                             ip.value = value
                             ip.save()
                             pe_value += value
                             #padding = ""
                             #for x in range(0,depth):
                             #    padding += "."
-                            #print padding, depth, ip.id, ip
-                            #print padding, "--- ip.value: ", ip.value
-                            #print padding, "--- pe_value:", pe_value
+                            #print(padding, depth, ip.id, ip)
+                            #print(padding, "--- ip.value: ", ip.value)
+                            #print(padding, "--- pe_value:", pe_value)
                             ip.depth = depth
                             path.append(ip)
                         #Use contributions use resource value_per_unit_of_use.
@@ -6096,9 +6096,9 @@ class EconomicResource(models.Model):
                                 #padding = ""
                                 #for x in range(0,depth):
                                 #    padding += "."
-                                #print padding, depth, ip.id, ip
-                                #print padding, "--- ip.value: ", ip.value
-                                #print padding, "--- pe_value:", pe_value
+                                #print(padding, depth, ip.id, ip)
+                                #print(padding, "--- ip.value: ", ip.value)
+                                #print(padding, "--- pe_value:", pe_value)
                                 ip.depth = depth
                                 path.append(ip)
                                 ip.resource.roll_up_value(path, depth, visited, value_equation)
@@ -6116,9 +6116,9 @@ class EconomicResource(models.Model):
                             #padding = ""
                             #for x in range(0,depth):
                             #    padding += "."
-                            #print padding, depth, ip.id, ip
-                            #print padding, "--- ip.value: ", ip.value
-                            #print padding, "--- pe_value:", pe_value
+                            #print(padding, depth, ip.id, ip)
+                            #print(padding, "--- ip.value: ", ip.value)
+                            #print(padding, "--- pe_value:", pe_value)
                         #Citations valued later, after all other inputs added up
                         elif ip.event_type.relationship == "cite":
                             ip.depth = depth
@@ -6133,9 +6133,9 @@ class EconomicResource(models.Model):
                                 #padding = ""
                                 #for x in range(0,depth):
                                 #    padding += "."
-                                #print padding, depth, ip.id, ip
-                                #print padding, "--- ip.value: ", ip.value
-                                #print padding, "--- pe_value:", pe_value
+                                #print(padding, depth, ip.id, ip)
+                                #print(padding, "--- ip.value: ", ip.value)
+                                #print(padding, "--- pe_value:", pe_value)
                             if ip.resource:
                                 ip.resource.roll_up_value(path, depth, visited, value_equation)
             production_value += pe_value
@@ -6150,11 +6150,11 @@ class EconomicResource(models.Model):
                 #padding = ""
                 #for x in range(0,depth):
                 #    padding += "."
-                #print padding, depth, c.id, c
-                #print padding, "--- c.value: ", c.value
-                #print padding, "--- production_value:", production_value
+                #print(padding, depth, c.id, c)
+                #print(padding, "--- c.value: ", c.value)
+                #print(padding, "--- production_value:", production_value)
         if production_value and production_qty:
-            #print "production value:", production_value, "production qty", production_qty
+            #print("production value:", production_value, "production qty", production_qty)
             production_value_per_unit = production_value / production_qty
             values.append([production_value_per_unit, production_qty])
         #If many sources of value, compute a weighted average.
@@ -6174,7 +6174,7 @@ class EconomicResource(models.Model):
         #padding = ""
         #for x in range(0,depth):
         #    padding += "."
-        #print padding, depth, self.id, self, "value_per_unit:", self.value_per_unit
+        #print(padding, depth, self.id, self, "value_per_unit:", self.value_per_unit)
         return self.value_per_unit
 
     def rollup_explanation(self):
@@ -6273,7 +6273,7 @@ class EconomicResource(models.Model):
         path = []
         depth = 0
         #value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
-        #print "value_per_unit:", value_per_unit
+        #print("value_per_unit:", value_per_unit)
         #value = self.quantity * value_per_unit
         visited = set()
         shares = []
@@ -6282,7 +6282,7 @@ class EconomicResource(models.Model):
         total = sum(s.share for s in shares)
         for s in shares:
             s.fraction = s.share / total
-        #print "total shares:", total
+        #print("total shares:", total)
         return shares
 
     def compute_shipment_income_shares(self, value_equation, quantity):
@@ -6290,7 +6290,7 @@ class EconomicResource(models.Model):
         #path = []
         #depth = 0
         #value_per_unit = self.roll_up_value(path, depth, visited, value_equation)
-        #print "value_per_unit:", value_per_unit
+        #print("value_per_unit:", value_per_unit)
         #value = quantity * value_per_unit
         visited = set()
         shares = []
@@ -6303,13 +6303,13 @@ class EconomicResource(models.Model):
         else:
             for s in shares:
                 s.fraction = 1
-        #print "total shares:", total
+        #print("total shares:", total)
         return shares
 
     def compute_income_shares(self, value_equation, quantity, events, visited):
         #Resource method
-        #print "Resource:", self.id, self
-        #print "running quantity:", quantity, "running value:", value
+        #print("Resource:", self.id, self)
+        #print("running quantity:", quantity, "running value:", value)
         contributions = self.resource_contribution_events()
         for evt in contributions:
             br = evt.bucket_rule(value_equation)
@@ -6320,8 +6320,8 @@ class EconomicResource(models.Model):
                 vpu = value / evt.quantity
                 evt.share = quantity * vpu
                 events.append(evt)
-                #print evt.id, evt, evt.share
-                #print "----Event.share:", evt.share, "= evt.value:", evt.value
+                #print(evt.id, evt, evt.share)
+                #print("----Event.share:", evt.share, "= evt.value:", evt.value)
         #purchases of resources in value flow can be contributions
         buys = self.purchase_events()
         for evt in buys:
@@ -6382,8 +6382,8 @@ class EconomicResource(models.Model):
                                         ip.value = value
                                     ip.share = value * distro_fraction
                                     events.append(ip)
-                                    #print ip.id, ip, ip.share
-                                    #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                                    #print(ip.id, ip, ip.share)
+                                    #print("----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction)
                             elif ip.event_type.relationship == "use":
                                 #use events are not contributions, but their resources may have contributions
                                 #equip logging changes
@@ -6427,8 +6427,8 @@ class EconomicResource(models.Model):
                                 ip_value = ip.value * distro_fraction
                                 d_qty = ip.quantity * distro_fraction
                                 #if ip_value:
-                                    #print "consumption:", ip.id, ip, "ip.value:", ip.value
-                                    #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                    #print("consumption:", ip.id, ip, "ip.value:", ip.value)
+                                    #print("----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction)
                                 if ip.resource:
                                     #income_shares stage change
                                     ip.compute_income_shares(value_equation, d_qty, events, visited)
@@ -8080,7 +8080,7 @@ class Process(models.Model):
                 except AttributeError:
                     msg = " ".join(["invalid summary key:", key])
                     assert False, msg
-            condensed_events = summaries.values()
+            condensed_events = list(summaries.values())
         return condensed_events
 
     def outputs(self):
@@ -8521,7 +8521,7 @@ class Process(models.Model):
 
     def compute_income_shares(self, value_equation, order_item, quantity, events, visited):
         #Process method
-        #print "running quantity:", quantity, "running value:", value
+        #print("running quantity:", quantity, "running value:", value)
         if self not in visited:
             visited.add(self)
             if quantity:
@@ -8559,8 +8559,8 @@ class Process(models.Model):
                                     ip.value = value
                                 ip.share = value * distro_fraction
                                 events.append(ip)
-                                #print ip.id, ip, ip.share
-                                #print "----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction
+                                #print(ip.id, ip, ip.share)
+                                #print("----Event.share:", ip.share, "= Event.value:", ip.value, "* distro_fraction:", distro_fraction)
                         elif ip.event_type.relationship == "use":
                             #use events are not contributions, but their resources may have contributions
                             if ip.resource:
@@ -8588,8 +8588,8 @@ class Process(models.Model):
                             #if ip_value:
                             d_qty = ip.quantity * distro_fraction
                             if d_qty:
-                                #print "consumption:", ip.id, ip, "ip.value:", ip.value
-                                #print "----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction
+                                #print("consumption:", ip.id, ip, "ip.value:", ip.value)
+                                #print("----value:", ip_value, "d_qty:", d_qty, "distro_fraction:", distro_fraction)
                                 if ip.resource:
                                     ip.resource.compute_income_shares(value_equation, d_qty, events, visited)
                         elif ip.event_type.relationship == "cite":
@@ -8697,9 +8697,9 @@ class TransferType(models.Model):
 
         matches = []
 
-        for rt, facet_values in rts.iteritems():
+        for rt, facet_values in rts.items():
             match = True
-            for facet, values in facets.iteritems():
+            for facet, values in facets.items():
                 rt_fv = [fv for fv in facet_values if fv.facet == facet]
                 if rt_fv:
                     rt_fv = rt_fv[0]
@@ -8746,16 +8746,16 @@ class TransferType(models.Model):
             jn_req = exchange.join_request
         mem = None
         self.is_income = None
-        #print "-tt.is_incoming... ex:"+str(exchange.id)+" tt:"+str(self.id)
+        #print("-tt.is_incoming... ex:"+str(exchange.id)+" tt:"+str(self.id))
         if transfers:
           for tx in transfers:
             if tx.transfer_type == self:
               if tx.to_agent() == context_agent:
-                #print "- found agent in tx.to ! tx:"+str(tx.id)+" ag:"+str(context_agent)
+                #print("- found agent in tx.to ! tx:"+str(tx.id)+" ag:"+str(context_agent))
                 self.is_income = True
                 return True
               elif tx.from_agent() == context_agent:
-                #print "- found agent in tx.from ! tx:"+str(tx.id)+" ag:"+str(context_agent)
+                #print("- found agent in tx.from ! tx:"+str(tx.id)+" ag:"+str(context_agent))
                 self.is_income = False
                 return False
               else:
@@ -8781,15 +8781,15 @@ class TransferType(models.Model):
                     print("... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" cms:"+str(len(tx.commitments.all()))+" evs:"+str(len(tx.events.all()))+" "+str(tx))
                     loger.info("... NOT FOUND to or from or jr, ca:"+str(context_agent)+" ex:"+str(exchange.id)+" slot:"+str(self.id)+" tx:"+str(tx.id)+" "+str(tx))
             elif not mem:
-                #print "... set mem: "+str(tx.id)+" tt:"+str(tx.transfer_type.id)+" self:"+str(self.id)
+                #print("... set mem: "+str(tx.id)+" tt:"+str(tx.transfer_type.id)+" self:"+str(self.id))
                 mem = tx
           #if mem:
             #if not mem.is_income == None: # and mem.transfer_type.is_income: #ing(exchange, context_agent): #is_reciprocal:
-              #print "- found mem, return False? self:"+str(self.id)+" mem:"+str(mem.id)+" tt:"+str(mem.transfer_type.id) #+" inco:"+str(mem.transfer_type.is_income)
+              #print("- found mem, return False? self:"+str(self.id)+" mem:"+str(mem.id)+" tt:"+str(mem.transfer_type.id)) #+" inco:"+str(mem.transfer_type.is_income)
 
               #return False
           #else: #if mem:
-          #  print "- not found mem, return True ? self:"+str(self.id)
+          #  print("- not found mem, return True ? self:"+str(self.id))
             #return True
         else:
             print("WARN tt:"+str(self.id)+" related exchange without transfers ?? ex:"+str(exchange.id))
@@ -8908,7 +8908,7 @@ class ExchangeManager(models.Manager):
             exchanges_by_type = self.exchanges_by_type(agent)
 
         count = len(exchanges_by_type)
-        #print "- ebdan start: "+str(start)+" end: "+str(end)+" agent: "+str(agent.id)+" exs: "+str(count)
+        #print("- ebdan start: "+str(start)+" end: "+str(end)+" agent: "+str(agent.id)+" exs: "+str(count))
 
         exs_bdc = exchanges_by_type.filter(start_date__range=[start, end]).order_by('created_date')
         count2 = len(exs_bdc)
@@ -8943,7 +8943,7 @@ class ExchangeManager(models.Manager):
 
         count = len(exs_bt)
         if agent.is_context:
-            #print "- ebt context: "+str(agent)+" 1 exs:"+str(count)
+            #print("- ebt context: "+str(agent)+" 1 exs:"+str(count))
             exs_bt2 = exs_bt.exclude(
                 ~Q(exchange_type__context_agent__isnull=False, exchange_type__context_agent=agent),
             #    Q(context_agent__isnull=False, context_agent__id__in=agids2) |
@@ -8955,7 +8955,7 @@ class ExchangeManager(models.Manager):
                 if count2:
                     exs_bt = exs_bt2
         else:
-            #print "- ebt individual: "+str(agent)+" exs:"+str(count)
+            #print("- ebt individual: "+str(agent)+" exs:"+str(count))
             exs_bt = exs_bt.exclude(
                 Q(transfers__isnull=True, context_agent__isnull=False, context_agent__id__in=agids2) |
                 #Q(transfers__events__isnull=True, transfers__commitments__isnull=True,
@@ -9021,7 +9021,7 @@ class Exchange(models.Model):
                 name = self.customer.nick
             if self.exchange_type:
                 if hasattr(self.exchange_type, 'ocp_record_type') and self.exchange_type.ocp_record_type:
-                    show_name = unicode(self.exchange_type.ocp_record_type.name)
+                    show_name = str(self.exchange_type.ocp_record_type.name)
                 else:
                     show_name = self.exchange_type.name
             else:
@@ -9030,7 +9030,7 @@ class Exchange(models.Model):
         return " ".join([
             name,
             show_name,
-            unicode(_("from")),
+            str(_("from")),
             self.start_date.strftime('%Y-%m-%d'),
             ])
 
@@ -9199,7 +9199,7 @@ class Exchange(models.Model):
                             to = jn_req.agent
                             prt = jn_req.project.shares_type()
                             if not prt == rt:
-                                #print "x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt)
+                                #print("x shr to Change rt:"+str(rt)+" for payment_unit_rt:"+str(prt))
                                 rt = prt
                             if not receive:
                                 slot.total_com = jn_req.payment_amount()
@@ -9237,13 +9237,13 @@ class Exchange(models.Model):
 
 
             #if slot.total_com_unit and str(slot.total_com_unit) == 'Hours':
-            #    print "Hours?"  #slot.total_com_unit = str(slot.total_com_unit)+' '+str(rt)
+            #    print("Hours?"  #slot.total_com_unit = str(slot.total_com_unit)+' '+str(rt))
                 #if rt and not rt in slot.rts:
                 #    slot.rts.append(rt)
 
 
             if slot.rts:
-              #print "- slot.rts:"+str(slot.rts)
+              #print("- slot.rts:"+str(slot.rts))
               if len(slot.rts) > 1:
                 print("-- multiple rts: "+str(len(slot.rts))+" for ex:"+str(self)+" slot:"+str(slot.id))
                 par = None
@@ -9269,12 +9269,12 @@ class Exchange(models.Model):
                     if slot.hours:
                         slot.total_com_unit = str(_('hour'))+('s' if slot.total_com > 1 else '')+str(_(' of '))+str(slot.rts[0])
                     else:
-                        pass #print "--- not account "+str(slot.total_com_unit)
-                #print "-- found one rt:"+str(rt)
+                        pass #print("--- not account "+str(slot.total_com_unit))
+                #print("-- found one rt:"+str(rt))
             elif slot.total_unit and not slot.total_com_unit:
                 slot.total_com_unit = slot.total_unit
             elif hasattr(self, 'join_request'):
-                pass #print #"has jreq, is ok? "+str(self)
+                pass #print(#"has jreq, is ok? "+str(self))
             else:
               print("- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit))
               loger.info("- don't find rts? ex:"+str(self.id)+" slot:"+str(slot.id)+" "+str(slot)+" tot:"+str(slot.total)+" tot_com:"+str(slot.total_com)+" com_unit:"+str(slot.total_com_unit))
@@ -9283,15 +9283,15 @@ class Exchange(models.Model):
               if slot.is_incoming(self, context_agent): #is_reciprocal:
                 slot.default_from_agent = default_to_agent
                 slot.default_to_agent = context_agent #default_from_agent
-                #print "- slot.is_incoming True, force is_income ? "+str(slot.id)
+                #print("- slot.is_incoming True, force is_income ? "+str(slot.id))
                 slot.is_income = True
               else:
                 slot.default_from_agent = context_agent #default_from_agent
                 slot.default_to_agent = default_to_agent
-                #print "- slot.is_incoming False, force is_income ? "+str(slot.id)
+                #print("- slot.is_incoming False, force is_income ? "+str(slot.id))
                 slot.is_income = False
             else:
-                #print "- Flag is_income as oposite of memslot for slot:"+str(slot.id)+" memslot:"+str(memslot.id)
+                #print("- Flag is_income as oposite of memslot for slot:"+str(slot.id)+" memslot:"+str(memslot.id))
                 if memslot.is_income:
                     slot.is_income = False
                 else:
@@ -9305,13 +9305,13 @@ class Exchange(models.Model):
                 if not slot.receive_agent_is_context:
                     slot.default_to_agent = None #logged on agent
 
-            #print "ex:"+str(self.id)+" slot:"+str(slot.id)+" is_income:"+str(slot.is_income)+" reci:"+str(slot.is_reciprocal)+" memslot:"+str(memslot)
+            #print("ex:"+str(self.id)+" slot:"+str(slot.id)+" is_income:"+str(slot.is_income)+" reci:"+str(slot.is_reciprocal)+" memslot:"+str(memslot))
 
             slot.total = remove_exponent(slot.total)
             slot.total_com = remove_exponent(slot.total_com)
             if slot.total_com_unit and isinstance(slot.total_com_unit, Unit) and slot.total_com_unit.abbrev in settings.CRYPTOS:
                 if not self.status() == 'complete':
-                    slot.total_com = (u'\u2248 ')+str(slot.total_com)
+                    slot.total_com = ('\u2248 ')+str(slot.total_com)
 
             memslot = slot
             pend = []
@@ -9352,7 +9352,7 @@ class Exchange(models.Model):
                                            ).exclude(transfer_type__is_currency=False)
             et_name = str(self.exchange_type)
             #action = ''
-            #print "ex show_name ag:"+str(agent)+" give_ts:"+str(give_ts)+" take_ts:"+str(take_ts)+" et_name:"+str(et_name)
+            #print("ex show_name ag:"+str(agent)+" give_ts:"+str(give_ts)+" take_ts:"+str(take_ts)+" et_name:"+str(et_name))
             if hasattr(self.exchange_type, 'ocp_record_type'):
                 et_name = str(self.exchange_type.ocp_record_type)
                 actions = self.exchange_type.ocp_record_type.x_actions()
@@ -9854,7 +9854,7 @@ class Exchange(models.Model):
                             max_share = lo
                 max_share.share = (max_share.share + delta)
                 #local_total = sum(lo.share for lo in locals)
-                #print "local_total:", local_total
+                #print("local_total:", local_total)
 
     def related_agents(self):
         xfers = self.transfers.all()
@@ -10075,7 +10075,7 @@ class Transfer(models.Model):
                         rts.append(commit.resource_type)
                     #break
         if rts:
-            #print "- rts:"+str(rts)
+            #print("- rts:"+str(rts))
             if len(rts) > 1:
                 print("-- multiple rts: "+str(len(rts))+" for tx:"+str(self))
                 loger.info("-- multiple rts: "+str(len(rts))+" for tx:"+str(self))
@@ -10137,7 +10137,7 @@ class Transfer(models.Model):
         return name
 
     def status(self):
-        #print "tx status"
+        #print("tx status")
         if self.exchange.exchange_type.use_case.identifier == 'intrnl_xfer':
             need_evts = 1 #2
         else:
@@ -10156,7 +10156,7 @@ class Transfer(models.Model):
             status = 'pending' #str([ev.id for ev in events])+' '+str([co.id for co in comits])+' tr:'+str(self.id)+' x:'+str(self.exchange.id)+' pending'
           #elif len(events) == len(comits): #need_evts:
           #  if len(comits) > 1:
-          #      print " tx evs and coms count is equal, but more than one commit... ONLY CHECKED first! tx:"+str(self.id)+" ex:"+str(self.exchange.id)+" comits:"+str(comits)
+          #      print(" tx evs and coms count is equal, but more than one commit... ONLY CHECKED first! tx:"+str(self.id)+" ex:"+str(self.exchange.id)+" comits:"+str(comits))
           #      loger.info(" tx evs and coms count is equal, but more than one commit... ONLY CHECKED first! tx:"+str(self.id)+" ex:"+str(self.exchange.id)+" comits:"+str(comits))
           #  comi = comits[0]
           #  if comi.unfilled_quantity():
@@ -10880,7 +10880,7 @@ class CommitmentManager(models.Manager):
         return answer
 
     def all_give(self):
-        #print "comm all_give "
+        #print("comm all_give ")
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
@@ -10888,7 +10888,7 @@ class CommitmentManager(models.Manager):
             internal = bkp.filter(exchange__isnull=False, exchange__exchange_type__use_case__identifier='intrnl_xfer')
             if not internal and bkp:
                 internal = bkp.filter(transfer__exchange__isnull=False, transfer__exchange__exchange_type__use_case__identifier='intrnl_xfer')
-                #print "x filter using ev tx ex. internal:"+str(len(internal))
+                #print("x filter using ev tx ex. internal:"+str(len(internal)))
             if internal:
                 print("WARN not found 'give' event_type filtered from "+str(self)+", return all! "+str([ev.event_type for ev in bkp]))
                 loger.info("WARN not found 'give' event_type filtered from "+str(self)+", return all! ")
@@ -11021,10 +11021,10 @@ class Commitment(models.Model):
         else:
             name1 = 'from ?'
             if self.from_agent:
-                name1 = 'from '+unicode(self.from_agent.name)
+                name1 = 'from '+str(self.from_agent.name)
             name2 = 'to ?'
             if self.to_agent:
-                name2 = 'to '+unicode(self.to_agent.name)
+                name2 = 'to '+str(self.to_agent.name)
 
             return ' '.join([
                 process_name,
@@ -11051,7 +11051,7 @@ class Commitment(models.Model):
                     loger.warning("The Commitment has no exchange but its transfer has, FIXING!")
                     self.exchange = self.transfer.exchange
                     self.save()
-            #print "com:"+str(self.id)+" ag:"+str(agent)+" gives:"+str(gives)+" takes:"+str(takes)
+            #print("com:"+str(self.id)+" ag:"+str(agent)+" gives:"+str(gives)+" takes:"+str(takes))
             if hasattr(self.exchange.exchange_type, 'ocp_record_type') and self.exchange.exchange_type.ocp_record_type:
               x_actions = self.exchange.exchange_type.ocp_record_type.x_actions()
               for action in x_actions:
@@ -11071,7 +11071,7 @@ class Commitment(models.Model):
                 print("The comm exchange.exchange_type has not ocp_record_type ? cm:"+str(self.id)+" et:"+str(self.exchange.exchange_type))
                 loger.info("The comm exchange.exchange_type has not ocp_record_type ? cm:"+str(self.id)+" et:"+str(self.exchange.exchange_type))
         #else:
-        #    print "No agent??"
+        #    print("No agent??")
         return name
 
     def status(self):
@@ -11624,7 +11624,7 @@ class Commitment(models.Model):
                 except AttributeError:
                     msg = " ".join(["invalid summary key:", key])
                     assert False, msg
-            condensed_events = summaries.values()
+            condensed_events = list(summaries.values())
         return condensed_events
 
 
@@ -12219,19 +12219,19 @@ class Commitment(models.Model):
         if total:
             for s in shares:
                 s.fraction = s.share / total
-        #print "total shares:", total
+        #print("total shares:", total)
         return shares
 
     def compute_income_fractions_for_resource(self, value_equation, resource):
-        #print "*** rollup up resource value"
+        #print("*** rollup up resource value")
         visited = set()
         path = []
         depth = 0
         #value_per_unit = resource.roll_up_value(path, depth, visited, value_equation)
-        #print "resource value_per_unit:", value_per_unit
+        #print("resource value_per_unit:", value_per_unit)
         #value = self.quantity * value_per_unit
         visited = set()
-        #print "*** computing income shares"
+        #print("*** computing income shares")
         shares = []
         resource.compute_income_shares(value_equation, self.quantity, shares, visited)
         return shares
@@ -12245,11 +12245,11 @@ class Commitment(models.Model):
         #todo: handle shipment commitments with no process
         p = self.process
         if p:
-            #print "*** rollup up process value"
+            #print("*** rollup up process value")
             #value = p.roll_up_value(path, depth, visited, value_equation)
-            #print "processvalue:", value
+            #print("processvalue:", value)
             visited = set()
-            #print "*** computing income shares"
+            #print("*** computing income shares")
             p.compute_income_shares(value_equation, self, self.quantity, shares, visited)
         else:
             production_commitments = self.get_production_commitments_for_shipment()
@@ -12791,7 +12791,7 @@ class Distribution(models.Model):
         dict = self.deserialize_value_equation_content()
         bucket_dict = dict["buckets"]
         buckets = []
-        for key, value in bucket_dict.iteritems():
+        for key, value in bucket_dict.items():
             bucket = ValueEquationBucket.objects.get(id=key)
             bucket.value = value
             buckets.append(bucket)
@@ -12803,7 +12803,7 @@ class Distribution(models.Model):
         for bucket in buckets:
             rules = bucket.value.get("bucket_rules")
             if rules:
-                for key, value in rules.iteritems():
+                for key, value in rules.items():
                     rule = ValueEquationBucketRule.objects.get(id=key)
                     rule.value = value
                     answer.append(rule)
@@ -12886,16 +12886,16 @@ class EconomicEventManager(models.Manager):
         return EconomicEvent.objects.filter(is_contribution=True)
 
     def all_give(self, agent=None):
-        #print "event all_give"
+        #print("event all_give")
         et_give = EventType.objects.get(name="Give")
         bkp = self.all()
         filtered = self.filter(event_type=et_give)
         if not filtered and bkp:
-            #print "x bkp: "+str(bkp)
+            #print("x bkp: "+str(bkp))
             internal = bkp.filter(exchange__isnull=False, exchange__exchange_type__use_case__identifier='intrnl_xfer')
             if not internal and bkp:
                 internal = bkp.filter(transfer__exchange__isnull=False, transfer__exchange__exchange_type__use_case__identifier='intrnl_xfer')
-                #print "x filter using ev tx ex. internal:"+str(len(internal))
+                #print("x filter using ev tx ex. internal:"+str(len(internal)))
             if internal:
                 print("WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp))
                 loger.info("WARN not found 'give' event_type (internal) filtered from "+str(self)+", return all! "+str(bkp))
@@ -14297,7 +14297,7 @@ class DistributionValueEquation(models.Model):
         dict = self.deserialize_value_equation_content()
         bucket_dict = dict["buckets"]
         buckets = []
-        for key, value in bucket_dict.iteritems():
+        for key, value in bucket_dict.items():
             bucket = ValueEquationBucket.objects.get(id=key)
             bucket.value = value
             buckets.append(bucket)
@@ -14309,7 +14309,7 @@ class DistributionValueEquation(models.Model):
         for bucket in buckets:
             rules = bucket.value.get("bucket_rules")
             if rules:
-                for key, value in rules.iteritems():
+                for key, value in rules.items():
                     rule = ValueEquationBucketRule.objects.get(id=key)
                     rule.value = value
                     answer.append(rule)
@@ -14396,10 +14396,10 @@ class ValueEquationBucket(models.Model):
             vebr_events = vebr.filter_events(bucket_events)
             contribution_events.extend(vebr_events)
             #hours = sum(e.quantity for e in vebr_events)
-            #print vebr.filter_rule_deserialized(), "hours:", hours
+            #print(vebr.filter_rule_deserialized(), "hours:", hours)
             #tot += hours
 
-        #print "total vebr hours:", tot
+        #print("total vebr hours:", tot)
         claims = self.claims_from_events(contribution_events)
         if claims:
             total_amount = 0
@@ -14524,10 +14524,10 @@ class ValueEquationBucket(models.Model):
                 else:
                     events.extend(ship.compute_income_fractions_for_process(ve))
                 #hours = sum(e.quantity for e in events)
-                #print ship, "hours:", hours
+                #print(ship, "hours:", hours)
                 #tot += hours
 
-            #print "total event hours:", tot
+            #print("total event hours:", tot)
         elif self.filter_method == 'process':
             #todo exchange redesign fallout
             from valuenetwork.valueaccounting.forms import ProcessMultiSelectForm
@@ -14739,9 +14739,9 @@ class ValueEquationBucketRule(models.Model):
         json = self.filter_rule_deserialized()
         process_types = []
         resource_types = []
-        if 'process_types' in json.keys():
+        if 'process_types' in list(json.keys()):
             process_types = json['process_types']
-        if 'resource_types' in json.keys():
+        if 'resource_types' in list(json.keys()):
             resource_types = json['resource_types']
         vebr_filter = self.filter_rule_display_list()
         events = [e for e in events if e.event_type==self.event_type]
@@ -14792,9 +14792,9 @@ class ValueEquationBucketRule(models.Model):
         json = self.filter_rule_deserialized()
         pts = []
         rts = []
-        if 'process_types' in json.keys():
+        if 'process_types' in list(json.keys()):
             pts = json['process_types']
-        if 'resource_types' in json.keys():
+        if 'resource_types' in list(json.keys()):
             rts = json['resource_types']
         filter = ""
         #for pt in pts:
@@ -14813,9 +14813,9 @@ class ValueEquationBucketRule(models.Model):
         fr = self.filter_rule_deserialized()
         pts = []
         rts = []
-        if 'process_types' in fr.keys():
+        if 'process_types' in list(fr.keys()):
             pts = fr['process_types']
-        if 'resource_types' in fr.keys():
+        if 'resource_types' in list(fr.keys()):
             rts = fr['resource_types']
         events = EconomicEvent.objects.filter(context_agent=self.value_equation_bucket.value_equation.context_agent, event_type=self.event_type)
         if pts:
@@ -15079,7 +15079,7 @@ class CachedEventSummary(models.Model):
             if not key in summaries:
                 summaries[key] = EventSummary(event.from_agent, event.context_agent, event.resource_type, Decimal('0.0'))
             summaries[key].quantity += event.quantity
-        summaries = summaries.values()
+        summaries = list(summaries.values())
         for summary in summaries:
             ces = cls(
                 agent=summary.agent,
@@ -15123,7 +15123,7 @@ class CachedEventSummary(models.Model):
             except AttributeError:
                 msg = " ".join(["invalid summary key:", key])
                 assert False, msg
-        summaries = summaries.values()
+        summaries = list(summaries.values())
         for summary in summaries:
             ces = cls(
                 agent=summary.agent,

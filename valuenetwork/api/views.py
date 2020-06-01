@@ -31,8 +31,12 @@ from rdflib import Graph, Literal, BNode
 from rdflib.serializer import Serializer
 from rdflib import Namespace, URIRef
 from rdflib.namespace import FOAF, RDF, RDFS, OWL, SKOS
- 
-from urllib.request import urlopen
+
+if sys.version_info >= (3, 0): 
+    from urllib.request import urlopen
+else:
+    from urllib2 import urlopen
+
 from io import StringIO
 
 class UserViewSet(viewsets.ModelViewSet):
