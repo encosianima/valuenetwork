@@ -2,7 +2,11 @@ import functools
 import hashlib
 import importlib
 import random
-import urllib.parse
+import sys
+if sys.version_info >= (3, 0):
+    import urllib.parse as urlparse
+else:
+    import urlparse
 import string
 import random
 
@@ -29,7 +33,7 @@ def default_redirect(request, fallback_url, **kwargs):
     redirect_field_name = kwargs.get("redirect_field_name", "next")
     next = request.GET.get(redirect_field_name)
     if is_coop_worker(request):
-        next = settings.WORKER_LOGIN_REDIRECT_URL    
+        next = settings.WORKER_LOGIN_REDIRECT_URL
     if not next:
         # try the session if available
         if hasattr(request, "session"):
@@ -55,7 +59,7 @@ def user_display(user):
 def ensure_safe_url(url, allowed_protocols=None, allowed_host=None, raise_on_fail=False):
     if allowed_protocols is None:
         allowed_protocols = ["http", "https"]
-    parsed = urllib.parse.urlparse(url)
+    parsed = urlparse.urlparse(url)
     # perform security checks to ensure no malicious intent
     # (i.e., an XSS attack with a data URL)
     safe = True
