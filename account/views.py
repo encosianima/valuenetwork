@@ -411,7 +411,7 @@ class ChangePasswordView(FormView):
     messages = {
         "password_changed": {
             "level": messages.SUCCESS,
-            "text": _(u"Password successfully changed.")
+            "text": _("Password successfully changed.")
         }
     }
 
@@ -479,7 +479,7 @@ class WorkChangePasswordView(FormView):
     messages = {
         "password_changed": {
             "level": messages.SUCCESS,
-            "text": _(u"Password successfully changed.")
+            "text": _("Password successfully changed.")
         }
     }
 
@@ -569,9 +569,9 @@ class PasswordResetView(FormView):
         for user in User.objects.filter(email__iexact=email):
             uid = int_to_base36(user.id)
             token = self.make_token(user)
-            password_reset_url = u"%s://%s%s" % (
+            password_reset_url = "%s://%s%s" % (
                 protocol,
-                unicode(current_site.domain),
+                str(current_site.domain),
                 reverse("account_password_reset_token", kwargs=dict(uidb36=uid, token=token))
             )
             ctx = {
@@ -715,7 +715,7 @@ class SettingsView(LoginRequiredMixin, FormView):
             fields["language"] = form.cleaned_data["language"]
         if fields:
             account = self.request.user.account
-            for k, v in fields.iteritems():
+            for k, v in fields.items():
                 setattr(account, k, v)
             account.save()
 
@@ -788,7 +788,7 @@ class WorkSettingsView(LoginRequiredMixin, FormView):
             fields["language"] = form.cleaned_data["language"]
         if fields:
             account = self.request.user.account
-            for k, v in fields.iteritems():
+            for k, v in fields.items():
                 setattr(account, k, v)
             account.save()
 

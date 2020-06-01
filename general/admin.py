@@ -50,9 +50,9 @@ from itertools import chain
 from django import forms
 from django.conf import settings
 from django.contrib.admin import widgets
-from django.utils.encoding import smart_unicode, force_unicode
-from django.utils.safestring import mark_safe
-from django.utils.html import escape, conditional_escape
+#from django.utils.encoding import smart_text, force_unicode
+#from django.utils.safestring import mark_safe
+#from django.utils.html import escape, conditional_escape
 
 class AutoNameMixin(admin.ModelAdmin):
   #class Media:
@@ -73,7 +73,7 @@ class AutoNameMixin(admin.ModelAdmin):
   def save_model(self, request, obj, form, change):
     instance = form.save(commit=False)
     if not hasattr(instance, 'name'):
-      print 'AUTO NAME SAVE hasnot name!! '+str(obj)
+      print(('AUTO NAME SAVE hasnot name!! '+str(obj)))
     #if instance.name is None or instance.name == '':
     instance.name = instance.__unicode__()
     instance.save()
@@ -1149,7 +1149,7 @@ class Type_RegionAdmin(MPTTModelAdmin):
   list_display = ['name', 'clas', 'parent']
   def formfield_for_foreignkey(self, db_field, request, **kwargs):
     if db_field.name == 'parent':
-      print Space_Type.objects.filter(clas='Region').first()
+      print((Space_Type.objects.filter(clas='Region').first()))
       typ = Space_Type.objects.filter(clas='Region').first()
       kwargs['queryset'] = Space_Type.objects.filter(lft__gte=typ.lft, rght__lte=typ.rght)#, tree_id=typ.tree_id)
     return super(Type_RegionAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
