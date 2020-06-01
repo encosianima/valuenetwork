@@ -156,7 +156,7 @@ def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
                 ratio = obj.ratio
                 price = amount/ratio
                 #print("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+unicode(obj))
-                logger.warning("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+unicode(obj))
+                logger.warning("using a CACHED obj.ratio: "+str(ratio)+" for obj:"+str(obj))
             else:
                 if unit.abbrev in settings.CRYPTOS and not unit.abbrev == 'fair':
                     if hasattr(settings, 'CRYPTO_LAPSUS'):
@@ -211,7 +211,7 @@ def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
                         ratio = ur.rate
                         price = amount*ratio
                     else:
-                        print "No UnitRatio with out_unit '"+str(shunit.gen_unit.name)+"' and in_unit: "+str(unit.gen_unit.name)+". Trying via botc api..."
+                        print("No UnitRatio with out_unit '"+str(shunit.gen_unit.name)+"' and in_unit: "+str(unit.gen_unit.name)+". Trying via botc api...")
                         logger.info("No UnitRatio with out_unit '"+str(shunit.gen_unit.name)+"' and in_unit: "+str(unit.gen_unit.name)+". Trying via botc api...")
 
                         ratio = update_unitratio(shunit, unit) # omit ur to create it
@@ -233,9 +233,9 @@ def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
                     #decs = decimal.getcontext().prec
                     amount = price.quantize(deci) #round(price, deci)
 
-                print "Convert_price: ratio:"+str(ratio)+" price:"+str(price)+" shunit:"+str(shunit)+" unit:"+str(unit)+" amount:"+str(amount)
+                print("Convert_price: ratio:"+str(ratio)+" price:"+str(price)+" shunit:"+str(shunit)+" unit:"+str(unit)+" amount:"+str(amount))
         else:
-            print "Skip convert price, same unit: "+str(unit)
+            print("Skip convert price, same unit: "+str(unit))
         return amount, ratio
     else:
         raise ValidationError("Convert_price without amount, unit1 or unit2 ??")
