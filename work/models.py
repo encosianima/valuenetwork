@@ -484,7 +484,7 @@ class Project(models.Model):
             arr = name.split()
             if len(arr[0]) > len(arr[1]): # a case like Freedom Coop, to became FdC
                 first = arr[0]
-                pos = (len(first)/2)+1
+                pos = int(len(first)/2)+1
                 half = first[pos:pos+1]
                 abbr = arr[0][:1]+half+arr[1][:1]
         return abbr
@@ -997,7 +997,7 @@ class JoinRequest(models.Model):
             unit = shrtyp.unit_of_price
             requnit = self.payment_unit()
             amount = price
-            if not requnit == unit and price:
+            if not requnit == unit and price and requnit:
                 from work.utils import remove_exponent
                 if hasattr(self, 'ratio'):
                     amount = price / self.ratio
@@ -1266,7 +1266,7 @@ class JoinRequest(models.Model):
             print("Using CACHED pending_amount!! "+str(amountpay))
             loger.info("Using CACHED pending_amount!! "+str(amountpay))
         else:
-            if not shunit == unit and amount2: #unit.abbrev == 'fair':
+            if not shunit == unit and amount2 and unit: #unit.abbrev == 'fair':
                 from work.utils import convert_price
                 amountpay, ratio = convert_price(amount2, shunit, unit, self)
                 self.ratio = ratio

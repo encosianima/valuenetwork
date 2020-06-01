@@ -143,7 +143,7 @@ def update_unitratio(in_unit, out_unit, ur=None):
 def convert_price(amount, shunit, unit, obj=None, deci=settings.DECIMALS):
     if not amount: raise ValidationError("Convert_price without amount? unit1:"+str(shunit)+" unit2:"+str(unit))
     if not shunit: raise ValidationError("Convert_price without unit1? amount:"+str(amount)+" unit2:"+str(unit))
-    if not unit: raise ValidationError("Convert_price without unit2? amount:"+str(amount)+" unit1:"+str(shunit))
+    if not unit: raise ValidationError("Convert_price without unit2? amount:"+str(amount)+" unit1:"+str(shunit.name))
     ratio = None
     price = None
     if amount and shunit and unit:
