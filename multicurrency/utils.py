@@ -94,8 +94,9 @@ class ChipChapAuthConnection(object):
         timestamp = str(int(time.time()))
         string_to_sign = access_key + nonce + timestamp
         signature = hmac.new(
-            b64decode(access_secret), string_to_sign,
-            digestmod=hashlib.sha256).hexdigest()
+            b64decode(access_secret), 
+            bytes(str(string_to_sign).encode("utf-8")), 
+            hashlib.sha256).hexdigest()
         headers = {
             'X-Signature': 'Signature access-key="' + access_key +
             '", nonce="' + nonce + '", timestamp="' + timestamp +
@@ -182,7 +183,6 @@ class ChipChapAuthConnection(object):
             raise ChipChapAuthError('Connection Error', 'No data to connect')
         headers = ChipChapAuthConnection.chipchap_x_signature(
             access_key, access_secret)
-
         balance = requests.get(self.url_balance, headers=headers)
         if int(balance.status_code) == 200:
             return balance.json()
