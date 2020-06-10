@@ -57,7 +57,7 @@ class ExchangeService(object):
         if tts:
             tt = tts[0]
             if tt.name != xt.name:
-                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                print("- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'")
                 tt.name = xt.name
                 tt.save()
         else:
@@ -99,7 +99,7 @@ class ExchangeService(object):
         if tts:
             tt = tts[0]
             if tt.name != xt.name:
-                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                print("- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'")
                 tt.name = xt.name
                 tt.save()
         else:
@@ -140,7 +140,7 @@ class ExchangeService(object):
         if tts:
             tt = tts[0]
             if tt.name != xt.name:
-                print "- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'"
+                print("- changed tt.name '"+str(tt.name)+"' for the ex.name '"+str(xt.name)+"'")
                 tt.name = xt.name
                 tt.save()
         else:
@@ -292,7 +292,7 @@ class ExchangeService(object):
             faircoin_transaction__tx_hash__isnull=False
         )
         if event_list2 and not len(event_list) == len(event_list2):
-            print "Different event_list counts! ;; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2))
+            print("Different event_list counts! ;; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2)))
             loger.info("Different event_list counts! ;; evt_list:"+str(len(event_list))+" ev_list2:"+str(len(event_list2)))
 
         tx_in_ocp = []
@@ -312,32 +312,32 @@ class ExchangeService(object):
                     jn_req = event = fairtx = None
                     if hasattr(resource.owner(), 'project') and resource.owner().project:
                         for req in resource.owner().project.join_requests.all():
-                            #print  ";; req:"+str(req)
+                            #print(";; req:"+str(req))
                             if req.exchange and req.agent.faircoin_resource():
                                 txpay = req.exchange.txpay()
                                 if txpay:
                                     for ev in txpay.events.all():
-                                        if ev.to_agent == resource.owner() and ev.faircoin_transaction and not ev.faircoin_transaction.tx_hash:
+                                        if ev.to_agent == resource.owner() and hasattr(ev, 'faircoin_transaction') and ev.faircoin_transaction and not ev.faircoin_transaction.tx_hash:
                                             jn_req = req
                                             exchange = req.exchange
                                             transfer = txpay
                                             event = ev
                                             fairtx = ev.faircoin_transaction
-                                            print ";;; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id)
+                                            print(";;; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id))
                                             loger.info(";;; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id))
                                             break
                                         #else:
-                                        #    print ";; skip ev "
+                                        #    print(";; skip ev ")
                                 else:
-                                    print ";;; not found txpay in req:"+str(req.id)
+                                    print(";;; not found txpay in req:"+str(req.id))
                                     loger.info(";;; not found txpay in req:"+str(req.id))
                             else:
-                                print ";;; not req.exchange ?"
+                                print(";;; not req.exchange ?")
                             if jn_req:
-                                #print ";; found"
+                                #print(";; found")
                                 break
                     else:
-                        print ";;; no project"
+                        print(";;; no project")
                     for req in resource.owner().project_join_requests.all():
                         if req.exchange: #project.shares_account_type() == resource.resource_type:
                             for tf in req.exchange.transfers.all():
@@ -349,7 +349,7 @@ class ExchangeService(object):
                                             transfer = tf #req.exchange.txpay()
                                             event = ev #transfer.events.get(faircoin_transaction__tx_hash__isnull=True)
                                             fairtx = ev.faircoin_transaction
-                                            print ";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tf:"+str(tf.id)+" ex:"+str(exchange.id)
+                                            print(";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tf:"+str(tf.id)+" ex:"+str(exchange.id))
                                             loger.info(";;; found jr:"+str(req.id)+" pro:"+str(req.project.agent)+" ev:"+str(ev.id)+" tf:"+str(tf.id)+" ex:"+str(exchange.id))
                                             break
                     if not jn_req:
