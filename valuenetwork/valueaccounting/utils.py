@@ -699,8 +699,7 @@ def generate_xbill(resource_type):
     for kid in resource_type.xbill_children():
         to_return.extend(xbill_dfs(kid, nodes, visited, 1))
     annotate_tree_properties(to_return)
-    #to_return.sort(lambda x, y: cmp(x.xbill_object().name,
-    #                                y.xbill_object().name))
+    #to_return.sort(key=lambda x: x.xbill_object().name)
     return to_return
 
 
