@@ -261,6 +261,24 @@ class BlockchainTransaction(models.Model):
         else:
             raise ValidationError("There's no abbrev in the related unit: "+str(unit))
 
+    def related_join_request(self):
+        if not self.event.exchange and self.event.transfer.exchange:
+            loger.info("Fix missing event.exchange from event.transfer.exchange !! ev:"+str(self.event.id))
+            print("Fix missing event.exchange from event.transfer.exchange !! ev:"+str(self.event.id))
+            self.event.exchange = self.event.transfer.exchange
+            self.event.save()
+
+        if self.event.exchange:
+            if hasattr(self.event.exchange, 'join_request') and self.event.exchange.join_request:
+                return self.event.exchange.join_request
+            else:
+                loger.info("The related exchange is not related any join_request! ex:"+str(self.event.exchange.id))
+                print("The related exchange is not related any join_request! ex:"+str(self.event.exchange.id))
+        else:
+            loger.info("Error: An event without any relted exchange? ev:"+str(self.event.id))
+            print("Error: An event without any relted exchange? ev:"+str(self.event.id))
+        return None
+
     def update_data(self, realamount=None): #, oauth=None):
         url = None
         json = None

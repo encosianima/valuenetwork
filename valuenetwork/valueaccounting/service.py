@@ -312,12 +312,12 @@ class ExchangeService(object):
                     jn_req = event = fairtx = None
                     if hasattr(resource.owner(), 'project') and resource.owner().project:
                         for req in resource.owner().project.join_requests.all():
-                            #print  ";; req:"+str(req)
+                            #print(";; req:"+str(req))
                             if req.exchange and req.agent.faircoin_resource():
                                 txpay = req.exchange.txpay()
                                 if txpay:
                                     for ev in txpay.events.all():
-                                        if ev.to_agent == resource.owner() and ev.faircoin_transaction and not ev.faircoin_transaction.tx_hash:
+                                        if ev.to_agent == resource.owner() and hasattr(ev, 'faircoin_transaction') and ev.faircoin_transaction and not ev.faircoin_transaction.tx_hash:
                                             jn_req = req
                                             exchange = req.exchange
                                             transfer = txpay
@@ -327,14 +327,14 @@ class ExchangeService(object):
                                             loger.info(";;; found jn_req:"+str(jn_req.id)+" ev:"+str(ev.id)+" fairtx:"+str(fairtx.id))
                                             break
                                         #else:
-                                        #    print ";; skip ev "
+                                        #    print(";; skip ev ")
                                 else:
                                     print(";;; not found txpay in req:"+str(req.id))
                                     loger.info(";;; not found txpay in req:"+str(req.id))
                             else:
                                 print(";;; not req.exchange ?")
                             if jn_req:
-                                #print ";; found"
+                                #print(";; found")
                                 break
                     else:
                         print(";;; no project")
