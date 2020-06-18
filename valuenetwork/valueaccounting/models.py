@@ -988,7 +988,7 @@ class EconomicAgent(models.Model):
             else:
                 commits.extend(list(agent.involved_in_commitments()))
         if sort_desc:
-            commits.sort(lambda x, y: cmp(y.due_date, x.due_date))
+            commits.sort(key=lambda x: x.due_date, reverse=True)
         return commits
 
     # primitive search
@@ -1098,7 +1098,7 @@ class EconomicAgent(models.Model):
             elif proc.plan:
                 if proc.plan not in plans:
                     plans.append(proc.plan)
-        plans.sort(lambda x, y: cmp(x.due_date, y.due_date))
+        plans.sort(key=lambda x: x.due_date)
         return plans
 
     def finished_plans(self):
@@ -1628,7 +1628,7 @@ class EconomicAgent(models.Model):
         for p in parents:
             rt_lists.extend(list(p.lists.all()))
         rt_lists = list(set(rt_lists))
-        rt_lists.sort(lambda x, y: cmp(x.name, y.name))
+        rt_lists.sort(key=lambda x: x.name)
         return rt_lists
 
     #from here are new methods for context agent code
@@ -3831,7 +3831,7 @@ class ProcessPattern(models.Model):
         facets = self.facets.all()
         slots = [facet.event_type for facet in facets]
         slots = list(set(slots))
-        #slots.sort(lambda x, y: cmp(x.label, y.label))
+        #slots.sort(key=lambda x: x.label)
         #slots = sorted(slots, key=attrgetter('label'))
         #slots = sorted(slots, key=attrgetter('relationship'), reverse=True)
         slots = sorted(slots, key=attrgetter('name'))
@@ -8882,7 +8882,7 @@ class ExchangeManager(models.Manager):
         else:
             exchanges = Exchange.objects.filter(use_case__identifier="demand_xfer")
         #exchs = list(exchanges)
-        #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
+        #exchs.sort(key=lambda x: x.start_date, reverse=True)
         #return exchs
         return exchanges
 
@@ -8892,7 +8892,7 @@ class ExchangeManager(models.Manager):
         else:
             exchanges = Exchange.objects.filter(use_case__identifier="supply_xfer")
         #exchs = list(exchanges)
-        #exchs.sort(lambda x, y: cmp(y.start_date, x.start_date))
+        #exchs.sort(key=lambda x: x.start_date, reverse=True)
         #return exchs
         return exchanges
 

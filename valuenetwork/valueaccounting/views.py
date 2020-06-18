@@ -528,7 +528,7 @@ def agent(request, agent_id):
             agents_stats[ce.resource_type] += ce.quantity
         for key, value in list(agents_stats.items()):
             individual_stats.append((key, value))
-        individual_stats.sort(lambda x, y: cmp(y[1], x[1]))
+        individual_stats.sort(key=lambda x: x[1], reverse=True)
 
     elif agent.is_context_agent():
 
@@ -548,7 +548,7 @@ def agent(request, agent_id):
                 agents_stats[event.from_agent.name] += event.quantity
             for key, value in list(agents_stats.items()):
                 member_hours_recent.append((key, value))
-            member_hours_recent.sort(lambda x, y: cmp(y[1], x[1]))
+            member_hours_recent.sort(key=lambda x: x[1], reverse=True)
 
 
         ces = CachedEventSummary.objects.filter(
@@ -562,7 +562,7 @@ def agent(request, agent_id):
                 agents_stats[ce.agent.name] += ce.quantity
             for key, value in list(agents_stats.items()):
                 member_hours_stats.append((key, value))
-            member_hours_stats.sort(lambda x, y: cmp(y[1], x[1]))
+            member_hours_stats.sort(key=lambda x: x[1], reverse=True)
 
             agents_roles = {}
             roles = [ce.quantity_label() for ce in ces]
@@ -581,7 +581,7 @@ def agent(request, agent_id):
             headings.extend(roles)
             for row in list(agents_roles.values()):
                 member_hours_roles.append(row)
-            member_hours_roles.sort(lambda x, y: cmp(x[0], y[0]))
+            member_hours_roles.sort(key=lambda x: x[0])
             roles_height = len(member_hours_roles) * 20
 
     return render(request, "valueaccounting/agent.html", {
@@ -4153,7 +4153,7 @@ def agent_stats(request, agent_id):
     member_hours = []
     for key, value in agents.items():
         member_hours.append((key, value))
-    member_hours.sort(lambda x, y: cmp(y[1], x[1]))
+    member_hours.sort(key=lambda x: x[1], reverse=True)
     return render(request, "valueaccounting/agent_stats.html", {
         "agent": agent,
         "scores": scores,
@@ -4177,7 +4177,7 @@ def project_stats(request, context_agent_slug):
                 agents[ce.agent] += ce.quantity
             for key, value in list(agents.items()):
                 member_hours.append((key, value))
-            member_hours.sort(lambda x, y: cmp(y[1], x[1]))
+            member_hours.sort(key=lambda x: x[1], reverse=True)
     return render(request, "valueaccounting/project_stats.html", {
         "member_hours": member_hours,
         "page_title": "All-time project stats",
@@ -4203,7 +4203,7 @@ def recent_stats(request, context_agent_slug):
             agents_stats[event.from_agent] += event.quantity
         for key, value in list(agents_stats.items()):
             member_hours.append((key, value))
-        member_hours.sort(lambda x, y: cmp(y[1], x[1]))
+        member_hours.sort(key=lambda x: x[1], reverse=True)
     return render(request, "valueaccounting/project_stats.html", {
         "member_hours": member_hours,
         "page_title": "Last 2 months project stats",
@@ -4239,7 +4239,7 @@ def project_roles(request, context_agent_slug):
             headings.extend(roles)
             for row in list(agents.values()):
                 member_hours.append(row)
-            member_hours.sort(lambda x, y: cmp(x[0], y[0]))
+            member_hours.sort(key=lambda x: x[0])
     return render(request, "valueaccounting/project_roles.html", {
         "project": project,
         "headings": headings,
@@ -11898,7 +11898,7 @@ def value_equation_sandbox(request, value_equation_id=None):
             agent_subtotals = list(agent_subtotals.values())
             agent_subtotals = sorted(agent_subtotals, key=methodcaller('key'))
 
-            details.sort(lambda x, y: cmp(x.from_agent, y.from_agent))
+            details.sort(key=lambda x: x.from_agent)
             event_count = len(details)
 
     else:
