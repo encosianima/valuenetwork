@@ -248,7 +248,7 @@ class Agent(graphene.Interface):
                         dated_plans.append(plan)
                 plans = dated_plans
             if sort_desc:
-                plans.sort(lambda x, y: cmp(y.created_date, x.created_date))
+                plans.sort(key=lambda x: x.created_date, reverse=True)
             return plans
         return None
 
