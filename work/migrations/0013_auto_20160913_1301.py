@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='skillsuggestion',
             name='state',
-            field=models.CharField(default=b'new', verbose_name='state', max_length=12, editable=False, choices=[(b'new', 'new'), (b'accepted', 'accepted'), (b'declined', 'declined')]),
+            field=models.CharField(default='new', verbose_name='state', max_length=12, editable=False, choices=[('new', 'new'), ('accepted', 'accepted'), ('declined', 'declined')]),
         ),
     ]

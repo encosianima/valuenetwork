@@ -949,7 +949,7 @@ class APITest(TestCase):
                 }
                 ''', context_value=MockContext())
         if not result1.data['createProcess']:
-            print("ERR: Can't find result1.data to assert: "+unicode(result1.data))
+            print("ERR: Can't find result1.data to assert: "+str(result1.data))
         self.assertEqual(result1.data['createProcess']['process']['name'], "Make something cool")
         self.assertEqual(result1.data['createProcess']['process']['scope']['name'], "org1")
         self.assertEqual(result1.data['createProcess']['process']['isFinished'], False)

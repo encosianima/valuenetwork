@@ -15,7 +15,7 @@ from django.contrib.auth.models import User
 from .Auth import AuthedInputMeta, AuthedMutation
 from django.core.exceptions import PermissionDenied, ValidationError
 
-class Query(graphene.AbstractType):
+class Query(object): #graphene.AbstractType):
 
     my_agent = graphene.Field(Agent)
 

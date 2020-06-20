@@ -7,7 +7,7 @@ from operator import itemgetter, attrgetter, methodcaller
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseServerError, Http404, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import User
 from django.template import RequestContext
 from django.core import serializers
@@ -4151,7 +4151,7 @@ def agent_stats(request, agent_id):
             agents[c.from_agent] = Decimal("0")
         agents[c.from_agent] += c.quantity
     member_hours = []
-    for key, value in agents.items():
+    for key, value in list(agents.items()):
         member_hours.append((key, value))
     member_hours.sort(key=lambda x: x[1], reverse=True)
     return render(request, "valueaccounting/agent_stats.html", {
@@ -9672,7 +9672,7 @@ def process_selections(request, rand=0):
             consumed_rts = []
             used_rts = []
             work_rts = []
-            for key, value in dict(rp).items():
+            for key, value in list(dict(rp).items()):
                 if "selected-context-agent" in key:
                     context_agent_id = key.split("~")[1]
                     selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
@@ -9926,7 +9926,7 @@ def plan_from_recipe(request):
                 start_or_due = date_name_form.cleaned_data["start_date_or_due_date"]
             else:
                 due_date = today
-            for key, value in dict(rp).items():
+            for key, value in list(dict(rp).items()):
                 if "selected-context-agent" in key:
                     context_agent_id = key.split("~")[1]
                     selected_context_agent = EconomicAgent.objects.get(id=context_agent_id)
@@ -12700,12 +12700,12 @@ def agent_jsonld_query(request):
     result += "========== Gory details from http://nrp.webfactional.com/accounting/agent-jsonld/ ==========\n"
 
     for item in local_expanded_dict:
-        for key, value in item.items():
+        for key, value in list(item.items()):
             if type(value) is list:
                 value = value[0]
                 if type(value) is dict:
                     valist = []
-                    for key2, value2 in value.items():
+                    for key2, value2 in list(value.items()):
                         valist.append(": ".join([key2, value2]))
                     value = ", ".join(valist)
             line = ": ".join([key, value])

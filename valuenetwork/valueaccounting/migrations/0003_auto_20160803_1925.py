@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -18,16 +18,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='agentassociation',
             name='state',
-            field=models.CharField(default=b'active', max_length=12, verbose_name='state', choices=[(b'active', 'active'), (b'inactive', 'inactive'), (b'potential', 'candidate')]),
+            field=models.CharField(default='active', max_length=12, verbose_name='state', choices=[('active', 'active'), ('inactive', 'inactive'), ('potential', 'candidate')]),
         ),
         migrations.AlterField(
             model_name='agentassociationtype',
             name='association_behavior',
-            field=models.CharField(blank=True, max_length=12, null=True, verbose_name='association behavior', choices=[(b'supplier', 'supplier'), (b'customer', 'customer'), (b'member', 'member'), (b'child', 'child'), (b'custodian', 'custodian'), (b'manager', 'manager'), (b'peer', 'peer')]),
+            field=models.CharField(blank=True, max_length=12, null=True, verbose_name='association behavior', choices=[('supplier', 'supplier'), ('customer', 'customer'), ('member', 'member'), ('child', 'child'), ('custodian', 'custodian'), ('manager', 'manager'), ('peer', 'peer')]),
         ),
         migrations.AlterField(
             model_name='valueequation',
             name='percentage_behavior',
-            field=models.CharField(default=b'straight', help_text='Remaining percentage uses the %% of the remaining amount to be distributed.  Straight percentage uses the %% of the total distribution amount.', max_length=12, verbose_name='percentage behavior', choices=[(b'remaining', 'Remaining percentage'), (b'straight', 'Straight percentage')]),
+            field=models.CharField(default='straight', help_text='Remaining percentage uses the %% of the remaining amount to be distributed.  Straight percentage uses the %% of the total distribution amount.', max_length=12, verbose_name='percentage behavior', choices=[('remaining', 'Remaining percentage'), ('straight', 'Straight percentage')]),
         ),
     ]

@@ -44,10 +44,10 @@ class EconomicEvent(DjangoObjectType):
 
     class Meta:
         model = EconomicEventProxy
-        only_fields = ('id')
+        fields = ('id',)
 
     fulfills = graphene.List(lambda: types.Fulfillment)
-    
+
     validations = graphene.List(lambda: types.Validation)
 
     is_validated = graphene.Boolean()
@@ -99,7 +99,7 @@ class EconomicEvent(DjangoObjectType):
 
     def resolve_validations(self, args, context, info):
         return self.validations.all()
-    
+
     def resolve_is_validated(self, args, *rargs):
         return self.is_double_validated()
 
@@ -120,5 +120,5 @@ class Fulfillment(DjangoObjectType):
 
     class Meta:
         model = FulfillmentProxy
-        only_fields = ('id', 'fulfilled_by', 'fulfills', 'fulfilled_quantity', 'note')
+        fields = ('id', 'fulfilled_by', 'fulfills', 'fulfilled_quantity', 'note')
 

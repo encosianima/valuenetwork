@@ -7,7 +7,7 @@ from operator import itemgetter, attrgetter, methodcaller
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseServerError, Http404, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import User
 from django.template import RequestContext
 from django.core import serializers
@@ -36,7 +36,7 @@ import sys
 if sys.version_info >= (3, 0):
     from urllib.request import urlopen
 else:
-    from urllib2 import urlopen
+    from urllib.request import urlopen
 
 from io import StringIO
 
@@ -587,12 +587,12 @@ def agent_jsonld_query(request):
     result += "========== Gory details from http://nrp.webfactional.com/accounting/agent-jsonld/ ==========\n"
 
     for item in local_expanded_dict:
-        for key, value in item.items():
+        for key, value in list(item.items()):
             if type(value) is list:
                 value = value[0]
                 if type(value) is dict:
                     valist = []
-                    for key2, value2 in value.items():
+                    for key2, value2 in list(value.items()):
                         valist.append(": ".join([key2, value2]))
                     value = ", ".join(valist)
             line = ": ".join([key, value])

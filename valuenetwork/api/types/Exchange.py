@@ -17,7 +17,7 @@ class ExchangeAgreement(DjangoObjectType):
 
     class Meta:
         model = Exchange
-        only_fields = ('id', 'name')
+        fields = ('id', 'name')
 
     transfers = graphene.List(lambda: types.Transfer)
 
@@ -45,7 +45,7 @@ class Transfer(DjangoObjectType):
 
     class Meta:
         model = TransferProxy
-        only_fields = ('id', 'name')
+        fields = ('id', 'name')
 
     #this group of fields come from the give and/or take events that make up the transfer
     provider = graphene.Field(lambda: types.Agent)

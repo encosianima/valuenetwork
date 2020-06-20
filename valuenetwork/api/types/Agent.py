@@ -22,7 +22,7 @@ class OrganizationClassification(DjangoObjectType):
 
     class Meta:
         model = AgentType
-        only_fields = ('id', 'name')
+        fields = ('id', 'name')
 
 
 class Agent(graphene.Interface):
@@ -565,7 +565,7 @@ class Person(DjangoObjectType):
     class Meta:
         interfaces = (Agent, )
         model = PersonModel #EconomicAgent
-        only_fields = ('id', 'name', 'image', 'note', 'primary_location', 'email')
+        fields = ('id', 'name', 'image', 'note', 'primary_location', 'email')
 
 
 # Organization - an Agent which is not a Person, and can be further classified from there
@@ -575,4 +575,4 @@ class Organization(DjangoObjectType):
     class Meta:
         interfaces = (Agent, )
         model = OrganizationModel #EconomicAgent
-        only_fields = ('id', 'name', 'image', 'note', 'primary_location', 'email')
+        fields = ('id', 'name', 'image', 'note', 'primary_location', 'email')

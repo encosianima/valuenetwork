@@ -10,7 +10,7 @@ from valuenetwork.api.types.EconomicEvent import Action
 from django.db.models import Q
 
 
-class Query(graphene.AbstractType):
+class Query(object): #graphene.AbstractType):
 
     # define input query params
 
@@ -27,14 +27,14 @@ class Query(graphene.AbstractType):
 
     all_recipes = graphene.List(ResourceClassification)
 
-    #returns resource classifications filtered by facet values in a string of comma delimited name:value, 
+    #returns resource classifications filtered by facet values in a string of comma delimited name:value,
     #with some resource quantity > 0, for use in inventory filtering
     resource_classifications_by_facet_values = graphene.List(ResourceClassification,
                                                        facet_values=graphene.String())
 
     facet = graphene.Field(Facet,
                            id=graphene.Int())
- 
+
     all_facets = graphene.List(Facet)
 
 

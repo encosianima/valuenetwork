@@ -5,14 +5,36 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 import graphene
-from graphene.types.mutation import MutationMeta
-from graphene.utils.is_base_type import is_base_type
+#from graphene import ObjectTypeMeta
+#from graphene.types.mutation import MutationMeta # not working in py3 TODO
+#from graphene.utils.is_base_type import is_base_type
 import jwt
 from .helpers import hash_password
 
 
 class CreateToken(graphene.Mutation):
-    class Input:
+    class Meta:
+        #abstract = True
+        def __new__(cls, name, bases, attrs):
+            if not is_base_type(bases, _AuthedMutationMeta):
+                return type.__new__(cls, name, bases, attrs)
+
+            # store a ref to the original mutate method (not the classmethod wrapper!)
+            orig_mutate = getattr(attrs['mutate'], '__func__')
+
+            # define wrapper logic for this class
+            def new_mutate(cls, root, args, context, info):
+                # authenticate automagically before running mutation, throw exception on bad credentials
+                context.user = _authUser(args.get('token'))
+                # now run the original mutation, exposing the user in the context object
+                return orig_mutate(cls, root, args, context, info)
+
+            # override base mutate classmethod
+            attrs['mutate'] = classmethod(new_mutate)
+
+            return self.__new__(cls, name, bases, attrs)
+
+    class Arguments:
         username = graphene.String(required=True)
         password = graphene.String(required=True)
 
@@ -47,7 +69,8 @@ def _authUser(token_str):
         return user
     raise PermissionDenied('Invalid credentials')   # purposefully generic error to guard against hack attempt info gathering
 
-class _AuthedMutationMeta(MutationMeta):
+"""
+class _AuthedMutationMeta(ObjectTypeMeta): #MutationMeta):
     def __new__(cls, name, bases, attrs):
         if not is_base_type(bases, _AuthedMutationMeta):
             return type.__new__(cls, name, bases, attrs)
@@ -66,8 +89,9 @@ class _AuthedMutationMeta(MutationMeta):
         attrs['mutate'] = classmethod(new_mutate)
 
         return MutationMeta.__new__(cls, name, bases, attrs)
+"""
 
-class AuthedMutation(with_metaclass(_AuthedMutationMeta, graphene.ObjectType)):
+class AuthedMutation(CreateToken): # with_metaclass(_AuthedMutationMeta, graphene.ObjectType)):
     pass
 
 class AuthedInputMeta(type):

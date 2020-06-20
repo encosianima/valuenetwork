@@ -31,7 +31,7 @@ class Facet(DjangoObjectType):
 
     class Meta:
         model = FacetProxy
-        only_fields = ('id', 'name', 'description')
+        fields = ('id', 'name', 'description')
 
     facet_values = graphene.List(lambda: FacetValue)
     
@@ -43,7 +43,7 @@ class FacetValue(DjangoObjectType):
 
     class Meta:
         model = FacetValueProxy
-        only_fields = ('id', 'value', 'description')
+        fields = ('id', 'value', 'description')
 
 
 class ResourceClassification(DjangoObjectType):
@@ -54,7 +54,7 @@ class ResourceClassification(DjangoObjectType):
 
     class Meta:
         model = EconomicResourceType
-        only_fields = ('id', 'name', 'unit')
+        fields = ('id', 'name', 'unit')
 
     classification_resources = graphene.List(lambda: EconomicResource)
 
@@ -78,7 +78,7 @@ class EconomicResource(DjangoObjectType):
 
     class Meta:
         model = EconomicResourceProxy
-        only_fields = ('id', 'url')
+        fields = ('id', 'url')
 
     transfers = graphene.List(lambda: types.Transfer)
 

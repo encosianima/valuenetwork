@@ -11,7 +11,7 @@ from .Auth import AuthedInputMeta, AuthedMutation
 from django.core.exceptions import PermissionDenied, ValidationError
 
 
-class Query(graphene.AbstractType):
+class Query(object): #graphene.AbstractType):
 
     # define input query params
 
@@ -33,7 +33,7 @@ class Query(graphene.AbstractType):
             if resource:
                 #resource.current_quantity = self._current_quantity(quantity=resource.quantity, unit=resource.unit)
                 return resource
-        return None   
+        return None
 
     def resolve_all_economic_resources(self, args, context, info):
         resources = EconomicResourceProxy.objects.all()

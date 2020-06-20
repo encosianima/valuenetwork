@@ -6,12 +6,12 @@ import sys
 if sys.version_info >= (3, 0):
     import urllib.parse as urlparse
 else:
-    import urlparse
+    import urllib.parse
 import string
 import random
 
 
-from django.core import urlresolvers
+from django.urls import reverse # urlresolvers
 from django.core.exceptions import ImproperlyConfigured, SuspiciousOperation
 from django.http import HttpResponseRedirect, QueryDict
 
@@ -59,7 +59,7 @@ def user_display(user):
 def ensure_safe_url(url, allowed_protocols=None, allowed_host=None, raise_on_fail=False):
     if allowed_protocols is None:
         allowed_protocols = ["http", "https"]
-    parsed = urlparse.urlparse(url)
+    parsed = urllib.parse.urlparse(url)
     # perform security checks to ensure no malicious intent
     # (i.e., an XSS attack with a data URL)
     safe = True
@@ -90,8 +90,8 @@ def handle_redirect_to_login(request, **kwargs):
     if next_url is None:
         next_url = request.get_full_path()
     try:
-        login_url = urlresolvers.reverse(login_url)
-    except urlresolvers.NoReverseMatch:
+        login_url = reverse(login_url)
+    except:
         if callable(login_url):
             raise
         if "/" not in login_url and "." not in login_url:

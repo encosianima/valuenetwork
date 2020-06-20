@@ -9,7 +9,7 @@ from django.contrib.admin.views.main import (ALL_VAR, ERROR_FLAG,
     ORDER_VAR, PAGE_VAR, SEARCH_VAR)
 from django.contrib.admin.templatetags.admin_static import static
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import NoReverseMatch
+from django.urls import NoReverseMatch
 from django.db import models
 from django.utils import formats
 from django.utils.html import escapejs, format_html

@@ -1,7 +1,7 @@
 #encoding=utf-8
 from django import forms
 from django.contrib import admin
-from django.forms.extras import widgets
+from django.forms import widgets
 
 from django.utils.translation import ugettext as _
 
@@ -23,13 +23,9 @@ from general.models import *  # Tree, Human, Adress, Region, Concept, Type, Bein
 #    mptt_level_indent = 20
 #    mptt_indent_field = "name"
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 #from django.contrib.admin import InlineModelAdmin
-
-#class StackedInline(admin.StackedInline):
-#  print self
-#  defaults = defaults + {"classes": self.classes}
 
 class InlineEditLinkMixin(object):
     readonly_fields = ['edit_details']
@@ -257,7 +253,7 @@ class H_personInline(admin.StackedInline):
 class Proj_refPersonInlineSet(BaseInlineFormSet):
   def __init__(self, *args, **kwargs):
     super(Proj_refPersonInlineSet, self).__init__(*args, **kwargs)
-    #print str(self)
+    #print(str(self))
     #self.classes = ('collapse',)
     self.klass = 'Proj_refPersonInline'
     rel = Relation.objects.get(clas='reference')
@@ -417,7 +413,7 @@ class HumanAdmin(Css_Mixin):
       #if not 'rel_tit' in globals():
       #  rel_tit = Relation.objects.get(clas='holder')
       #new_rel, created = rel_Human_Records.objects.get_or_create(human=instance.human, record=instance, relation=rel_tit)
-      #print 'NEW_REL: '+str(new_rel)+' CREATED: '+str(created)
+      #print('NEW_REL: '+str(new_rel)+' CREATED: '+str(created))
 
 
       #if not instance.

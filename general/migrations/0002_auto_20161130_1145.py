@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import mptt.fields
@@ -457,7 +457,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='image',
             name='image',
-            field=models.ImageField(upload_to=b'files/images', width_field=b'width', height_field=b'height', blank=True, null=True, verbose_name='Image (jpg/png)'),
+            field=models.ImageField(upload_to='files/images', width_field='width', height_field='height', blank=True, null=True, verbose_name='Image (jpg/png)'),
         ),
         migrations.AlterField(
             model_name='image',
@@ -832,7 +832,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='type',
             name='name',
-            field=models.CharField(default=b'', help_text='The name of the Concept', unique=True, max_length=200, verbose_name='Name'),
+            field=models.CharField(default='', help_text='The name of the Concept', unique=True, max_length=200, verbose_name='Name'),
         ),
         migrations.AlterField(
             model_name='unit',

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('phone_number', models.CharField(max_length=32, null=True, verbose_name='phone number', blank=True)),
                 ('address', models.CharField(max_length=255, verbose_name='address (where do you live?)', blank=True)),
                 ('native_language', models.CharField(max_length=255, verbose_name='native language')),
-                ('type_of_membership', models.CharField(default=b'individual', max_length=12, verbose_name='type of membership', choices=[(b'individual', 'individual'), (b'collective', 'collective')])),
+                ('type_of_membership', models.CharField(default='individual', max_length=12, verbose_name='type of membership', choices=[('individual', 'individual'), ('collective', 'collective')])),
                 ('membership_for_services', models.BooleanField(default=False, help_text='you have legal entity and want to offer services or products to the cooperative', verbose_name='Membership for services')),
                 ('autonomous_membership', models.BooleanField(default=False, help_text="you don't have legal entity and want to use the cooperative to make invoices either from inside and to outside the cooperative", verbose_name='Autonomous membership')),
                 ('ocp_user_membership', models.BooleanField(default=False, help_text='for those that only want to use the OCP platform', verbose_name='OCP user membership')),

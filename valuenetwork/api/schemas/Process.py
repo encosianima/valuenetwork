@@ -15,7 +15,7 @@ from .Auth import AuthedInputMeta, AuthedMutation
 from django.core.exceptions import PermissionDenied
 
 
-class Query(graphene.AbstractType):
+class Query(object): #graphene.AbstractType):
 
     # define input query params
 
@@ -81,7 +81,7 @@ class CreateProcess(AuthedMutation):
         user_agent = AgentUser.objects.get(user=context.user).agent
         is_authorized = user_agent.is_authorized(object_to_mutate=process)
         if is_authorized:
-            process.save()  
+            process.save()
         else:
             raise PermissionDenied('User not authorized to perform this action.')
 
@@ -137,7 +137,7 @@ class UpdateProcess(AuthedMutation):
             user_agent = AgentUser.objects.get(user=context.user).agent
             is_authorized = user_agent.is_authorized(object_to_mutate=process)
             if is_authorized:
-                process.save_api()  
+                process.save_api()
             else:
                 raise PermissionDenied('User not authorized to perform this action.')
 
@@ -160,9 +160,9 @@ class DeleteProcess(AuthedMutation):
                 user_agent = AgentUser.objects.get(user=context.user).agent
                 is_authorized = user_agent.is_authorized(object_to_mutate=process)
                 if is_authorized:
-                    process.delete() 
+                    process.delete()
                 else:
-                    raise PermissionDenied('User not authorized to perform this action.')                
+                    raise PermissionDenied('User not authorized to perform this action.')
                 #TODO: add logic for adjusting other processes if workflow plan
             else:
                 raise PermissionDenied("Process has economic events so cannot be deleted.")

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 import easy_thumbnails.fields
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('deployment_date', models.DateField()),
                 ('description', models.TextField(verbose_name='Description')),
                 ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
-                ('screenshot', easy_thumbnails.fields.ThumbnailerImageField(upload_to=b'photos', null=True, verbose_name='screenshot', blank=True)),
+                ('screenshot', easy_thumbnails.fields.ThumbnailerImageField(upload_to='photos', null=True, verbose_name='screenshot', blank=True)),
             ],
             options={
                 'ordering': ('-deployment_date',),

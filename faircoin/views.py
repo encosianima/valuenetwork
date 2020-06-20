@@ -316,14 +316,14 @@ def watch_fair_accounts(request):
     ends = []
     for tx in txs:
         if tx.to_address not in ends:
-            #print "add end addr..."
+            #print("add end addr...")
             ends.append(tx.to_address)
 
     mines = []
     for ad in adrs:
-        #print "ad..."
+        #print("ad...")
         if WALLET:
-            #print "-> "+str(ad)
+            #print("-> "+str(ad))
             ad.mine = ad.is_mine()
             if ad.mine:
                 mines.append(ad)
@@ -331,7 +331,7 @@ def watch_fair_accounts(request):
             ad.mine = False
         ad.to_txs = []
         for tx in ad.to_fairtxs():
-            #print "tx to add..."
+            #print("tx to add...")
             st = str(tx.event.id)
             if not tx.tx_state == 'confirmed':
                 st += ' ('+str(tx.tx_state)+')'
@@ -340,7 +340,7 @@ def watch_fair_accounts(request):
 
         ad.from_txs = []
         for tx in ad.from_fairtxs():
-            #print "tx from add..."
+            #print("tx from add...")
             st = str(tx.event.id)
             if not tx.tx_state == 'confirmed':
                 st += ' ('+str(tx.tx_state)+')'

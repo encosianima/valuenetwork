@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='economicevent',
             name='digital_currency_tx_state',
-            field=models.CharField(blank=True, max_length=12, null=True, verbose_name='digital currency transaction state', choices=[(b'new', 'New'), (b'pending', 'Pending'), (b'broadcast', 'Broadcast'), (b'confirmed', 'Confirmed')]),
+            field=models.CharField(blank=True, max_length=12, null=True, verbose_name='digital currency transaction state', choices=[('new', 'New'), ('pending', 'Pending'), ('broadcast', 'Broadcast'), ('confirmed', 'Confirmed')]),
         ),
     ]

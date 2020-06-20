@@ -18,7 +18,7 @@ class ProcessClassification(DjangoObjectType):
 
     class Meta:
         model = ProcessType
-        only_fields = ('id', 'name')
+        fields = ('id', 'name')
 
     def resolve_scope(self, args, *rargs):
         return formatAgent(self.scope)
@@ -35,7 +35,7 @@ class Process(DjangoObjectType):
 
     class Meta:
         model = ProcessProxy
-        only_fields = ('id', 'name')
+        fields = ('id', 'name')
 
     planned_duration = graphene.String(source='planned_duration')
 

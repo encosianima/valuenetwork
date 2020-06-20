@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import mptt.fields
@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
                 ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('clas', models.CharField(help_text="Model de django o classe python associada a l'Ofici'", max_length=50, verbose_name='Clase', blank=True)),
-                ('parent', mptt.fields.TreeForeignKey(related_name=b'subarts', blank=True, to='general.Job', null=True, on_delete=models.SET_NULL)),
+                ('parent', mptt.fields.TreeForeignKey(related_name='subarts', blank=True, to='general.Job', null=True, on_delete=models.SET_NULL)),
             ],
             options={
                 'verbose_name': 'Ofici',
@@ -127,7 +127,7 @@ class Migration(migrations.Migration):
             name='Image',
             fields=[
                 ('nonmaterial', models.OneToOneField(parent_link=True, primary_key=True, serialize=False, to='general.Nonmaterial', on_delete=models.CASCADE)),
-                ('image', models.ImageField(upload_to=b'files/images', width_field=b'width', height_field=b'height', blank=True, null=True, verbose_name='Imatge (jpg/png)')),
+                ('image', models.ImageField(upload_to='files/images', width_field='width', height_field='height', blank=True, null=True, verbose_name='Imatge (jpg/png)')),
                 ('url', models.URLField(null=True, verbose_name='Url de la imatge', blank=True)),
                 ('height', models.IntegerField(null=True, verbose_name='Al\xe7ada', blank=True)),
                 ('width', models.IntegerField(null=True, verbose_name='Amplada', blank=True)),
@@ -164,7 +164,7 @@ class Migration(migrations.Migration):
                 ('rght', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
-                ('parent', mptt.fields.TreeForeignKey(related_name=b'subprojects', verbose_name='Projecte Marc', blank=True, to='general.Project', null=True, on_delete=models.SET_NULL)),
+                ('parent', mptt.fields.TreeForeignKey(related_name='subprojects', verbose_name='Projecte Marc', blank=True, to='general.Project', null=True, on_delete=models.SET_NULL)),
             ],
             options={
                 'verbose_name': 'Projecte',
@@ -234,7 +234,7 @@ class Migration(migrations.Migration):
                 ('rght', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
-                ('parent', mptt.fields.TreeForeignKey(related_name=b'subregions', blank=True, to='general.Region', null=True, on_delete=models.SET_NULL)),
+                ('parent', mptt.fields.TreeForeignKey(related_name='subregions', blank=True, to='general.Region', null=True, on_delete=models.SET_NULL)),
             ],
             options={
                 'verbose_name': 'Regi\xf3',
@@ -247,7 +247,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('main_address', models.BooleanField(default=False, verbose_name='Adre\xe7a principal?')),
-                ('address', models.ForeignKey(related_name=b'rel_human', verbose_name='Adre\xe7a', to='general.Address', help_text="Un cop escollida l'adre\xe7a, desa el perfil per veure el seu nom aqu\xed.", on_delete=models.CASCADE)),
+                ('address', models.ForeignKey(related_name='rel_human', verbose_name='Adre\xe7a', to='general.Address', help_text="Un cop escollida l'adre\xe7a, desa el perfil per veure el seu nom aqu\xed.", on_delete=models.CASCADE)),
                 ('human', models.ForeignKey(to='general.Human', on_delete=models.CASCADE)),
             ],
             options={
@@ -261,7 +261,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('company', models.ForeignKey(verbose_name='Empresa vinculada', to='general.Company', on_delete=models.SET_NULL)),
-                ('human', models.ForeignKey(related_name=b'human_companies', to='general.Human', on_delete=models.SET_NULL)),
+                ('human', models.ForeignKey(related_name='human_companies', to='general.Human', on_delete=models.SET_NULL)),
             ],
             options={
                 'verbose_name': 'H_emp',
@@ -312,8 +312,8 @@ class Migration(migrations.Migration):
             name='rel_Human_Persons',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('human', models.ForeignKey(related_name=b'human_persons', to='general.Human', on_delete=models.CASCADE)),
-                ('person', models.ForeignKey(related_name=b'rel_humans', verbose_name='Persona vinculada', to='general.Person', on_delete=models.SET_NULL)),
+                ('human', models.ForeignKey(related_name='human_persons', to='general.Human', on_delete=models.CASCADE)),
+                ('person', models.ForeignKey(related_name='rel_humans', verbose_name='Persona vinculada', to='general.Person', on_delete=models.SET_NULL)),
             ],
             options={
                 'verbose_name': 'H_per',
@@ -325,8 +325,8 @@ class Migration(migrations.Migration):
             name='rel_Human_Projects',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('human', models.ForeignKey(related_name=b'human_projects', to='general.Human', on_delete=models.CASCADE)),
-                ('project', mptt.fields.TreeForeignKey(related_name=b'rel_humans', verbose_name='Projecte vinculat', to='general.Project', help_text='Un cop escollit el projecte, desa el perfil per veure el seu nom aqu\xed.', on_delete=models.CASCADE)),
+                ('human', models.ForeignKey(related_name='human_projects', to='general.Human', on_delete=models.CASCADE)),
+                ('project', mptt.fields.TreeForeignKey(related_name='rel_humans', verbose_name='Projecte vinculat', to='general.Project', help_text='Un cop escollit el projecte, desa el perfil per veure el seu nom aqu\xed.', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'H_pro',
@@ -363,7 +363,7 @@ class Migration(migrations.Migration):
             name='rel_Material_Addresses',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('address', models.ForeignKey(related_name=b'materials', verbose_name='Adre\xe7a vinculada', to='general.Address', on_delete=models.CASCADE)),
+                ('address', models.ForeignKey(related_name='materials', verbose_name='Adre\xe7a vinculada', to='general.Address', on_delete=models.CASCADE)),
                 ('material', models.ForeignKey(to='general.Material', on_delete=models.CASCADE)),
             ],
             options={
@@ -376,7 +376,7 @@ class Migration(migrations.Migration):
             name='rel_Material_Jobs',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('job', models.ForeignKey(related_name=b'materials', verbose_name='Arts/Oficis vinculades', to='general.Job', on_delete=models.CASCADE)),
+                ('job', models.ForeignKey(related_name='materials', verbose_name='Arts/Oficis vinculades', to='general.Job', on_delete=models.CASCADE)),
                 ('material', models.ForeignKey(to='general.Material', on_delete=models.CASCADE)),
             ],
             options={
@@ -390,7 +390,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('material', models.ForeignKey(to='general.Material', on_delete=models.CASCADE)),
-                ('material2', models.ForeignKey(related_name=b'submaterials', verbose_name='obres Materials vinculades', to='general.Material', on_delete=models.CASCADE)),
+                ('material2', models.ForeignKey(related_name='submaterials', verbose_name='obres Materials vinculades', to='general.Material', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'M_mat',
@@ -440,7 +440,7 @@ class Migration(migrations.Migration):
             name='rel_Nonmaterial_Jobs',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('job', models.ForeignKey(related_name=b'nonmaterials', verbose_name='Arts/Oficis vinculades', to='general.Job', on_delete=models.CASCADE)),
+                ('job', models.ForeignKey(related_name='nonmaterials', verbose_name='Arts/Oficis vinculades', to='general.Job', on_delete=models.CASCADE)),
                 ('nonmaterial', models.ForeignKey(to='general.Nonmaterial', on_delete=models.CASCADE)),
             ],
             options={
@@ -454,7 +454,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('nonmaterial', models.ForeignKey(to='general.Nonmaterial', on_delete=models.CASCADE)),
-                ('nonmaterial2', models.ForeignKey(related_name=b'subnonmaterials', verbose_name='obres Inmaterials vinculades', to='general.Nonmaterial', on_delete=models.CASCADE)),
+                ('nonmaterial2', models.ForeignKey(related_name='subnonmaterials', verbose_name='obres Inmaterials vinculades', to='general.Nonmaterial', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'N_mat',
@@ -487,7 +487,7 @@ class Migration(migrations.Migration):
                 ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('clas', models.CharField(help_text='Model de django o classe python associada a la Relaci\xf3', max_length=50, verbose_name='Clase', blank=True)),
-                ('parent', mptt.fields.TreeForeignKey(related_name=b'subarts', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL)),
+                ('parent', mptt.fields.TreeForeignKey(related_name='subarts', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL)),
             ],
             options={
                 'verbose_name': 'Relaci\xf3',
@@ -499,7 +499,7 @@ class Migration(migrations.Migration):
             name='Type',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(default=b'', help_text='El nom del Concepte', unique=True, max_length=200, verbose_name='Nom')),
+                ('name', models.CharField(default='', help_text='El nom del Concepte', unique=True, max_length=200, verbose_name='Nom')),
                 ('description', models.TextField(verbose_name='Descripci\xf3', blank=True)),
                 ('lft', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('rght', models.PositiveIntegerField(editable=False, db_index=True)),
@@ -654,8 +654,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('record', models.OneToOneField(parent_link=True, primary_key=True, serialize=False, to='general.Record', on_delete=models.CASCADE)),
                 ('rate', models.DecimalField(verbose_name='Ratio multiplicador', max_digits=6, decimal_places=3)),
-                ('in_unit', models.ForeignKey(related_name=b'ratio_in', verbose_name='Unitat entrant', to='general.Unit', on_delete=models.CASCADE)),
-                ('out_unit', models.ForeignKey(related_name=b'ratio_out', verbose_name='Unitat sortint', to='general.Unit', on_delete=models.CASCADE)),
+                ('in_unit', models.ForeignKey(related_name='ratio_in', verbose_name='Unitat entrant', to='general.Unit', on_delete=models.CASCADE)),
+                ('out_unit', models.ForeignKey(related_name='ratio_out', verbose_name='Unitat sortint', to='general.Unit', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'Equivalencia entre Unitats',
@@ -672,7 +672,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='type',
             name='parent',
-            field=mptt.fields.TreeForeignKey(related_name=b'children', blank=True, to='general.Type', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='children', blank=True, to='general.Type', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -684,25 +684,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='rel_nonmaterial_records',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'no_reg+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='no_reg+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_nonmaterial_nonmaterials',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'ma_mat+', verbose_name='Relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='ma_mat+', verbose_name='Relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_nonmaterial_jobs',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'no_job+', verbose_name='Relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='no_job+', verbose_name='Relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_nonmaterial_addresses',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'no_adr+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='no_adr+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -714,37 +714,37 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='rel_material_records',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'ma_reg+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='ma_reg+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_material_nonmaterials',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'ma_non+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='ma_non+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_material_materials',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'ma_mat+', verbose_name='Relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='ma_mat+', verbose_name='Relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_material_jobs',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'ma_job+', verbose_name='Relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='ma_job+', verbose_name='Relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_material_addresses',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'ma_adr+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='ma_adr+', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_human_regions',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_reg+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_reg+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -756,49 +756,49 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='rel_human_records',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_rec+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_rec+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_human_projects',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_hum+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_hum+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_human_persons',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_hum+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_hum+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_human_nonmaterials',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_non+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_non+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_human_materials',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_mat+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_mat+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_human_jobs',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_job+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_job+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_human_companies',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_hum+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_hum+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='rel_human_addresses',
             name='relation',
-            field=mptt.fields.TreeForeignKey(related_name=b'hu_adr+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='hu_adr+', verbose_name='relaci\xf3', blank=True, to='general.Relation', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -894,7 +894,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='human',
             name='companies',
-            field=models.ManyToManyField(related_name=b'hum_companies', to='general.Company', through='general.rel_Human_Companies', blank=True, null=True, verbose_name='Empreses'),
+            field=models.ManyToManyField(related_name='hum_companies', to='general.Company', through='general.rel_Human_Companies', blank=True, null=True, verbose_name='Empreses'),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -918,13 +918,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='human',
             name='persons',
-            field=models.ManyToManyField(related_name=b'hum_persons', to='general.Person', through='general.rel_Human_Persons', blank=True, null=True, verbose_name='Persones'),
+            field=models.ManyToManyField(related_name='hum_persons', to='general.Person', through='general.rel_Human_Persons', blank=True, null=True, verbose_name='Persones'),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='human',
             name='projects',
-            field=models.ManyToManyField(related_name=b'hum_projects', to='general.Project', through='general.rel_Human_Projects', blank=True, null=True, verbose_name='Projectes'),
+            field=models.ManyToManyField(related_name='hum_projects', to='general.Project', through='general.rel_Human_Projects', blank=True, null=True, verbose_name='Projectes'),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -960,13 +960,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='address',
             name='jobs',
-            field=models.ManyToManyField(related_name=b'addresses', null=True, verbose_name='Oficis relacionats', to='general.Job', blank=True),
+            field=models.ManyToManyField(related_name='addresses', null=True, verbose_name='Oficis relacionats', to='general.Job', blank=True),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='address',
             name='region',
-            field=mptt.fields.TreeForeignKey(related_name=b'rel_addresses', verbose_name='Comarca', blank=True, to='general.Region', null=True, on_delete=models.SET_NULL),
+            field=mptt.fields.TreeForeignKey(related_name='rel_addresses', verbose_name='Comarca', blank=True, to='general.Region', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -978,7 +978,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='accountcrypto',
             name='human',
-            field=models.ForeignKey(related_name=b'accountsCrypto', verbose_name='Entitat humana titular', to='general.Human', on_delete=models.CASCADE),
+            field=models.ForeignKey(related_name='accountsCrypto', verbose_name='Entitat humana titular', to='general.Human', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -996,7 +996,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='accountces',
             name='human',
-            field=models.ForeignKey(related_name=b'accountsCes', verbose_name='Entitat humana persuaria', to='general.Human', on_delete=models.CASCADE),
+            field=models.ForeignKey(related_name='accountsCes', verbose_name='Entitat humana persuaria', to='general.Human', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -1014,7 +1014,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='accountbank',
             name='human',
-            field=models.ForeignKey(related_name=b'accountsBank', verbose_name='Entitat humana titular', to='general.Human', on_delete=models.CASCADE),
+            field=models.ForeignKey(related_name='accountsBank', verbose_name='Entitat humana titular', to='general.Human', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(

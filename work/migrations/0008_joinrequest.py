@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('request_date', models.DateField(auto_now_add=True, null=True)),
-                ('type_of_user', models.CharField(default=b'individual', max_length=12, verbose_name='Type of user', choices=[(b'individual', 'individual user'), (b'collective', 'collective user')])),
+                ('type_of_user', models.CharField(default='individual', max_length=12, verbose_name='Type of user', choices=[('individual', 'individual user'), ('collective', 'collective user')])),
                 ('name', models.CharField(max_length=255, verbose_name='Name')),
                 ('surname', models.CharField(max_length=255, verbose_name='Surname (for individual join requests)', blank=True)),
                 ('requested_username', models.CharField(max_length=32, verbose_name='Requested username')),

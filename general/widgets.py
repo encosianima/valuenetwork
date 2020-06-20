@@ -2,7 +2,7 @@
 import copy
 from django import forms
 from django.contrib.admin.templatetags.admin_static import static
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.html import escape, format_html, format_html_join, smart_urlquote
 from django.utils.text import Truncator
 from django.utils.translation import ugettext as _
@@ -413,8 +413,8 @@ class ForeignKeyRawIdWidgetWrapperAdmin(admin.ModelAdmin):
 		print("general.widgets:response_change")
 		if '_popup' in request.REQUEST:
 			pk_value = obj._get_pk_val()
-			print("This is pop redirect to" + '<script type="text/javascript">opener.dismissEditRelatedPopup(window, "%s", "%s");</script>' % \
-			(escape(pk_value), escapejs(obj)))
+			print(("This is pop redirect to" + '<script type="text/javascript">opener.dismissEditRelatedPopup(window, "%s", "%s");</script>' % \
+			(escape(pk_value), escapejs(obj))))
 			return HttpResponse('<script type="text/javascript">opener.dismissEditRelatedPopup(window, "%s", "%s");</script>' % \
 			# escape() calls force_unicode.
 			(escape(pk_value), escapejs(obj)))
@@ -433,7 +433,7 @@ class ForeignKeyRawIdWidgetWrapperAdmin(admin.ModelAdmin):
 			return super(ForeignKeyRawIdWidgetWrapperAdmin, self).response_change(request, obj)
 
 	def response_delete(self, request, obj_display):
-		print("hace del " + obj_display)
+		print(("hace del " + obj_display))
 		if '_popup' in request.REQUEST:
 			return HttpResponse('<script type="text/javascript">opener.dismissDeleteRelatedPopup(window, "%s");</script>' % obj_display)
 		else:

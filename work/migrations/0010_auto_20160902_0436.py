@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -25,6 +25,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='joinrequest',
             name='type_of_user',
-            field=models.CharField(default=b'individual', max_length=12, verbose_name='Type of user', choices=[(b'individual', 'individual'), (b'collective', 'collective')]),
+            field=models.CharField(default='individual', max_length=12, verbose_name='Type of user', choices=[('individual', 'individual'), ('collective', 'collective')]),
         ),
     ]

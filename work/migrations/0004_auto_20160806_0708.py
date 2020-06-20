@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -24,6 +24,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='membershiprequest',
             name='type_of_membership',
-            field=models.CharField(default=b'individual', max_length=12, verbose_name='Type of membership', choices=[(b'individual', 'individual membership (min 1 share)'), (b'collective', 'collective membership (min 2 shares)')]),
+            field=models.CharField(default='individual', max_length=12, verbose_name='Type of membership', choices=[('individual', 'individual membership (min 1 share)'), ('collective', 'collective membership (min 2 shares)')]),
         ),
     ]

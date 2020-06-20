@@ -3877,9 +3877,9 @@ class ProcessPattern(models.Model):
 
         matches = []
 
-        for rt, facet_values in rts.items():
+        for rt, facet_values in list(rts.items()):
             match = True
-            for facet, values in facets.items():
+            for facet, values in list(facets.items()):
                 rt_fv = [fv for fv in facet_values if fv.facet == facet]
                 if rt_fv:
                     rt_fv = rt_fv[0]
@@ -8697,9 +8697,9 @@ class TransferType(models.Model):
 
         matches = []
 
-        for rt, facet_values in rts.items():
+        for rt, facet_values in list(rts.items()):
             match = True
-            for facet, values in facets.items():
+            for facet, values in list(facets.items()):
                 rt_fv = [fv for fv in facet_values if fv.facet == facet]
                 if rt_fv:
                     rt_fv = rt_fv[0]
@@ -9311,7 +9311,7 @@ class Exchange(models.Model):
             slot.total_com = remove_exponent(slot.total_com)
             if slot.total_com_unit and isinstance(slot.total_com_unit, Unit) and slot.total_com_unit.abbrev in settings.CRYPTOS:
                 if not self.status() == 'complete':
-                    slot.total_com = ('\u2248 ')+str(slot.total_com)
+                    slot.total_com = ('\\u2248 ')+str(slot.total_com)
 
             memslot = slot
             pend = []
@@ -9334,7 +9334,7 @@ class Exchange(models.Model):
         if agent:
             name = name.replace(agent.name, '')
             name = name.replace(agent.nick+' ', '')
-            print('show_name! '+str(agent))
+            print('show_name! '+str(agent.name))
             if agent.is_context and hasattr(agent, 'project'):
                 print('show_name!')
                 name = name.replace(agent.project.compact_name(), '')
@@ -12791,7 +12791,7 @@ class Distribution(models.Model):
         dict = self.deserialize_value_equation_content()
         bucket_dict = dict["buckets"]
         buckets = []
-        for key, value in bucket_dict.items():
+        for key, value in list(bucket_dict.items()):
             bucket = ValueEquationBucket.objects.get(id=key)
             bucket.value = value
             buckets.append(bucket)
@@ -12803,7 +12803,7 @@ class Distribution(models.Model):
         for bucket in buckets:
             rules = bucket.value.get("bucket_rules")
             if rules:
-                for key, value in rules.items():
+                for key, value in list(rules.items()):
                     rule = ValueEquationBucketRule.objects.get(id=key)
                     rule.value = value
                     answer.append(rule)
@@ -14297,7 +14297,7 @@ class DistributionValueEquation(models.Model):
         dict = self.deserialize_value_equation_content()
         bucket_dict = dict["buckets"]
         buckets = []
-        for key, value in bucket_dict.items():
+        for key, value in list(bucket_dict.items()):
             bucket = ValueEquationBucket.objects.get(id=key)
             bucket.value = value
             buckets.append(bucket)
@@ -14309,7 +14309,7 @@ class DistributionValueEquation(models.Model):
         for bucket in buckets:
             rules = bucket.value.get("bucket_rules")
             if rules:
-                for key, value in rules.items():
+                for key, value in list(rules.items()):
                     rule = ValueEquationBucketRule.objects.get(id=key)
                     rule.value = value
                     answer.append(rule)

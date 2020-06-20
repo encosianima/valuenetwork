@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import datetime
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('description', models.TextField(null=True, verbose_name='description', blank=True)),
-                ('state', models.CharField(default=b'active', max_length=12, verbose_name='state', choices=[(b'active', 'active'), (b'inactive', 'inactive'), (b'potential', 'potential')])),
+                ('state', models.CharField(default='active', max_length=12, verbose_name='state', choices=[('active', 'active'), ('inactive', 'inactive'), ('potential', 'potential')])),
             ],
             options={
                 'ordering': ('is_associate',),
@@ -45,8 +45,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('identifier', models.CharField(unique=True, max_length=12, verbose_name='identifier')),
                 ('name', models.CharField(max_length=128, verbose_name='name')),
-                ('plural_name', models.CharField(default=b'', max_length=128, verbose_name='plural name')),
-                ('association_behavior', models.CharField(blank=True, max_length=12, null=True, verbose_name='association behavior', choices=[(b'supplier', 'supplier'), (b'customer', 'customer'), (b'member', 'member'), (b'child', 'child'), (b'custodian', 'custodian'), (b'exchange', 'exchange firm'), (b'peer', 'peer')])),
+                ('plural_name', models.CharField(default='', max_length=128, verbose_name='plural name')),
+                ('association_behavior', models.CharField(blank=True, max_length=12, null=True, verbose_name='association behavior', choices=[('supplier', 'supplier'), ('customer', 'customer'), ('member', 'member'), ('child', 'child'), ('custodian', 'custodian'), ('exchange', 'exchange firm'), ('peer', 'peer')])),
                 ('description', models.TextField(null=True, verbose_name='description', blank=True)),
                 ('label', models.CharField(max_length=32, null=True, verbose_name='label')),
                 ('inverse_label', models.CharField(max_length=40, null=True, verbose_name='inverse label')),
@@ -99,7 +99,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=128, verbose_name='name')),
-                ('party_type', models.CharField(default=b'individual', max_length=12, verbose_name='party type', choices=[(b'individual', 'individual'), (b'org', 'organization'), (b'network', 'network'), (b'team', 'project'), (b'community', 'community')])),
+                ('party_type', models.CharField(default='individual', max_length=12, verbose_name='party type', choices=[('individual', 'individual'), ('org', 'organization'), ('network', 'network'), ('team', 'project'), ('community', 'community')])),
                 ('description', models.TextField(null=True, verbose_name='description', blank=True)),
                 ('is_context', models.BooleanField(default=False, verbose_name='is context')),
                 ('parent', models.ForeignKey(related_name='sub-agents', blank=True, editable=False, to='valueaccounting.AgentType', null=True, verbose_name='parent', on_delete=models.SET_NULL)),
@@ -154,7 +154,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('claim_event_date', models.DateField(default=datetime.date.today, verbose_name='claim event date')),
                 ('value', models.DecimalField(verbose_name='value', max_digits=8, decimal_places=2)),
-                ('event_effect', models.CharField(max_length=12, verbose_name='event effect', choices=[(b'+', 'increase'), (b'-', 'decrease')])),
+                ('event_effect', models.CharField(max_length=12, verbose_name='event effect', choices=[('+', 'increase'), ('-', 'decrease')])),
                 ('claim', models.ForeignKey(related_name='claim_events', verbose_name='claims', to='valueaccounting.Claim', on_delete=models.CASCADE)),
             ],
             options={
@@ -231,7 +231,7 @@ class Migration(migrations.Migration):
                 ('latitude', models.FloatField(default=0.0, null=True, verbose_name='latitude', blank=True)),
                 ('longitude', models.FloatField(default=0.0, null=True, verbose_name='longitude', blank=True)),
                 ('reputation', models.DecimalField(default=Decimal('0.00'), verbose_name='reputation', max_digits=8, decimal_places=2)),
-                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to=b'photos', null=True, verbose_name='photo', blank=True)),
+                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to='photos', null=True, verbose_name='photo', blank=True)),
                 ('photo_url', models.CharField(max_length=255, verbose_name='photo url', blank=True)),
                 ('is_context', models.BooleanField(default=False, verbose_name='is context')),
                 ('slug', models.SlugField(verbose_name='Page name', editable=False)),
@@ -261,7 +261,7 @@ class Migration(migrations.Migration):
                 ('is_to_distribute', models.BooleanField(default=False, verbose_name='is to distribute')),
                 ('event_reference', models.CharField(max_length=128, null=True, verbose_name='reference', blank=True)),
                 ('digital_currency_tx_hash', models.CharField(verbose_name='digital currency transaction hash', max_length=96, null=True, editable=False, blank=True)),
-                ('digital_currency_tx_state', models.CharField(editable=False, choices=[(b'new', 'New'), (b'pending', 'Pending'), (b'broadcast', 'Broadcast'), (b'confirmed', 'Confirmed')], max_length=12, blank=True, null=True, verbose_name='digital currency transaction hash')),
+                ('digital_currency_tx_state', models.CharField(editable=False, choices=[('new', 'New'), ('pending', 'Pending'), ('broadcast', 'Broadcast'), ('confirmed', 'Confirmed')], max_length=12, blank=True, null=True, verbose_name='digital currency transaction hash')),
                 ('slug', models.SlugField(verbose_name='Page name', editable=False)),
                 ('accounting_reference', models.ForeignKey(related_name='events', blank=True, to='valueaccounting.AccountingReference', help_text='optional reference to an accounting grouping', null=True, verbose_name='accounting reference', on_delete=models.SET_NULL)),
                 ('changed_by', models.ForeignKey(related_name='events_changed', blank=True, editable=False, to=settings.AUTH_USER_MODEL, null=True, verbose_name='changed by', on_delete=models.SET_NULL)),
@@ -284,7 +284,7 @@ class Migration(migrations.Migration):
                 ('quantity', models.DecimalField(default=Decimal('0.00'), verbose_name='quantity', editable=False, max_digits=8, decimal_places=2)),
                 ('quality', models.DecimalField(decimal_places=0, default=Decimal('0'), max_digits=3, blank=True, null=True, verbose_name='quality')),
                 ('notes', models.TextField(null=True, verbose_name='notes', blank=True)),
-                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to=b'photos', null=True, verbose_name='photo', blank=True)),
+                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to='photos', null=True, verbose_name='photo', blank=True)),
                 ('photo_url', models.CharField(max_length=255, verbose_name='photo url', blank=True)),
                 ('access_rules', models.TextField(null=True, verbose_name='access rules', blank=True)),
                 ('digital_currency_address', models.CharField(verbose_name='digital currency address', max_length=96, null=True, editable=False, blank=True)),
@@ -311,9 +311,9 @@ class Migration(migrations.Migration):
                 ('value_per_unit_of_use', models.DecimalField(default=Decimal('0.00'), verbose_name='value per unit of use', editable=False, max_digits=8, decimal_places=2)),
                 ('price_per_unit', models.DecimalField(default=Decimal('0.00'), verbose_name='price per unit', max_digits=8, decimal_places=2)),
                 ('substitutable', models.BooleanField(default=True, help_text='Can any resource of this type be substituted for any other resource of this type?', verbose_name='substitutable')),
-                ('inventory_rule', models.CharField(default=b'yes', max_length=5, verbose_name='inventory rule', choices=[(b'yes', 'Keep inventory'), (b'no', 'Not worth it'), (b'never', 'Does not apply')])),
-                ('behavior', models.CharField(default=b'other', max_length=12, verbose_name='behavior', choices=[(b'work', 'Type of Work'), (b'account', 'Virtual Account'), (b'dig_curr', 'Digital Currency'), (b'dig_acct', 'Digital Currency Address'), (b'dig_wallet', 'Digital Currency Wallet'), (b'other', 'Other')])),
-                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to=b'photos', null=True, verbose_name='photo', blank=True)),
+                ('inventory_rule', models.CharField(default='yes', max_length=5, verbose_name='inventory rule', choices=[('yes', 'Keep inventory'), ('no', 'Not worth it'), ('never', 'Does not apply')])),
+                ('behavior', models.CharField(default='other', max_length=12, verbose_name='behavior', choices=[('work', 'Type of Work'), ('account', 'Virtual Account'), ('dig_curr', 'Digital Currency'), ('dig_acct', 'Digital Currency Address'), ('dig_wallet', 'Digital Currency Wallet'), ('other', 'Other')])),
+                ('photo', easy_thumbnails.fields.ThumbnailerImageField(upload_to='photos', null=True, verbose_name='photo', blank=True)),
                 ('photo_url', models.CharField(max_length=255, verbose_name='photo url', blank=True)),
                 ('url', models.CharField(max_length=255, verbose_name='url', blank=True)),
                 ('description', models.TextField(null=True, verbose_name='description', blank=True)),
@@ -338,10 +338,10 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=128, verbose_name='name')),
                 ('label', models.CharField(max_length=32, verbose_name='label')),
                 ('inverse_label', models.CharField(max_length=40, verbose_name='inverse label', blank=True)),
-                ('relationship', models.CharField(default=b'in', max_length=12, verbose_name='relationship', choices=[(b'in', 'input'), (b'consume', 'consume'), (b'use', 'use'), (b'out', 'output'), (b'cite', 'citation'), (b'work', 'work'), (b'todo', 'todo'), (b'pay', 'payment'), (b'receive', 'receipt'), (b'expense', 'expense'), (b'cash', 'cash input'), (b'resource', 'resource contribution'), (b'receivecash', 'cash receipt'), (b'shipment', 'shipment'), (b'distribute', 'distribution'), (b'adjust', 'adjust'), (b'disburse', 'disburses cash')])),
-                ('related_to', models.CharField(default=b'process', max_length=12, verbose_name='related to', choices=[(b'process', 'process'), (b'agent', 'agent'), (b'exchange', 'exchange'), (b'distribution', 'distribution')])),
-                ('resource_effect', models.CharField(max_length=12, verbose_name='resource effect', choices=[(b'+', 'increase'), (b'-', 'decrease'), (b'+-', 'adjust'), (b'x', 'transfer'), (b'=', 'no effect'), (b'<', 'failure'), (b'+~', 'create to change'), (b'>~', 'to be changed'), (b'~>', 'change')])),
-                ('unit_type', models.CharField(blank=True, max_length=12, verbose_name='unit type', choices=[(b'area', 'area'), (b'length', 'length'), (b'quantity', 'quantity'), (b'time', 'time'), (b'value', 'value'), (b'volume', 'volume'), (b'weight', 'weight'), (b'ip', 'ip'), (b'percent', 'percent')])),
+                ('relationship', models.CharField(default='in', max_length=12, verbose_name='relationship', choices=[('in', 'input'), ('consume', 'consume'), ('use', 'use'), ('out', 'output'), ('cite', 'citation'), ('work', 'work'), ('todo', 'todo'), ('pay', 'payment'), ('receive', 'receipt'), ('expense', 'expense'), ('cash', 'cash input'), ('resource', 'resource contribution'), ('receivecash', 'cash receipt'), ('shipment', 'shipment'), ('distribute', 'distribution'), ('adjust', 'adjust'), ('disburse', 'disburses cash')])),
+                ('related_to', models.CharField(default='process', max_length=12, verbose_name='related to', choices=[('process', 'process'), ('agent', 'agent'), ('exchange', 'exchange'), ('distribution', 'distribution')])),
+                ('resource_effect', models.CharField(max_length=12, verbose_name='resource effect', choices=[('+', 'increase'), ('-', 'decrease'), ('+-', 'adjust'), ('x', 'transfer'), ('=', 'no effect'), ('<', 'failure'), ('+~', 'create to change'), ('>~', 'to be changed'), ('~>', 'change')])),
+                ('unit_type', models.CharField(blank=True, max_length=12, verbose_name='unit type', choices=[('area', 'area'), ('length', 'length'), ('quantity', 'quantity'), ('time', 'time'), ('value', 'value'), ('volume', 'volume'), ('weight', 'weight'), ('ip', 'ip'), ('percent', 'percent')])),
                 ('slug', models.SlugField(verbose_name='Page name', editable=False)),
             ],
             options={
@@ -434,7 +434,7 @@ class Migration(migrations.Migration):
             name='Help',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('page', models.CharField(unique=True, max_length=16, verbose_name='page', choices=[(b'agent', 'Agent'), (b'agents', 'All Agents'), (b'all_work', 'All Work'), (b'create_distribution', 'Create Distribution'), (b'create_exchange', 'Create Exchange'), (b'create_sale', 'Create Sale'), (b'demand', 'Demand'), (b'ed_asmbly_recipe', 'Edit Assembly Recipes'), (b'ed_wf_recipe', 'Edit Workflow Recipes'), (b'exchange', 'Exchange'), (b'home', 'Home'), (b'inventory', 'Inventory'), (b'labnotes', 'Labnotes Form'), (b'locations', 'Locations'), (b'associations', 'Maintain Associations'), (b'my_work', 'My Work'), (b'non_production', 'Non-production time logging'), (b'projects', 'Organization'), (b'plan_from_recipe', 'Plan from recipe'), (b'plan_from_rt', 'Plan from Resource Type'), (b'plan_fr_rt_rcpe', 'Plan from Resource Type Recipe'), (b'process', 'Process'), (b'process_select', 'Process Selections'), (b'recipes', 'Recipes'), (b'resource_types', 'Resource Types'), (b'resource_type', 'Resource Type'), (b'supply', 'Supply'), (b'non_proc_log', 'Non-process Logging (Work)'), (b'proc_log', 'Process Logging (Work)'), (b'profile', 'My Profile (Work)'), (b'my_history', 'My History (Work)'), (b'work_map', 'Map (Work)'), (b'work_home', 'Home (Work)'), (b'process_work', 'Process (Work)'), (b'work_timer', 'Work Now (Work)')])),
+                ('page', models.CharField(unique=True, max_length=16, verbose_name='page', choices=[('agent', 'Agent'), ('agents', 'All Agents'), ('all_work', 'All Work'), ('create_distribution', 'Create Distribution'), ('create_exchange', 'Create Exchange'), ('create_sale', 'Create Sale'), ('demand', 'Demand'), ('ed_asmbly_recipe', 'Edit Assembly Recipes'), ('ed_wf_recipe', 'Edit Workflow Recipes'), ('exchange', 'Exchange'), ('home', 'Home'), ('inventory', 'Inventory'), ('labnotes', 'Labnotes Form'), ('locations', 'Locations'), ('associations', 'Maintain Associations'), ('my_work', 'My Work'), ('non_production', 'Non-production time logging'), ('projects', 'Organization'), ('plan_from_recipe', 'Plan from recipe'), ('plan_from_rt', 'Plan from Resource Type'), ('plan_fr_rt_rcpe', 'Plan from Resource Type Recipe'), ('process', 'Process'), ('process_select', 'Process Selections'), ('recipes', 'Recipes'), ('resource_types', 'Resource Types'), ('resource_type', 'Resource Type'), ('supply', 'Supply'), ('non_proc_log', 'Non-process Logging (Work)'), ('proc_log', 'Process Logging (Work)'), ('profile', 'My Profile (Work)'), ('my_history', 'My History (Work)'), ('work_map', 'Map (Work)'), ('work_home', 'Home (Work)'), ('process_work', 'Process (Work)'), ('work_timer', 'Work Now (Work)')])),
                 ('description', models.TextField(null=True, verbose_name='description', blank=True)),
             ],
             options={
@@ -512,7 +512,7 @@ class Migration(migrations.Migration):
             name='Order',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('order_type', models.CharField(default=b'customer', max_length=12, verbose_name='order type', choices=[(b'customer', 'Customer order'), (b'rand', 'Work order'), (b'holder', 'Placeholder order')])),
+                ('order_type', models.CharField(default='customer', max_length=12, verbose_name='order type', choices=[('customer', 'Customer order'), ('rand', 'Work order'), ('holder', 'Placeholder order')])),
                 ('name', models.CharField(help_text='appended to process labels for Work orders', max_length=255, verbose_name='name', blank=True)),
                 ('order_date', models.DateField(default=datetime.date.today, verbose_name='order date')),
                 ('due_date', models.DateField(verbose_name='due date')),
@@ -792,7 +792,7 @@ class Migration(migrations.Migration):
             name='Unit',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('unit_type', models.CharField(max_length=12, verbose_name='unit type', choices=[(b'area', 'area'), (b'length', 'length'), (b'quantity', 'quantity'), (b'time', 'time'), (b'value', 'value'), (b'volume', 'volume'), (b'weight', 'weight'), (b'ip', 'ip'), (b'percent', 'percent')])),
+                ('unit_type', models.CharField(max_length=12, verbose_name='unit type', choices=[('area', 'area'), ('length', 'length'), ('quantity', 'quantity'), ('time', 'time'), ('value', 'value'), ('volume', 'volume'), ('weight', 'weight'), ('ip', 'ip'), ('percent', 'percent')])),
                 ('abbrev', models.CharField(max_length=8, verbose_name='abbreviation')),
                 ('name', models.CharField(max_length=64, verbose_name='name')),
                 ('symbol', models.CharField(max_length=1, verbose_name='symbol', blank=True)),
@@ -831,7 +831,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255, verbose_name='name', blank=True)),
                 ('description', models.TextField(null=True, verbose_name='description', blank=True)),
-                ('percentage_behavior', models.CharField(default=b'straight', help_text='Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.', max_length=12, verbose_name='percentage behavior', choices=[(b'remaining', 'Remaining percentage'), (b'straight', 'Straight percentage')])),
+                ('percentage_behavior', models.CharField(default='straight', help_text='Remaining percentage uses the % of the remaining amount to be distributed.  Straight percentage uses the % of the total distribution amount.', max_length=12, verbose_name='percentage behavior', choices=[('remaining', 'Remaining percentage'), ('straight', 'Straight percentage')])),
                 ('live', models.BooleanField(default=False, help_text='Make this value equation available for use in real distributions.', verbose_name='live')),
                 ('created_date', models.DateField(auto_now_add=True, null=True)),
                 ('context_agent', models.ForeignKey(related_name='value_equations', verbose_name='context agent', to='valueaccounting.EconomicAgent', on_delete=models.CASCADE)),
@@ -847,7 +847,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=32, verbose_name='name')),
                 ('sequence', models.IntegerField(default=0, verbose_name='sequence')),
-                ('filter_method', models.CharField(blank=True, max_length=12, null=True, verbose_name='filter method', choices=[(b'order', 'Order'), (b'shipment', 'Shipment or Delivery'), (b'dates', 'Date range'), (b'process', 'Process')])),
+                ('filter_method', models.CharField(blank=True, max_length=12, null=True, verbose_name='filter method', choices=[('order', 'Order'), ('shipment', 'Shipment or Delivery'), ('dates', 'Date range'), ('process', 'Process')])),
                 ('percentage', models.DecimalField(default=Decimal('0.0'), verbose_name='bucket percentage', max_digits=8, decimal_places=2)),
                 ('created_date', models.DateField(auto_now_add=True, null=True)),
                 ('changed_date', models.DateField(auto_now=True, null=True)),
@@ -867,8 +867,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('filter_rule', models.TextField(null=True, verbose_name='filter rule', blank=True)),
-                ('division_rule', models.CharField(max_length=12, verbose_name='division rule', choices=[(b'percentage', 'Percentage'), (b'fifo', 'Oldest first')])),
-                ('claim_rule_type', models.CharField(max_length=12, verbose_name='claim rule type', choices=[(b'debt-like', 'Until paid off'), (b'equity-like', 'Forever'), (b'once', 'One distribution')])),
+                ('division_rule', models.CharField(max_length=12, verbose_name='division rule', choices=[('percentage', 'Percentage'), ('fifo', 'Oldest first')])),
+                ('claim_rule_type', models.CharField(max_length=12, verbose_name='claim rule type', choices=[('debt-like', 'Until paid off'), ('equity-like', 'Forever'), ('once', 'One distribution')])),
                 ('claim_creation_equation', models.TextField(null=True, verbose_name='claim creation equation', blank=True)),
                 ('created_date', models.DateField(auto_now_add=True, null=True)),
                 ('changed_date', models.DateField(auto_now=True, null=True)),

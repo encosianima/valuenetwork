@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.http import base36_to_int, int_to_base36
 from django.template.loader import render_to_string
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import FormView
@@ -715,7 +715,7 @@ class SettingsView(LoginRequiredMixin, FormView):
             fields["language"] = form.cleaned_data["language"]
         if fields:
             account = self.request.user.account
-            for k, v in fields.items():
+            for k, v in list(fields.items()):
                 setattr(account, k, v)
             account.save()
 
@@ -788,7 +788,7 @@ class WorkSettingsView(LoginRequiredMixin, FormView):
             fields["language"] = form.cleaned_data["language"]
         if fields:
             account = self.request.user.account
-            for k, v in fields.items():
+            for k, v in list(fields.items()):
                 setattr(account, k, v)
             account.save()
 

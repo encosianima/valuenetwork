@@ -18,7 +18,7 @@ class Plan(DjangoObjectType):
 
     class Meta:
         model = Order
-        only_fields = ('id')
+        fields = ('id',)
 
 
     created_by = graphene.Field(lambda: types.Agent)
