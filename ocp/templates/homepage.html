@@ -1,4 +1,4 @@
-{% extends "banner_base.html" %}
+{% extends "site_base.html" %}
 
 {% load staticfiles %}
 {% load i18n %}
@@ -17,7 +17,7 @@
         {% else %}
             <h1> An administrator can create content for this page. </h1>
         {% endif %}
-    {% endif %} 
+    {% endif %}
 
 {% endblock %}
 
@@ -46,7 +46,7 @@
 		$('#home').addClass('active');
 
 		$( "#help" ).toggle( function(){
-            $('#help-content').show("slide", { direction: "right" }, "slow" ); 
+            $('#help-content').show("slide", { direction: "right" }, "slow" );
             $( "#help" ).text("Hide Help");
         }, function() {
             $('#help-content').hide("slide", { direction: "right" }, "slow");

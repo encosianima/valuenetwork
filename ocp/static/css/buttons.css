@@ -67,6 +67,7 @@ a:hover {
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
   filter: progid:dximagetransform.microsoft.gradient(startColorstr='#D6A594', endColorstr='#BE6F54', GradientType=0);
   filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+  color: #fff;
 }
 
 .btn-warning:hover,
@@ -93,7 +94,7 @@ a:hover {
 }
 
 .navbar {
-  font-weight: bold;
+  /* font-weight: bold; */
 }
 
 .navbar-inner {
@@ -134,5 +135,5 @@ a:hover {
 
 .hours, .minutes {
     width: 25px;
-}   
+}
 
