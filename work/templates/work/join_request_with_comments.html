@@ -253,7 +253,7 @@ a.more-link {
             {% if req.address or req.agent.primary_location %}
             <tr>
                 <th>{% trans "Address" %}:</th>
-                <td>{% if req.address %} {{ req.address }} {% else %} {{ req.agent.primary_location }} {% endif %}</td>
+                <td>{% if req.address %} {{ req.address }} {% else %} {{ req.agent.primary_location.name }} {% endif %}</td>
             </tr>
             {% endif %}
             {% if req.website or req.agent.url %}
@@ -536,7 +536,7 @@ a.more-link {
                         <b>{{ req.multiwallet_user }}</b> &nbsp;
                         <a href="#connect-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Connect BotC-Wallet account" %}</a> &nbsp;
                     {% endif %}
-                    {% if not req.multiwallet_user and not req.check_user_pass %}
+                    {% if not req.multiwallet_user and not req.check_user_pass and wallet_form %}
                         <a href="#create-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create new BotC-Wallet account" %}</a>
 
                         <div class="modal hide fade" id="create-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
@@ -566,6 +566,7 @@ a.more-link {
                         <a href="#connect-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Connect existent BotC-Wallet account" %}</a> &nbsp;
                     {% endif %}
 
+                    {% if oauth_form %}
                     <div class="modal hide fade" id="connect-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -586,6 +587,7 @@ a.more-link {
                             </form>
                         </div>
                     </div>
+                    {% endif %}
 
                     {% if request.user.is_superuser %}
                        &nbsp; <a href="{% url "multicurrency_auth" agent_id=req.agent.id %}"

@@ -4,9 +4,9 @@ import importlib
 import random
 import sys
 if sys.version_info >= (3, 0):
-    import urllib.parse as urlparse
+    from urllib.parse import urlparse
 else:
-    import urllib.parse
+    from urlparse import urlparse
 import string
 import random
 
@@ -59,7 +59,7 @@ def user_display(user):
 def ensure_safe_url(url, allowed_protocols=None, allowed_host=None, raise_on_fail=False):
     if allowed_protocols is None:
         allowed_protocols = ["http", "https"]
-    parsed = urllib.parse.urlparse(url)
+    parsed = urlparse(url)
     # perform security checks to ensure no malicious intent
     # (i.e., an XSS attack with a data URL)
     safe = True

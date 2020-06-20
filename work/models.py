@@ -16,7 +16,7 @@ from easy_thumbnails.fields import ThumbnailerImageField
 from valuenetwork.valueaccounting.models import *
 from fobi.models import FormEntry
 
-from nine.versions import DJANGO_LTE_1_5
+from django_nine.versions import DJANGO_LTE_1_5
 from fobi.contrib.plugins.form_handlers.db_store.models import SavedFormDataEntry
 import simplejson as json
 import random
@@ -298,7 +298,7 @@ class Project(models.Model):
                                     if 'html' in gate:
                                         if not isinstance(gate['html'], str) and not isinstance(gate['html'], str):
                                             html = gate['html']
-                                            html = str(html).decode('utf-8')
+                                            html = str(html) #.decode('utf-8')
                                         else:
                                             html = gate['html']
                                         ok += ' <ul><li>'+html+'</li></ul>'
@@ -855,7 +855,7 @@ class JoinRequest(models.Model):
 
                         headers = json.loads(entry.form_data_headers)
                         if not mkey in headers:
-                            #print "Update fobi header! "+mkey+": "+username
+                            #print("Update fobi header! "+mkey+": "+username)
                             loger.warning("Update fobi header! "+mkey+": "+username)
                             for elm in entry.form_entry.formelemententry_set.all():
                                 pdata = json.loads(elm.plugin_data)
@@ -1009,7 +1009,7 @@ class JoinRequest(models.Model):
                     self.ratio = ratio
                 amount = amount.quantize(settings.DECIMALS)
             if not amount == price:
-                pass #print "Changed the price!"
+                pass #print("Changed the price!")
             return amount
         return False
 
@@ -1044,7 +1044,7 @@ class JoinRequest(models.Model):
     def show_total_price(self):
         txt = str(self.total_price())+' '+self.show_payment_unit()
         if self.is_flexprice():
-            txt = '\u2248 '+txt
+            txt = '\\u2248 '+txt
         return txt
 
     def payment_url(self):
@@ -2691,7 +2691,7 @@ class JoinRequest(models.Model):
                                 coms = Comment.objects.filter(object_pk=self.id)
                                 if coms:
                                     for com in coms:
-                                        pass #print "delete other comment? "+str(com)
+                                        pass #print("delete other comment? "+str(com))
                                         #com.delete()
                                 if agent.user():
                                     if agent.user().user:
@@ -3403,13 +3403,13 @@ def fill_empty_languages(**kwargs):
     except:
         print("OCP still has not translatable fields. SKIP!")
         return
-    call_command('update_translation_fields', interactive=True)
+    call_command('update_translation_fields') #, interactive=True)
 
     for lan in settings.LANGUAGES:
         if not lan[0] == lang:
             print("other LANG: "+lan[0])
             modeltranslation.management.commands.update_translation_fields.DEFAULT_LANGUAGE = lan[0]
-            call_command('update_translation_fields', interactive=True)
+            call_command('update_translation_fields') #, interactive=True)
 
     modeltranslation.management.commands.update_translation_fields.DEFAULT_LANGUAGE = lang
     print("---- Language's empty strings has been filled with the default language string to keep uniqueness. ----")
@@ -4735,7 +4735,7 @@ def create_unit_types(**kwargs):
     if not boc_ag:
         boc_ag = EconomicAgent.objects.filter(nick="BotC")
     if not boc_ag:
-        print "- WARNING: the BotC agent don't exist, not created any unit for shares"
+        print("- WARNING: the BotC agent don't exist, not created any unit for shares")
         return
     else:
         boc_ag = boc_ag[0]
@@ -4748,7 +4748,7 @@ def create_unit_types(**kwargs):
             abbrev='BotC'
         )
         if created:
-            print "- created OCP Unit: 'BankOfTheCommons Share (BotC)'"
+            print("- created OCP Unit: 'BankOfTheCommons Share (BotC)'")
     else:
         ocpboc_share = ocpboc_shares[0]
     ocpboc_share.name = 'BankOfTheCommons Share'
@@ -4762,7 +4762,7 @@ def create_unit_types(**kwargs):
             name='BankOfTheCommons Shares',
             parent=gen_share_typ)
         if created:
-            print "- created Ocp_Unit_Type: 'BankOfTheCommons Shares'"
+            print("- created Ocp_Unit_Type: 'BankOfTheCommons Shares'")
     else:
         gen_boc_typ = gen_boc_typs[0]
     gen_boc_typ.clas = 'bank-of-the-commons_shares'
@@ -4773,7 +4773,7 @@ def create_unit_types(**kwargs):
         name='BankOfTheCommons Share',
         code='BotC')
     if created:
-        print "- created General.Unit: 'BankOfTheCommons Share'"
+        print("- created General.Unit: 'BankOfTheCommons Share'")
     boc_share.code = 'BotC'
     boc_share.unit_type = gen_boc_typ
     boc_share.ocp_unit = ocpboc_share
@@ -4794,7 +4794,7 @@ def create_unit_types(**kwargs):
             behavior='other'
         )
         if created:
-            print "- created EconomicResourceType: 'Bank of the Commons Share'"
+            print("- created EconomicResourceType: 'Bank of the Commons Share'")
     share_rt.name = "Bank of the Commons Share"
     share_rt.unit = ocpboc_share
     share_rt.inventory_rule = 'yes'
@@ -4806,13 +4806,13 @@ def create_unit_types(**kwargs):
 
     for fv in share_rt.facets.all():
         if not fv.facet_value == shrfv:
-            print "- delete: "+str(fv)
+            print("- delete: "+str(fv))
             fv.delete()
     share_rtfv, created = ResourceTypeFacetValue.objects.get_or_create(
         resource_type=share_rt,
         facet_value=shrfv)
     if created:
-        print "- created ResourceTypeFacetValue: "+str(share_rtfv)
+        print("- created ResourceTypeFacetValue: "+str(share_rtfv))
 
     artw_bocs = Ocp_Artwork_Type.objects.filter(name_en__icontains="BankOfTheCommons Share").exclude(name_en__icontains="Account")
     if not artw_bocs:
@@ -4827,7 +4827,7 @@ def create_unit_types(**kwargs):
             parent=Type.objects.get(id=artw_sh.id)
         )
         if created:
-            print "- created Ocp_Artwork_Type: 'Bank of the Commons Share'"
+            print("- created Ocp_Artwork_Type: 'Bank of the Commons Share'")
     artw_boc.name = "Bank of the Commons Share"
     artw_boc.parent = Type.objects.get(id=artw_sh.id)
     artw_boc.resource_type = share_rt
@@ -4940,9 +4940,9 @@ def check_new_rt_price(rt=None, **kwargs):
             pro = rt.context_agent.project
             jrs = pro.join_requests.all()
             for jr in jrs:
-                #print " : jr:"+str(jr.id)+" "+str(jr)
+                #print(" : jr:"+str(jr.id)+" "+str(jr))
                 if jr.exchange:
-                    #print " : : ex:"+str(jr.exchange)
+                    #print(" : : ex:"+str(jr.exchange))
                     exs.append(jr.exchange)
     else:
         print("check_new_rt_price: No rt.context_agent?? rt:"+str(rt))
@@ -4966,19 +4966,19 @@ def check_new_rt_price(rt=None, **kwargs):
         return
     #exs = rt.context_agent.exchanges.all()
     for ex in exs:
-        #print ": : ex:"+str(ex.id)+" "+str(ex)
+        #print(": : ex:"+str(ex.id)+" "+str(ex))
         txpay = ex.txpay()
         for tx in ex.transfers.all():
             if tx == txpay:
                 cms = tx.commitments.all()
                 evs = tx.events.all()
-                #print " : tx:"+str(tx.id)+" qty:"+str(tx.quantity())+" u:"+str(tx.unit_of_quantity())+" rt:"+str(tx.resource_type())+" cms:"+str(len(cms))+" evs:"+str(len(evs))+" "+str(tx)
+                #print(" : tx:"+str(tx.id)+" qty:"+str(tx.quantity())+" u:"+str(tx.unit_of_quantity())+" rt:"+str(tx.resource_type())+" cms:"+str(len(cms))+" evs:"+str(len(evs))+" "+str(tx))
                 if cms and not evs:
                     for cm in cms:
                         jrpend = jrpend2 = ex.join_request.payment_pending_amount()
                         jrunit = ex.join_request.payment_unit()
                         jrurt = ex.join_request.payment_unit_rt()
-                        #print " : : cm:"+str(cm.id)+" rt:"+str(cm.resource_type)+" qty:"+str(cm.quantity)+" uq:"+str(cm.unit_of_quantity)+" jrpend:"+str(jrpend)
+                        #print(" : : cm:"+str(cm.id)+" rt:"+str(cm.resource_type)+" qty:"+str(cm.quantity)+" uq:"+str(cm.unit_of_quantity)+" jrpend:"+str(jrpend))
                         if jrunit == cm.unit_of_quantity and cm.resource_type == jrurt:
                             if not round(cm.quantity, 2) == round(jrpend, 2):
                                 print("- changed commitment quantity of "+str(round(cm.quantity, 2))+" for "+str(round(jrpend, 2))+" because share price has changed. Pro:"+str(pro.agent)+" cm:"+str(cm.id)+" tx:"+str(tx.id)+" ex:"+str(ex.id))
@@ -5002,7 +5002,7 @@ def check_new_rt_price(rt=None, **kwargs):
             print(":: Orphan event ?? "+str(ev.id)+" "+str(ev))
             loger.info(":: Orphan event ?? "+str(ev.id)+" "+str(ev))
 
-        #print ":: ev:"+str(ev.id)+" tx:"+str(ev.transfer.id)+" ex:"+str(ev.exchange)+" com:"+str(ev.commitment)
+        #print(":: ev:"+str(ev.id)+" tx:"+str(ev.transfer.id)+" ex:"+str(ev.exchange)+" com:"+str(ev.commitment))
 
         if ev.commitment and not ev.commitment in coms:
             print(":: add ev.comm not in coms: "+str(ev.commitment))
@@ -5011,7 +5011,7 @@ def check_new_rt_price(rt=None, **kwargs):
         txpay = ev.exchange.txpay()
         for tx in ev.exchange.transfers.all():
             if tx == txpay:
-                pass #print "::: found txpay: "+str(tx)
+                pass #print("::: found txpay: "+str(tx))
 
     return
 
@@ -5031,11 +5031,11 @@ def migrate_freedomcoop_memberships(**kwargs):
             form_element_entries = form_entry.formelemententry_set.all()[:]
 
         else:
-            print "FdC migration error: no form entries"
+            print("FdC migration error: no form entries")
 
         old_reqs = MembershipRequest.objects.all()
         new_reqs = fdc.project.join_requests.all()
-        print "FdC reqs: old-"+str(len(old_reqs))+" <> new-"+str(len(new_reqs))
+        print("FdC reqs: old-"+str(len(old_reqs))+" <> new-"+str(len(new_reqs)))
         for orq in old_reqs:
             nrq, created = JoinRequest.objects.get_or_create(
                 project=fdc.project,
@@ -5051,7 +5051,7 @@ def migrate_freedomcoop_memberships(**kwargs):
                 state=orq.state
             )
             if created:
-                print "created FdC JoinRequest: "+nrq.requested_username+" ("+nrq.email_address+")"
+                print("created FdC JoinRequest: "+nrq.requested_username+" ("+nrq.email_address+")")
 
 post_migrate.connect(migrate_freedomcoop_memberships)
 """
