@@ -102,7 +102,7 @@ class MulticurrencyAuth(models.Model):
                         'amount': pend,
                         'unit': unit,
                     }
-                    #print reqdata
+                    #print(reqdata)
                     #payform = PaySharesForm(data=reqdata, initial=reqdata) #initial={'jnreq': jn_req, 'auth': self, 'amount': pend, 'unit': unit})
             elif balobj:
                 out_text = _("Not enough balance in your wallet for the chosen currency:")+' <b>'+str(punit.name)+'</b>'

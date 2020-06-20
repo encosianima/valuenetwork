@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.shortcuts import render, redirect
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404
@@ -430,7 +430,6 @@ def authpayment(request, agent_id):
 
             return redirect('project_feedback', agent_id=agent_id, join_request_id=jnreq.id)
         else:
-            #print form
             messages.success( request,
                 _('Error in the transfer form: ')) #+str(form))
 

@@ -45,7 +45,7 @@ class WorkAgentCreateForm(AgentCreateForm):
     def __init__(self, agent=None, *args, **kwargs):
         super(WorkAgentCreateForm, self).__init__(*args, **kwargs)
         if agent:
-            #print "- agent: "+str(agent)+' - context? '+str(agent.agent_type.is_context)
+            #print("- agent: "+str(agent)+' - context? '+str(agent.agent_type.is_context))
             if agent.agent_type.is_context:
                 self.fields["agent_type"].queryset = AgentType.objects.filter(is_context=True)
                 self.fields["agent_type"].initial = agent.agent_type
@@ -72,21 +72,21 @@ class WorkAgentCreateForm(AgentCreateForm):
         if nick and name and email:
             ags = EconomicAgent.objects.filter(nick=nick).exclude(email=email).exclude(name=name)
             if ags:
-                #print "- ERROR nick present! "
+                #print("- ERROR nick present! ")
                 self.add_error('nick', _("This nickname is already present in the system."))
             ags = EconomicAgent.objects.filter(name=name).exclude(email=email).exclude(nick=nick)
             if ags:
-                #print "- ERROR name present! "
+                #print("- ERROR name present! ")
                 self.add_error('name', _("This name is already present in the system."))
             ags = EconomicAgent.objects.filter(email=email).exclude(nick=nick).exclude(name=name)
             if ags and not self.instance.is_context:
-                #print "- ERROR email present! "
+                #print("- ERROR email present! ")
                 self.add_error('email', _("This email is already present in the system."))
         else:
             if not email:
                 pass
             else:
-                pass #print "- ERROR clean WorkAgentCreateForm ! data: "+str(data)
+                pass #print("- ERROR clean WorkAgentCreateForm ! data: "+str(data))
 
 
     def _clean_fields(self):
@@ -355,7 +355,7 @@ class JoinRequestForm(forms.ModelForm):
                     self.add_error('email_address', _("The email address is already registered in the system with same username. To join this project please login here:"))
 
 
-        #print "- projid: "+str(projid)
+        #print("- projid: "+str(projid))
         #type_of_user = data["type_of_user"]
         #number_of_shares = data["number_of_shares"]
         #if type_of_user == "collective":
