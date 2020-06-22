@@ -4,8 +4,8 @@ from decimal import Decimal
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
-BASE_DIR = PACKAGE_ROOT
-#BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+#BASE_DIR = PACKAGE_ROOT
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 DEBUG = True
 
@@ -68,18 +68,18 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = os.path.join(PACKAGE_ROOT, "site_media", "media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "site_media", "media") # was PACKAGE_ROOT
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = "/site_media/media/"
+MEDIA_URL = "/media/"
 
 # Absolute path to the directory static files should be collected to.
 # Don"t put anything in this directory yourself; store your static files
 # in apps" "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = os.path.join(PACKAGE_ROOT, "site_media", "static")
+STATIC_ROOT = os.path.join(BASE_DIR, "site_media", "static") # was PACKAGE_ROOT
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -139,7 +139,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     'django.middleware.security.SecurityMiddleware',
-    'valuenetwork.login_required_middleware.LoginRequiredMiddleware',
+    #'valuenetwork.login_required_middleware.LoginRequiredMiddleware',
     #'account.middleware.LocaleMiddleware',
 ]
 
