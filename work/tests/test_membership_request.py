@@ -13,6 +13,8 @@ from work.tests import objects_for_work_tests
 from django.conf import settings
 from captcha.models import CaptchaStore
 
+import chromedriver_binary
+
 class MembershipRequestTestCase(LiveServerTestCase):
 
     # It helps selenium to wait for loading new pages.
