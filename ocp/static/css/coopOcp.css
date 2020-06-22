@@ -291,7 +291,7 @@ div#my_tasks table, div#take-new-task table {
 }
 
 
-/*   Y O U R   P R O J E C T S   P A G E   */
+/*   Y O U R   P R O J E C T S   P A G E
 
 .modal-body {
   color: #333;
@@ -306,7 +306,7 @@ div#my_tasks table, div#take-new-task table {
 
 .modal {
   width: 580px;
-}
+} */
 
 legend a.btn {
   margin-bottom: 9px;
@@ -487,8 +487,11 @@ ul.dt-button-collection.dropdown-menu {
 }
 
 
-/*   M O D A L S   */
+/*   M O D A L S
 
+.modal {
+  background-color: #fff;
+}
 .modal .helptext {
   font-style: italic;
   padding-bottom: 10px;
@@ -502,9 +505,7 @@ ul.dt-button-collection.dropdown-menu {
 }
 .modal label {
   margin-top: 15px;
-  /*font-weight: bold;
-  font-size: 1.05em;*/
-}
+} */
 
 
 /*   T R E E S   */

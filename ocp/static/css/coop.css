@@ -1,5 +1,5 @@
-body { /*p, a, h1, h2, h3, h4, h5 {*/
-	font-family: 'Open Sans', 'Helvetica Neue', 'Helvetica', Arial, sans-serif !important;
+body { /*p, a, h1, h2, h3, h4, h5 {
+	font-family: 'Open Sans', 'Helvetica Neue', 'Helvetica', Arial, sans-serif !important; */
 	font-size: 0.9em !important;
 	text-align: center;
 	line-height: 20px !important;
@@ -30,13 +30,14 @@ form#membershipForm, form#joinForm {
 #membershipForm > div, #joinForm > div {
 	text-align: left;
 }
+
 .base-form .control-group {
 	margin-bottom: 18px;
 }
 .help-block {
-	color: #ddd;
-	margin-top: 0px !important;
-	font-size: 0.9em;
+	margin-top: 5px !important;
+	font-size: 0.96em;
+    opacity: .7;
 }
 .control-label {
 	color: #fff;
@@ -46,17 +47,22 @@ form#membershipForm, form#joinForm {
 	font-weight: bold;
 }
 h1 {
-	font-size: 35px !important;
-  margin-bottom: 15px;
+    font-size: 35px !important;
+    margin-bottom: 15px;
+    font-weight: 600;
 }
 h1, h2, h4, h5 {
 	color: #fff !important;
+}
+h2 {
+    font-size: 1.5rem;
 }
 h3 {
 	color: #734279 !important;
 	margin-top: 0;
 	text-align: left;
 	font-size: 1.4em !important;
+    font-weight: 600;
 }
 p {
 	color: #fff;
@@ -73,7 +79,7 @@ a, a:visited {
 }
 a:hover {
 	color: #c03;
-	text-decoration: none;
+	text-decoration: normal;
 }
 h1 a, h1 a:visited {
   color: #734279;
@@ -81,12 +87,15 @@ h1 a, h1 a:visited {
 h1 a:hover {
   color: #7b4a81;
 }
+h4 img {
+   color: #999;
+}
 
 input[type="checkbox"], input[type="radio"] {
 	width: 30px !important;
 }
-input {
-	width: 190px !important;
+.base-form input {
+	width: 190px; /*  !important; */
 }
 
 .landing .btn-primary, body .btn {
@@ -119,9 +128,10 @@ body .btn, body .btn:hover {
 	color: inherit;
 }
 .landing h4 a.btn, .btn {
-	font-size: 1em;
+	font-size: 1rem;
     color: #fff !important;
 }
+
 .base-form input[type="textarea"], .base-form input[type="text"], .base-form input[type="email"], .base-form input[type="url"], .base-form textarea {
 	width: 98% !important;
 }
@@ -129,11 +139,17 @@ body .btn, body .btn:hover {
 	width: 150px !important;
 	clear: both;
 }
+.base-form select#id_type_of_user {
+    max-width: 190px;
+}
 .base-form #div_id_captcha input {
 	width: 130px !important;
 	margin-left: 20px;
 }
-
+.base-form #div_id_captcha img {
+	float: left;
+	margin-right: 15px;
+}
 div.home-text {
 	margin: 10px 6em;
 	color: #fff;
@@ -142,6 +158,10 @@ table.landing {
 	border-spacing: 10px;
 	color: #fff;
 	border-collapse: separate;
+    border: none;
+}
+table.landing td {
+    border: none;
 }
 td.login-block, td.register-block {
 	background-color: rgba(250,250,250,0.2);
@@ -173,8 +193,8 @@ td.login-block div#div_id_username {
 	font-size: 0.8em;*/
 }
 .login-block #div_id_username label {
-	width: 80px !important;
-  text-align: left;
+	/*width: 80px !important;
+    text-align: left; */
 }
 .login-block #div_id_remember .controls {
     margin-left: 0 !important;
@@ -197,14 +217,15 @@ td.login-block div#div_id_username {
 	margin-top: 0;
 }
 .login-block .form-actions a, .login-block .form-actions a:visited {
-	font-size: 0.9em;
+	/* font-size: 0.9em; */
 	font-weight: normal;
-	float: left;
+	/*float: left;*/
 	color: #fff;
+    margin: 15px 0;
 }
 .login-block .form-actions a:hover {
-	color: #c03;
-	text-decoration: none;
+	/* color: #a372a9; */
+	text-decoration: normal;
 }
 .login-block .form-actions button {
 	float: right;
@@ -212,4 +233,30 @@ td.login-block div#div_id_username {
 
 #joinForm span.help-inline {
     margin-bottom: 10px;
+}
+
+
+/*   R E S P O N S I V E   */
+
+@media (max-width: 767px) {
+    /* for phones */
+
+}
+@media (min-width: 768px) and (max-width: 979px) {
+    /* for tablets */
+
+}
+@media (max-width: 480px) {
+
+}
+@media (min-width: 1200px) {
+
+}
+@media (max-width: 979px) {
+    .base-form h1 img {
+        max-width: 90%;
+    }
+}
+@media (min-width: 980px) {
+
 }
