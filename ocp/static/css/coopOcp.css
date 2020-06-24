@@ -123,6 +123,12 @@ h2, h3, h4 {
   color: #476B6B !important;
   font-weight: 700 !important;
 }
+h3 {
+  font-size: 1.6rem;
+}
+h4 {
+  font-size: 1.3rem;
+}
 ul h4 {
   /*color: inherit;*/
 }
@@ -212,7 +218,7 @@ b.empty, em.empty {
   margin: 0px 1em;
 }
 .small {
-    font-size: 70%;
+    font-size: .86rem;
 }
 
 /*   M E M B E R S H I P   P R O C E S S   P A G E   */
@@ -299,11 +305,12 @@ div#my_tasks table, div#take-new-task table {
   font-size: 13px;
   line-height: 19px;
   max-height: 450px;
-}
+} */
 .modal-body p.help-block {
-  padding-bottom: 9px;
+    opacity: .7;
+    margin-top: 5px;
 }
-
+/*
 .modal {
   width: 580px;
 } */
@@ -443,7 +450,7 @@ ul.dt-button-collection.dropdown-menu {
 .infobox h3 {
   margin: 0 0 5px 0;
   padding: 0;
-  font-size: 19.5px;
+  /*font-size: 19.5px;*/
 }
 .infobox .row-fluid {
   width: inherit;
