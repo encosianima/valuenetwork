@@ -101,7 +101,7 @@ class MembershipRequest(models.Model):
         max_length=12, choices=REQUEST_STATE_CHOICES,
         default='new', editable=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def fdc(self):
@@ -148,7 +148,7 @@ class Project(models.Model):
     fobi_slug = models.CharField(_('custom form slug'),
         max_length=255, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return _('Project: ') + self.agent.name
 
     def is_moderated(self):
@@ -532,7 +532,7 @@ class SkillSuggestion(models.Model):
         default='new', editable=False)
 
 
-    def __unicode__(self):
+    def __str__(self):
         return self.skill
 
     def form_prefix(self):
@@ -610,7 +610,7 @@ class JoinRequest(models.Model):
         return self.project.fobi_slug
       return False
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name+":"+self.state
 
     def form_prefix(self):
@@ -1044,7 +1044,7 @@ class JoinRequest(models.Model):
     def show_total_price(self):
         txt = str(self.total_price())+' '+self.show_payment_unit()
         if self.is_flexprice():
-            txt = '\\u2248 '+txt
+            txt = '\u2248 '+txt
         return txt
 
     def payment_url(self):
@@ -2809,7 +2809,7 @@ class NewFeature(models.Model):
     class Meta:
         ordering = ('-deployment_date',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -2832,7 +2832,7 @@ class InvoiceNumber(models.Model):
     class Meta:
         ordering = ('-invoice_date', "-sequence",)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.invoice_number
 
     def save(self, *args, **kwargs):
@@ -3044,7 +3044,7 @@ class Ocp_Artwork_Type(Artwork_Type):
       verbose_name= _('Type of General Artwork/Resource')
       verbose_name_plural= _('o-> Types of General Artworks/Resources')
 
-    def __unicode__(self):
+    def __str__(self):
       try:
         if self.resource_type:
           return self.name+' <' #+'  ('+self.resource_type.name+')'
@@ -3162,7 +3162,7 @@ class Ocp_Skill_Type(Job):
       verbose_name= _('Type of General Skill Resources')
       verbose_name_plural= _('o-> Types of General Skill Resources')
 
-    def __unicode__(self):
+    def __str__(self):
       if self.resource_type:
         if self.ocp_artwork_type and not self.ocp_artwork_type.name.lower() in self.get_gerund().lower():
           return self.get_gerund()+' - '+self.ocp_artwork_type.name.lower()+' <'
@@ -3240,7 +3240,7 @@ class Ocp_Record_Type(Record_Type):
         verbose_name= _('Type of General Record')
         verbose_name_plural= _('o-> Types of General Records')
 
-    def __unicode__(self):
+    def __str__(self):
       if self.exchange_type:
         return self.name+' <' #+'  ('+self.resource_type.name+')'
       else:
@@ -3353,7 +3353,7 @@ class Ocp_Unit_Type(Unit_Type):
         verbose_name= _('Type of General Unit')
         verbose_name_plural= _('o-> Types of General Units')
 
-    def __unicode__(self):
+    def __str__(self):
         us = self.units()
         if self.children.count():
             if len(us) == 1:

@@ -138,7 +138,7 @@ def collect_lower_trash(commitment, trash):
 #    class Meta:
 #        ordering = ('sequence',)
 
-#    def __unicode__(self):
+#    def __str__(self):
 #        return self.name
 
 
@@ -213,7 +213,7 @@ class Help(models.Model):
         verbose_name_plural = _('help')
         ordering = ('page',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.get_page_display()
 
 
@@ -235,7 +235,7 @@ class Facet(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def value_list(self):
@@ -252,7 +252,7 @@ class FacetValue(models.Model):
         unique_together = ('facet', 'value')
         ordering = ('facet', 'value')
 
-    def __unicode__(self):
+    def __str__(self):
         return ": ".join([self.facet.name, self.value])
 
 
@@ -277,7 +277,7 @@ class Unit(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def is_currency(self):
@@ -321,7 +321,7 @@ class Location(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @property #ValueFlows
@@ -369,7 +369,7 @@ class AgentType(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -526,7 +526,7 @@ class EconomicAgent(models.Model):
     class Meta:
         ordering = ('nick',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nick
 
     def save(self, *args, **kwargs):
@@ -2210,7 +2210,7 @@ class AgentAssociationType(models.Model):
 
     objects = AgentAssociationTypeManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -2314,7 +2314,7 @@ class AgentAssociation(models.Model):
     class Meta:
         ordering = ('is_associate',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.is_associate.nick + " " + self.association_type.label + " " + self.has_associate.nick
 
     def representation(self):
@@ -2459,7 +2459,7 @@ class EventType(models.Model):
     def natural_key(self):
         return (self.name,)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
@@ -2610,7 +2610,7 @@ class AccountingReference(models.Model):
     code = models.CharField(_('code'), max_length=128, unique=True)
     name = models.CharField(_('name'), max_length=128)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -2646,7 +2646,7 @@ class ResourceClass(models.Model):
     name = models.CharField(_('name'), max_length=128, unique=True)
     description = models.TextField(_('description'), blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -2851,7 +2851,7 @@ class EconomicResourceType(models.Model):
         ordering = ('name',)
         verbose_name = _('resource type')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def description_str(self):
@@ -2902,7 +2902,7 @@ class EconomicResourceType(models.Model):
             return None
 
     def label(self):
-        return self.__unicode__()
+        return self.__str__()
 
     def save(self, *args, **kwargs):
         #unique_slugify(self, self.name)
@@ -3661,7 +3661,7 @@ class EconomicResourceType(models.Model):
         return False
 
     def facet_list(self):
-        return ", ".join([facet.facet_value.__unicode__() for facet in self.facets.all()])
+        return ", ".join([facet.facet_value.__str__() for facet in self.facets.all()])
 
     def facet_values_list(self):
         return ", ".join([facet.facet_value.value for facet in self.facets.all()])
@@ -3717,7 +3717,7 @@ class ResourceTypeList(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def resource_types_string(self):
@@ -3753,7 +3753,7 @@ class ResourceTypeListElement(models.Model):
         unique_together = ('resource_type_list', 'resource_type')
         ordering = ('resource_type_list', 'resource_type')
 
-    def __unicode__(self):
+    def __str__(self):
         return ": ".join([self.resource_type_list.name, self.resource_type.name])
 
 
@@ -3767,7 +3767,7 @@ class ResourceTypeFacetValue(models.Model):
         unique_together = ('resource_type', 'facet_value')
         ordering = ('resource_type', 'facet_value')
 
-    def __unicode__(self):
+    def __str__(self):
         return ": ".join([self.resource_type.name, self.facet_value.facet.name, self.facet_value.value])
 
 
@@ -3824,7 +3824,7 @@ class ProcessPattern(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def event_types(self):
@@ -4130,7 +4130,7 @@ class PatternFacetValue(models.Model):
         unique_together = ('pattern', 'facet_value', 'event_type')
         ordering = ('pattern', 'event_type', 'facet_value')
 
-    def __unicode__(self):
+    def __str__(self):
         return ": ".join([self.pattern.name, self.facet_value.facet.name, self.facet_value.value])
 
 
@@ -4149,7 +4149,7 @@ class UseCase(models.Model):
 
     objects = UseCaseManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def natural_key(self):
@@ -4284,7 +4284,7 @@ class UseCaseEventType(models.Model):
     event_type = models.ForeignKey(EventType, on_delete=models.CASCADE,
         verbose_name=_('event type'), related_name='use_cases')
 
-    def __unicode__(self):
+    def __str__(self):
         return ": ".join([self.use_case.name, self.event_type.name])
 
     @classmethod
@@ -4381,7 +4381,7 @@ class PatternUseCase(models.Model):
         blank=True, null=True, on_delete=models.SET_NULL,
         verbose_name=_('use case'), related_name='patterns')
 
-    def __unicode__(self):
+    def __str__(self):
         use_case_name = ""
         if self.use_case:
             use_case_name = self.use_case.name
@@ -4448,7 +4448,7 @@ class Order(models.Model):
     class Meta:
         ordering = ('due_date',)
 
-    def __unicode__(self):
+    def __str__(self):
         provider_name = ""
         process_name = ""
         provider_label = ""
@@ -4691,7 +4691,7 @@ class Order(models.Model):
         return "planned"
 
     def timeline_title(self):
-        return self.__unicode__()
+        return self.__str__()
 
     def timeline_description(self):
         return self.description
@@ -5068,7 +5068,7 @@ class ProcessType(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
@@ -5451,7 +5451,7 @@ class ExchangeType(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
@@ -5601,7 +5601,7 @@ class EconomicResource(models.Model):
     class Meta:
         ordering = ('resource_type', 'identifier',)
 
-    def __unicode__(self):
+    def __str__(self):
         id_str = self.identifier or str(self.id)
         rt_name = self.resource_type.name
         if self.stage:
@@ -7168,7 +7168,7 @@ class AgentResourceType(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return ' '.join([
             self.agent.name,
             self.event_type.label,
@@ -7251,7 +7251,7 @@ class AgentResourceRoleType(models.Model):
 
     objects = AgentResourceRoleTypeManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -7265,8 +7265,8 @@ class AgentResourceRole(models.Model):
     is_contact = models.BooleanField(_('is contact'), default=False)
     owner_percentage = models.IntegerField(_('owner percentage'), null=True)
 
-    def __unicode__(self):
-        return " ".join([self.agent.name, self.role.name, self.resource.__unicode__()])
+    def __str__(self):
+        return " ".join([self.agent.name, self.role.name, self.resource.__str__()])
 
 
 #todo: rename to CommitmentType
@@ -7296,7 +7296,7 @@ class ProcessTypeResourceType(models.Model):
         ordering = ('resource_type',)
         verbose_name = _('commitment type')
 
-    def __unicode__(self):
+    def __str__(self):
         relname = ""
         if self.event_type:
             relname = self.event_type.label
@@ -7534,7 +7534,7 @@ class Process(models.Model):
         ordering = ('-end_date',)
         verbose_name_plural = _("processes")
 
-    def __unicode__(self):
+    def __str__(self):
         order_name = ""
         order = self.independent_demand()
         if order:
@@ -7702,7 +7702,7 @@ class Process(models.Model):
         return "process"
 
     def flow_description(self):
-        return self.__unicode__()
+        return self.__str__()
 
     def node_id(self):
         return "-".join(["Process", str(self.id)])
@@ -8641,7 +8641,7 @@ class TransferType(models.Model):
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
     inherit_types = models.BooleanField(_('inherit resource types'), default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -8818,7 +8818,7 @@ class TransferType(models.Model):
         return TransferTypeForm(instance=self, prefix=prefix)
 
     def show_name(self, agent=None, forced=False):
-        name = self.__unicode__()
+        name = self.__str__()
         newname = name
         if agent:
           if self.transfers:
@@ -8869,7 +8869,7 @@ class TransferTypeFacetValue(models.Model):
         unique_together = ('transfer_type', 'facet_value')
         ordering = ('transfer_type', 'facet_value')
 
-    def __unicode__(self):
+    def __str__(self):
         return ": ".join([self.transfer_type.name, self.facet_value.facet.name, self.facet_value.value])
 
 
@@ -9011,7 +9011,7 @@ class Exchange(models.Model):
         ordering = ('-start_date',)
         verbose_name_plural = _("exchanges")
 
-    def __unicode__(self):
+    def __str__(self):
         show_name = ""
         name = ""
         if False and self.name:
@@ -9330,7 +9330,7 @@ class Exchange(models.Model):
         return slots
 
     def show_name(self, agent=None, forced=False):
-        name = self.__unicode__()
+        name = self.__str__()
         if agent:
             name = name.replace(agent.name, '')
             name = name.replace(agent.nick+' ', '')
@@ -9532,7 +9532,7 @@ class Exchange(models.Model):
         return "exchange"
 
     def flow_description(self):
-        return self.__unicode__()
+        return self.__str__()
 
     def resource_receive_events(self):
         #todo exchange redesign fallout
@@ -9898,7 +9898,7 @@ class Transfer(models.Model):
         ordering = ('transfer_date',)
         verbose_name_plural = _("transfers")
 
-    def __unicode__(self):
+    def __str__(self):
         show_name = ""
         from_name = ""
         to_name = ""
@@ -9918,7 +9918,7 @@ class Transfer(models.Model):
             if event.resource_type:
                 resource_string = event.resource_type.name
             if event.resource:
-                resource_string = event.resource.__unicode__()
+                resource_string = event.resource.__str__()
             qty = str(event.quantity)
             if event.unit_of_quantity:
                 unit = event.unit_of_quantity.name
@@ -10102,7 +10102,7 @@ class Transfer(models.Model):
 
 
     def show_name(self, agent=None, forced=False):
-        name = self.__unicode__()
+        name = self.__str__()
         newname = name
         if agent:
           if self.events or self.commitments:
@@ -10548,7 +10548,7 @@ class Transfer(models.Model):
             event = events[0]
             resource_string = event.resource_type.name
             if event.resource:
-                resource_string = event.resource.__unicode__()
+                resource_string = event.resource.__str__()
             return resource_string
         return None
 
@@ -10573,7 +10573,7 @@ class Transfer(models.Model):
         return "transfer"
 
     def flow_description(self):
-        return self.__unicode__()
+        return self.__str__()
 
     def give_and_receive_resources(self):
         events = self.events.all()
@@ -10748,7 +10748,7 @@ class Feature(models.Model):
     class Meta:
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return " ".join([self.name, "Feature for", self.product.name])
 
     def xbill_child_object(self):
@@ -10815,7 +10815,7 @@ class Option(models.Model):
     class Meta:
         ordering = ('component',)
 
-    def __unicode__(self):
+    def __str__(self):
         return " ".join([self.component.name, "option for", self.feature.name])
 
     def xbill_child_object(self):
@@ -10969,7 +10969,7 @@ class Commitment(models.Model):
     class Meta:
         ordering = ('due_date',)
 
-    def __unicode__(self):
+    def __str__(self):
         abbrev = ""
         if self.event_type.relationship == "cite":
             quantity_string = ""
@@ -11038,7 +11038,7 @@ class Commitment(models.Model):
         ])
 
     def show_name(self, agent=None, forced=False):
-        name = self.__unicode__()
+        name = self.__str__()
         newname = name
         if agent:
             gives = self.from_agent == agent
@@ -12208,7 +12208,7 @@ class Commitment(models.Model):
                 resource = resources[0]
             else:
                 #does not handle different resources per order_item yet.
-                msg = " ".join([self.__unicode__(), "has different resources, not handled yet."])
+                msg = " ".join([self.__str__(), "has different resources, not handled yet."])
                 assert False, msg
         if resource:
             shares = self.compute_income_fractions_for_resource(value_equation, resource)
@@ -12295,12 +12295,12 @@ class Reciprocity(models.Model):
     class Meta:
         ordering = ('reciprocity_date',)
 
-    def __unicode__(self):
+    def __str__(self):
         return ' '.join([
             'inititating commmitment:',
-            self.initiating_commmitment.__unicode__(),
+            self.initiating_commmitment.__str__(),
             'reciprocal commmitment:',
-            self.reciprocal_commitment.__unicode__(),
+            self.reciprocal_commitment.__str__(),
             self.reciprocity_date.strftime('%Y-%m-%d'),
         ])
 
@@ -12320,7 +12320,7 @@ class SelectedOption(models.Model):
     class Meta:
         ordering = ('commitment', 'option')
 
-    def __unicode__(self):
+    def __str__(self):
         return " ".join([self.option.name, "option for", self.commitment.resource_type.name])
 
 def check_summary(agent, context_agent, resource_type, event_type):
@@ -12406,13 +12406,13 @@ def update_summary(agent, context_agent, resource_type, event_type):
 #    class Meta:
 #        ordering = ('compensation_date',)
 
-#    def __unicode__(self):
+#    def __str__(self):
 #        value_string = '$' + str(self.compensating_value)
 #        return ' '.join([
 #            'inititating event:',
-#            self.initiating_event.__unicode__(),
+#            self.initiating_event.__str__(),
 #            'compensating event:',
-#            self.compensating_event.__unicode__(),
+#            self.compensating_event.__str__(),
 #            'value:',
 #            value_string,
 #        ])
@@ -12446,7 +12446,7 @@ class ValueEquation(models.Model):
         related_name='value_equations_created', blank=True, null=True, on_delete=models.SET_NULL)
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_absolute_url(self):
@@ -12772,7 +12772,7 @@ class Distribution(models.Model):
         ordering = ('-distribution_date',)
         verbose_name_plural = _("distributions")
 
-    def __unicode__(self):
+    def __str__(self):
         show_name = "Distribution"
         name = ""
         if self.name:
@@ -12866,7 +12866,7 @@ class Distribution(models.Model):
         return "distribution"
 
     def flow_description(self):
-        return self.__unicode__()
+        return self.__str__()
 
 
 class EconomicEventManager(models.Manager):
@@ -13004,7 +13004,7 @@ class EconomicEvent(models.Model):
     class Meta:
         ordering = ('-event_date', '-pk')
 
-    def __unicode__(self):
+    def __str__(self):
         if self.unit_of_quantity:
             quantity_string = " ".join([str(remove_exponent(self.quantity)), self.unit_of_quantity.abbrev])
         else:
@@ -13024,7 +13024,7 @@ class EconomicEvent(models.Model):
                 if self.quantity > 1:
                     quantity_string += 's'
             else:
-                resource_string = self.resource.__unicode__()
+                resource_string = self.resource.__str__()
         if self.unit_of_quantity and self.unit_of_quantity.is_currency():
             resource_string = ''
             quantity_string = " ".join([str(remove_exponent(self.quantity)), self.unit_of_quantity.name])
@@ -13063,14 +13063,14 @@ class EconomicEvent(models.Model):
             return self.mirror
 
     def show_name(self, agent=None, forced=False):
-        name = self.__unicode__()
+        name = self.__str__()
         newname = name
         if agent:
             gives = self.from_agent == agent
             takes = self.to_agent == agent
             mirr = self.mirror_event()
             if takes and mirr:
-                name = mirr.__unicode__()
+                name = mirr.__str__()
                 newname = name
             if not hasattr(self, 'exchange') or not self.exchange:
                 if not hasattr(self.transfer, 'exchange') or not self.transfer.exchange:
@@ -13202,7 +13202,7 @@ class EconomicEvent(models.Model):
             to_agt = self.recipient().name
         resource_string = self.resource_type.name
         if self.resource:
-            resource_string = self.resource.__unicode__()
+            resource_string = self.resource.__str__()
         return ' '.join([
             self.event_type.name,
             self.event_date.strftime('%Y-%m-%d'),
@@ -14375,7 +14375,7 @@ class ValueEquationBucket(models.Model):
     class Meta:
         ordering = ('sequence',)
 
-    def __unicode__(self):
+    def __str__(self):
         return ' '.join([
             'Bucket',
             str(self.sequence),
@@ -14719,10 +14719,10 @@ class ValueEquationBucketRule(models.Model):
     created_date = models.DateField(auto_now_add=True, blank=True, null=True, editable=False)
     changed_date = models.DateField(auto_now=True, blank=True, null=True, editable=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return ' '.join([
             'rule for:',
-            self.value_equation_bucket.__unicode__(),
+            self.value_equation_bucket.__str__(),
             '-',
             self.event_type.name,
         ])
@@ -14888,7 +14888,7 @@ class Claim(models.Model):
     class Meta:
         ordering = ('claim_date',)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.unit_of_value:
             if self.unit_of_value.symbol:
                 value_string = "".join([self.unit_of_value.symbol, str(self.value)])
@@ -14965,20 +14965,20 @@ class ClaimEvent(models.Model):
     class Meta:
         ordering = ('claim_event_date',)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.unit_of_value:
             value_string = " ".join([str(self.value), self.unit_of_value.abbrev])
         else:
             value_string = str(self.value)
         if self.event:
-            event_str = self.event.__unicode__()
+            event_str = self.event.__str__()
         else:
             event_str = "none"
         return ' '.join([
             'event:',
             event_str,
             'affecting claim:',
-            self.claim.__unicode__(),
+            self.claim.__str__(),
             'value:',
             value_string,
         ])
@@ -15049,7 +15049,7 @@ class CachedEventSummary(models.Model):
     class Meta:
         ordering = ('agent', 'context_agent', 'resource_type')
 
-    def __unicode__(self):
+    def __str__(self):
         agent_name = "Unknown"
         if self.agent:
             agent_name = self.agent.name
