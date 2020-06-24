@@ -12841,6 +12841,7 @@ def membership_requests(request):
         #"agent_form": agent_form,
     })
 
+"""
 @login_required
 def membership_request(request, membership_request_id):
     user_agent = get_agent(request)
@@ -12869,6 +12870,7 @@ def membership_request(request, membership_request_id):
         "user_agent": user_agent,
         "nicks": nicks,
     })
+"""
 
 @login_required
 def decline_request(request, membership_request_id):
