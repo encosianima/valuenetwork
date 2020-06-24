@@ -35,6 +35,7 @@ h3 {
     font-size: 19.5px;
 }
 
+
 .totals {
     /*border: solid 2px firebrick;
     background-color: oldlace;
@@ -50,6 +51,7 @@ h3 {
 }
 .totals table {
   position: relative;
+  border: none;
 }
 /*.totals table thead {
   border-bottom: 1px solid #ddd;
@@ -345,9 +347,9 @@ hr {
               {% endif %}
             </div>
         </legend>
-
-    <div class="span12">
-        <div class="span8" style="margin-left:0;">
+    <div class="container span12">
+      <div class="row">
+        <div class="col-sm span8" style="margin-left:0;">
           {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent or request.user.is_superuser %}
             <div class="totals infobox" style="min-width:320px; padding-bottom:13px;">
               <span class="showhide" id="sh-totals" style="float:right;">(SHOW)</span>
@@ -359,7 +361,7 @@ hr {
                   {% trans "There are no exchanges to count..." %}
                 </p>
               {% else %}
-              <table>
+              <table class="totalbox">
                 <thead>
                   <tr>
                     <th> &nbsp; </th>
@@ -435,7 +437,7 @@ hr {
           {% endif %}
         </div>
 
-        <div class="span4">
+        <div class="col-sm span4">
 
           <div class="filter miniform">
             {% comment %}
@@ -502,6 +504,7 @@ hr {
             </form>
           </div>
         </div>
+      </div>
     </div>
     <div class="span12">
 
