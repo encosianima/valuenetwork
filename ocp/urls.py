@@ -27,9 +27,12 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('robots.txt', lambda r: HttpResponse("User-agent: *\nAllow: /$\nDisallow: /", content_type="text/plain")),
 
+    # basic ocp login+join
+    path('<form_slug>/', work.views.project_login, name="project_login"),
     path('joinaproject/<form_slug>/', work.views.joinaproject_request, name="joinaproject_request"),
     path('join/<form_slug>/', work.views.joinaproject_request, name="join_request"),
 
+    # api special endpoints
     path("total-shares/<project_slug>/", work.views.project_total_shares, name="project_total_shares"),
     path("update-share-payment/<project_slug>/", work.views.project_update_payment_status, name="project_update_payment_status"),
     path("member-shares/", work.views.member_total_shares, name="member_total_shares"),
@@ -58,7 +61,4 @@ if 'multicurrency' in settings.INSTALLED_APPS:
 if 'faircoin' in settings.INSTALLED_APPS:
     urlpatterns += [path('faircoin/', include('faircoin.urls')),]
 
-urlpatterns += [
-    path('<form_slug>/', work.views.project_login, name="project_login"),
-]
 

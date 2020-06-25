@@ -80,16 +80,16 @@
     {% else %}
         <li>
             {% if request.path == '/' %}
-                <a href="{% url "account_login" %}">
+                <a class="nav-link" href="{% url "account_login" %}">
             {% else %}
-                <a href="{% url "account_login" %}?next={% firstof request.path '/' %}">
+                <a class="nav-link" href="{% url "account_login" %}?next={% firstof request.path '/' %}">
             {% endif %}
             Log in</a>
         </li>
-        <li><a href="{% url "tutorials" %}"> {% trans "OCP Tutorials" %}</a></li>
+        <!-- <li><a href="{% url "tutorials" %}"> {% trans "OCP Tutorials" %}</a></li> -->
         {% if ACCOUNT_OPEN_SIGNUP %}
             <li class="navbar-text">{% trans "or" %}</li>
-            <li><a href="{% url "account_signup" %}">{% trans "Sign up" %}</a></li>
+            <li><a class="nav-link" href="{% url "account_signup" %}">{% trans "Sign up" %}</a></li>
         {% endif %}
     {% endif %}
 </ul>
