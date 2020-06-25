@@ -140,7 +140,8 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",
     'django.middleware.security.SecurityMiddleware',
     #'valuenetwork.login_required_middleware.LoginRequiredMiddleware',
-    #'account.middleware.LocaleMiddleware',
+    'account.middleware.LocaleMiddleware',
+    'account.middleware.TimezoneMiddleware',
 ]
 
 ROOT_URLCONF = "ocp.urls"
