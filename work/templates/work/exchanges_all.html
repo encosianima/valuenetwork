@@ -31,9 +31,9 @@ span.pending, span.complete, span.empty {
   /*float: left;*/
   padding: 0 0.1em 0 0;
 }
-h3 {
+/*h3 {
     font-size: 19.5px;
-}
+}*/
 
 
 .totals {
@@ -53,9 +53,12 @@ h3 {
   position: relative;
   border: none;
 }
-/*.totals table thead {
+.totals table thead {
   border-bottom: 1px solid #ddd;
-}*/
+}
+.totals table thead th {
+  border: none;
+}
 .totals table tbody tr {
   border-top: 1px solid #ddd;
 }
@@ -63,12 +66,14 @@ h3 {
   border-top: none;
 }
 .totals table tr td {
+  border: none;
   border-left: 1px solid #ddd;
   padding: 5px 10px;
   text-align: right;
   /*font-weight: bold;*/
 }
 .totals table tr th {
+  border: none;
   text-align: right;
   padding: 5px 10px;
   color: #476B6B;
@@ -76,11 +81,17 @@ h3 {
   font-weight: normal;
 }
 .totals table tr:first-child th {
-  border-right: none;
+  /*border-right: none;*/
   padding: 0 10px;
   text-align: left;
 }
-.totals table tr th:last-child {
+.totals table tbody th {
+    border-left: none;
+}
+.totals table tbody tr:last-child td, .totals table tbody tr:last-child th {
+    border-bottom: none;
+}
+.totals table tr th:last-child, .totals table tr td:last-child {
   border-right: none;
 }
 .totals table tr th h4 {
@@ -107,16 +118,29 @@ span.total {
     font-size: 90%;
     color: grey;
 }
-.exlist table.dataTable.table-condensed .sorting::after, .exlist table.dataTable.table-condensed .sorting_asc::after, .exlist table.dataTable.table-condensed .sorting_desc::after {
-    top: 24px;
+.exlist table.dataTable {
+    border-collapse: collapse !important;
+}
+.exlist table.dataTable th {
+    padding: .3rem .7rem;
+}
+.exlist table.dataTable thead .sorting::after, .exlist table.dataTable thead .sorting_asc::after, .exlist table.dataTable thead .sorting_desc::after {
+    top: 30px;
     /*right: 6px;*/
 }
-div.dataTables_filter {
+div.dataTables_filter, div.dt-buttons, div.dataTables_info {
     float: right;
+    margin-right: 2em;
+}
+div.dataTables_wrapper div.dataTables_info {
+    padding-top: inherit !important;
 }
 div.dataTables_length {
     float: right;
     margin-right: 4em;
+}
+div.dataTables_paginate li {
+    margin-right: 1em;
 }
 td.qty {
     text-align: right;
@@ -377,14 +401,12 @@ hr {
                 </thead>
                 <tbody>
                   <tr>
-                    <th style="min-width: 65px;">
-                      &nbsp; <span class="list" id="list-totals_B"><b style="font-size:110%">{% trans "Balance:" %}</b></span>
+                    <th style="min-width: 65px; text-align:right; padding: 5px 10px;">
+                      <span class="list" id="list-totals_B"><b style="font-size:110%">{% trans "Balance:" %}</b></span>
                     </th>
                     {% for tt in total_transfers %}
                       {% if tt.name %}
-                          <td>&nbsp; &nbsp; <b style="">{{ tt.balance|safe }}</b>
-                              {% if tt.balnote %}<br/>? {{ tt.balnote }} {{ tt.abbr }}
-                              {% elif not tt.balance|first == '<' %} <b>{{ tt.abbr }}</b> {% elif '' == '>' %}
+                          <td> <b style="">{{ tt.balance|safe }}</b>{% if tt.balnote %}<br/>? {{ tt.balnote }} {{ tt.abbr }}{% elif not tt.balance|first == '<' %}&nbsp;<b>{{ tt.abbr }}</b> {% elif '' == '>' %}
                               {% endif %}</td>
                       {% endif %}
                     {% endfor %}
@@ -395,7 +417,7 @@ hr {
                     </th>
                     {% for tt in total_transfers %}
                       {% if tt.name %}
-                        <td>&nbsp; + {{ tt.income }} {{ tt.abbr }}<br/>{% if tt.incommit %}({{ tt.incommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
+                        <td> +&nbsp;{{ tt.income }}&nbsp;{{ tt.abbr }}<br/>{% if tt.incommit %}({{ tt.incommit }}&nbsp;{{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
                       {% endif %}
                     {% endfor %}
                   </tr>
@@ -405,7 +427,7 @@ hr {
                     </th>
                     {% for tt in total_transfers %}
                       {% if tt.name %}
-                          <td>&nbsp; - {{ tt.outgo }} {{ tt.abbr }}<br/>{% if tt.outcommit %}({{ tt.outcommit }} {{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
+                          <td> -&nbsp;{{ tt.outgo }}&nbsp;{{ tt.abbr }}<br/>{% if tt.outcommit %}({{ tt.outcommit }}&nbsp;{{ tt.abbr }}){% else %}&nbsp;{% endif %}</td>
                       {% endif %}
                     {% endfor %}
                   </tr>
@@ -1126,10 +1148,14 @@ hr {
                 &nbsp; <input style="display: inline; vertical-align: top;" type="submit" name="new-exchange-type" value="{% trans 'New Exchange Type' %}" class="btn btn-primary btn-mini" />
             </form> -->
 
-            <div class="modal hide fade" id="addResourceTypeModal" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true"  style="width:590px;">
+            <div class="modal hide fade" id="addResourceTypeModal" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true" style="">
+              <div class="modal-dialog">
+              <div class="modal-content">
               <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3><span id="name_action">{% trans "Add a new " %}</span> {% trans "Resource Type:" %}</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
               </div>
               <div class="modal-body">
                 <form class="validateMe" id="resourceForm" enctype="multipart/form-data" action="{% url "new_resource_type" agent_id=context_agent.id %}" method="POST" >
@@ -1151,11 +1177,17 @@ hr {
                   </div>
                 </form>
               </div>
+              </div>
+              </div>
             </div>
-            <div class="modal hide fade" id="addSkillTypeModal" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true"  style="width:590px;">
+            <div class="modal hide fade" id="addSkillTypeModal" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true"  style="">
+              <div class="modal-dialog">
+              <div class="modal-content">
               <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3><span id="name_action">{% trans "Add a new" %}</span> {% trans "Skill Type:" %}</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
               </div>
               <div class="modal-body">
                 <form class="validateMe" id="skillForm" enctype="multipart/form-data" action="{% url "new_skill_type" agent_id=context_agent.id %}" method="POST" >
@@ -1178,11 +1210,17 @@ hr {
                   </div>
                 </form>
               </div>
+              </div>
+              </div>
             </div>
-            <div class="modal hide fade" id="editExchangeTypeModal" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true"  style="width:590px;">
+            <div class="modal hide fade" id="editExchangeTypeModal" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true"  style="">
+              <div class="modal-dialog">
+              <div class="modal-content">
               <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3><span id="name_action">{% trans "Edit an " %}</span> {% trans "Exchange Type:" %}</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
               </div>
               <div class="modal-body">
                 <form class="validateMe" id="exchangeTypeForm" enctype="multipart/form-data" action="" method="POST" >
@@ -1203,6 +1241,8 @@ hr {
                     <input type="submit" class="btn btn-primary" name="edit_exchange_type" value="{% trans 'Save' %}" />
                   </div>
                 </form>
+              </div>
+              </div>
               </div>
             </div>
 
