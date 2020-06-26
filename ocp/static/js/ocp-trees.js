@@ -199,7 +199,7 @@ $(document).ready(function(){
 
         $mod.find('.facet-box').remove();
         if(typeof(obj['n_desc'] !== 'undefined') && obj['n_desc'] && obj['n_desc']*1 > 0){
-          $mod.find('.modal-field').last().after('<div class="modal-field facet-box"><label>Create a new FacetValue named "'+name+'" under "'+cleantypename($mod.find('#id_resource_type option:selected').text()).trim()+'"?</label><input id="id_facetvalue" name="facetvalue" type="checkbox"></div>');
+          $mod.find('.form-group').last().after('<div class="form-group facet-box"><label class="control-label">Create a new FacetValue named "'+name+'" under "'+cleantypename($mod.find('#id_resource_type option:selected').text()).trim()+'"?</label> &nbsp; <input id="id_facetvalue" name="facetvalue" type="checkbox"></div>');
         }
         if(typeof(obj['fv'] !== 'undefined') && obj['fv']){
           $mod.find('.modal-footer').first().prepend('<span class="facet-box">'+obj['fv']+'</span> &nbsp; ');
@@ -263,9 +263,10 @@ $(document).ready(function(){
             $mod.find('#id_parent_type').find('option[value='+old_rt+']').prop('selected', true);
           } else if( $('#id_skill_type').find('option:selected').length ) {
             var pid = $('#id_skill_type').first().find('option:selected').attr('value');
-            //alert('sels:'+$('#id_skill_type').first().find('option:selected').length+' ('+$('#id_skill_type').first().find('option:selected').attr('value')+') '+$('#id_skill_type').first().find('option:selected').text()+' clas:'+$('#id_skill_type').first().attr('class'));
+            //alert('pid: '+pid+' sels:'+$('#id_skill_type').first().find('option:selected').length+' ('+$('#id_skill_type').first().find('option:selected').attr('value')+') '+$('#id_skill_type').first().find('option:selected').text()+' clas:'+$('#id_skill_type').first().attr('class'));
             $mod.find('#id_parent_type').find('option').prop('selected', false);
             $mod.find('#id_parent_type').find("option[value='"+pid+"']").prop('selected', true);
+            alert('pid:'+pid+' opt:'+$mod.find('#id_parent_type').find("option[value='"+pid+"']").html());
           } else {
             $mod.find('#id_parent_type').find('option').prop('selected', false);
             $mod.find('#id_parent_type').find("option[value='']").prop('selected', true);
