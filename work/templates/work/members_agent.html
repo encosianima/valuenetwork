@@ -136,7 +136,7 @@
         {% if messages %}
             {% regroup messages|dictsort:"tags" by tags as messags %}
             {% for message in messags %}
-                <div class="alert fade in alert-{{ message.grouper }}">
+                <div class="alert fade-in alert-{{ message.grouper }}">
                     <a class="close" href="#" data-dismiss="alert">×</a>
                         {% for messa in message.list|dictsort:"message" %}
                           {% ifchanged messa.message %}
@@ -370,6 +370,43 @@
                     </div>
                 </div>
             </div>
+            {% if Stype_form %}
+            <div class="modal hide fade" id="addSkillTypeModal" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true"  style="">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h3><span id="name_action">{% trans "Add a new" %}</span> {% trans "Skill Type:" %}</h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        <form class="validateMe" id="skillForm" enctype="multipart/form-data" action="{% url 'new_skill_type' agent_id=agent.id %}" method="POST" >
+                          {% csrf_token %}
+                          {{ Stype_form|as_bootstrap }}
+                          <!-- <br><br>
+                          {% for fil in Stype_form %}
+                            <div class="modal-field" {% if fil.name == 'verb' %} style="float:left; margin-right:15px;" {% endif %} >
+                              {% if not fil.name == 'edid' %}
+                                <label>{{ fil.label }}:</label>
+                              {% endif %}
+                                {{ fil }}
+                              {% if fil.help_text %}<br/><span class="helptext">{{ fil.help_text }}</span>{% endif %}
+                            </div>
+                          {% endfor %} -->
+
+                          <!-- <input type="hidden" id="edid" name="edid" value="" /> -->
+                          <input type="hidden" id="next" name="next" value="members_agent" />
+                          <div class="modal-footer">
+                            <button class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <input type="submit" class="btn btn-primary" name="new_skill_type" value="{% trans 'Save' %}" />
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         {% endif %}
 
 
@@ -999,7 +1036,7 @@
                     </p>
                     <div class="list" id="list-choose_skill" style="display:none">
 
-                      <div style="display:block; ">
+                      <!-- <div style="display:block; "> -->
                         <form id="addSkillForm" enctype="multipart/form-data" action="{% url "assign_skills" agent_id=agent.id %}" method="POST" style="margin-bottom:5px;" >
                           {% csrf_token %}
                           {{ add_skill_form.skill_type }} &nbsp;
@@ -1008,8 +1045,8 @@
                         <span>
                           <span class="showhide" id="sh-skill_tree" >SHOW</span> {% trans "as a Tree" %}
                         </span>
-                        <span><!--<div style="display:inline-flex; float:right; position:absolute;">-->
-                          <ul style="display:inline-table; list-style:none; margin:7px 0; float:right; text-align:right;">
+                          <!--<div style="display:inline-flex; float:right; position:absolute;">-->
+                          <ul style="display:inline-table; list-style:none; margin:7px 0; width:100%; text-align:right;">
                             <li class="edit_skill_type" style="display:none; margin-bottom:10px;">{% trans "...you created this skill:" %}&nbsp;<a href="#addSkillTypeModal" id="edit_st_but" role="button" class="btn btn-primary btn-mini edit_skill_type" data-toggle="modal" title="Edit a skill type">{% trans "Edit" %}</a></li>
                             <li>{% trans "...if no one fits:" %}&nbsp; <a href='#addSkillTypeModal' role="button" class='btn btn-primary btn-mini btn_skill_type' data-toggle="modal" title="Create a new skill resource type">{% trans "New Skill Service Type" %}</a></li>
                           </ul>
@@ -1022,10 +1059,10 @@
                               </ul>
                             </div><br> &nbsp; <br> &nbsp; <br>
                           {% endif %}{% endif %}
-                        </span><!--</div>-->
+                          <!-- </span><!--</div>-->
                         <br/>
                         <div class="list" id="list-skill_tree" style="display:none">
-                          <div id="skill_type_tree" class="skill_type_tree fancytree-radio" style="max-width:300px; min-width:200px; float:left;  margin: 0px 0px 1px 1px;">
+                          <div id="skill_type_tree" class="skill_type_tree fancytree-radio" style="max-width:300px; min-width:200px;  margin: 0px 0px 1px 1px;">
                             <ul class="root" id="treeData" style="/*display: none;*/">
                               {% recursetree Stype_tree %}
                               {% if True or node.resource_type or request.user.is_staff %}
@@ -1068,36 +1105,10 @@
                           </div>
                         </div>
 
-                      </div>
+                      <!-- </div> -->
                     </div>
 
-                    <div class="modal hide fade" id="addSkillTypeModal" tabindex="-1" role="dialog" aria-labelledby="commit" aria-hidden="true"  style="width:590px;">
-                      <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h3><span id="name_action">{% trans "Add a new" %}</span> {% trans "Skill Type:" %}</h3>
-                      </div>
-                      <div class="modal-body">
-                        <form class="validateMe" id="skillForm" enctype="multipart/form-data" action="{% url 'new_skill_type' agent_id=agent.id %}" method="POST" >
-                          {% csrf_token %}
-                          {% for fil in Stype_form %}
-                            <div class="modal-field" {% if fil.name == 'verb' %} style="float:left; margin-right:15px;" {% endif %} >
-                              {% if not fil.name == 'edid' %}
-                                <label>{{ fil.label }}:</label>
-                              {% endif %}
-                                {{ fil }}
-                              {% if fil.help_text %}<br/><span class="helptext">{{ fil.help_text }}</span>{% endif %}
-                            </div>
-                          {% endfor %}
 
-                          <!-- <input type="hidden" id="edid" name="edid" value="" /> -->
-                          <input type="hidden" id="next" name="next" value="members_agent" />
-                          <div class="modal-footer">
-                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                            <input type="submit" class="btn btn-primary" name="new_skill_type" value="{% trans 'Save' %}" />
-                          </div>
-                        </form>
-                      </div>
-                    </div>
                   {% endif %}
               </div>
           {% endif %}
