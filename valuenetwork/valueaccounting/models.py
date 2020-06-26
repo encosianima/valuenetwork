@@ -9311,7 +9311,7 @@ class Exchange(models.Model):
             slot.total_com = remove_exponent(slot.total_com)
             if slot.total_com_unit and isinstance(slot.total_com_unit, Unit) and slot.total_com_unit.abbrev in settings.CRYPTOS:
                 if not self.status() == 'complete':
-                    slot.total_com = ('\\u2248 ')+str(slot.total_com)
+                    slot.total_com = ('\u2248\u00a0')+str(slot.total_com)
 
             memslot = slot
             pend = []

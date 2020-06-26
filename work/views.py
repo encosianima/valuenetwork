@@ -5722,14 +5722,14 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         to['incommit'] = remove_exponent(to['incommit'])
         if to['incommit']:
             if to['abbr'] in settings.CRYPTOS:
-                to['incommit'] = ('\u2248 ')+str(to['incommit'])
+                to['incommit'] = ('\u2248\u00a0')+str(to['incommit'])
             else:
                 to['incommit'] = '+'+str(to['incommit'])
         to['outgo'] = remove_exponent(to['outgo'])
         to['outcommit'] = remove_exponent(to['outcommit'])
         if to['outcommit']:
             if to['abbr'] in settings.CRYPTOS:
-                to['outcommit'] = ('\u2248 ')+str(to['outcommit'])
+                to['outcommit'] = ('\u2248\u00a0')+str(to['outcommit'])
             else:
                 to['outcommit'] = '-'+str(to['outcommit'])
 

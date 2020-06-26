@@ -43,16 +43,17 @@ span.fancytree-title {
   margin: 0 0 5px;
 }
 
-.span8 {
+/*.span8 {
   margin-left: 0;
   max-width: 738px;
 }
 .span3 {
   width: auto;
   float: right;
-}
+}*/
 .miniform {
-    margin-left: 1em;
+    /*margin-left: 1em;*/
+    max-width: inherit;
 }
 .project-resources ul {
   margin-left: 1em;
@@ -158,6 +159,8 @@ img {
   font-size: 0.9em;
 }
 
+
+
 </style>
 {% endblock %}
 
@@ -185,9 +188,9 @@ img {
 	    </legend>
       {{ rtype }}
 
-<div class="container">
-   <div class="row">
-      <div class="col-sm-8 span8 project-resources" id="tabs">
+<div class="container" style="padding: 1em 0px 1em 0;">
+   <div class="row no-gutters" style="width: 100%;">
+      <div class="col-sm span8 project-resources" id="tabs" style="min-width:63%;">
         <h3>
           {% trans "Inventory:" %}
         </h3>
@@ -265,7 +268,7 @@ img {
         </div>
       </div>
 
-      <div class="col-sm span4 filter miniform">
+      <div class="col-sm span4 filter miniform" style="padding-left:1em;">
 
         {% include "work/_treetypes_filter.html" %}
 
