@@ -19,12 +19,12 @@
 
 form.action-form {
     display: inline-block;
-    margin: 0 0 0 10px;
+    margin: 0;
 }
 form.action-form span.help-text {
     font-size:0.8em;
     display:inline-block;
-    max-width:130px;
+    max-width:15em;
 }
 
 .exchangelink {
@@ -202,7 +202,7 @@ a.more-link {
                 <td>{% if req.name %}{{ req.name }} {{ req.surname }}{% else %} {{ req.agent.name }} {% endif %}</td>
             </tr>
             <tr>
-                <th style="display:block; width:180px;">{% trans "Username" %}:</th>
+                <th style="/*display:block; width:180px;*/">{% trans "Username" %}:</th>
                 <td>{% if req.requested_username %} {{ req.requested_username }} {% else %} {{ req.agent.username }} {% endif %}</td>
             </tr>
             <tr>
@@ -327,13 +327,13 @@ a.more-link {
                       {% if not req.project.agent.need_faircoins or not req.payment_pending_amount %} &nbsp; &nbsp;
                         {% with req.payment_unit as punit %}
                         <form
-                              class="action-form"
+                              class="action-form miniform"
                               id="status-form{{ req.id }}"
                               action="{% url "update_share_payment" join_request_id=req.id %}"
                               method="POST" >
                             {% csrf_token %}
                             {% if req.payment_pending_amount and req.is_flexprice %}
-                              <div style="text-align:left;">
+                              <div style="text-align:left; margin-bottom: 8px; max-width: 20em;">
                                 <label class="control-label required-field" for="real_amount">{{ punit.abbrev|upper }} {% trans "Received Amount" %}:</label>
                                 <input type="text" id="real_amount" name="real_amount" required=""><br>
                                 <label class="control-label required-field" for="tx_id">{{ punit.abbrev|upper }} {% if punit.abbrev == 'fair' %} {% trans "Transaction ID (BotC-Wallet)" %}{% else %} {% trans "Transaction Hash (blockchain)" %}{% endif %}:</label>

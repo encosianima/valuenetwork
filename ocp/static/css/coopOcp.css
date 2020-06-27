@@ -38,6 +38,9 @@ header {
 .navbar .btn-navbar {
     opacity: 0.4;
 }
+.dropdown-item:hover {
+    background-color: rgba(255,255,255, 0.1);
+}
 
 .dropdown-menu a {
 	padding: 4px 10px 5px 15px !important;
@@ -228,6 +231,11 @@ span.error {
     border-color: rgba(0, 0, 0, 0.25) !important;
     background-repeat: repeat-x;
 }
+.btn-mini {
+    padding: 0px 7px 1px;
+    line-height: 1.4em;
+    font-size: .9em;
+}
 
 .error {
   color: #b34;
@@ -271,15 +279,23 @@ b.empty, em.empty {
 .small {
     font-size: .86rem;
 }
-
+.right {
+    float: right;
+    margin-left: auto;
+}
 .secondcol {
     margin-left: 15px;
 }
 .bigbox {
     overflow: auto;
 }
-.exlist table.dataTable, .jrlist table.dataTable {
+.exlist table.dataTable, .jrlist table.dataTable, .multiwallet table.dataTable {
     border-collapse: collapse !important;
+}
+
+.dataTables_wrapper div.dt-button-collection {
+    position: relative;
+    left: -100%;
 }
 
 
@@ -290,14 +306,14 @@ b.empty, em.empty {
 	background-color: #f0f0da;
 }
 #member-request-block td {
-	padding: 5px 8px 4px 10px;
+	padding: 6px 8px 8px 10px;
 	max-width: 960px;
 	width: 100%;
 	overflow: auto;
 }
 
 #member-request-block, #member-request-comments {
-	/*max-width: 1024px;*/
+	max-width: 100%;
 }
 
 #member-request-comments > .row-fluid {
@@ -314,10 +330,10 @@ b.empty, em.empty {
 #member-request-comments dd {
 	border: solid 1px #ddd;
 	padding: 8px 10px 2px 12px;
-  margin: 5px 0;
-  font-size: 1em;
+    margin: 5px 0;
+    font-size: 1em;
 	font-weight: normal;
-  background-color: #f8fafa;
+    background-color: #f8fafa;
 }
 textarea#id_comment {
 	width: 99%;
@@ -530,6 +546,18 @@ ul.dt-button-collection.dropdown-menu {
   margin-bottom: 7px;
   margin-top: 7px;
 }
+.infobox ul {
+    padding-left: .5em;
+}
+.infobox li {
+    margin-left: 1em;
+}
+.infobox h4 {
+    margin: 6px 0 1px;
+}
+.infobox ul h4 {
+    font-size: 1rem;
+}
 
 /*   P R O J E C T   E X C H A N G E S   */
 
@@ -599,6 +627,13 @@ span.fancytree-title span.edit a:hover {
 }
 span.fancytree-selected span.fancytree-title {
     font-style: inherit;
+}
+ul.fancytree-container {
+    font-family: inherit;
+    font-size: .87em;
+}
+span.fancytree-node span.fancytree-title {
+    margin-top: -3px;
 }
 
 
