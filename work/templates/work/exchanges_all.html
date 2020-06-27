@@ -117,6 +117,8 @@ span.total {
 .table thead th .sub-th {
     font-size: 90%;
     color: grey;
+    line-height: 1.2em;
+    display: inline-block;
 }
 .exlist table.dataTable {
     border-collapse: collapse !important;
@@ -124,24 +126,33 @@ span.total {
 .exlist table.dataTable th {
     padding: .3rem .7rem;
 }
-.exlist table.dataTable thead .sorting::after, .exlist table.dataTable thead .sorting_asc::after, .exlist table.dataTable thead .sorting_desc::after {
+.exlist table.dataTable thead .sorting::after,
+.exlist table.dataTable thead .sorting_asc::after, .exlist table.dataTable thead .sorting_desc::after {
     top: 30px;
-    /*right: 6px;*/
+    right: 5px;
 }
-div.dataTables_filter, div.dt-buttons, div.dataTables_info {
+.exlist table.dataTable thead .sorting::before,
+.exlist table.dataTable thead .sorting_asc::before, .exlist table.dataTable thead .sorting_desc::before {
+    top: 30px;
+    right: 12px;
+}
+.dt-buttons {
     float: right;
-    margin-right: 2em;
 }
-div.dataTables_wrapper div.dataTables_info {
+div.dataTables_filter, div.dt-buttons, div.dataTables_info, div.dataTables_length, div.row > div.col > div.dataTables_paginate {
+    margin-top: 10px;
+}
+div.row > div.col >  div.dataTables_paginate ul.pagination {
+    justify-content: flex-start;
+}
+/*div.dataTables_wrapper div.dataTables_info {
     padding-top: inherit !important;
 }
 div.dataTables_length {
     float: right;
     margin-right: 4em;
-}
-div.dataTables_paginate li {
-    margin-right: 1em;
-}
+}*/
+
 td.qty {
     text-align: right;
 }
@@ -893,8 +904,10 @@ hr {
       {% endif %}
       </div>
 
+      <p> &nbsp; </p>
+
       {% if False and request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent and request.user.is_superuser %}
-            <p> &nbsp; </p>
+
             <div id="new_exchange" class="miniform">
             <form id="exchangeForm" style="margin:0; padding-bottom:11px;" method="POST" action="">
                 <h3 style="display:inline-block;">{% trans "Create a new Exchange" %}:</h3> &nbsp;
@@ -1262,11 +1275,11 @@ hr {
   <script src="{% static 'js/jquery.fancytree-all.min.js' %}"></script>
   <script src="{% static 'js/ocp-trees.js' %}"></script>
 
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.21/b-1.6.2/b-colvis-1.6.2/b-html5-1.6.2/r-2.2.5/datatables.min.css"/>
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs/jszip-2.5.0/dt-1.10.18/b-1.5.2/b-colvis-1.5.1/b-html5-1.5.2/r-2.2.2/datatables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.21/b-1.6.2/b-colvis-1.6.2/b-html5-1.6.2/r-2.2.5/datatables.min.js"></script>
 
 {% endblock %}
 
@@ -1281,7 +1294,7 @@ hr {
         stateSave: true,
         autoWidth: true,
         order: [[1, 'desc']],
-        dom: 'rfl<"bigbox"t>Bip', //'B<"clear">lfrtip',
+        dom: '<"col"rf><"row no-gutters"<"bigbox"t>><"row"<"col"l><"col"p><"col"B>>', //'B<"clear">lfrtip',
         buttons: [
             'colvis',
             {
