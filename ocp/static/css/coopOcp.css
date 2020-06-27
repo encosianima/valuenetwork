@@ -11,6 +11,9 @@
 
 /*  M A I N   M E N U   */
 
+header {
+    margin-bottom: 15px;
+}
 .navbar {
     padding: 0.1rem 1rem 0.3rem 1rem;
 }
@@ -90,20 +93,24 @@ a.disabled:hover {
 	color: #aaa;
 	background-color: #fff;
 }
-i.world-icon::before {
+
+/*   I C O N S   */
+
+i.world-icon::before, i.hamburger::before, i.icon-wrench::before, i.icon-user::before, i.icon-cog::before, i.icon-off::before {
     display: inline-block;
     font-family: 'Glyphicons Halflings';
     font-style: normal;
+}
+
+i.world-icon::before {
     content: "\e135";
 }
 i.world-icon {
     line-height: 20px;
     vertical-align: bottom;
 }
+
 i.hamburger::before {
-    display: inline-block;
-    font-family: 'Glyphicons Halflings';
-    font-style: normal;
     content: "\e236";
 }
 i.hamburger {
@@ -111,6 +118,30 @@ i.hamburger {
     line-height: 14px;
 }
 
+i.icon-wrench::before {
+    content: "\e136";
+}
+i.icon-user::before {
+    content: "\e008";
+}
+i.icon-cog::before {
+    content: "\e019";
+}
+i.icon-off::before {
+    content: "\e017";
+}
+i.icon-star::before {
+    content: "\e006";
+}
+i.icon-wrench, i.icon-user, i.icon-cog, i.icon-off, i.icon-star {
+    vertical-align: bottom;
+    line-height: 19px;
+    margin-right: 3px;
+}
+li.divider {
+    border-bottom: solid 1px rgba(255, 255, 255, 0.2);
+    margin: 5px 0;
+}
 
 /*   G E N E R A L   */
 
@@ -124,13 +155,14 @@ a:hover {
 	color: #a372a9;
 }
 legend {
-  margin-top: 1.5em;
-  margin-bottom: 1.1em;
+  margin-top: 1.2rem;
+  margin-bottom: 1.1rem;
   color: #476B6B !important;
   font-weight: bold;
   border-bottom: 2px solid #678B8B;
+  line-height: 1.8rem;
 }
-h2, h3, h4 {
+h2, h3, h4, h5 {
   color: #476B6B !important;
   font-weight: 700 !important;
 }
@@ -142,6 +174,10 @@ h4 {
 }
 ul h4 {
   /*color: inherit;*/
+}
+h5 {
+    font-size: 1.05rem;
+    margin: 0.3rem 0 0.2rem;
 }
 
 li > h4 {
@@ -236,6 +272,17 @@ b.empty, em.empty {
     font-size: .86rem;
 }
 
+.secondcol {
+    margin-left: 15px;
+}
+.bigbox {
+    overflow: auto;
+}
+.exlist table.dataTable, .jrlist table.dataTable {
+    border-collapse: collapse !important;
+}
+
+
 /*   M E M B E R S H I P   P R O C E S S   P A G E   */
 
 #member-request-block th, #agent-table-block th {
@@ -296,7 +343,7 @@ div#my_tasks table, div#take-new-task table {
   background-color: #f0f0da;
   padding: 7px 15px;
   max-width: 540px;
-  width: 540px;
+  min-width: 300px;
   float: left;
   margin-right: 13px;
   margin-top: 13px;
@@ -452,6 +499,8 @@ ul.dt-button-collection.dropdown-menu {
   -webkit-border-radius: 7px;
   border-radius: 7px;
   margin-bottom: 13px;
+  max-width: 100%;
+  overflow: auto;
 }
 .infobox2 {
   background-color: beige;
@@ -607,8 +656,14 @@ span.fancytree-selected span.fancytree-title {
         padding-bottom: 7px;
         margin-bottom: 0;
     }
-    .miniform {
+    .miniform, .secondcol {
         margin-left: 0;
+    }
+    .subnav {
+        display: none;
+    }
+    .email-td {
+        font-size: 80%;
     }
 }
 @media (min-width: 980px) {

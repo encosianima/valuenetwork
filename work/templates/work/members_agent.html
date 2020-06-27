@@ -125,6 +125,7 @@
     width: 88%;
   }
 
+
 </style>
 
 {% endblock %}
@@ -410,8 +411,8 @@
         {% endif %}
 
 
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid" style="padding:0;">
+        <div class="row no-gutters">
           <div class="col-sm span5" id="agent-table-block">
 
 	            <table class="table table-bordered" >
@@ -527,7 +528,7 @@
 
                     <tr>
                         <th style="text-align: right; vertical-align: top; ">{% trans "Email" %}</th>
-                        <td>{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %} {% if agn_form.email.errors %}<br> -> <span class="error">"{{ agn_form.email.value }}": {{ agn_form.email.errors|first }}</span>{% endif %}
+                        <td class="email-td">{% if agent.email %}{{ agent.email }}{% else %}<span class="error">{% trans "Address Missing!" %}</span>{% endif %} {% if agn_form.email.errors %}<br> -> <span class="error">"{{ agn_form.email.value }}": {{ agn_form.email.errors|first }}</span>{% endif %}
                           {% if user_agent in agent.managers or user_is_agent %}
                             {% if not agent.email == agent.email_en %}
                                 <br><span class="small">(en: {{ agent.email_en }})</span>
@@ -662,7 +663,7 @@
                       </tr>
                       {% if agent.project.is_moderated %}
                           <tr>
-                            <th>{% trans "Auto create users+agents and confirm email:" %}</th>
+                            <th>{% trans "Auto create users, agents and confirm email:" %}</th>
                             <td>{{ agent.project.auto_create_pass }}</td>
                           </tr>
                       {% endif %}
@@ -939,7 +940,7 @@
 	      </div>
 
 
-          <div class="col-sm span6">
+          <div class="col-sm span6 secondcol">
           {% if user_agent in agent.managers or user_is_agent or user_agent in agent.members %}
             {% if agent.project and form_entries and fobi_name and user_agent in agent.managers %}
             <div class="requests span6" style="width:100%;">

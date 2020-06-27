@@ -212,15 +212,16 @@ hr {
   /*max-height: 97px;*/
 }
 .miniform {
-  margin-left: 0px;
-  /*float: left;*/
+  /*margin-left: 0px;
+  float: left;*/
 }
+
 #exchangeForm p {
   margin: 0 0 5px;
 }
 .filter {
   float: right;
-  width: 310px;
+  max-width: 355px;
 }
 
 .showhide {
@@ -371,8 +372,8 @@ hr {
               {% endif %}
             </div>
         </legend>
-    <div class="container span12">
-      <div class="row">
+    <div class="container span12" style="padding: 0px;">
+      <div class="row no-gutters" style="width: 100%;">
         <div class="col-sm span8" style="margin-left:0;">
           {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent or request.user.is_superuser %}
             <div class="totals infobox" style="min-width:320px; padding-bottom:13px;">
@@ -455,7 +456,6 @@ hr {
               <br />{% trans "* Note these totals are meaningful only if the events selected all use the same currency. <br/>(We'll do a multi total per unit-type box soon)" %} -->
 
             </div>
-            <br/><br/>
           {% endif %}
         </div>
 
@@ -1281,7 +1281,7 @@ hr {
         stateSave: true,
         autoWidth: true,
         order: [[1, 'desc']],
-        dom: 'rfltBip', //'B<"clear">lfrtip',
+        dom: 'rfl<"bigbox"t>Bip', //'B<"clear">lfrtip',
         buttons: [
             'colvis',
             {

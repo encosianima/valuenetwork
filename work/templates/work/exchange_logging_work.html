@@ -192,9 +192,9 @@ h3.trtheading {
         </div>
 	</legend>
 
-	<div class="row-fluid">
-
-        <div class="span4">
+	<div class="container" style="padding:0;">
+      <div class="row no-gutters" style="width:100%">
+        <div class="col-sm span4">
             <div class="totals infobox">
                 {% if exchange.status %}
                     <p>
@@ -344,7 +344,7 @@ h3.trtheading {
         </div>
 
         {% with slots|first as tt %}
-        <div class="span8">
+        <div class="col-sm span8 secondcol">
           {% if exchange %}
             {% if True or exchange.exchange_type.transfer_types.count > 1 or tt and not tt.is_income %}
             <div class="trt infobox">
@@ -1570,6 +1570,7 @@ h3.trtheading {
         </div>
         {% endwith %}
     </div>
+  </div>
 </div>
 
 {% endblock %}

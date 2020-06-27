@@ -46,6 +46,10 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
     border-left-width: 1px;
 }
 
+.exlist table.dataTable {
+    border-collapse: collapse !important;
+}
+
 </style>
 
 
@@ -78,7 +82,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
            </div>
       </legend>
 
-      <div>
+      <div class="jrlist">
         <form id="stateForm" action="." method="POST">{% csrf_token %}
           <h4>
                   {% trans "State" %}: {{ state_form.state }}
@@ -163,7 +167,9 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
             </tfoot> -->
         </table>
 
-
+        <p>
+            &nbsp;
+          </p>
 
   	</div>
 </div>
@@ -204,7 +210,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
         stateSave: true,
         autoWidth: true,
         order: [[1, 'desc']],
-        dom: 'rfltBip', //'B<"clear">lfrtip',
+        dom: 'rfl<"bigbox"t>Bip', //'B<"clear">lfrtip',
         buttons: [
             'colvis',
             {

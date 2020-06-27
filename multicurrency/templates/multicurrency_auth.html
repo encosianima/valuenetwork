@@ -73,9 +73,13 @@
             <a href="#create-chipchap-user" role="button" class="btn btn-primary" data-toggle="modal">{% trans "Create new BotC-Wallet user" %}</a>
 
             <div class="modal hide fade" id="create-chipchap-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+              <div class="modal-dialog">
+              <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                     <h3 id="agent-label">{% trans "Create new BotC-Wallet Account" %}</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <form id="createForm" class="createMe" action="{% url 'multicurrency_createauth' agent_id=agent.id %}" method="POST" onsubmit="return validateRepassword()">
@@ -88,11 +92,13 @@
                           </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                            <button class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                             <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create BotC-Wallet User" %}' />
                         </div>
                     </form>
                 </div>
+              </div>
+              </div>
             </div>
 
           </td></tr>
