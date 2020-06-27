@@ -616,7 +616,9 @@ span.fancytree-selected span.fancytree-title {
 
 }
 @media (max-width: 767px) {
-
+    .miniform, .secondcol {
+        margin-left: 0;
+    }
 }
 @media (min-width: 768px) and (max-width: 979px) {
 
@@ -656,9 +658,7 @@ span.fancytree-selected span.fancytree-title {
         padding-bottom: 7px;
         margin-bottom: 0;
     }
-    .miniform, .secondcol {
-        margin-left: 0;
-    }
+
     .subnav {
         display: none;
     }

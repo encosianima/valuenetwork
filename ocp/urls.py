@@ -45,7 +45,7 @@ urlpatterns = [
 
     # DB Store plugin URLs
     path('fobi/plugins/form-handlers/db-store/',
-        include('fobi.contrib.plugins.form_handlers.db_store.urls')),
+    include('fobi.contrib.plugins.form_handlers.db_store.urls')),
 
 
     path("admin/", admin.site.urls),

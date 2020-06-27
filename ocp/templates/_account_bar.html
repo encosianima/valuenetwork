@@ -17,7 +17,7 @@
                 {% for language in languages %}
                     <li>
                         {% if not language.code == LANGUAGE_CODE %}
-                            <form action="{% url 'set_language' %}" method="post" id="lang-switch">{% csrf_token %}
+                            <form action="{% url 'change_language' %}" method="post" id="lang-switch">{% csrf_token %}
                                 <input name="next" type="hidden" value="{{ request.get_full_path }}" />
                                 <input name="language" type="hidden" value="{{ language.code }}" />
                                 <button class="nav-link navlink">
