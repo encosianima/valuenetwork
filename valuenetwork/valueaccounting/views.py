@@ -37,6 +37,13 @@ from work.forms import ContextTransferForm, ContextTransferCommitmentForm, Resou
 from work.utils import *
 #from account.utils import password_generator # TODO find another
 
+import string
+from random import *
+def password_generator():
+    characters = string.ascii_letters + string.punctuation  + string.digits
+    password =  "".join(choice(characters) for x in range(randint(8, 16)))
+    return password
+
 if "pinax.notifications" in settings.INSTALLED_APPS:
     from pinax.notifications import models as notification
 else:
@@ -504,11 +511,11 @@ def agent(request, agent_id):
     #if agent.is_individual():
     if not agent.username():
         # TODO inactive until we find another 'password_generator'...
-        '''password1 = password2 = password_generator()
+        password1 = password2 = password_generator()
         init = {"username": agent.nick, "password1": password1, "password2": password2,}
         user_form = UserCreationForm(initial=init)
         user_form.fields['password1'].widget.render_value = True
-        user_form.fields['password2'].widget.render_value = True'''
+        user_form.fields['password2'].widget.render_value = True
     has_associations = agent.all_has_associates()
     is_associated_with = agent.all_is_associates()
 
