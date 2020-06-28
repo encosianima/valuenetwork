@@ -68,7 +68,7 @@ class Query(graphene.ObjectType):
     viewer = graphene.Field(ViewerQuery, token=graphene.String())
     debug = graphene.Field(DjangoDebug, name='__debug')
 
-    def resolve_viewer(self, args, context, info):
+    def resolve_viewer(self, info, **kwargs):
         token_str = args.get('token')
         token = jwt.decode(token_str, settings.SECRET_KEY)
         user = User.objects.get_by_natural_key(token['username'])
