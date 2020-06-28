@@ -323,10 +323,11 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 ACCOUNT_OPEN_SIGNUP = True
 ACCOUNT_EMAIL_UNIQUE = True
 ACCOUNT_EMAIL_CONFIRMATION_REQUIRED = False
-ACCOUNT_LOGIN_REDIRECT_URL = "work/home" # was: home
-ACCOUNT_LOGOUT_REDIRECT_URL = "home"
+ACCOUNT_LOGIN_REDIRECT_URL = "/work/home" # was: home
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 2
 ACCOUNT_USE_AUTH_AUTHENTICATE = True
+ACCOUNT_PASSWORD_RESET_REDIRECT_URL = "/"
 
 #ACCOUNT_USE_OPENID = False
 #ACCOUNT_REQUIRED_EMAIL = False
@@ -372,8 +373,12 @@ AUTHENTICATION_BACKENDS = [
 GRAPHENE = {
     'MIDDLEWARE': [
         'graphene_django.debug.DjangoDebugMiddleware',
-    ]
+    ],
+    'SCHEMA': 'valuenetwork.api.schema',
 }
+
+THEME_ADMIN_URL = ADMIN_URL
+THEME_CONTACT_EMAIL = CONTACT_EMAIL
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
