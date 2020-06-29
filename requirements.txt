@@ -31,4 +31,5 @@ mock
 passlib
 bcrypt
 django_forms_bootstrap
+chromedriver_binary
 
