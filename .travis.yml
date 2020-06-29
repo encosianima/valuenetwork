@@ -2,7 +2,7 @@ addons:
   chrome: stable
 language: python
 sudo: false
-node_js: 10.21
+node_js: 10.15
 python: 3.6
 cache: pip
 env:
