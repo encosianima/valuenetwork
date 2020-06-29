@@ -10,9 +10,9 @@ env:
 install:
   - sudo curl --output /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_linux64.zip
   - sudo unzip /tmp/chromedriver.zip -d /usr/local/bin/
-  - pip install --user --upgrade pip setuptools --quiet
-  - pip install --user -U -r requirements.txt --trusted-host dist.pinaxproject.com --quiet
-  - pip install --user Image --quiet
-  - pip install --user tox --quiet
+  - pip install --upgrade pip setuptools --quiet
+  - pip install -U -r requirements.txt --trusted-host dist.pinaxproject.com --quiet
+  - pip install Image --quiet
+  - pip install tox --quiet
 script:
   - tox -e $TOXENV
