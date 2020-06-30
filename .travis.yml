@@ -14,5 +14,9 @@ install:
   - pip install -U -r requirements.txt --trusted-host dist.pinaxproject.com --quiet
   - pip install Image --quiet
   - pip install tox --quiet
+  - cp /usr/local/bin/chromedriver /home/travis/build/FreedomCoop/valuenetwork/.tox/py36_django20/lib/python3.6/site-packages/chromedriver_binary/chromedriver
+  - npm ci
+  - npm run compile
+  - npm run optimize
 script:
   - tox -e $TOXENV
