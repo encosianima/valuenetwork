@@ -1165,7 +1165,7 @@ class JoinRequest(models.Model):
 
                     if not isinstance(obj['html'], str) and not isinstance(obj['html'], str):
                         html = obj['html']
-                        html = str(html).decode('utf-8')
+                        html = str(html) #.decode('utf-8')
                     else:
                         html = obj['html']
 
