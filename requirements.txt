@@ -30,6 +30,8 @@ selenium
 mock
 passlib
 bcrypt
-django_forms_bootstrap
+# django_forms_bootstrap
+django-bootstrap-form
 chromedriver_binary
+psycopg2-binary
 
