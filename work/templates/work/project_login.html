@@ -7,10 +7,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="https://www.w3.org/1999/xhtml" lang="en">
   <head>
+    <meta HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
     <title>{{ project.agent.name }}</title>
 
 {% block extra_head %}
-<meta HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
 <style type="text/css">
 
 body {
@@ -31,11 +31,9 @@ body {
 {% endblock %}
 
    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" media="all"> -->
-    <link rel="stylesheet" href="{% static 'css/app.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/coop.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" >
+    <link rel="stylesheet" href="{% static 'css/coop.css' %}" >
    <!-- <link href="{% static "css/buttons.css" %}" rel="stylesheet"> -->
-   <!-- <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet"> -->
-   <!-- <link href="{% static "bootstrap/css/bootstrap-responsive.css" %}" rel="stylesheet"> -->
 
     {% if project.custom_css %}
         <style>
