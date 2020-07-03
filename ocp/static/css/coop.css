@@ -132,6 +132,9 @@ body .btn, body .btn:hover {
 	font-size: 1rem;
     color: #fff !important;
 }
+.landing h4 a.btn {
+    white-space: inherit;
+}
 
 .base-form input[type="textarea"], .base-form input[type="text"], .base-form input[type="email"], .base-form input[type="url"], .base-form textarea {
 	width: 98% !important;

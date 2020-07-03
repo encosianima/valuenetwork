@@ -66,7 +66,11 @@ body {
     <h4>{% if project.agent.photo_url %}
             <img src="{{ project.agent.photo_url }}" title="{{ project.agent.name }}" alt="{{ project.agent.name }}">
         {% elif project.agent.photo %}
-            <img src="{% thumbnail project.agent.photo 500x500 %}" title="{{ project.agent.name }}" alt="{{ project.agent.name }}">
+            {% if project.agent.photo.readable %}
+                <img src="{% thumbnail project.agent.photo 500x500 %}" title="{{ project.agent.name }}" alt="{{ project.agent.name }}">
+            {% else %}
+                <img src="{{ project.agent.photo.url }}" style="max-width:500px; max-height:500px" title="{{ project.agent.name }}" alt="{{ project.agent.name }}">
+            {% endif %}
         {% endif %}
     </h4>
     {% if not project.agent.photo_url and not project.agent.photo %}<h1><br>{{ project.agent.name }}</h1>{% endif %}
