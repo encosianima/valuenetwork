@@ -3905,7 +3905,7 @@ def create_unit_types(**kwargs):
     #fairacc_rt.value_per_unit = 1
     fairacc_rt.value_per_unit_of_use = 1 #Decimal('1.00')
     #fairacc_rt.price_per_unit = 1
-    #fairacc_rt.unit_of_price = ocp_fair
+    fairacc_rt.unit_of_price = ocp_fair
     fairacc_rt.substitutable = True
     #fairacc_rt.inventory_rule = 'yes'
     fairacc_rt.behavior = 'dig_acct'

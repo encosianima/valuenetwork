@@ -20,6 +20,9 @@ urlpatterns = [
     path("work/", include("work.urls")),
     path("api/", include("valuenetwork.api.urls")),
 
+    path("admin/", admin.site.urls),
+    path("account/", include("account.urls")),
+
     path('comments/', include('django_comments.urls')),
     #path('membership/', work.views.membership_request, name="membership_request"),
     path('membershipthanks/', TemplateView.as_view(template_name='work/membership_thanks.html'), name='membership_thanks'),
@@ -47,9 +50,6 @@ urlpatterns = [
     path('fobi/plugins/form-handlers/db-store/',
     include('fobi.contrib.plugins.form_handlers.db_store.urls')),
 
-
-    path("admin/", admin.site.urls),
-    path("account/", include("account.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
