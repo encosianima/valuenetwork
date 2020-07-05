@@ -15051,13 +15051,14 @@ class CachedEventSummary(models.Model):
 
     def __str__(self):
         agent_name = "Unknown"
-        if self.agent:
-            agent_name = self.agent.name
+        if hasattr(self, 'agent'):
+            if self.agent:
+                agent_name = self.agent.name
         context_agent_name = "Unknown"
-        if self.context_agent:
+        if hasattr(self, 'context_agent') and self.context_agent:
             context_agent_name = self.context_agent.name
         resource_type_name = "Unknown"
-        if self.resource_type:
+        if hasattr(self, 'resource_type') and self.resource_type:
             resource_type_name = self.resource_type.name
         return ' '.join([
             'Agent:',

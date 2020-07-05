@@ -389,9 +389,12 @@ class Project(models.Model):
         if form:
             fields = form.formelemententry_set.all()
             for fi in fields:
-                data = json.loads(fi.plugin_data)
-                name = data.get('name')
-                fobi_keys.append(name)
+                if fi.plugin_data:
+                    data = json.loads(fi.plugin_data)
+                    name = data.get('name')
+                    fobi_keys.append(name)
+                else:
+                    print("WARN: No plugin_data for field: "+str(fi)+" of the form: "+str(form.id))
         return fobi_keys
 
     def subscription_rt(self):
@@ -438,7 +441,10 @@ class Project(models.Model):
                     if key == rt.ocp_artwork_type.clas: # fieldname is the artwork type clas, project has shares of this type
                         account_type = rt
                         break
-                if account_type: break
+                if account_type:
+                    break
+            if not account_type:
+                print("WARN: Can't find any account_type for project: "+str(self))
         return account_type
 
     def active_payment_options_obj(self):
