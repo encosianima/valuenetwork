@@ -4276,7 +4276,7 @@ def create_unit_types(**kwargs):
             abbrev='eur'
         )
         if created:
-            print "- created Unit: 'Euro'"
+            print("- created Unit: 'Euro'")
     ocp_euro.name = 'Euro'
     ocp_euro.unit_type = 'value'
     ocp_euro.abbrev = 'eur'
