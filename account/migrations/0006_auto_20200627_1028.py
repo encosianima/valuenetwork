@@ -6,6 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('work', '0001_initial'),
         ('account', '0005_update_default_language'),
     ]
 
