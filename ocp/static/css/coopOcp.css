@@ -504,8 +504,8 @@ ul.dt-button-collection.dropdown-menu {
   -moz-border-radius: 7px;
   -webkit-border-radius: 7px;
   border-radius: 7px;
-  margin-bottom: 13px;
-  margin-left: 1em;
+  /*margin-bottom: 13px;
+  margin-left: 1em;*/
 }
 .infobox {
   background-color: #f0f0da;
@@ -650,11 +650,6 @@ span.fancytree-node span.fancytree-title {
 @media (max-width: 480px) {
 
 }
-@media (max-width: 767px) {
-    .miniform, .secondcol {
-        margin-left: 0;
-    }
-}
 @media (min-width: 768px) and (max-width: 979px) {
 
 }
@@ -700,7 +695,21 @@ span.fancytree-node span.fancytree-title {
     .email-td {
         font-size: 80%;
     }
+    .longtext {
+        font-size: 80%;
+    }
 }
 @media (min-width: 980px) {
 
+}
+
+@media (max-width: 767px) {
+    .miniform, .secondcol {
+        margin-left: 0;
+    }
+}
+@media (max-width: 480px) {
+    .longtext {
+        font-size: 64%;
+    }
 }
