@@ -29,11 +29,19 @@
                 &nbsp;<b class="error">warning</b>
             {% endif %}
         {% endwith %}
-        {% if asso.is_associate.membership_request and agent.nick == "Freedom Coop" %}
+        {% if asso.is_associate.membership_request and agent.nick == "Freedom Coop" and request.user.is_superuser %}
+          <span class="small">
+          {% if not agent.project in asso.is_associate.joinaproject_requests_projects %}
             {% get_comment_count for asso.is_associate.membership_request as ncom  %}
             <a href="{% url 'membership_discussion' membership_request_id=asso.is_associate.membership_request.id %}">
                 {% trans "Migrate the membership!" %} {{ ncom }}
             </a>
+          {% else %}
+            <a href="{% url 'membership_discussion' membership_request_id=asso.is_associate.membership_request.id %}">
+                ({% trans "old" %})
+            </a>
+          {% endif %}
+          </span>
         {% endif %}
     {% else %}
         <a href="{% url "members_agent" agent_id=asso.is_associate.id %}">{{ asso.is_associate.name }}</a>

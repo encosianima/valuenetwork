@@ -1973,7 +1973,7 @@ def members_agent(request, agent_id):
 
     elif agent.is_context_agent():
 
-        has_associations = agent.all_has_associates()
+        #has_associations = agent.has_associates.all()
 
         try:
           fobi_name = get_object_or_404(FormEntry, slug=agent.project.fobi_slug)
@@ -2059,19 +2059,19 @@ def members_agent(request, agent_id):
 
     dups = check_duplicate_agents(request, agent)
 
-    asso_childs = []
-    asso_declin = []
-    asso_candid = []
-    asso_coords = []
-    asso_members = []
-    asso_states = []
-    asso_behaviors = []
+    asso_childs = agent.has_associates.filter(association_type__association_behavior__in=['child','peer'], state="active").order_by(Lower('is_associate__name'))
+    asso_declin = agent.has_associates.filter(state="inactive").order_by(Lower('is_associate__name'))
+    asso_candid = agent.has_associates.filter(state="potential").order_by(Lower('is_associate__name'))
+    asso_coords = agent.has_associates.filter(association_type__association_behavior__in=['manager','custodian'], state="active").order_by(Lower('is_associate__name'))
+    asso_members = agent.has_associates.filter(association_type__association_behavior='member', state="active").order_by(Lower('is_associate__name'))
+    asso_states = ['active','inactive','potential']
+    asso_behaviors = [i[0] for i in ASSOCIATION_BEHAVIOR_CHOICES]
 
     if hasattr(agent, 'project') and agent.project.is_moderated():
         if not agent.email and user_agent in agent.managers():
             messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
-        proshacct = agent.project.shares_account_type()
-        for ass in has_associations:
+        #proshacct = agent.project.shares_account_type()
+        #for ass in has_associations:
             #ag = ass.is_associate
             #ag.jn_reqs = ag.project_join_requests.filter(project=agent.project)
             #ag.oldshares = ag.owned_shares(agent)
@@ -2080,7 +2080,7 @@ def members_agent(request, agent_id):
             #if acc:
             #    ag.newshares = int(acc[0].price_per_unit)
 
-            if not ass.state in asso_states:
+            '''if not ass.state in asso_states:
                 asso_states.append(ass.state)
             if not ass.association_type.association_behavior in asso_behaviors:
                 asso_behaviors.append(ass.association_type.association_behavior)
@@ -2095,7 +2095,7 @@ def members_agent(request, agent_id):
                 elif ass.association_type.association_behavior == 'member':
                     asso_members.append(ass)
                 else:
-                    asso_childs.append(ass)
+                    asso_childs.append(ass) '''
 
     assobj = {'childs':asso_childs,
               'declins':asso_declin,
@@ -2153,7 +2153,7 @@ def view_agents_list(request, agent_id):
         behavior = request.POST['behavior'];
         state = request.POST['state'];
 
-        assocs = agent.has_associates.filter(association_type__association_behavior=behavior, state=state) #.order_by(Lower('is_associate__name'))
+        assocs = agent.has_associates.filter(association_type__association_behavior=behavior, state=state).order_by(Lower('is_associate__name'))
 
     if hasattr(agent, 'project') and agent.project.is_moderated():
         proshacct = agent.project.shares_account_type()
