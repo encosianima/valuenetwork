@@ -137,7 +137,7 @@
         {% if messages %}
             {% regroup messages|dictsort:"tags" by tags as messags %}
             {% for message in messags %}
-                <div class="alert fade-in alert-{{ message.grouper }}">
+                <div class="alert alert-warning fade-in alert-{{ message.grouper }}">
                     <a class="close" href="#" data-dismiss="alert">×</a>
                         {% for messa in message.list|dictsort:"message" %}
                           {% ifchanged messa.message %}

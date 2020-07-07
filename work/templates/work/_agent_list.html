@@ -25,7 +25,7 @@
         {% with asso.is_associate.newshares as shares %}
             {% if shares %}
                 &nbsp; <span style="color:#476B6B">({% blocktrans count shares=shares %}{{ shares }} share{% plural %}{{ shares }} shares{% endblocktrans %})</span>
-            {% elif agent.project.shares_type %}
+            {% elif agent.project.shares_type and asso.state == 'active' %}
                 &nbsp;<b class="error">warning</b>
             {% endif %}
         {% endwith %}

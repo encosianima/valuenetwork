@@ -1282,7 +1282,7 @@ class JoinRequest(models.Model):
         pendamo = amountpay
         if shtype and amispay > 0 and amountpay:
             pendamo = decimal.Decimal(amountpay) - amispay
-        if pendamo < 0:
+        if not pendamo or pendamo < 0:
             pendamo = 0
         return round(pendamo, settings.CRYPTO_DECIMALS)
 
@@ -1903,12 +1903,15 @@ class JoinRequest(models.Model):
         unit_rt = self.payment_unit_rt()
         subtyp = self.project.subscription_rt()
         shtype = self.project.shares_type()
+        pendshrs = self.pending_shares()
         shrunit = None
         if account_type:
             shrunit = account_type.unit_of_price
         if shtype:
             shunit = shtype.unit_of_price
-            amount2 = shtype.price_per_unit * self.pending_shares()
+            amount2 = shtype.price_per_unit * pendshrs
+            if not pendshrs:
+                amount2 = 0
         elif subtyp:
             shunit = self.subscription_unit()
             amount2 = amount
