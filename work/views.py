@@ -1916,9 +1916,13 @@ def members_agent(request, agent_id):
     if not agent.username():
         init = {"username": agent.nick,}
         user_form = UserCreationForm(initial=init)
-    has_associations = agent.all_has_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
-    is_associated_with = agent.all_is_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
+
     assn_form = AssociationForm(agent=agent)
+
+    is_associated_with = agent.all_is_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
+
+    # has_associations = agent.all_has_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
+
 
     headings = []
     member_hours_recent = []
@@ -1934,6 +1938,9 @@ def members_agent(request, agent_id):
     et_work = EventType.objects.get(name="Time Contribution")
 
     if agent.is_individual():
+
+        has_associations = agent.all_has_associates().order_by('association_type__name', 'state', Lower('is_associate__name'))
+
         contributions = agent.given_events.filter(is_contribution=True)
         agents_stats = {}
         for ce in contributions:
@@ -1965,12 +1972,16 @@ def members_agent(request, agent_id):
                 skill.thanks = True
 
     elif agent.is_context_agent():
+
+        has_associations = agent.all_has_associates()
+
         try:
           fobi_name = get_object_or_404(FormEntry, slug=agent.project.fobi_slug)
           entries = agent.project.join_requests.filter(agent__isnull=True, state='new').order_by('request_date')
         except:
           entries = []
 
+        """
         subs = agent.with_all_sub_agents()
         end = datetime.date.today()
         #end = end - datetime.timedelta(days=77)
@@ -2022,6 +2033,7 @@ def members_agent(request, agent_id):
                 member_hours_roles.append(row)
             member_hours_roles.sort(key=lambda x: x[0])
             roles_height = len(member_hours_roles) * 20
+        """
 
     #artwork = get_object_or_404(Artwork_Type, clas="Material")
     add_skill_form = AddUserSkillForm(agent=agent, data=request.POST or None)
@@ -2052,19 +2064,26 @@ def members_agent(request, agent_id):
     asso_candid = []
     asso_coords = []
     asso_members = []
+    asso_states = []
+    asso_behaviors = []
 
     if hasattr(agent, 'project') and agent.project.is_moderated():
         if not agent.email and user_agent in agent.managers():
             messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
         proshacct = agent.project.shares_account_type()
         for ass in has_associations:
-            ag = ass.is_associate
-            ag.jn_reqs = ag.project_join_requests.filter(project=agent.project)
-            ag.oldshares = ag.owned_shares(agent)
-            ag.newshares = 0
-            acc = ag.owned_shares_accounts(proshacct)
-            if acc:
-                ag.newshares = int(acc[0].price_per_unit)
+            #ag = ass.is_associate
+            #ag.jn_reqs = ag.project_join_requests.filter(project=agent.project)
+            #ag.oldshares = ag.owned_shares(agent)
+            #ag.newshares = 0
+            #acc = ag.owned_shares_accounts(proshacct)
+            #if acc:
+            #    ag.newshares = int(acc[0].price_per_unit)
+
+            if not ass.state in asso_states:
+                asso_states.append(ass.state)
+            if not ass.association_type.association_behavior in asso_behaviors:
+                asso_behaviors.append(ass.association_type.association_behavior)
 
             if ass.state == 'inactive':
                 asso_declin.append(ass)
@@ -2082,7 +2101,9 @@ def members_agent(request, agent_id):
               'declins':asso_declin,
               'candids':asso_candid,
               'coords':asso_coords,
-              'members':asso_members
+              'members':asso_members,
+              'behaviors':asso_behaviors,
+              'states':asso_states
              }
 
     print("--------- end members_agent ("+str(agent)+") ----------")
@@ -2104,9 +2125,9 @@ def members_agent(request, agent_id):
         "assobj": assobj,
         "is_associated_with": is_associated_with,
         "headings": headings,
-        "member_hours_recent": member_hours_recent,
-        "member_hours_stats": member_hours_stats,
-        "member_hours_roles": member_hours_roles,
+        #"member_hours_recent": member_hours_recent,
+        #"member_hours_stats": member_hours_stats,
+        #"member_hours_roles": member_hours_roles,
         "individual_stats": individual_stats,
         "roles_height": roles_height,
         "help": get_help("members_agent"),
@@ -2119,6 +2140,37 @@ def members_agent(request, agent_id):
         "related_rts": related_rts,
         "units": Unit.objects.filter(unit_type='value').exclude(name_en__icontains="share"),
     })
+
+@login_required
+def view_agents_list(request, agent_id):
+    assocs = None
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent or not user_agent.is_participant: # or not agent in user_agent.related_all_agents(): # or not user_agent.is_active_freedom_coop_member:
+        return render(request, 'work/no_permission.html')
+
+    if request.POST:
+        behavior = request.POST['behavior'];
+        state = request.POST['state'];
+
+        assocs = agent.has_associates.filter(association_type__association_behavior=behavior, state=state) #.order_by(Lower('is_associate__name'))
+
+    if hasattr(agent, 'project') and agent.project.is_moderated():
+        proshacct = agent.project.shares_account_type()
+        for ass in assocs:
+            ag = ass.is_associate
+            ag.jn_reqs = ag.project_join_requests.filter(project=agent.project)
+            ag.oldshares = ag.owned_shares(agent)
+            ag.newshares = 0
+            acc = ag.owned_shares_accounts(proshacct)
+            if acc:
+                ag.newshares = int(acc[0].price_per_unit)
+
+    return render(request, 'work/_agent_list.html', {
+            'assocs': assocs,
+            'agent': agent,
+            'user_agent': user_agent
+        })
 
 
 @login_required

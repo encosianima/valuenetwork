@@ -548,6 +548,12 @@ ul.dt-button-collection.dropdown-menu {
 }
 .infobox ul {
     padding-left: .5em;
+    margin-bottom: .6em;
+}
+.infobox ul ul {
+    list-style: disc;
+    padding-left: .2em;
+    margin-bottom: 0;
 }
 .infobox li {
     margin-left: 1em;

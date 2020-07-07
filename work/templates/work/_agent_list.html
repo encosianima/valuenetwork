@@ -1,0 +1,43 @@
+{% load comments %}
+{% load i18n %}
+
+<ul>
+  {% for asso in assocs %}
+    <li>
+    {% if user_agent in agent.managers or user_agent == agent or request.user.is_superuser %}
+        <a href="{% url "members_agent" agent_id=asso.is_associate.id %}">{{ asso.is_associate.name }}</a>
+        {% for req in asso.is_associate.jn_reqs %}
+            {% if req.id %}
+                &nbsp;
+                {% get_comment_count for req as ncom %}
+                {% if req.project.agent == agent or req.agent == agent %}
+                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
+                        <b>{% trans "Feedback" %}</b> {{ ncom }}
+                    </a>
+                {% else %}
+                {% endif %}
+                {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
+                                   class="bold">{% trans "Exchange" %}</a> {% endif %}
+                {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
+                {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
+            {% endif %}
+        {% endfor %}
+        {% with asso.is_associate.newshares as shares %}
+            {% if shares %}
+                &nbsp; <span style="color:#476B6B">({% blocktrans count shares=shares %}{{ shares }} share{% plural %}{{ shares }} shares{% endblocktrans %})</span>
+            {% elif agent.project.shares_type %}
+                &nbsp;<b class="error">warning</b>
+            {% endif %}
+        {% endwith %}
+        {% if asso.is_associate.membership_request and agent.nick == "Freedom Coop" %}
+            {% get_comment_count for asso.is_associate.membership_request as ncom  %}
+            <a href="{% url 'membership_discussion' membership_request_id=asso.is_associate.membership_request.id %}">
+                {% trans "Migrate the membership!" %} {{ ncom }}
+            </a>
+        {% endif %}
+    {% else %}
+        <a href="{% url "members_agent" agent_id=asso.is_associate.id %}">{{ asso.is_associate.name }}</a>
+    {% endif %}
+    </li>
+  {% endfor %}
+</ul>

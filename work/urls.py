@@ -124,6 +124,8 @@ urlpatterns = [
         name="create_account_for_join_request"),
     # url(r"^comments/$", work.views.comments, name="comments"),
 
+    url(r'^assolist/(?P<agent_id>\d+)/$', work.views.view_agents_list, name="view_agents_list"),
+
     url(r'^delete-request-agent-user/(?P<join_request_id>\d+)/$', work.views.delete_request_agent_and_user,
         name="delete_request_agent_and_user"),
 

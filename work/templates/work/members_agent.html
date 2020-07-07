@@ -1118,15 +1118,22 @@
   	        <div class="span6 assoc infobox" style="width:100%;">
               <h3>
                 {% trans "Relations:" %}
-                {% if request.user.is_superuser %}<small class="small">co:{{ assobj.coords|length }} mb:{{ assobj.members|length }} ca:{{ assobj.candids|length }} ch:{{ assobj.childs|length }}</small>{% endif %}
+                {% if False and request.user.is_superuser %}<small class="small">co:{{ assobj.coords|length }} mb:{{ assobj.members|length }} ca:{{ assobj.candids|length }} ch:{{ assobj.childs|length }}</small>{% endif %}
               </h3>
 
-              <h4 class="hdg"> {{ agent.nick }} {% trans "is associated with" %}: </h4>{% if user_agent.is_superuser %}<!-- debug:managed_projects: {% for pro in agent.managed_projects %}{{ pro.name}} ({{ pro.id }}), {% endfor %} -->{% endif %}
+              <h4 class="hdg"> {{ agent.nick }} {% trans "is associated with" %}: <small class="small">{{ is_associated_with|length }}</small>
+
+              </h4>{% if user_agent.is_superuser %}<!-- debug:managed_projects: {% for pro in agent.managed_projects %}{{ pro.name}} ({{ pro.id }}), {% endfor %} -->{% endif %}
               <ul>
+                  <div>
                 {% for assoc in is_associated_with  %}
-                    {% ifchanged assoc.association_type and assoc.state %}
+                    {% ifchanged assoc.association_type and assoc.state %}</div>
                        <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.label|cut:" of"|cut:" de"|cut:" en"|cut:" a" }} {% trans "candidate of" %}{% else %}
-                                {{ assoc.association_type.label }}{% endif %}: </h4>
+                                {{ assoc.association_type.label }}{% endif %}:
+                           <span class="showhide smaller small" style="font-size:0.9em"
+                                id="sh-assoc_{{ assoc.state }}{{ assoc.association_type.association_behavior }}" >{% trans "(SHOW)" %}</span>
+                       </h4>
+                       <div class="list" id="list-assoc_{{ assoc.state }}{{ assoc.association_type.association_behavior }}">
                     {% endifchanged %}
                     <li><a href="{% url "members_agent" agent_id=assoc.has_associate.id %}">{{ assoc.has_associate.name }}</a>
                         {% if not assoc.state == "active" and not assoc.has_associate.project %} ({{ assoc.get_state_display }}) {% endif %}
@@ -1152,137 +1159,107 @@
                     </li>
                 {% endfor %}
               </ul>
+
               {% if has_associations %}
                   <h4 class="hdg">{{ agent.nick }} {% trans "has these associates" %}: <span class="small">{{ has_associations|length }}</span>&nbsp; &nbsp;
+
                   {% if user_agent in agent.managers or user_agent == agent or user_agent.is_staff %}
                       {% if agent.is_context %}
                         <a href="#agentAssnForm" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Edit member relations" %}</a>
-                        <div class="modal hide fade" id="agentAssnForm" tabindex="-1" role="dialog" aria-labelledby="assn-label" aria-hidden="true">
-                          <div class="modal-dialog">
-                            <div class="modal-content">
-                              <div class="modal-header">
-                                <h3 id="assn-label">{% trans "Maintain Associates for" %} {{ agent }}</h3>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                              </div>
-                              <div class="modal-body">
-                                <form id="assnForm" enctype="multipart/form-data" action="{% url "edit_relations" agent_id=agent.id %}" method="POST" >
-                                  {% csrf_token %}
-                                  {{ assn_form|as_bootstrap }}
-                                  <p>
-                                       &nbsp;
-                                  </p>
-                                  <p>
-                                       &nbsp;
-                                  </p>
-
-                                  <div class="modal-footer">
-                                  <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                  <button class="btn btn-primary">{% trans "Save" %}</button>
-                                  </div>
-                                </form>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                       {% endif %}
                   {% endif %}
                   </h4>
-                  <ul>
-                      <div>
-                    {% for assoc in has_associations %}
-                        {% ifchanged assoc.association_type and assoc.state %}</div>
-                            <h4>{% if not assoc.state == 'active' %}{{ assoc.association_type.inverse_label }} {% trans "candidates" %}{% else %}
-                                {{ assoc.association_type.inverse_label }}{% endif %}:
-                                <span class="showhide smaller small" style="font-size:0.9em" id="sh-assoc_{{ assoc.association_type.identifier|cut:" " }}_{{ assoc.state }}" >{% trans "(SHOW)" %}</span>
-                            </h4>
-                            <div class="list" id="list-assoc_{{ assoc.association_type.identifier|cut:" " }}_{{ assoc.state }}">
-                        {% endifchanged %}
 
-                        {% if user_agent in agent.managers or user_agent == agent %}
-                          {% if not assoc.state == 'inactive' and not assoc.is_associate in agent.declined_agents %}
-                          <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
-                            {% with assoc.is_associate.membership_request_id as id %}
-                                {% if id and not agent.project in assoc.is_associate.joinaproject_requests_projects %}
-                                  {% if user_agent.membership_request_id == id or agent.nick == "FC MembershipRequest" or agent.nick == "Freedom Coop" %}
-                                    {% if not assoc.state == "accepted" %} ({{ assoc.get_state_display }}: {{ assoc.is_associate.membership_request.state }}) {% endif %}
-                                    &nbsp;
-                                    {% get_comment_count for assoc.is_associate.membership_request as ncom  %}
-                                    <a href="{% url 'membership_discussion' membership_request_id=id %}">
-                                        {% trans "Migrate the membership!" %} {{ ncom }}
-                                    </a>
-                                  {% endif %}
-                                {% elif id and request.user.is_superuser and agent.nick == "Freedom Coop" %}
-                                    &nbsp;
-                                    (<a href="{% url 'membership_discussion' membership_request_id=id %}">old</a>)
-                                {% endif %}
-                                {% if assoc.is_associate.membership_requests.all|length > 1 %}
-                                    &nbsp;<b class="error">ERROR: multiple FdC memberships!</b>
-                                {% endif %}
-                            {% endwith %}
-                            {% for req in assoc.is_associate.jn_reqs %}
-                              {% if req.id %}
-                                {% if not assoc.state == "active" %} ({{ assoc.get_state_display }}{% if not req.state == "new" %} - {{ req.state }}{% endif %}) {% endif %} &nbsp;
-                                {% get_comment_count for req as ncom  %}
-                                {% if req.project.agent == agent or req.agent == agent %}
-                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
-                                        <b>{% trans "Feedback" %}</b> {{ ncom }}
-                                    </a>
-                                {% else %}
-                                {% endif %}
-                                {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
-                                                               class="bold">{% trans "Exchange" %}</a> {% endif %}
-                                {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
-                                {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
-                              {% endif %}
-                            {% endfor %}
-                            {% if not assoc.is_associate.joinaproject_requests and not assoc.state == 'active' %}
-                               &nbsp;<b class="error">error</b>
-                            {% endif %}
-                            {% if assoc.association_type.association_behavior == "member" or assoc.association_type.association_behavior == "manager" %}
-                              {% if agent.project.shares_type %}
-                                {% with assoc.is_associate.oldshares as oldshares %}
-                                  {% if oldshares %}
-                                      &nbsp; <span class="error">OldShares: {{ oldshares|length }}</span>
-                                  {% endif %}
+                <ul>
+                {% if True or has_associations|length > 10 %}
+                    {% for beha in assobj.behaviors %}
+                        {% for state in assobj.states %}
+                          {% if state == 'active' %}
+                            {% if assobj.coords %}
+                                {% with assobj.coords|first as asso %}
+                                    {% if beha == asso.association_type.association_behavior %}
+                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.coords|length }}</span>
+                                            <span class="showhide smaller small" style="font-size:0.9em"
+                                                  id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
+                                        </h4>
+                                        <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
+                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
+                                            </div>
+                                        </div>
+                                    {% endif %}
                                 {% endwith %}
-                                {% with assoc.is_associate.newshares as shares %}
-                                  {% if shares %}
-                                      &nbsp; <span style="color:#476B6B">({% blocktrans count shares=shares %}{{ shares }} share{% plural %}{{ shares }} shares{% endblocktrans %})</span>
-                                  {% elif assoc.state == "active" %}
-                                      &nbsp;<b class="error">warning</b>
-                                  {% endif %}
-                                {% endwith %}
-                              {% endif %}
                             {% endif %}
-                          </li>
+                            {% if assobj.members %}
+                                {% with assobj.members|first as asso %}
+                                    {% if beha == asso.association_type.association_behavior %}
+                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.members|length }}</span>
+                                            <span class="showhide smaller small" style="font-size:0.9em"
+                                                  id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
+                                        </h4>
+                                        <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
+                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            {% if assobj.childs %}
+                                {% with assobj.childs|first as asso %}
+                                    {% if beha == asso.association_type.association_behavior %}
+                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.childs|length }}</span>
+                                            <span class="showhide smaller small" style="font-size:0.9em"
+                                                  id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
+                                        </h4>
+                                        <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
+                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+
+                          {% else %}
+                            {% if assobj.candids and state == 'potential' %}
+                                {% with assobj.candids|first as asso %}
+                                    {% if beha == asso.association_type.association_behavior %}
+                                        <h4>{{ asso.association_type.inverse_label }} {% trans "candidates" %}:  <span class="small">{{ assobj.candids|length }}</span>
+                                            <span class="showhide smaller small" style="font-size:0.9em"
+                                                  id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
+                                        </h4>
+                                        <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
+                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            {% if assobj.declins %}
+                                {% with assobj.declins|first as asso %}
+                                    {% if beha == asso.association_type.association_behavior %}
+                                        <h4>{{ asso.association_type.inverse_label }} ({{ state }}):  <span class="small">{{ assobj.declins|length }}</span>
+                                            <span class="showhide smaller small" style="font-size:0.9em"
+                                                  id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
+                                        </h4>
+                                        <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
+                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+
+
                           {% endif %}
-                        {% elif not assoc.state == "inactive" and not assoc.is_associate in agent.declined_agents %}
-                          <li><a href="{% url "members_agent" agent_id=assoc.is_associate.id %}">{{ assoc.is_associate.name }}</a>
-                              {% for req in assoc.is_associate.jn_reqs %}
-                                {% if req.agent == user_agent %}
-                                  {% if req.id %}
-                                    {% if not assoc.state == "active" %} ({{ assoc.get_state_display }} - {{ req.state }}) {% endif %}
-                                    &nbsp;
-                                    {% get_comment_count for req as ncom  %}
-                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
-                                        <b>{% trans "Feedback" %}</b> {{ ncom }}
-                                    </a>
-                                    {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
-                                                                   class="bold">{% trans "Exchange" %}</a> {% endif %}
-                                    {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
-                                  {% endif %}
-                                  {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
-                                {% endif %}
-                              {% endfor %}
-                          </li>
-                        {% endif %}
+                          {% if state == 'active' %}
 
-
+                          {% endif %}
+                        {% endfor %}
                     {% endfor %}
 
-                  </ul>
+
+
+                {% endif %}
+                </ul>
               {% endif %}
 
 	          </div>
@@ -1306,6 +1283,38 @@
         </div>
       </div>
 
+    {% if user_agent in agent.managers or user_agent == agent or user_agent.is_staff %}
+        {% if agent.is_context %}
+            <div class="modal hide fade" id="agentAssnForm" tabindex="-1" role="dialog" aria-labelledby="assn-label" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="assn-label">{% trans "Maintain Associates for" %} {{ agent }}</h3>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="assnForm" enctype="multipart/form-data" action="{% url "edit_relations" agent_id=agent.id %}" method="POST" >
+                                {% csrf_token %}
+                                {{ assn_form|as_bootstrap }}
+                                <p>
+                                   &nbsp;
+                                </p>
+                                <p>
+                                   &nbsp;
+                                </p>
+                                <div class="modal-footer">
+                                  <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                  <button class="btn btn-primary">{% trans "Save" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
 
 
       {% if False and agent.is_individual and agent.need_skills and user.is_staff %}
@@ -1385,14 +1394,14 @@
 {% block extra_script %}
     <!-- <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script> -->
-    <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script> -->
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.10.0/jquery.validate.min.js"></script>
     <!-- <script type="text/javascript" src="https://www.google.com/jsapi"></script> -->
-	<script src="{% static 'js/chosen.jquery.js' %}"></script>
-    <script src="{% static 'js/jquery.fancytree-all.min.js' %}"></script>
-    <script src="{% static 'js/ocp-trees.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/chosen.jquery.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.fancytree-all.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ocp-trees.js' %}"></script>
 {% endblock %}
 
 
@@ -1403,9 +1412,23 @@
 
     $(document).ready(function(){
 
+        /*$('.assolist').each(function(){
+            var behavior = $(this).attr('behavior');
+            var state = $(this).attr('state');
+            var obj = $(this);
+            $.post({
+                data: {"behavior":behavior, "state":state },
+                url: '{% url "view_agents_list" agent_id=agent.id %}',
+                success: function(data) {
+                    obj.html(data);
+                }
+            });
+        });*/
+
         $(".list").each(function(){
-            if($(this).find('li').length > 10){
+            if($(this).find('li').length > 10 || $(this).hasClass('ajaxlist') ){
                 $(this).hide();
+                //$(this).prev('h4').find('.showhide').text('{% trans "(SHOW)" %}');
             } else {
                 //alert($(this).prev('.showhide').html());
                 $(this).prev('h4').find('.showhide').text('{% trans "(HIDE)" %}');
@@ -1414,10 +1437,25 @@
             };
         });
         $(".showhide").click(function(event){
-          var id = event.target.id;
-          var listId = '#list-' + id.split('-')[1];
-          $(listId).slideToggle(200);
-          $(this).text($(this).text() == "{% trans '(HIDE)' %}" ? "{% trans '(SHOW)' %}" : "{% trans '(HIDE)' %}");
+            var id = event.target.id;
+            var listId = '#list-' + id.split('-')[1];
+            $(listId).slideToggle(200);
+            $(this).text($(this).text() == "{% trans '(HIDE)' %}" ? "{% trans '(SHOW)' %}" : "{% trans '(HIDE)' %}");
+            //alert($(listId).text().trim().length);
+            if($(listId).text().trim().length < 1){
+                var lis = $(listId).find(".assolist");
+                var behavior = lis.attr('behavior');
+                var state = lis.attr('state');
+                lis.html('<p><img src="{% static 'img/loading.gif' %}" style="margin: 1em;"/></p>');
+                //alert('behavior: '+behavior+' state: '+state);
+                $.post({
+                    data: {"behavior":behavior, "state":state },
+                    url: '{% url "view_agents_list" agent_id=agent.id %}',
+                    success: function(data) {
+                        $(listId).html(data);
+                    }
+                });
+            };
         });
 
         /*var ObjChosSingle = {
@@ -1576,12 +1614,14 @@
                 chart.draw(data, options);
             }
         {% else %}
-            if(typeof drawChart_recent != 'undefined') google.setOnLoadCallback(drawChart_recent);
+            /*if(typeof drawChart_recent != 'undefined') google.setOnLoadCallback(drawChart_recent);
             function drawChart_recent() {
                 var data = google.visualization.arrayToDataTable([
                 ['Member', 'Qty'],
                 {% for member, hours in member_hours_recent %}
                     ['{{ member }}',  {{ hours }} ],
+                {% empty %}
+                    ['', 0],
                 {% endfor %}
                 ]);
 
@@ -1600,6 +1640,8 @@
                 ['Member', 'Qty'],
                 {% for member, hours in member_hours_stats %}
                     ['{{ member }}',  {{ hours }} ],
+                {% empty %}
+                    ['', 0],
                 {% endfor %}
                 ]);
 
@@ -1646,7 +1688,7 @@
                         'chartArea':{'width': '80%', 'height':'100%'}
                     }
                 );
-            }
+            }*/
         {% endif %}
     }
     </script>
