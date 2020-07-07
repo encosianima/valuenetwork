@@ -1161,7 +1161,7 @@
               </ul>
 
               {% if has_associations %}
-                  <h4 class="hdg">{{ agent.nick }} {% trans "has these associates" %}: <span class="small">{{ has_associations|length }}</span>&nbsp; &nbsp;
+                  <h4 class="hdg">{{ agent.nick }} {% trans "has these associates" %}: <span class="small">{{ has_associations }}</span>&nbsp; &nbsp;
 
                   {% if user_agent in agent.managers or user_agent == agent or user_agent.is_staff %}
                       {% if agent.is_context %}
@@ -1171,14 +1171,14 @@
                   </h4>
 
                 <ul>
-                {% if True or has_associations|length > 10 %}
+                {% if True %}
                     {% for beha in assobj.behaviors %}
                         {% for state in assobj.states %}
                           {% if state == 'active' %}
                             {% if assobj.coords %}
-                                {% with assobj.coords|first as asso %}
+                                {% with assobj.coor as asso %}
                                     {% if beha == asso.association_type.association_behavior %}
-                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.coords|length }}</span>
+                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.coords }}</span>
                                             <span class="showhide smaller small" style="font-size:0.9em"
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
@@ -1190,9 +1190,9 @@
                                 {% endwith %}
                             {% endif %}
                             {% if assobj.members %}
-                                {% with assobj.members|first as asso %}
+                                {% with assobj.memb as asso %}
                                     {% if beha == asso.association_type.association_behavior %}
-                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.members|length }}</span>
+                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.members }}</span>
                                             <span class="showhide smaller small" style="font-size:0.9em"
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
@@ -1204,9 +1204,9 @@
                                 {% endwith %}
                             {% endif %}
                             {% if assobj.childs %}
-                                {% with assobj.childs|first as asso %}
+                                {% with assobj.chil as asso %}
                                     {% if beha == asso.association_type.association_behavior %}
-                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.childs|length }}</span>
+                                        <h4>{{ asso.association_type.inverse_label }}:  <span class="small">{{ assobj.childs }}</span>
                                             <span class="showhide smaller small" style="font-size:0.9em"
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
@@ -1220,9 +1220,9 @@
 
                           {% else %}
                             {% if assobj.candids and state == 'potential' %}
-                                {% with assobj.candids|first as asso %}
+                                {% with assobj.cand as asso %}
                                     {% if beha == asso.association_type.association_behavior %}
-                                        <h4>{{ asso.association_type.inverse_label }} {% trans "candidates" %}:  <span class="small">{{ assobj.candids|length }}</span>
+                                        <h4>{{ asso.association_type.inverse_label }} {% trans "candidates" %}:  <span class="small">{{ assobj.candids }}</span>
                                             <span class="showhide smaller small" style="font-size:0.9em"
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
@@ -1234,9 +1234,9 @@
                                 {% endwith %}
                             {% endif %}
                             {% if assobj.declins %}
-                                {% with assobj.declins|first as asso %}
+                                {% with assobj.decl as asso %}
                                     {% if beha == asso.association_type.association_behavior %}
-                                        <h4>{{ asso.association_type.inverse_label }} ({{ state }}):  <span class="small">{{ assobj.declins|length }}</span>
+                                        <h4>{{ asso.association_type.inverse_label }} ({{ state }}):  <span class="small">{{ assobj.declins }}</span>
                                             <span class="showhide smaller small" style="font-size:0.9em"
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
