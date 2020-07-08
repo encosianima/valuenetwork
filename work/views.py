@@ -3692,15 +3692,33 @@ class JoinreqListJson(BaseDatatableView):
             req.addr = req.address
 
             if req.agent:
-                req.name = '<a href="{% url "members_agent" agent_id=req.agent.id %}">'+req.agent.name+'</a>'
+                req.nam = '<a href="{% url "members_agent" agent_id=req.agent.id %}">'+req.agent.name+'</a>'
+                if not req.name and not req.surname:
+                    arr = req.agent.name.split(' ')
+                    if len(arr) > 1:
+                        req.name = arr[0]
+                        req.surname = arr[1]
+                    else:
+                        req.name = req.agent.name
+                    loger.info("- added missing name to the jnreq: "+str(req))
+                    req.save()
+
                 req.nick = '<a href="{% url "members_agent" agent_id=req.agent.id %}"><b><em>'+req.agent.nick+'</em></b></a>'
+                if not req.requested_username:
+                    req.requested_username = req.agent.nick
+                    loger.info("- added missing username to the jnreq: "+str(req))
+                    req.save()
+
                 req.typ = req.agent.agent_type.name
-                if not req.typ == req.type_of_user:
+                if not req.typ.lower() == req.type_of_user.lower():
                     req.typ += ' ('+req.type_of_user+')'
                 if not req.agent.email == req.email_address:
                     if req.email_address:
                         req.mail += " <span class='longtext small'><em>("+req.agent.email+")</em></span>"
                     elif req.agent.email:
+                        req.email_address = req.agent.email
+                        req.save()
+                        loger.info("- added missing agent email in join-request: "+str(req))
                         req.mail = '<em><a class="longtext" href="mailto:'+req.agent.email+'">'+req.agent.email+'</a></em>'
                 if req.agent.url and not req.agent.url == req.website:
                     if req.website:
@@ -3716,8 +3734,8 @@ class JoinreqListJson(BaseDatatableView):
                     req.addr = '<em>'+str(req.agent.primary_location)+'</em>'
 
             else:
-                req.name = req.name+' '+req.surname
-                req.name.trim()
+                req.nam = req.name+' '+req.surname
+                req.nam.trim()
                 if req.requested_username:
                     req.nick = req.requested_username
                 else:
@@ -3870,7 +3888,7 @@ class JoinreqListJson(BaseDatatableView):
             camps = [
                 req.actions,
                 req.request_date.strftime("%Y-%m-%d"), # %H:%M  #escape(item.number),  # escape HTML for security reasons
-                req.name, #"{0} {1}".format(item.customer_firstname, item.customer_lastname)),  # escape HTML for security reasons
+                req.nam, #"{0} {1}".format(item.customer_firstname, item.customer_lastname)),  # escape HTML for security reasons
                 req.nick,
                 req.typ,
                 req.mail,

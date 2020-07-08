@@ -272,7 +272,9 @@ $(document).ready(function(){
             { "orderable": false }, //{ "data": "address",
             { "orderable": false }, //{ "data": "website",
             {% for key in fobi_headers %}
-                { "orderable": false },
+                { "orderable": false,
+                  "className": "fobi"
+                },
                 //{   "class": "fobi",
                 //    "orderable": true,
                 //    "defaultContent": "Fobi" },
