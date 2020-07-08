@@ -580,10 +580,11 @@ class JoinRequest(models.Model):
     name = models.CharField(_('Name'), max_length=255)
     surname = models.CharField(_('Surname (for individual join requests)'), max_length=255, blank=True)
     requested_username = models.CharField(_('Username'), max_length=32, help_text=_("If you have already an account in OCP, you can login before filling this form to have this project in the same account, or you can choose another username and email to have it separate."))
-    email_address = models.EmailField(_('Email address *'), max_length=96,)
+    email_address = models.EmailField(_('Email address'), max_length=96,)
     #    help_text=_("this field is optional, but we can't contact you via email without it"))
     phone_number = models.CharField(_('Phone number'), max_length=32, blank=True, null=True)
     address = models.CharField(_('Town/Region where you are based'), max_length=255, blank=True, null=True)
+    website = models.CharField(_('Website'), max_length=255, blank=True, null=True)
     #native_language = models.CharField(_('Languages'), max_length=255, blank=True)
 
     #description = models.TextField(_('Description'),
