@@ -2073,39 +2073,6 @@ def members_agent(request, agent_id):
     asso_states = ['active','inactive','potential']
     asso_behaviors = [i[0] for i in ASSOCIATION_BEHAVIOR_CHOICES]
 
-    if not has_associations:
-        has_associations = asso_childs + asso_members + asso_candid + asso_declin
-
-    if hasattr(agent, 'project') and agent.project.is_moderated():
-        if not agent.email and user_agent in agent.managers():
-            messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
-        #proshacct = agent.project.shares_account_type()
-        #for ass in has_associations:
-            #ag = ass.is_associate
-            #ag.jn_reqs = ag.project_join_requests.filter(project=agent.project)
-            #ag.oldshares = ag.owned_shares(agent)
-            #ag.newshares = 0
-            #acc = ag.owned_shares_accounts(proshacct)
-            #if acc:
-            #    ag.newshares = int(acc[0].price_per_unit)
-
-            '''if not ass.state in asso_states:
-                asso_states.append(ass.state)
-            if not ass.association_type.association_behavior in asso_behaviors:
-                asso_behaviors.append(ass.association_type.association_behavior)
-
-            if ass.state == 'inactive':
-                asso_declin.append(ass)
-            elif ass.state == 'potential':
-                asso_candid.append(ass)
-            elif ass.state == 'active':
-                if ass.association_type.association_behavior in ['manager', 'custodian'] or ass.association_type.identifier == 'manager':
-                    asso_coords.append(ass)
-                elif ass.association_type.association_behavior == 'member':
-                    asso_members.append(ass)
-                else:
-                    asso_childs.append(ass) '''
-
     assobj = {'childs':asso_childs,
               'chil':asso_chil,
               'declins':asso_declin,
@@ -2117,8 +2084,15 @@ def members_agent(request, agent_id):
               'members':asso_members,
               'memb':asso_memb,
               'behaviors':asso_behaviors,
-              'states':asso_states
-             }
+              'states':asso_states}
+
+    if not has_associations:
+        has_associations = asso_childs + asso_members + asso_candid + asso_declin
+
+    if hasattr(agent, 'project') and agent.project.is_moderated():
+        if not agent.email and user_agent in agent.managers():
+            messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
+
 
     print("--------- end members_agent ("+str(agent)+") ----------")
     loger.info("--------- end members_agent ("+str(agent)+") ----------")
@@ -2183,7 +2157,8 @@ def view_agents_list(request, agent_id):
     return render(request, 'work/_agent_list.html', {
             'assocs': assocs,
             'agent': agent,
-            'user_agent': user_agent
+            'user_agent': user_agent,
+            'no_shares': ['child', 'peer']
         })
 
 
@@ -3536,6 +3511,8 @@ def project_update_payment_status(request, project_slug=None):
         raise ValidationError("Can't find a project or request:POST: "+str(request.POST))
         return HttpResponse('error')
 
+
+
 from django.middleware import csrf
 
 @login_required
@@ -3572,11 +3549,13 @@ def join_requests(request, agent_id):
         if user_agent == project.agent or user_agent in project.agent.managers():
             managing = True
         #req = requests.last()
+
         for req in requests:
             #print("--- req1: "+str(req)+" ----")
             if req.fobi_data and req.fobi_data.pk:
                 fobi_keys = req.fobi_items_keys()
                 fobi_headers = req.form_headers
+                break
                 """req.entries = SavedFormDataEntry.objects.filter(pk=req.fobi_data.pk).select_related('form_entry')
                 entry = req.entries[0]
                 form_headers = json.loads(entry.form_data_headers)
@@ -3596,10 +3575,14 @@ def join_requests(request, agent_id):
                 if len(fobi_headers) and len(fobi_keys) == len(fobi_headers):
                     break
                 """
-
+        """
         com_content_type = ContentType.objects.get(model="joinrequest")
         csrf_token = csrf.get_token(request)
         csrf_token_field = '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf_token+'"> '
+
+        proshrtyps = project.share_types()
+        subscrunit = project.subscription_unit()
+
 
         for req in requests:
             #print("----- start req: "+str(req)+" ----")
@@ -3626,11 +3609,10 @@ def join_requests(request, agent_id):
             payamount = req.payment_amount()
             totalshrs = req.total_shares()
             pendshrs = req.pending_shares()
-            proshrtyps = project.share_types()
             reqstatus = ''
             if req.exchange:
                 reqstatus = req.exchange.status()
-            subscrunit = project.subscription_unit()
+
             pendpays = req.pending_payments()
             subscres = req.subscription_resource()
 
@@ -3654,7 +3636,7 @@ def join_requests(request, agent_id):
                 if req.agent:
                     if proshrtyps:
                         req.actions += str(payamount)+'&nbsp;'
-                        req.actions += str(_("Shares:"))+'&nbsp;'
+                        req.actions += '<i class="icon-tags" style="color:#333;" title="'+str(_("Shares:"))+'"></i> &nbsp;'
                     elif subscrunit:
                         if pendpays: req.actions += '<span class="error">'
                         req.actions += str(payamount)+'&nbsp;'
@@ -3719,8 +3701,8 @@ def join_requests(request, agent_id):
                 req.actions += deleteform
 
             ncom = len(Comment.objects.filter(content_type=com_content_type, object_pk=req.pk))
-            req.actions += '<a class="btn btn-info btn-mini" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'"> '
-            req.actions += '<b>'+str(_("Feedback:"))+'</b> '+str(ncom)+'</a>&nbsp;'
+            req.actions += '<a class="btn btn-info btn-mini" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'">'
+            req.actions += '<i class="icon-comment" title="Feedback"></i> '+str(ncom)+'</a>&nbsp;'
 
             if state == "declined":
                 req.actions += '<form class="action-form" id="undecline-form'+str(req.id)+'" method="POST" '
@@ -3774,7 +3756,7 @@ def join_requests(request, agent_id):
                 req.actions += deleteform
 
             #print("---- end req: "+str(req)+" ----")
-
+        """
 
 
     if project.is_moderated() and not agent.email:
@@ -3792,6 +3774,388 @@ def join_requests(request, agent_id):
         "project": project,
         "fobi_headers": fobi_headers,
     })
+
+
+
+from django_datatables_view.base_datatable_view import BaseDatatableView
+
+class JoinreqListJson(BaseDatatableView):
+
+    # define the columns that will be returned
+    columns = ['actions', 'request_date', 'name', 'requested_username', 'type_of_user', 'email_address', 'phone_number', 'address', 'website']
+
+    order_columns = ['', 'request_date', 'name', 'requested_username', 'type_of_user', 'email_address', '', '', '']
+
+    # set max limit of records returned, this is used to protect our site if someone tries to attack our site
+    # and make it return huge amount of data
+    max_display_length = 500
+
+    def get(self, request, agent_id, *args, **kwargs):
+        self.user_agent = request.user.agent.agent
+        if not hasattr(self, 'agent'):
+            agent_id = self.kwargs['agent_id']
+            self.agent = EconomicAgent.objects.get(id=agent_id)
+        if not hasattr(self, 'state'):
+            self.state = self.kwargs['state']
+        if not hasattr(self, 'csrf_token_field'):
+            csrf_token = csrf.get_token(request)
+            self.csrf_token_field = '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf_token+'"> '
+        if not hasattr(self, 'com_content_type'):
+            self.com_content_type = ContentType.objects.get(model="joinrequest")
+
+        if hasattr(self.agent, 'project') and self.agent.project:
+            if not hasattr(self, 'proshrtyps'):
+                self.proshrtyps = self.agent.project.share_types()
+            if not hasattr(self, 'subscrunit'):
+                self.subscrunit = self.agent.project.subscription_unit()
+            self.fobi_keys = self.agent.project.fobi_items_keys()
+            if self.fobi_keys:
+                for key in self.fobi_keys:
+                    if not key in self.columns:
+                        #print("add col: "+key)
+                        self.columns.append(key)
+                    if not key in self.order_columns:
+                        #print("add ord-col: "+key)
+                        self.order_columns.append(key)
+
+        else:
+            self.proshrtyps = None
+            self.subscrunit = None
+
+        return super().get(request, *args, **kwargs)
+
+    def get_initial_queryset(self):
+        if self.agent.project:
+            return self.agent.project.join_requests.filter(state=self.state)
+        else:
+            return None
+
+    def filter_queryset(self, qs):
+
+        return qs
+
+    def render_column(self, row, column):
+        # We want to render user as a custom column
+        if column == 'actions':
+            row.actions += "JELOW"
+            return row.actions #escape('{0} {1}'.format(row.customer_firstname, row.customer_lastname))
+        else:
+            return super(JoinreqListJson, self).render_column(row, column)
+
+    def prepare_results(self, qs):
+        # prepare list with output column data
+        # queryset is already paginated here
+        #print('--- prepare results (start) ----') #cols: '+str(self.columns))
+        project = self.agent.project
+        agent_form = JoinAgentSelectionForm(project=project)
+
+        fobi_slug = project.fobi_slug
+        fobi_headers = []
+        #fobi_keys = []
+
+        json_data = []
+
+        if fobi_slug:
+          form_entry = FormEntry.objects.get(slug=fobi_slug)
+          if self.user_agent == project.agent or self.user_agent in project.agent.managers():
+            managing = True
+
+          for req in qs:
+            req.possible_agent = False
+            if not hasattr(req, 'agent') and req.requested_username:
+                try:
+                    req.possible_agent = EconomicAgent.objects.get(nick_en=req.requested_username)
+                except:
+                    pass
+            if hasattr(req, 'fobi_data') and hasattr(req.fobi_data, 'pk'):
+              req.items_data = req.fobi_items_data()
+            else:
+              req.entries = []
+
+            # calculate the actions table cell to speedup the template
+            req.actions = ''
+            chekpass = req.check_user_pass()
+            payamount = req.payment_amount()
+            totalshrs = req.total_shares()
+            pendshrs = req.pending_shares()
+            reqstatus = ''
+            if req.exchange:
+                reqstatus = req.exchange.status()
+
+            pendpays = req.pending_payments()
+            subscres = req.subscription_resource()
+
+            req.mail = '<a class="longtext" href="mailto:'+req.email_address+'">'+req.email_address+'</a>'
+            req.webs = ''
+            if req.website:
+                req.webs = req.website
+            req.phon = req.phone_number
+            req.addr = req.address
+
+            if req.agent:
+                req.name = '<a href="{% url "members_agent" agent_id=req.agent.id %}">'+req.agent.name+'</a>'
+                req.nick = '<a href="{% url "members_agent" agent_id=req.agent.id %}"><b><em>'+req.agent.nick+'</em></b></a>'
+                req.typ = req.agent.agent_type.name
+                if not req.typ == req.type_of_user:
+                    req.typ += ' ('+req.type_of_user+')'
+                if not req.agent.email == req.email_address:
+                    if req.email_address:
+                        req.mail += " <span class='longtext small'><em>("+req.agent.email+")</em></span>"
+                    elif req.agent.email:
+                        req.mail = '<em><a class="longtext" href="mailto:'+req.agent.email+'">'+req.agent.email+'</a></em>'
+                if req.agent.url and not req.agent.url == req.website:
+                    if req.website:
+                        req.webs += ' <em>('+req.agent.url+')</em>'
+                    else:
+                        req.webs = '<em>'+req.agent.url+'</em>'
+                if req.agent.phone_primary and not req.agent.phone_primary == req.phone_number:
+                    if req.phone_number:
+                        req.phon += " <em>("+req.agent.phone_primary+")</em>"
+                    else:
+                        req.phon = '<em>'+req.agent.phone_primary+'</em>'
+                if req.agent.primary_location and not req.address:
+                    req.addr = '<em>'+str(req.agent.primary_location)+'</em>'
+
+            else:
+                req.name = req.name+' '+req.surname
+                req.name.trim()
+                if req.requested_username:
+                    req.nick = req.requested_username
+                else:
+                    req.nick = '??'
+                req.typ = req.type_of_user
+
+            if req.check_user_pass():
+                req.mail += '<br /><span class="error">'+str(_("not verified"))+'</span>'
+
+            #print("------- build actions ---")
+            deleteform = '<form class="action-form" id="delete-form'+str(req.id)+'" method="POST" '
+            deleteform += 'action="'+reverse("delete_request", args=(req.id,))+'" >'
+            deleteform += self.csrf_token_field
+            deleteform += '<input type="submit" class="btn btn-mini btn-danger" name="submit" value="'+str(_("Delete"))+'" /></form>'
+
+            declineform = '<form class="action-form" id="decline-form'+str(req.id)+'" method="POST" '
+            declineform += 'action="'+reverse("decline_request", args=(req.id,))+'" >'
+            declineform += self.csrf_token_field
+            declineform += '<input type="submit" class="btn btn-mini btn-warning" name="submit" value="'+str(_("Decline"))+'" /></form>'
+
+
+            if not req.fobi_data:
+                req.actions = '<span class="error">ERROR!</span> &nbsp;'
+            if chekpass:
+                req.actions += '<span class="error">'+str(_("Not Valid yet!"))+'</span> &nbsp;'
+            elif self.proshrtyps or self.subscrunit:
+              if req.fobi_data:
+                if req.agent:
+                    if self.proshrtyps:
+                        req.actions += '<span style="display: inline-block;">'
+                        req.actions += '<i class="icon-tags" style="color:#444;" title="'+str(payamount)+' '+str(_("Shares"))+'"></i>'
+                        req.actions += '&nbsp;'+str(payamount)+'</span> &nbsp;'
+                    elif self.subscrunit:
+                        if pendpays: req.actions += '<span class="error">'
+                        req.actions += str(payamount)+'&nbsp;'
+                        req.actions += str(self.subscrunit.name)+' / '+str(req.payment_regularity()['key'])+'&nbsp;'
+                        if pendpays: req.actions += '</span>'
+                    if pendshrs:
+                        if totalshrs:
+                            req.actions += '<span class="complete">'+str(totalshrs)+'</span>&nbsp;+&nbsp;<span class="error">'+str(req.pending_shares())+'</span>'
+                        else:
+                            if pendpays:
+                                if subscres:
+                                    req.actions += '<span class="">'+str(_("Expired"))+'</span>'
+                                    req.actions += '<br><span class="">'+str(_("by"))+' '+str(req.subscription_resource().expiration_date)+'</span> '
+                                else:
+                                    pass #req.actions += '<br><span class="error small">'+unicode(_("Never payed"))+'</span>'
+                            elif self.subscrunit:
+                                req.actions += '<span class="complete">'+str(_("Valid"))+'</span>'
+                                req.actions += '<br><span class="">'+str(_("until"))+' '+str(req.subscription_resource().expiration_date)+'</span> '
+                            else:
+                                req.actions += '<span class="error">'+str(totalshrs)+'</span> '
+                    else:
+                        if not totalshrs == payamount:
+                            req.actions += '<span class="complete">'+str(totalshrs)+'</span> '
+                        else:
+                            req.actions += '<em class="complete"></em>'
+                    #req.actions += '<br />'
+                if reqstatus:
+                    req.actions += '<a href="'+reverse("exchange_logging_work", args=(req.project.agent.id, 0, req.exchange.id))+'"'
+                    req.actions += ' class="'+str(reqstatus)+'" >'+str(reqstatus.title())+'</a> '
+                elif pendshrs:
+                    if not req.payment_option()['key'] == 'ccard' and req.agent and req.exchange_type():
+                        if managing:
+                            req.actions += '<form class="action-form" id="status-form'+str(req.id)+'" '
+                            req.actions += 'action="'+reverse("update_share_payment", args=(req.id,))+'" method="POST" >'
+                            req.actions += self.csrf_token_field
+                            req.actions += '<input type="hidden" name="status" value="pending"> '
+                            req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" '
+                            req.actions += ' value="'+str(_("Set as Pending"))+'" title="ExchangeType: '+str(req.exchange_type())+'" '
+                            if chekpass:
+                                req.actions += 'disabled="disabled" '
+                            req.actions += ' /></form>'
+
+                    if self.user_agent.user().user.is_superuser:
+                        pass
+                        #req.actions += '<span class="help-text" style="font-size:0.8em">ET: '+str(req.exchange_type())
+                        #req.actions += ' <br />UT: '+str(req.payment_unit())+' RT: '+str(req.payment_unit_rt())+'</span><br />'
+              else:
+                # not fobi_data
+                print(("Not fobi_data for req: "+str(req.id)))
+
+            else:
+                # not proshrtyps nor subscrunit
+                print(("Not proshrtyps nor subscrunit for req: "+str(req.id)))
+
+            dup = req.duplicated()
+            if dup:
+                req.actions += '<em class="error">'+str(_("Duplicated!"))+'</em>'
+                req.actions += '('+str(_("see the other"))+' <a href="'+reverse('project_feedback', args=(req.project.agent.id, dup.id))+'" >'
+                req.actions += str(_("request"))+'</a>) <br /> '+str(_("This request:"))+' '
+                req.actions += deleteform
+
+            ncom = len(Comment.objects.filter(content_type=self.com_content_type, object_pk=req.pk))
+            req.actions += '<a class="btn btn-info btn-mini-icon" href="'+reverse('project_feedback', args=(req.project.agent.id, req.id))+'">'
+            req.actions += '<i class="icon-comment" title="Feedback"></i><span class="small"> '+str(ncom)+'</span></a>&nbsp;'
+
+            if self.state == "declined":
+                req.actions += '<form class="action-form" id="undecline-form'+str(req.id)+'" method="POST" '
+                req.actions += 'action="'+reverse("undecline_request", args=(req.id,))+'" >'
+                req.actions += self.csrf_token_field
+                req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Undecline"))+'" /></form>'
+
+                req.actions += deleteform
+
+            elif self.state == "accepted":
+                req.actions += declineform
+
+            elif req.fobi_data:
+                if req.agent:
+                    if not pendshrs or not self.proshrtyps:
+                        if not self.subscrunit:
+                          if not chekpass:
+                            req.actions += '<form class="action-form" id="accept-form'+str(req.id)+'" method="POST" '
+                            req.actions += 'action="'+reverse("accept_request", args=(req.id,))+'" >'
+                            req.actions += self.csrf_token_field
+                            req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Accept Member"))+'" /></form>'
+
+                    if chekpass:
+                        if req.agent.is_deletable():
+                            req.actions += ' &nbsp; <span class="help-text">'+str(_("Wait to confirm, or delete agent, user and request"))+':</span>'
+                            req.actions += '<form style="display: inline;" class="delete-agent-form indent" id="delete-agent-form'+str(req.id)+'" '
+                            req.actions += 'action="'+reverse("delete_request_agent_and_user", args=(req.id,))+' " method="POST" >'
+                            req.actions += self.csrf_token_field
+                            req.actions += '<button style="display: inline;"  class="btn btn-danger btn-mini" title="Delete all" >'+str(_("Delete all"))+'</button></form>'
+                        elif self.user_agent.user().user.is_superuser:
+                            req.actions += ' &nbsp; (agent no deletable)'
+                    else:
+                        req.actions += declineform
+
+                else:
+                    posag = req.possible_agent
+                    if posag:
+                        req.actions += '<br>"<a href="'+reverse('members_agent', args=(posag.id,))+'">'+str(posag)+'</a>" '+str(_("is taken, choose this agent?"))
+                        req.actions += '<a href="'+reverse("connect_agent_to_join_request", args=(posag.id, req.id))+'" class="btn btn-primary" '
+                        req.actions += 'style="margin-bottom:20px;">'+str(_("Connect to"))+' '+str(posag)+'</a> <br />'
+
+                    req.actions += '<form class="action-form" id="create-form'+str(req.id)+'" '
+                    req.actions += 'action="'+reverse("confirm_request", args=(req.id,))+'" method="POST" >'
+                    req.actions += self.csrf_token_field
+                    req.actions += '<input type="submit" class="btn btn-mini btn-primary" name="submit" value="'+str(_("Confirm Email"))+'" /> '
+                    req.actions += '<span class="help-text">'+str(_("sends random pass and creates user+agent"))+'</span></form>'
+
+                    req.actions += deleteform
+
+            else:
+                req.actions += deleteform
+
+            #print("------ end build actions ---")
+            camps = [
+                req.actions,
+                req.request_date.strftime("%Y-%m-%d"), # %H:%M  #escape(item.number),  # escape HTML for security reasons
+                req.name, #"{0} {1}".format(item.customer_firstname, item.customer_lastname)),  # escape HTML for security reasons
+                req.nick,
+                req.typ,
+                req.mail,
+                req.phon,
+                req.addr,
+                req.webs
+            ]
+
+            if hasattr(req, 'items_data'):
+                camps = camps + req.items_data
+                #for val in req.items_data:
+                #    camps = camps + .append([val])
+            else:
+                for val in self.fobi_keys:
+                    camps = camps + ["<span class='error'>"+str(_("missing"))+"</span>"]
+
+            json_data.append(camps)
+
+
+            #print("json_data: "+str(json_data))
+          # endfor
+        #print('--- prepare results (end) ----')
+
+        return json_data
+
+
+    """
+    jnreqs = None
+    agent = get_object_or_404(EconomicAgent, id=agent_id)
+    user_agent = get_agent(request)
+    if not user_agent or not agent.project or not agent in user_agent.managed_projects():
+        return render(request, 'work/no_permission.html')
+
+    if request.POST:
+        draw = int(request.POST['draw'])
+        start = request.POST['start']
+        length = request.POST['length']
+        search = request.POST['search']
+        columns = request.POST['columns']
+        order = request.POST['order']
+        ordcol1 = order[0]
+
+        state = request.POST['state']
+
+        jnreqnum = agent.project.join_requests.count()
+
+        jnreqs = agent.project.join_requests.filter(state=state).order_by(ordcol1)
+
+        com_content_type = ContentType.objects.get(model="joinrequest")
+        csrf_token = csrf.get_token(request)
+        csrf_token_field = '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf_token+'"> '
+
+        proshrtyps = agent.project.share_types()
+        subscrunit = agent.project.subscription_unit()
+
+        data = []
+
+        for req in jnreqs:
+
+            data.append(
+                [
+                    req.actions,
+                    req.request_date,
+                    req.name,
+                    req.nick,
+                    req.typ,
+                    req.mail
+                ]
+            )
+
+            #print("---- end req: "+str(req)+" ----")
+
+
+    return render(request, 'work/_jnreq_list.html', {
+            'jnreqs': jnreqs,
+            'agent': agent,
+            'user_agent': user_agent,
+            'draw': draw,
+            'recordsTotal': jnreqnum,
+            'recordsFiltered': len(jnreqs),
+            'data': data,
+            'error': error
+        })
+"""
 
 
 '''@login_required

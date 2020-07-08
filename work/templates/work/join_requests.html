@@ -50,6 +50,19 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
     border-left-width: 1px;
 }
 
+#listable_processing {
+    left: 0;
+    top: -10px;
+    margin: 0;
+    border: none;
+}
+.jrlist div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+    justify-content: flex-start;
+}
+.right {
+   text-align: right;
+}
+
 </style>
 
 
@@ -105,6 +118,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                 <!-- <th>{% trans "Fobi" %}</th> -->
             </thead>
             <tbody>
+              {% comment %}
                 {% for req in requests %}
                     <tr class="{% cycle 'odd' 'even' %}">
                       <td>{{ req.actions|safe }}</td>
@@ -121,7 +135,8 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                              {{ req.name }} {{ req.surname }}
                           {% endif %}
                       </td>
-                      <td>{% if req.agent %} <a href="{% url "members_agent" agent_id=req.agent.id %}"><b><em>{{ req.agent.username }}</em></b></a> {% elif req.requested_username %} {{ req.requested_username }} {% else %} ?? {% endif %}</td>
+                      <td>{% if req.agent %} <a href="{% url "members_agent" agent_id=req.agent.id %}"><b><em>{{ req.agent.username }}</em></b></a>
+                          {% elif req.requested_username %} {{ req.requested_username }} {% else %} ?? {% endif %}</td>
                       <td>{% if req.agent %} {{ req.agent.agent_type }}
                               {% if not req.agent.agent_type|lower == req.type_of_user %}({{ req.type_of_user }}){% endif %}
                           {% else %} {{ req.type_of_user }} {% endif %}</td>
@@ -150,6 +165,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                       {% endif %}
                     </tr>
                 {% endfor %}
+              {% endcomment %}
             </tbody>
             <!-- <tfoot>
                 <th>{% trans "Actions" %}</th>
@@ -204,14 +220,19 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
       //$("#listable").DataTable();
   //};
 
-  $(document).ready(function(){
+$(document).ready(function(){
 
-    $("#listable").DataTable({
-        stateSave: true,
-        autoWidth: true,
-        order: [[1, 'desc']],
-        dom: '<"row no-gutters"<"col"ir><"col"f><"col"B>><"row no-gutters bigbox"t><"row no-gutters"<"col"l><"col"p>>',//'irftBpl', //'B<"clear">lfrtip',
-        buttons: [
+  $("#listable")
+    .on( 'processing.dt', function ( e, settings, processing ) {
+            $('#listable_processing').css( 'display', processing ? 'block' : 'none' );
+            $('.table-condensed').attr('style', processing ? 'pointer-events:none; opacity:0.5;' : 'pointer-events:inherit; opacity:1;');
+       } )
+    .DataTable({
+        "stateSave": true,
+        "autoWidth": true,
+        "order": [[1, 'desc']],
+        "dom": '<"row no-gutters"<"col"ri><"col right"l>><"row no-gutters bigbox"t><"row no-gutters"<"col left"p><"col"B>>',//'irftBpl', //'B<"clear">lfrtip',
+        "buttons": [
             'colvis',
             {
                 extend: 'pdf',
@@ -226,7 +247,38 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                 }
             },
         ],
-        "columnDefs": [
+
+        "lengthMenu": [[5, 10, 50, -1], [5, 10, 50, "{% trans 'All' %}"]],
+
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{% url 'joinreq_list_json' agent_id=project.agent.id state=state %}",
+            "type": "POST"
+        },
+        "language": {
+            "processing": "<img src='{% static 'img/loading.gif' %}' />"
+        },
+
+        "columns": [
+            { "orderable": false },
+            null, //{ "data": "request_date" },
+            null, //{ "data": "name" },
+            null, //{ "data": "requested_username" },
+            null, //{ "data": "type_of_user" },
+            null, //{ "data": "email_address" },
+            { "orderable": false }, //{ "data": "phone_number",
+            { "orderable": false }, //{ "data": "address",
+            { "orderable": false }, //{ "data": "website",
+            {% for key in fobi_headers %}
+                { "orderable": false },
+                //{   "class": "fobi",
+                //    "orderable": true,
+                //    "defaultContent": "Fobi" },
+            {% endfor %}
+        ],
+
+        /*"columnDefs": [
             {
                 // The `data` parameter refers to the data for the cell (defined by the
                 // `data` option, which defaults to the column being worked with, in
@@ -242,7 +294,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
                 },
                 "targets": 1
             }
-        ]
+        ]*/
     });
 
     //$("div.dataTables_wrapper > div.row").first().css('text-align: right;')
