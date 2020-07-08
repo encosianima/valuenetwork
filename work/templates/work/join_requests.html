@@ -55,6 +55,7 @@ table#listable.table-bordered.dataTable th, table#listable.table-bordered.dataTa
     top: -10px;
     margin: 0;
     border: none;
+    width: 100%;
 }
 .jrlist div.dataTables_wrapper div.dataTables_paginate ul.pagination {
     justify-content: flex-start;
@@ -248,7 +249,7 @@ $(document).ready(function(){
             },
         ],
 
-        "lengthMenu": [[5, 10, 50, -1], [5, 10, 50, "{% trans 'All' %}"]],
+        "lengthMenu": [[5, 10, 50, 100, 500], [5, 10, 50, 100, 500]],
 
         "processing": true,
         "serverSide": true,
