@@ -13,7 +13,7 @@
 
 {% block extra_head %}
 
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" /> -->
 
 <style>
 
@@ -57,16 +57,6 @@ form.action-form span.help-text {
 .agents li {
     margin-left: 3em;
 }
-/*.btn {
-    margin-left: 0.5em;
-}*/
-.modal {
-    width: 600px;
-}
-/*th
-{
-    background-color:#C8D6E8;
-}*/
 
 
 tr.fobi td em {
@@ -124,7 +114,7 @@ a.more-link {
            &nbsp; &nbsp;
           <span style="font-weight:normal; font-size:90%;">
           {% if jn_req.agent %}
-            {% if jn_req.project.shares_type %}{% trans "Membership request" %}{% else %}{% trans "Join request" %}{% endif %}:
+            {% if jn_req.project.shares_type %}{% trans "Membership" %}{% else %}{% trans "Join request" %}{% endif %}:
               <b>{% if jn_req.state == 'new' %}{% trans "Pending" %}{% else %}{{ jn_req.state|title }}{% endif %}</b>
           {% else %}
             <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span>
@@ -539,55 +529,13 @@ a.more-link {
                     {% if not req.multiwallet_user and not req.check_user_pass and wallet_form %}
                         <a href="#create-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Create new BotC-Wallet account" %}</a>
 
-                        <div class="modal hide fade" id="create-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                <h3 id="agent-label">{% trans "Create New BotC-Wallet User" %}</h3>
-                            </div>
-                            <div class="modal-body">
-                                <form id="createForm" class="createMe" action="{% url 'multicurrency_createauth' agent_id=req.agent.id %}" method="POST" onsubmit="return validateRepassword()">
-                                    {% csrf_token %}
-                                    {{ wallet_form|as_bootstrap }}
-                                    <div id="div_id_repassword" class="control-group ">
-                                      <label class="control-label required-field" for="id_repassword">{% trans "Confirm password" %}</label>
-                                      <div class="controls">
-                                        <input id="id_repassword" name="repassword" required="" maxlength="32" type="password">
-                                      </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
-                                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create BotC-Wallet User" %}' />
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+
 
                         &nbsp;{% trans "or" %}&nbsp;
                         <a href="#connect-botc-user" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Connect existent BotC-Wallet account" %}</a> &nbsp;
                     {% endif %}
 
-                    {% if oauth_form %}
-                    <div class="modal hide fade" id="connect-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                            <h3 id="agent-label">{% trans "Authenticate BotC-Wallet User" %}</h3>
-                        </div>
-                        <div class="modal-body">
-                            <form id="oauthForm" class="validateMe" action="{% url 'multicurrency_auth' agent_id=req.agent.id %}" method="POST" >
-                                {% csrf_token %}
-                                {{ oauth_form|as_bootstrap }}
 
-                                <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" />
-                                <p>
-                                    <small class="muted">
-                                        {% trans "By submitting your BotC-Wallet user/password you give permission to this site to access (read-only) to your wallet." %}<br />
-                                        {% trans "Your password won't be stored, it's just necessary to check your identity in BotC-Wallet system." %}
-                                    </small>
-                                </p>
-                            </form>
-                        </div>
-                    </div>
-                    {% endif %}
 
                     {% if request.user.is_superuser %}
                        &nbsp; <a href="{% url "multicurrency_auth" agent_id=req.agent.id %}"
@@ -615,10 +563,70 @@ a.more-link {
             </tr> -->
           </tbody>
         </table>
+
+        <div class="modal hide fade" id="create-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+              <div class="modal-dialog">
+                  <div class="modal-content">
+                      <div class="modal-header">
+                          <h3 id="agent-label">{% trans "Create New BotC-Wallet User" %}</h3>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                      <div class="modal-body">
+                          <form id="createForm" class="createMe" action="{% url 'multicurrency_createauth' agent_id=req.agent.id %}" method="POST" onsubmit="return validateRepassword()">
+                              {% csrf_token %}
+                              {{ wallet_form|as_bootstrap }}
+                              <div id="div_id_repassword" class="control-group ">
+                                  <label class="control-label required-field" for="id_repassword">{% trans "Confirm password" %}</label>
+                                  <div class="controls">
+                                      <input id="id_repassword" name="repassword" required="" maxlength="32" type="password">
+                                  </div>
+                              </div>
+                              <div class="modal-footer">
+                                  <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                  <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create BotC-Wallet User" %}' />
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+              </div>
+        </div>
+        {% if oauth_form %}
+        <div class="modal hide fade" id="connect-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="agent-label">{% trans "Authenticate BotC-Wallet User" %}</h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="oauthForm" class="validateMe" action="{% url 'multicurrency_auth' agent_id=req.agent.id %}" method="POST" >
+                            {% csrf_token %}
+                            {{ oauth_form|as_bootstrap }}
+
+                            <input type="submit" name="submit" value="{% trans 'Submit' %}" class="btn btn-primary" />
+                            <p>
+                                <small class="muted">
+                                    {% trans "By submitting your BotC-Wallet user/password you give permission to this site to access (read-only) to your wallet." %}<br />
+                                    {% trans "Your password won't be stored, it's just necessary to check your identity in BotC-Wallet system." %}
+                                </small>
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {% endwith %}
       </div>
 
     <p>&nbsp;</p>
+
+
 
     <div id="member-request-comments">
       <legend>
