@@ -192,7 +192,7 @@ th, td {
             <div class="my-work">
 				<h3 style="margin-bottom: 4px;" >{% trans "My tasks" %}:
 
-                    {% if agent %}
+                    {% if agent and todo_form %}
                         {% if agent.related_contexts %}
                             &nbsp;&nbsp;&nbsp;&nbsp;
                             <div style="display: inline;" >
@@ -274,7 +274,7 @@ th, td {
                                 </td>
                                 <td>
 
-                                    {% if agent == todo.to_agent %}
+                                    {% if agent == todo.to_agent and todo.work_todo_change_form %}
                                         <div class="entry-buttons" >
                                             <a href="#changeModal-{{ todo.id }}" role="button" class="btn btn-info btn-mini edit-button" data-toggle="modal">
                                                 <i class="icon-edit"></i>
@@ -368,7 +368,7 @@ th, td {
 							{% for item in other_unassigned %}
 								<li>
 									<b>{{ item.resource_type.name }}:</b> {{ item.quantity }} {{ item.unit_of_quantity }} {% trans "due" %} {{ item.due_date }}
-									{% if agent %}
+									{% if agent and item.commitment_form %}
 										<div style="display: inline;" >
 											<a href="#commitmentModal{{ item.id }}" role="button" class="btn btn-info btn-mini" data-toggle="modal">
 												{% trans "Take this task" %}

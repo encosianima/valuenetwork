@@ -89,7 +89,7 @@ a.more-link {
         {% if messages %}
             {% regroup messages|dictsort:"tags" by tags as messags %}
             {% for message in messags %}
-                <div class="alert fade in alert-{{ message.grouper }}">
+                <div class="alert fade-in alert-{{ message.grouper }}">
                     <a class="close" href="#" data-dismiss="alert">×</a>
                         {% for messa in message.list|dictsort:"message" %}
                           {% ifchanged messa.message %}
@@ -157,7 +157,7 @@ a.more-link {
           </div>
         </legend>
 
-      {% if auto_resource or request.auto_resource %}<div class="alert">
+      {% if auto_resource or request.auto_resource %}<div class="alert alert-info">
             {{ auto_resource|safe }}{{ request.auto_resource|safe }}
             </div>
       {% endif %}
@@ -509,7 +509,7 @@ a.more-link {
                             <a href="{% url 'multicurrency_history' agent_id=req.agent.id oauth_id=mauth.id %}"
                                class="btn btn-info btn-mini">{% blocktrans %}Read '{{ auser }}' Multiwallet{% endblocktrans %}</a>
                             &nbsp; <span class="help-text">{{ out_text|safe }}</span>
-                            {% if pay_form %} &nbsp; &nbsp;
+                            {% if pay_form.fields %} &nbsp; &nbsp;
                                 <form id="payForm" action="{% url 'authpayment' agent_id=req.agent.id %}" method="POST" style="display:inline;">
                                     {% csrf_token %}
                                     {{ pay_form|as_bootstrap }}
@@ -564,6 +564,7 @@ a.more-link {
           </tbody>
         </table>
 
+        {% if wallet_form.fields %}
         <div class="modal hide fade" id="create-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
               <div class="modal-dialog">
                   <div class="modal-content">
@@ -592,7 +593,8 @@ a.more-link {
                   </div>
               </div>
         </div>
-        {% if oauth_form %}
+        {% endif %}
+        {% if oauth_form.fields %}
         <div class="modal hide fade" id="connect-botc-user" tabindex="-1" role="dialog" aria-labelledby="agent-label" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
