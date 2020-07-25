@@ -415,7 +415,7 @@
 
     <div class="container-fluid" style="padding:0;">
         <div class="row no-gutters">
-          <div class="col-sm span5" id="agent-table-block">
+          <div class="col-md-6 col-sm-12 " id="agent-table-block">
 
 	            <table class="table table-bordered" >
 
@@ -942,7 +942,7 @@
 	      </div>
 
 
-          <div class="col-sm span6 secondcol">
+          <div class="col-md-5 col-sm-12 secondcol">
           {% if user_agent in agent.managers or user_is_agent or user_agent in agent.members %}
             {% if agent.project and form_entries and fobi_name and user_agent in agent.managers %}
             <div class="requests span6" style="width:100%;">
@@ -1288,7 +1288,7 @@
 
       {% if agent.project and not user_agent in agent.managers %}
         {% if not user_agent in agent.participants %}
-        <div id="join-this-project" class="col-sm span6 secondcol">
+        <div id="join-this-project" class="col-md-5 col-sm-12  secondcol">
           <h3>
             {% trans "Join this project:" %}
           </h3>
