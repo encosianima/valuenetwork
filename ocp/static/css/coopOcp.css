@@ -217,7 +217,8 @@ h5 {
 }
 
 li > h4 {
-  display: inline-block;
+    display: inline-block;
+    margin-bottom: .1rem;
 }
 
 th {
