@@ -1163,11 +1163,14 @@
               </ul>
 
               {% if has_associations %}
-                  <h4 class="hdg">{{ agent.nick }} {% trans "has these associates" %}: <span class="small">{{ has_associations }}</span>&nbsp; &nbsp;
+                  <h4 class="hdg">{{ agent.nick }} {% trans "has these associates" %}:
 
-                  {% if user_agent in agent.managers or user_agent == agent or user_agent.is_staff %}
+                  {% if user_agent in agent.managers or user_is_agent or request.user.is_staff %}
+                      <span class="small">{{ has_associations }}</span>
                       {% if agent.is_context %}
-                        <a href="#agentAssnForm" role="button" class="btn btn-primary btn-mini" data-toggle="modal">{% trans "Edit member relations" %}</a>
+                          &nbsp; &nbsp;
+                          <a href="#agentAssnForm" role="button" class="btn btn-primary btn-mini"
+                             data-toggle="modal">{% trans "Edit member relations" %}</a>
                       {% endif %}
                   {% endif %}
                   </h4>
@@ -1220,7 +1223,7 @@
                                 {% endwith %}
                             {% endif %}
 
-                          {% else %}
+                          {% elif user_is_agent or user_agent in agent.managers %}
                             {% if assobj.candids and state == 'potential' %}
                                 {% with assobj.cand as asso %}
                                     {% if beha == asso.association_type.association_behavior %}
@@ -1252,9 +1255,7 @@
 
 
                           {% endif %}
-                          {% if state == 'active' %}
 
-                          {% endif %}
                         {% endfor %}
                     {% endfor %}
 
