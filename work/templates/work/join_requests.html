@@ -227,6 +227,9 @@ $(document).ready(function(){
     .on( 'processing.dt', function ( e, settings, processing ) {
             $('#listable_processing').css( 'display', processing ? 'block' : 'none' );
             $('.table-condensed').attr('style', processing ? 'pointer-events:none; opacity:0.5;' : 'pointer-events:inherit; opacity:1;');
+            if(!processing){
+                update_longs();
+            }
        } )
     .DataTable({
         "stateSave": true,
@@ -307,18 +310,21 @@ $(document).ready(function(){
         $('form#stateForm').submit();
     });
 
-    $('.fobi').each(function(e) {
-        $(this).expander({
-            slicePoint:       20,  // default is 100
-            expandSpeed: 0,
-            expandEffect: 'show',
-            collapseSpeed: 0,
-            collapseEffect: 'hide',
-            expandPrefix:     ' ', // default is '... '
-            expandText:       '[...]', // default is 'read more'
-            userCollapseText: '[^]'  // default is 'read less'
+    function update_longs(){
+        $('.fobi').each(function(e) {
+            $(this).expander({
+                    slicePoint:       20,  // default is 100
+                    expandSpeed: 0,
+                    expandEffect: 'show',
+                    collapseSpeed: 0,
+                    collapseEffect: 'hide',
+                    expandPrefix:     ' ', // default is '... '
+                    expandText:       '[...]', // default is 'read more'
+                    userCollapseText: '[^]'  // default is 'read less'
+            });
         });
-    });
+    };
+    update_longs();
 
 
     $( "#help" ).toggle( function(){
