@@ -2138,10 +2138,19 @@ def view_agents_list(request, agent_id):
         return render(request, 'work/no_permission.html')
 
     if request.POST:
-        behavior = request.POST['behavior'];
-        state = request.POST['state'];
+        behavior = request.POST['behavior']
+        state = request.POST['state']
+        number = int(request.POST['number'])
+        ready = int(request.POST['ready'])
 
-        assocs = agent.has_associates.filter(association_type__association_behavior=behavior, state=state).order_by(Lower('is_associate__name'))
+        ofset = 5    # TUNE as wished
+
+        maxim = ready+ofset
+        if maxim > number:
+            maxim = number
+        #print('ready: '+str(ready)+' maxim:'+str(maxim))
+        assocs = agent.has_associates.filter(association_type__association_behavior=behavior,
+                                             state=state).order_by(Lower('is_associate__name'))[ready:maxim]
 
     if hasattr(agent, 'project') and agent.project.is_moderated():
         proshacct = agent.project.shares_account_type()

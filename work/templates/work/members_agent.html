@@ -1185,8 +1185,8 @@
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
                                         <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
-                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
-                                            </div>
+                                            <ul class="assolist" behavior="{{ beha }}" state="{{ state }}" number="{{ assobj.coords }}">
+                                            </ul>
                                         </div>
                                     {% endif %}
                                 {% endwith %}
@@ -1199,8 +1199,8 @@
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
                                         <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
-                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
-                                            </div>
+                                            <ul class="assolist" behavior="{{ beha }}" state="{{ state }}" number="{{ assobj.members }}">
+                                            </ul>
                                         </div>
                                     {% endif %}
                                 {% endwith %}
@@ -1213,8 +1213,8 @@
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
                                         <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
-                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
-                                            </div>
+                                            <ul class="assolist" behavior="{{ beha }}" state="{{ state }}" number="{{ assobj.childs }}">
+                                            </ul>
                                         </div>
                                     {% endif %}
                                 {% endwith %}
@@ -1229,8 +1229,8 @@
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
                                         <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
-                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
-                                            </div>
+                                            <ul class="assolist" behavior="{{ beha }}" state="{{ state }}" number="{{ assobj.candids }}">
+                                            </ul>
                                         </div>
                                     {% endif %}
                                 {% endwith %}
@@ -1243,8 +1243,8 @@
                                                   id="sh-assoc_{{ beha }}{{ state }}" >{% trans "(SHOW)" %}</span>
                                         </h4>
                                         <div class="list ajaxlist" id="list-assoc_{{ beha }}{{ state }}">
-                                            <div class="assolist" behavior="{{ beha }}" state="{{ state }}">
-                                            </div>
+                                            <ul class="assolist" behavior="{{ beha }}" state="{{ state }}" number="{{ assobj.declins }}">
+                                            </ul>
                                         </div>
                                     {% endif %}
                                 {% endwith %}
@@ -1447,21 +1447,41 @@
             $(listId).slideToggle(200);
             $(this).text($(this).text() == "{% trans '(HIDE)' %}" ? "{% trans '(SHOW)' %}" : "{% trans '(HIDE)' %}");
             //alert($(listId).text().trim().length);
-            if($(listId).text().trim().length < 1){
-                var lis = $(listId).find(".assolist");
-                var behavior = lis.attr('behavior');
-                var state = lis.attr('state');
-                lis.html('<p><img src="{% static 'img/loading.gif' %}" style="margin: 1em;"/></p>');
+            var $lis = $(listId).find(".assolist");
+            var behavior = $lis.attr('behavior');
+            var state = $lis.attr('state');
+            var number = $lis.attr('number') * 1;
+            if($lis.find('li').length < number){
+
+                //$lis.html('<li><img src="{% static 'img/loading.gif' %}" style="margin: 1em;"/></li>');
                 //alert('behavior: '+behavior+' state: '+state);
-                $.post({
-                    data: {"behavior":behavior, "state":state },
-                    url: '{% url "view_agents_list" agent_id=agent.id %}',
-                    success: function(data) {
-                        $(listId).html(data);
-                    }
-                });
+                //var ready = 0;
+                var obj = {"behavior":behavior,
+                           "state":state,
+                           "number":number,
+                           "list":$lis
+                          };
+                call_relations_block(obj);
             };
         });
+
+        function call_relations_block(obj){
+            var ready = $(obj['list']).find('li').length;
+            $(obj['list']).append('<li id="loader"><img src="{% static 'img/loading.gif' %}" style="margin: 1em;"/></li>');
+            $.post({
+                data: {"behavior":obj['behavior'], "state":obj['state'], "number":obj['number'], "ready":ready},
+                url: '{% url "view_agents_list" agent_id=agent.id %}',
+                success: function(data) {
+                    var lis = $(obj['list']);
+                    //alert(data);
+                    lis.find('#loader').remove();
+                    lis.append(data);
+                    if(lis.find('li').length < obj['number']){
+                        call_relations_block(obj);
+                    }
+                }
+            });
+        }
 
         /*var ObjChosSingle = {
           allow_single_deselect: true,

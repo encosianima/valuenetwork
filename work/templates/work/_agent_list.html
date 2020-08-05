@@ -1,7 +1,6 @@
 {% load comments %}
 {% load i18n %}
 
-<ul>
   {% for asso in assocs %}
     <li>
     {% if user_agent in agent.managers or user_agent == agent or request.user.is_superuser %}
@@ -49,4 +48,3 @@
     {% endif %}
     </li>
   {% endfor %}
-</ul>
