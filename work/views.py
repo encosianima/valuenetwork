@@ -2143,13 +2143,20 @@ def view_agents_list(request, agent_id):
         number = int(request.POST['number'])
         ready = int(request.POST['ready'])
 
-        ofset = 5    # TUNE as wished
+        ofset = 10    # TUNE as wished
 
         maxim = ready+ofset
         if maxim > number:
             maxim = number
+
+        if behavior == 'child':
+            behaviors = [behavior, 'peer']
+        elif behavior == 'manager':
+            behaviors = [behavior, 'custodian']
+        else:
+            behaviors = [behavior]
         #print('ready: '+str(ready)+' maxim:'+str(maxim))
-        assocs = agent.has_associates.filter(association_type__association_behavior=behavior,
+        assocs = agent.has_associates.filter(association_type__association_behavior__in=behaviors,
                                              state=state).order_by(Lower('is_associate__name'))[ready:maxim]
 
     if hasattr(agent, 'project') and agent.project.is_moderated():
