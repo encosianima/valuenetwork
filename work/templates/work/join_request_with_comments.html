@@ -580,12 +580,12 @@ a.more-link {
                               {{ wallet_form|as_bootstrap }}
                               <div id="div_id_repassword" class="control-group ">
                                   <label class="control-label required-field" for="id_repassword">{% trans "Confirm password" %}</label>
-                                  <div class="controls">
+                                  <div class="">
                                       <input id="id_repassword" name="repassword" required="" maxlength="32" type="password">
                                   </div>
                               </div>
                               <div class="modal-footer">
-                                  <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                  <button class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                   <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create BotC-Wallet User" %}' />
                               </div>
                           </form>

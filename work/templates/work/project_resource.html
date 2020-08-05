@@ -299,18 +299,18 @@
 
         </div>
 
+    {% if resource.demands %}
         <div class="col-lg-6 col-sm-12">
             <div class="infobox secondcol">
-            {% if resource.demands %}
                 <h4 class="">{% trans "Demands" %}:</h4>
                 <ul>
                 {% for ct in resource.demands %}
                     <li><a href="{{ ct.process.get_absolute_url }}">{{ ct }}</a></li>
                 {% endfor %}
                 </ul>
-            {% endif %}
             </div>
         </div>
+    {% endif %}
 
 
     {% if not resource.resource_type.is_virtual_account %}
