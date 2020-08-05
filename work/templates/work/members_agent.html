@@ -1120,7 +1120,9 @@
   	        <div class="span6 assoc infobox" style="width:100%;">
               <h3>
                 {% trans "Relations:" %}
-                {% if False and request.user.is_superuser %}<small class="small">co:{{ assobj.coords|length }} mb:{{ assobj.members|length }} ca:{{ assobj.candids|length }} ch:{{ assobj.childs|length }}</small>{% endif %}
+                {% for asso in user_agent.assos %}
+                  &nbsp;<small class="small">({% trans "you're:" %} {{ asso.state }} {{ asso.association_type|lower }})</small>
+                {% endfor %}
               </h3>
 
               <h4 class="hdg"> {{ agent.nick }} {% trans "is associated with" %}: <small class="small">{{ is_associated_with|length }}</small>
@@ -1144,13 +1146,14 @@
                                 {% if not assoc.state == "active" %} ({{ assoc.get_state_display }}) {% endif %} &nbsp;
                                 {% get_comment_count for req as ncom  %}
                                 {% if req.project.agent == agent or req.agent == agent %}
-                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}">
-                                        <b>{% trans "Feedback" %}</b> {{ ncom }}
+                                    <a href="{% url 'project_feedback' agent_id=agent.id join_request_id=req.id %}"
+                                       class="btn-mini-icon small">
+                                        <i class="icon-comment"></i> {{ ncom }}
                                     </a>
                                 {% else %}
                                 {% endif %}
                                 {% if req.exchange %}&nbsp; <a href="{% url "exchange_logging_work" context_agent_id=agent.id exchange_type_id=0 exchange_id=req.exchange.id %}"
-                                                               class="{{ req.exchange.status }}">{{ req.exchange.status }}</a> {% endif %}
+                                                               class="btn-mini-icon small"><i class="icon-transfer"></i></a> {% endif %}
                                 {% if not req.fobi_data %} &nbsp;<b class="error">ERROR!</b> {% endif %}
                                 {% if not forloop.first %} &nbsp;<b class="error">Error: multiple requests!</b>{% endif %}
                             {% endif %}
