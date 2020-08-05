@@ -1282,48 +1282,48 @@
                   {% endif %}
               </div>
           {% endif %}
-        </div>
 
 
-      {% if agent.project and not user_agent in agent.managers %}
-        {% if not user_agent in agent.participants %}
-        <div id="join-this-project" class="col-md-5 col-sm-12 secondcol">
-          <h3>
-            {% trans "Join this project:" %}
-          </h3>
-          {% if agent.project.is_moderated %}
-            {% if user_agent.req %}
-                {% if user_agent.req.state == 'declined' %}
-                  <p>{% trans "Sorry, you've tried to join this project but your request was <b>declined</b> for any reason. See the thread at" %}:
-                  <b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}">{% trans "Your Declined Joining Feedback" %}</a></b> </p>
+          {% if agent.project and not user_agent in agent.managers %}
+            {% if not user_agent in agent.participants %}
+            <div id="join-this-project" class="col-md-5 col-sm-12 secondcol">
+              <h3>
+                {% trans "Join this project:" %}
+              </h3>
+              {% if agent.project.is_moderated %}
+                {% if user_agent.req %}
+                    {% if user_agent.req.state == 'declined' %}
+                      <p>{% trans "Sorry, you've tried to join this project but your request was <b>declined</b> for any reason. See the thread at" %}:
+                      <b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}">{% trans "Your Declined Joining Feedback" %}</a></b> </p>
+                    {% else %}
+                      <p>{% trans "You've requested to join this project. To keep track of the joining process go to" %}:
+                          <br><b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}"
+                                    class="btn btn-primary" >{% trans "Your Joining Feedback" %}</a></b></p>
+                    {% endif %}
                 {% else %}
-                  <p>{% trans "You've requested to join this project. To keep track of the joining process go to" %}:
-                      <br><b><a href="{% url 'project_feedback' agent_id=user_agent.id join_request_id=user_agent.req.id %}"
-                                class="btn btn-primary" >{% trans "Your Joining Feedback" %}</a></b></p>
+                  <p>{% trans "This project has a moderated access workflow. Please fill the following form to request access, and then you will have a special feedback page to comunicate with the project coordinators" %}:</p>
+                  <p> {% if agent.project.fobi_form %}<b><a href="{% url 'project_joinform' agent_id=agent.id %}"
+                                                            class="btn btn-primary">{% trans "Form to join" %} "{{ agent.name }}"</a></b>
+                      {% else %} <div class="alert"><em>{% trans "Sorry, the form is not ready, try tomorrow" %}</em></div> {% endif %}
+                  </p>
                 {% endif %}
-            {% else %}
-              <p>{% trans "This project has a moderated access workflow. Please fill the following form to request access, and then you will have a special feedback page to comunicate with the project coordinators" %}:</p>
-              <p> {% if agent.project.fobi_form %}<b><a href="{% url 'project_joinform' agent_id=agent.id %}"
-                                                        class="btn btn-primary">{% trans "Form to join" %} "{{ agent.name }}"</a></b>
-                  {% else %} <div class="alert"><em>{% trans "Sorry, the form is not ready, try tomorrow" %}</em></div> {% endif %}
-              </p>
-            {% endif %}
-          {% elif agent.project.joining_style == "autojoin" %}
-            <div>
-              {% trans "You can simply join this project with one click" %}: &nbsp;
-                <form
-                    class="action-form"
-                    id="join-form"
-                    action="{% url "join_project" project_id=agent.id %}"
-                    method="POST" >
-                    {% csrf_token %}
-                    <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Join" %}' />
-                </form>
+              {% elif agent.project.joining_style == "autojoin" %}
+                <div>
+                  {% trans "You can simply join this project with one click" %}: &nbsp;
+                    <form
+                        class="action-form"
+                        id="join-form"
+                        action="{% url "join_project" project_id=agent.id %}"
+                        method="POST" >
+                        {% csrf_token %}
+                        <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Join" %}' />
+                    </form>
+                </div>
+              {% endif %}
             </div>
+            {% endif %}
           {% endif %}
         </div>
-        {% endif %}
-      {% endif %}
       </div>
 
 
