@@ -99,8 +99,10 @@ a.disabled:hover {
 
 /*   I C O N S   */
 
-i.world-icon::before, i.hamburger::before, i.icon-wrench::before, i.icon-user::before, i.icon-cog::before, i.icon-off::before,
-i.icon-star::before, i.icon-comment::before, i.icon-transfer::before, i.icon-tasks::before, i.icon-tag::before, i.icon-tags::before {
+i.world-icon::before, i.hamburger::before, i.icon-wrench::before, i.icon-user::before,
+i.icon-cog::before, i.icon-off::before, i.icon-star::before, i.icon-comment::before,
+i.icon-transfer::before, i.icon-tasks::before, i.icon-tag::before, i.icon-tags::before,
+i.icon-edit::before {
     display: inline-block;
     font-family: 'Glyphicons Halflings';
     font-style: normal;
@@ -152,6 +154,9 @@ i.icon-tag::before {
 i.icon-tags::before {
     content: "\e042";
 }
+i.icon-edit::before {
+    content: "\e065";
+}
 
 i.icon-wrench, i.icon-user, i.icon-cog, i.icon-off, i.icon-star, i.icon-comment, i.icon-transfer, i.icon-tasks,
 i.icon-tag, i.icon-tags {
@@ -170,9 +175,11 @@ li.divider {
     border-color: rgba(0, 0, 0, 0.25) !important;
     background-repeat: repeat-x;
     border: 1px solid;
-    padding: 0 .2rem 0 .3rem;
+    padding: .1rem .2rem 0 .3rem;
     border-radius: 4px;
     color: #fff;
+    font-size: .8rem;
+    line-height: 1rem;
 }
 a.btn-mini-icon:hover {
     color: #eee;
@@ -267,7 +274,7 @@ span.error {
 }
 .btn-mini {
     padding: 0px 7px 1px;
-    line-height: 1.4em;
+    line-height: 1.3rem;
     font-size: .9em;
 }
 
@@ -538,11 +545,11 @@ ul.dt-button-collection.dropdown-menu {
   -moz-border-radius: 7px;
   -webkit-border-radius: 7px;
   border-radius: 7px;
-  /*margin-bottom: 13px;
-  margin-left: 1em;*/
+  margin-bottom: 13px;
+  /*margin-left: 1em;*/
 }
 .infobox {
-  background-color: #f0f0da;
+  background-color: #f5f5df;
   padding: 7px 15px;
   border: 1px solid #CACAC6;
   -moz-border-radius: 7px;
@@ -657,6 +664,7 @@ div.fancytree-radio {
 div ul.fancytree-container {
   background: none;
   border: none;
+  overflow: visible;
 }
 span.fancytree-title span.edit a {
   color: #734279;

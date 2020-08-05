@@ -5,6 +5,7 @@
 {% load bootstrap_tags %}
 {% load mptt_tags %}
 {% load filters %}
+{% load comments %}
 
 {% block head_title %}{% trans "Exchanges" %}{% endblock %}
 
@@ -223,6 +224,7 @@ hr {
   /*max-height: 97px;*/
 }
 .miniform {
+    margin-bottom: 0;
   /*margin-left: 0px;
   float: left;*/
 }
@@ -379,7 +381,7 @@ hr {
                 {% endif %}
               {% endif %}
               {% if request.user.agent.agent.need_projects %}
-                  <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
+                  <!-- <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a> -->
               {% endif %}
             </div>
         </legend>
@@ -560,7 +562,7 @@ hr {
             </th>
             <th class="give"><br/><span class="sub-th">{% trans "Resource" %}</span></th>
             <th class="give"><br/><span class="sub-th">{% trans "Last date" %}</span></th>
-            <th class="receive">{% trans "Receive" %}<br/>
+            <th class="receive" style="padding-right:5px;">{% trans "Receive" %}<br/>
                 <span class="sub-th">{% trans "Qty" %}</span>
             </th>
             <th class="receive"><br/><span class="sub-th">{% trans "Resource" %}</span></th>
@@ -599,10 +601,10 @@ hr {
                     <td>
                         {{ x.exchange_type|show_name:context_agent|safe }}
                         {% if x.join_request %}
-                            {% trans "shares" %}
+                            {% get_comment_count for x.join_request as ncom %}
                             <a href="{% url "project_feedback" agent_id=context_agent.id join_request_id=x.join_request.id %}"
-                               style="font-weight:bold;">
-                            {% trans "Request" %}
+                               class="btn-mini-icon"><i class="icon-comment"></i>
+                               {{ ncom }}
                             </a>
                         {% else %}
 
@@ -693,7 +695,7 @@ hr {
                                   {% elif x.transfers.all|length == 1 %}
                                     {% with x.transfers.all|first as tx %}
                                       {% if tx.from_agent == context_agent %}
-                                        <span class="{{ tx.status }}">&#9679;</span>
+                                        <span class="{{ tx.status }}">&#9899;</span>
                                         {% if tx.quantity %}
                                             {{ tx.quantity }}
                                             {% if tx.actual_quantity and not tx.actual_quantity == tx.quantity %}({{ tx.actual_quantity }}){% endif %}
@@ -717,7 +719,7 @@ hr {
                         {% elif x.transfers.all %} tr!
                             {% for tx in x.transfers.all %}
                                 {% if tx.from_agent == context_agent or x.join_request.project.agent == context_agent and not tx.from_agent %}
-                                    <span class="{{ tx.status }}">&#9679;</span>
+                                    <span class="{{ tx.status }}">&#9899;</span>
                                         {% if tx.quantity %}
                                             {{ tx.quantity }}
                                             {% if tx.actual_quantity and not tx.actual_quantity == tx.quantity %}({{ tx.actual_quantity }}){% endif %}
@@ -772,7 +774,7 @@ hr {
                         {% if x.slots %}
                             {% for slot in x.slots %}
                                 {% if context_agent in slot.agents_from %}
-                                    <span class="{{ slot.status }}">&#9679;</span> {{ slot.last_date }}
+                                    <span class="{{ slot.status }}">&#9899;</span> {{ slot.last_date }}
                                 {% endif %}
                             {% endfor %}
                         {% endif %}
@@ -840,7 +842,7 @@ hr {
                         {% elif x.transfers.all %} tr!
                             {% for tx in x.transfers.all %}
                                 {% if tx.to_agent == context_agent or x.join_request.agent == context_agent and not tx.to_agent %}
-                                    <span class="{{ tx.status }}">&#9679;</span>
+                                    <span class="{{ tx.status }}">&#9899;</span>
                                     {% if tx.quantity %}
                                         {{ tx.quantity }}
                                         {% if tx.actual_quantity and not tx.actual_quantity == tx.quantity %}({{ tx.actual_quantity }}){% endif %}
@@ -891,7 +893,7 @@ hr {
                         {% if x.slots %}
                             {% for slot in x.slots %}
                                 {% if context_agent in slot.agents_to %}
-                                    <span class="{{ slot.status }}">&#9679;</span> {{ slot.last_date }}
+                                    <span class="{{ slot.status }}">&#9899;</span> {{ slot.last_date }}
                                 {% endif %}
                             {% endfor %}
                         {% endif %}
