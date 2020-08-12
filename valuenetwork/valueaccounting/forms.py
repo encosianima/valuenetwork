@@ -36,7 +36,7 @@ class WorkModelChoiceField(forms.ModelChoiceField):
 
 class ResourceModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        label = obj.__unicode__()
+        label = obj.__str__()
         if obj.current_location:
             loc = obj.current_location.name
             label = " ".join([label, "at", loc])

@@ -139,9 +139,9 @@ a.more-link {
           </span>
           <div class="subnav">
             {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
-              {% if user_agent.need_projects %}
+              <!-- {% if user_agent.need_projects %}
                   <a class="indent" href="{% url "your_projects" %}">{% trans "Your Projects" %}</a>
-              {% endif %}
+              {% endif %} -->
             {% else %}
               <!-- {% if jn_req.agent.is_active_freedom_coop_member %}
                 <a class="indent" href="{% url 'members_agent' agent_id=jn_req.project.agent.id %}">{% trans "View Project" %}</a>
@@ -580,12 +580,12 @@ a.more-link {
                               {{ wallet_form|as_bootstrap }}
                               <div id="div_id_repassword" class="control-group ">
                                   <label class="control-label required-field" for="id_repassword">{% trans "Confirm password" %}</label>
-                                  <div class="controls">
+                                  <div class="">
                                       <input id="id_repassword" name="repassword" required="" maxlength="32" type="password">
                                   </div>
                               </div>
                               <div class="modal-footer">
-                                  <button class="btn" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
+                                  <button class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">{% trans "Cancel" %}</button>
                                   <input type="submit" class="btn btn-primary" name="submit" value='{% trans "Create BotC-Wallet User" %}' />
                               </div>
                           </form>

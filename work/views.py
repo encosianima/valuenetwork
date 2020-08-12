@@ -1357,7 +1357,9 @@ def run_fdc_scripts(request, agent):
         raise ValidationError("This is only intended for Freedom Coop agent migration")
     fdc = agent
     if not hasattr(fdc, 'project'): return
-    #print("............ start run_fdc_scripts .............")
+    user_agent = get_agent(request)
+
+    print("............ start run_fdc_scripts ("+str(agent)+") .............")
     loger.info("............ start run_fdc_scripts ("+str(agent)+") .............")
     acctyp = fdc.project.shares_account_type()
     shrtyp = fdc.project.shares_type()
@@ -1569,9 +1571,10 @@ def run_fdc_scripts(request, agent):
                                 loger.info("- Created new association as FdC candidate: "+str(agas))
                                 messages.info(request, "- Created new association as FdC candidate: "+str(agas))
                 else:
-                    print("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
-                    loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
-                    messages.warning(request, "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
+                    if user_agent == agent or user_agent in agent.managers or request.user.is_staff:
+                        print("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
+                        loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
+                        messages.warning(request, "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
 
 
         else: # is found in candidates or participants
@@ -1638,7 +1641,7 @@ def run_fdc_scripts(request, agent):
     if pend and request.user.agent.agent in fdc.managers():
         messages.error(request, "Membership Requests pending to MIGRATE to the new generic JoinRequest system: <b>"+str(pend)+"</b>", extra_tags='safe')
 
-    #print("............ end run_fdc_scripts .............")
+    print("............ end run_fdc_scripts ("+str(agent)+") .............")
     loger.info("............ end run_fdc_scripts ("+str(agent)+") .............")
 
 
@@ -1774,6 +1777,12 @@ def members_agent(request, agent_id):
         if req.project.agent == agent:
           user_agent.req = req
           break
+
+    user_agent.assos = user_agent.is_associate_of.filter(has_associate=agent)
+    if user_agent.assos:
+        if len(user_agent.assos) > 1:
+            print("- WARN: agent with multiple Relations with the context! "+str(user_agent.assos))
+            loger.warning("- WARN: agent with multiple Relations with the context! "+str(user_agent.assos))
 
     try:
         project = agent.project
@@ -2061,10 +2070,16 @@ def members_agent(request, agent_id):
 
     asso_childs = agent.has_associates.filter(association_type__association_behavior__in=['child','peer'], state="active").count() #.order_by(Lower('is_associate__name'))
     asso_chil = agent.has_associates.filter(association_type__association_behavior__in=['child','peer'], state="active").first()
-    asso_declin = agent.has_associates.filter(state="inactive").count() #.order_by(Lower('is_associate__name'))
-    asso_decl = agent.has_associates.filter(state="inactive").first()
-    asso_candid = agent.has_associates.filter(state="potential").count() #.order_by(Lower('is_associate__name'))
-    asso_cand = agent.has_associates.filter(state="potential").first()
+    if user_is_agent or user_agent in agent.managers():
+        asso_declin = agent.has_associates.filter(state="inactive").count() #.order_by(Lower('is_associate__name'))
+        asso_decl = agent.has_associates.filter(state="inactive").first()
+        asso_candid = agent.has_associates.filter(state="potential").count() #.order_by(Lower('is_associate__name'))
+        asso_cand = agent.has_associates.filter(state="potential").first()
+    else:
+        asso_declin = 0
+        asso_decl = None
+        asso_candid = 0
+        asso_cand = None
     asso_coords = agent.has_associates.filter(association_type__association_behavior__in=['manager','custodian'], state="active").count() #.order_by(Lower('is_associate__name'))
     asso_coor = agent.has_associates.filter(association_type__association_behavior__in=['manager','custodian'], state="active").first()
     asso_members = agent.has_associates.filter(association_type__association_behavior='member', state="active").count() #.order_by(Lower('is_associate__name'))
@@ -2118,7 +2133,7 @@ def members_agent(request, agent_id):
         #"member_hours_roles": member_hours_roles,
         "individual_stats": individual_stats,
         "roles_height": roles_height,
-        "help": get_help("members_agent"),
+        #"help": get_help("members_agent"),
         "form_entries": entries,
         "fobi_name": fobi_name,
         "add_skill_form": add_skill_form,
@@ -2138,21 +2153,38 @@ def view_agents_list(request, agent_id):
         return render(request, 'work/no_permission.html')
 
     if request.POST:
-        behavior = request.POST['behavior'];
-        state = request.POST['state'];
+        behavior = request.POST['behavior']
+        state = request.POST['state']
+        number = int(request.POST['number'])
+        ready = int(request.POST['ready'])
 
-        assocs = agent.has_associates.filter(association_type__association_behavior=behavior, state=state).order_by(Lower('is_associate__name'))
+        ofset = 10    # TUNE as wished
+
+        maxim = ready+ofset
+        if maxim > number:
+            maxim = number
+
+        if behavior == 'child':
+            behaviors = [behavior, 'peer']
+        elif behavior == 'manager':
+            behaviors = [behavior, 'custodian']
+        else:
+            behaviors = [behavior]
+        #print('ready: '+str(ready)+' maxim:'+str(maxim))
+        assocs = agent.has_associates.filter(association_type__association_behavior__in=behaviors,
+                                             state=state).order_by(Lower('is_associate__name'))[ready:maxim]
 
     if hasattr(agent, 'project') and agent.project.is_moderated():
         proshacct = agent.project.shares_account_type()
         for ass in assocs:
             ag = ass.is_associate
             ag.jn_reqs = ag.project_join_requests.filter(project=agent.project)
-            ag.oldshares = ag.owned_shares(agent)
-            ag.newshares = 0
-            acc = ag.owned_shares_accounts(proshacct)
-            if acc:
-                ag.newshares = int(acc[0].price_per_unit)
+            if proshacct:
+                ag.oldshares = ag.owned_shares(agent)
+                ag.newshares = 0
+                acc = ag.owned_shares_accounts(proshacct)
+                if acc:
+                    ag.newshares = int(acc[0].price_per_unit)
 
     return render(request, 'work/_agent_list.html', {
             'assocs': assocs,
@@ -3735,7 +3767,7 @@ class JoinreqListJson(BaseDatatableView):
 
             else:
                 req.nam = req.name+' '+req.surname
-                req.nam.trim()
+                req.nam.strip()
                 if req.requested_username:
                     req.nick = req.requested_username
                 else:
