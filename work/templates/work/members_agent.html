@@ -384,13 +384,13 @@
                         <a href="#uploadPicture" role="button" class="btn btn-primary btn-mini" data-toggle="modal"
                            style="float:right; margin-top:5px;">{% if agent.photo or agent.photo_url %}{% trans "Change" %}{% else %}{% trans "Set" %}{% endif %}</a>
 
-                        {% if not agent.photo_url == agent.photo_url_en %}
+                        {% if not agent.photo_url == agent.photo_url_en and agent.photo_url_en %}
                           <br><span class="small">(en: <img src="{{ agent.photo_url_en }}" /> )</span>
                         {% endif %}
-                        {% if not agent.photo_url == agent.photo_url_es %}
+                        {% if not agent.photo_url == agent.photo_url_es and agent.photo_url_es %}
                           <br><span class="small">(es: <img src="{{ agent.photo_url_es }}" /> )</span>
                         {% endif %}
-                        {% if not agent.photo_url == agent.photo_url_ca %}
+                        {% if not agent.photo_url == agent.photo_url_ca and agent.photo_url_ca %}
                           <br><span class="small">(ca: <img src="{{ agent.photo_url_ca }}" /> )</span>
                         {% endif %}
                       {% endif %}
