@@ -2131,13 +2131,6 @@ def check_empty_langs(request, agent):
         agent.save()
         print("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
         loger.info("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
-    if agent.photo:
-        if not agent.photo._file:
-            #agent.photo.delete()
-            #agent.photo = None
-            #agent.save()
-            print("Fixed 'None' as string in the photo.url (agent.photo is deleted) ! "+agent.name)
-            loger.info("Fixed 'None' as string in the photo.url (agent.photo is deleted) ! "+agent.name)
 
     for lan, nom in settings.LANGUAGES:
         #print('lan: '+lan+'  name: '+getattr(agent, 'name_'+lan, 'EMPTY?'))
@@ -2157,7 +2150,7 @@ def check_empty_langs(request, agent):
                     setattr(agent, 'name_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'name_"+lan+"' from 'name_"+ln+"'! "+nam)
-                    messages.warning(request, "FIXED 'name_"+lan+"' from 'name_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'name_"+lan+"' from 'name_"+ln+"' ! "+nam)
                     fixed += 1
 
         if not getattr(agent, 'nick_'+lan, None):
@@ -2169,7 +2162,7 @@ def check_empty_langs(request, agent):
                     setattr(agent, 'nick_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'nick_"+lan+"' from 'nick_"+ln+"'! "+nam)
-                    messages.warning(request, "FIXED 'nick_"+lan+"' from 'nick_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'nick_"+lan+"' from 'nick_"+ln+"' ! "+nam)
                     fixed += 1
 
         if not getattr(agent, 'email_'+lan, None):
@@ -2181,7 +2174,7 @@ def check_empty_langs(request, agent):
                     setattr(agent, 'email_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'email_"+lan+"' from 'email_"+ln+"'! "+nam)
-                    messages.warning(request, "FIXED 'email_"+lan+"' from 'email_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'email_"+lan+"' from 'email_"+ln+"' ! "+nam)
                     fixed += 1
 
         if not getattr(agent, 'url_'+lan, None):
@@ -2193,7 +2186,7 @@ def check_empty_langs(request, agent):
                     setattr(agent, 'url_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'url_"+lan+"' from 'url_"+ln+"'! "+nam)
-                    messages.warning(request, "FIXED 'url_"+lan+"' from 'url_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'url_"+lan+"' from 'url_"+ln+"' ! "+nam)
                     fixed += 1
 
         if not getattr(agent, 'photo_url_'+lan, None):
@@ -2205,7 +2198,7 @@ def check_empty_langs(request, agent):
                     setattr(agent, 'photo_url_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'photo_url_"+lan+"' from 'photo_url_"+ln+"'! "+nam)
-                    messages.warning(request, "FIXED 'photo_url_"+lan+"' from 'photo_url_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'photo_url_"+lan+"' from 'photo_url_"+ln+"' ! "+nam)
                     fixed += 1
 
         if not getattr(agent, 'phone_primary_'+lan, None):
@@ -2217,7 +2210,7 @@ def check_empty_langs(request, agent):
                     setattr(agent, 'phone_primary_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'phone_primary_"+lan+"' from 'phone_primary_"+ln+"'! "+nam)
-                    messages.warning(request, "FIXED 'phone_primary_"+lan+"' from 'phone_primary_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'phone_primary_"+lan+"' from 'phone_primary_"+ln+"' ! "+nam)
                     fixed += 1
 
         if not getattr(agent, 'address_'+lan, None):
@@ -2229,7 +2222,7 @@ def check_empty_langs(request, agent):
                     setattr(agent, 'address_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'address_"+lan+"' from 'address_"+ln+"'! "+nam)
-                    messages.warning(request, "FIXED 'address_"+lan+"' from 'address_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'address_"+lan+"' from 'address_"+ln+"' ! "+nam)
                     fixed += 1
 
     return fixed
