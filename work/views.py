@@ -2047,6 +2047,10 @@ def members_agent(request, agent_id):
 
     dups = check_duplicate_agents(request, agent)
 
+    fixes = check_empty_langs(request, agent)
+    if fixes:
+        print("Fixed "+str(fixes)+" emapty strings for agent: "+agent.name)
+        
     asso_childs = []
     asso_declin = []
     asso_candid = []
@@ -2119,6 +2123,97 @@ def members_agent(request, agent_id):
         "related_rts": related_rts,
         "units": Unit.objects.filter(unit_type='value').exclude(name_en__icontains="share"),
     })
+
+def check_empty_langs(request, agent):
+    fixed = 0
+    for lan, nom in settings.LANGUAGES:
+        #print('lan: '+lan+'  name: '+getattr(agent, 'name_'+lan, 'EMPTY?'))
+        if not getattr(agent, 'name_'+lan, None):
+            langs = settings.LANGUAGES[:]
+            langs.remove((lan, nom))
+            for ln, nm in langs:
+                nam = getattr(agent, 'name_'+ln, None)
+                if nam:
+                    setattr(agent, 'name_'+lan, nam)
+                    agent.save()
+                    loger.info("FIXED 'name_"+lan+"' from 'name_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'name_"+lan+"' from 'name_"+ln+"'! "+nam)
+                    fixed += 1
+
+        if not getattr(agent, 'nick_'+lan, None):
+            langs = settings.LANGUAGES[:]
+            langs.remove((lan, nom))
+            for ln, nm in langs:
+                nam = getattr(agent, 'nick_'+ln, None)
+                if nam:
+                    setattr(agent, 'nick_'+lan, nam)
+                    agent.save()
+                    loger.info("FIXED 'nick_"+lan+"' from 'nick_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'nick_"+lan+"' from 'nick_"+ln+"'! "+nam)
+                    fixed += 1
+
+        if not getattr(agent, 'email_'+lan, None):
+            langs = settings.LANGUAGES[:]
+            langs.remove((lan, nom))
+            for ln, nm in langs:
+                nam = getattr(agent, 'email_'+ln, None)
+                if nam:
+                    setattr(agent, 'email_'+lan, nam)
+                    agent.save()
+                    loger.info("FIXED 'email_"+lan+"' from 'email_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'email_"+lan+"' from 'email_"+ln+"'! "+nam)
+                    fixed += 1
+
+        if not getattr(agent, 'url_'+lan, None):
+            langs = settings.LANGUAGES[:]
+            langs.remove((lan, nom))
+            for ln, nm in langs:
+                nam = getattr(agent, 'url_'+ln, None)
+                if nam:
+                    setattr(agent, 'url_'+lan, nam)
+                    agent.save()
+                    loger.info("FIXED 'url_"+lan+"' from 'url_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'url_"+lan+"' from 'url_"+ln+"'! "+nam)
+                    fixed += 1
+
+        if not getattr(agent, 'photo_url_'+lan, None):
+            langs = settings.LANGUAGES[:]
+            langs.remove((lan, nom))
+            for ln, nm in langs:
+                nam = getattr(agent, 'photo_url_'+ln, None)
+                if nam:
+                    setattr(agent, 'photo_url_'+lan, nam)
+                    agent.save()
+                    loger.info("FIXED 'photo_url_"+lan+"' from 'photo_url_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'photo_url_"+lan+"' from 'photo_url_"+ln+"'! "+nam)
+                    fixed += 1
+
+        if not getattr(agent, 'phone_primary_'+lan, None):
+            langs = settings.LANGUAGES[:]
+            langs.remove((lan, nom))
+            for ln, nm in langs:
+                nam = getattr(agent, 'phone_primary_'+ln, None)
+                if nam:
+                    setattr(agent, 'phone_primary_'+lan, nam)
+                    agent.save()
+                    loger.info("FIXED 'phone_primary_"+lan+"' from 'phone_primary_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'phone_primary_"+lan+"' from 'phone_primary_"+ln+"'! "+nam)
+                    fixed += 1
+
+        if not getattr(agent, 'address_'+lan, None):
+            langs = settings.LANGUAGES[:]
+            langs.remove((lan, nom))
+            for ln, nm in langs:
+                nam = getattr(agent, 'address_'+ln, None)
+                if nam:
+                    setattr(agent, 'address_'+lan, nam)
+                    agent.save()
+                    loger.info("FIXED 'address_"+lan+"' from 'address_"+ln+"'! "+nam)
+                    messages.warning(request, "FIXED 'address_"+lan+"' from 'address_"+ln+"'! "+nam)
+                    fixed += 1
+
+    return fixed
+
 
 
 @login_required
