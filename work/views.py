@@ -2128,6 +2128,13 @@ def check_empty_langs(request, agent):
     fixed = 0
     for lan, nom in settings.LANGUAGES:
         #print('lan: '+lan+'  name: '+getattr(agent, 'name_'+lan, 'EMPTY?'))
+        imgurl = getattr(agent, 'photo_url_'+lan, None)
+        if imgurl == 'None':
+            setattr(agent, 'photo_url_'+lan, '')
+            agent.save()
+            print("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
+            loger.info("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
+
         if not getattr(agent, 'name_'+lan, None):
             langs = settings.LANGUAGES[:]
             langs.remove((lan, nom))
