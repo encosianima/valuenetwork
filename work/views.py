@@ -2131,22 +2131,22 @@ def check_empty_langs(request, agent):
         agent.save()
         print("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
         loger.info("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
-    if agent.photo and agent.photo.url == 'None':
-        agent.photo.delete()
-        agent.photo = None
-        agent.save()
-        print("Fixed 'None' as string in the photo.url (agent.photo is deleted) ! "+agent.name)
-        loger.info("Fixed 'None' as string in the photo.url (agent.photo is deleted) ! "+agent.name)
+    if agent.photo:
+        if not agent.photo.url or agent.photo.url == 'None':
+            agent.photo.delete()
+            agent.photo = None
+            agent.save()
+            print("Fixed 'None' as string in the photo.url (agent.photo is deleted) ! "+agent.name)
+            loger.info("Fixed 'None' as string in the photo.url (agent.photo is deleted) ! "+agent.name)
 
     for lan, nom in settings.LANGUAGES:
         #print('lan: '+lan+'  name: '+getattr(agent, 'name_'+lan, 'EMPTY?'))
         imgurl = getattr(agent, 'photo_url_'+lan, None)
-        if imgurl == 'None' or agent.photo_url == 'None':
-
+        if imgurl == 'None':
             setattr(agent, 'photo_url_'+lan, agent.photo_url)
             agent.save()
-            print("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
-            loger.info("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
+            print("Fixed 'None' as string in the photo_url (now is '"+agent.photo_url+"') ! "+agent.name)
+            loger.info("Fixed 'None' as string in the photo_url (now is '"+agent.photo_url+"') ! "+agent.name)
 
         if not getattr(agent, 'name_'+lan, None):
             langs = settings.LANGUAGES[:]
