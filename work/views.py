@@ -2050,7 +2050,7 @@ def members_agent(request, agent_id):
     fixes = check_empty_langs(request, agent)
     if fixes:
         print("Fixed "+str(fixes)+" emapty strings for agent: "+agent.name)
-        
+
     asso_childs = []
     asso_declin = []
     asso_candid = []
@@ -2133,7 +2133,7 @@ def check_empty_langs(request, agent):
             langs.remove((lan, nom))
             for ln, nm in langs:
                 nam = getattr(agent, 'name_'+ln, None)
-                if nam:
+                if nam and not getattr(agent, 'name_'+lan, None):
                     setattr(agent, 'name_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'name_"+lan+"' from 'name_"+ln+"'! "+nam)
@@ -2145,7 +2145,7 @@ def check_empty_langs(request, agent):
             langs.remove((lan, nom))
             for ln, nm in langs:
                 nam = getattr(agent, 'nick_'+ln, None)
-                if nam:
+                if nam and not getattr(agent, 'nick_'+lan, None):
                     setattr(agent, 'nick_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'nick_"+lan+"' from 'nick_"+ln+"'! "+nam)
@@ -2157,7 +2157,7 @@ def check_empty_langs(request, agent):
             langs.remove((lan, nom))
             for ln, nm in langs:
                 nam = getattr(agent, 'email_'+ln, None)
-                if nam:
+                if nam and not getattr(agent, 'email_'+lan, None):
                     setattr(agent, 'email_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'email_"+lan+"' from 'email_"+ln+"'! "+nam)
@@ -2169,7 +2169,7 @@ def check_empty_langs(request, agent):
             langs.remove((lan, nom))
             for ln, nm in langs:
                 nam = getattr(agent, 'url_'+ln, None)
-                if nam:
+                if nam and not getattr(agent, 'url_'+lan, None):
                     setattr(agent, 'url_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'url_"+lan+"' from 'url_"+ln+"'! "+nam)
@@ -2181,7 +2181,7 @@ def check_empty_langs(request, agent):
             langs.remove((lan, nom))
             for ln, nm in langs:
                 nam = getattr(agent, 'photo_url_'+ln, None)
-                if nam:
+                if nam and not getattr(agent, 'photo_url_'+lan, None):
                     setattr(agent, 'photo_url_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'photo_url_"+lan+"' from 'photo_url_"+ln+"'! "+nam)
@@ -2193,7 +2193,7 @@ def check_empty_langs(request, agent):
             langs.remove((lan, nom))
             for ln, nm in langs:
                 nam = getattr(agent, 'phone_primary_'+ln, None)
-                if nam:
+                if nam and not getattr(agent, 'phone_primary_'+lan, None):
                     setattr(agent, 'phone_primary_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'phone_primary_"+lan+"' from 'phone_primary_"+ln+"'! "+nam)
@@ -2205,7 +2205,7 @@ def check_empty_langs(request, agent):
             langs.remove((lan, nom))
             for ln, nm in langs:
                 nam = getattr(agent, 'address_'+ln, None)
-                if nam:
+                if nam and not getattr(agent, 'address_'+lan, None):
                     setattr(agent, 'address_'+lan, nam)
                     agent.save()
                     loger.info("FIXED 'address_"+lan+"' from 'address_"+ln+"'! "+nam)
