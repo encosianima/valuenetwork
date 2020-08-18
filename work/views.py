@@ -2131,7 +2131,7 @@ def check_empty_langs(request, agent):
         imgurl = getattr(agent, 'photo_url_'+lan, None)
         if imgurl == 'None' or agent.photo_url == 'None':
             if agent.photo_url == 'None':
-                agent.photo_url = '';
+                agent.photo_url = ''
             setattr(agent, 'photo_url_'+lan, agent.photo_url)
             agent.save()
             print("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
