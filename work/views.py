@@ -2132,10 +2132,10 @@ def check_empty_langs(request, agent):
         print("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
         loger.info("Fixed 'None' as string in the photo_url (now is '') ! "+agent.name)
     if agent.photo:
-        if not agent.photo.url or agent.photo.url == 'None':
-            agent.photo.delete()
-            agent.photo = None
-            agent.save()
+        if not agent.photo._file:
+            #agent.photo.delete()
+            #agent.photo = None
+            #agent.save()
             print("Fixed 'None' as string in the photo.url (agent.photo is deleted) ! "+agent.name)
             loger.info("Fixed 'None' as string in the photo.url (agent.photo is deleted) ! "+agent.name)
 
