@@ -1359,6 +1359,7 @@ def run_fdc_scripts(request, agent):
     if not hasattr(fdc, 'project'): return
     #print "............ start run_fdc_scripts ............."
     loger.info("............ start run_fdc_scripts ("+str(agent)+") .............")
+    user_agent = get_agent(request)
     acctyp = fdc.project.shares_account_type()
     shrtyp = fdc.project.shares_type()
     oldshr = EconomicResourceType.objects.membership_share()
