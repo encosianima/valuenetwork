@@ -666,6 +666,9 @@ class JoinRequest(models.Model):
         fobi_keys = []
         if self.fobi_data and self.fobi_data.pk:
             self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
+            if not self.entries:
+                loger.debug("++ jnreq:"+str(self.id)+" has no fobi entries ?? ++")
+                return fobi_keys
             entry = self.entries[0]
             form_headers = json.loads(entry.form_data_headers)
             for elem in self.fobi_data.form_entry.formelemententry_set.all().order_by('position'):

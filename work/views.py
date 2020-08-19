@@ -1569,9 +1569,10 @@ def run_fdc_scripts(request, agent):
                                 loger.info("- Created new association as FdC candidate: "+str(agas))
                                 messages.info(request, "- Created new association as FdC candidate: "+str(agas))
                 else:
-                    print "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair"
-                    loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
-                    messages.warning(request, "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
+                    if user_agent == agent or user_agent in agent.managers() or request.user.is_staff:
+                        print "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair"
+                        loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
+                        messages.warning(request, "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
 
 
         else: # is found in candidates or participants
