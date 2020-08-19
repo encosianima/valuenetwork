@@ -603,9 +603,7 @@ hr {
                         {% if x.join_request %}
                             {% get_comment_count for x.join_request as ncom %}
                             <a href="{% url "project_feedback" agent_id=context_agent.id join_request_id=x.join_request.id %}"
-                               class="btn-mini-icon"><i class="icon-comment"></i>
-                               {{ ncom }}
-                            </a>
+                               class="btn-mini-icon"><i class="icon-comment"></i>&nbsp;{{ ncom }}</a>
                         {% else %}
 
                         {% endif %}

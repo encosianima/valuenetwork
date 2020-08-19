@@ -2097,16 +2097,6 @@ def members_agent(request, agent_id):
     if hasattr(agent, 'project') and agent.project.is_moderated():
         if not agent.email and user_agent in agent.managers():
             messages.error(request, _("Please provide an email for the project to use as a remitent for the moderated joining process notifications!"))
-        proshacct = agent.project.shares_account_type()
-        for ass in has_associations:
-            ag = ass.is_associate
-            ag.jn_reqs = ag.project_join_requests.filter(project=agent.project)
-            ag.oldshares = ag.owned_shares(agent)
-            ag.newshares = 0
-            acc = ag.owned_shares_accounts(proshacct)
-            if acc:
-                ag.newshares = int(acc[0].price_per_unit)
-
 
     assobj = {'childs':asso_childs,
               'chil':asso_chil,
