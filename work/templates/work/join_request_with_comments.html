@@ -117,7 +117,15 @@ a.more-link {
             {% if jn_req.project.shares_type %}{% trans "Membership" %}{% else %}{% trans "Join request" %}{% endif %}:
               <b>{% if jn_req.state == 'new' %}{% trans "Pending" %}{% else %}{{ jn_req.state|title }}{% endif %}</b>
           {% else %}
-            <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span>
+            <span class="error">{% trans "MISSING THE OCP ACCOUNT!" %}</span> &nbsp;
+            <form
+                    style="display:inline;"
+                    id="delete-form{{ jn_req.id }}"
+                    action="{% url "delete_request" join_request_id=jn_req.id %}"
+                    method="POST" >
+                    {% csrf_token %}
+                    <input type="submit" class="btn btn-mini btn-danger" name="submit" value='{% trans "Delete request" %}' />
+            </form>
           {% endif %}
 
           {% if user_agent in jn_req.project.agent.managers or user_agent == jn_req.project.agent %}
