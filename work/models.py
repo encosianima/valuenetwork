@@ -592,7 +592,7 @@ class JoinRequest(models.Model):
 
     agent = models.ForeignKey(EconomicAgent,
         verbose_name=_('agent'), related_name='project_join_requests',
-        blank=True, null=True, on_delete=models.SET_NULL,
+        blank=True, null=True, on_delete=models.CASCADE,
         help_text=_("this join request became this EconomicAgent"))
 
     fobi_data = models.OneToOneField(SavedFormDataEntry,
@@ -694,12 +694,13 @@ class JoinRequest(models.Model):
         self.items_data = None
         if self.fobi_data and self.fobi_data.pk:
             self.entries = SavedFormDataEntry.objects.filter(pk=self.fobi_data.pk).select_related('form_entry')
-            entry = self.entries[0]
-            self.data = json.loads(entry.saved_data)
-            self.items = list(self.data.items())
-            self.items_data = []
-            for key in self.fobi_items_keys():
-                self.items_data.append(self.data.get(key))
+            if self.entries:
+                entry = self.entries[0]
+                self.data = json.loads(entry.saved_data)
+                self.items = self.data.items()
+                self.items_data = []
+                for key in self.fobi_items_keys():
+                    self.items_data.append(self.data.get(key))
         return self.items_data
 
     def payment_regularity(self):
