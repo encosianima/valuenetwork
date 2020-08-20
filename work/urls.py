@@ -3,7 +3,7 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
-from work.views import JoinreqListJson
+from work.views import JoinreqListJson, ExchangeListJson
 import work.views
 
 urlpatterns = [
@@ -130,6 +130,8 @@ urlpatterns = [
     url(r'^assolist/(?P<agent_id>\d+)/$', work.views.view_agents_list, name="view_agents_list"),
 
     path('jnreqlist/<int:agent_id>/<str:state>', login_required(JoinreqListJson.as_view()), name="joinreq_list_json"),
+
+    path('exchangelist/<int:agent_id>/<str:start>/<str:end>', login_required(ExchangeListJson.as_view()), name="exchange_list_json"),
 
     url(r'^delete-request-agent-user/(?P<join_request_id>\d+)/$', work.views.delete_request_agent_and_user,
         name="delete_request_agent_and_user"),

@@ -553,9 +553,8 @@ hr {
         </h3>
         <table id="exchanges" style="width: 100%;" class="table table-bordered table-hover table-condensed cell-border order-column stripe" >
         <thead>
-            <th>{% trans "State" %}</th>
+            <th>{% trans "State" %} / {% trans "Actions" %}</th>
             <th>{% trans "Date" %}</th>
-            <th>{% trans "Action" %}</th>
             <th>{% trans "Agent" %}</th>
             <th class="give">{% trans "Give" %}<br/>
                 <span class="sub-th">{% trans "Qty" %}</span>
@@ -569,15 +568,20 @@ hr {
             <th class="receive"><br/><span class="sub-th">{% trans "Last date" %}</span></th>
         </thead>
         <tbody>
+        {% comment %}
         {% for x in exchanges %}
             {% if request.user.agent.agent in context_agent.managers or request.user.agent.agent == context_agent or request.user.is_superuser %}
                 <tr>
                     <td>
-
-                            <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"
-                               class="{{ x.statuss }}" >
-                                {{ x.statuss|title }}
-                            </a>
+                        <a href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}"
+                           class="{{ x.statuss }}" >
+                            {{ x.statuss|title }}
+                        </a>
+                        {% if x.join_request %}
+                            {% get_comment_count for x.join_request as ncom %}
+                            <a href="{% url "project_feedback" agent_id=context_agent.id join_request_id=x.join_request.id %}"
+                               class="btn-mini-icon"><i class="icon-comment" style="margin: 2px 3px 0px -1px;"></i>{{ ncom }}</a>
+                        {% endif %}
 
                         {% if user == x.created_by or user.is_superuser%}
                             <!-- <a class="btn btn-info btn-mini" href="{% url "exchange_logging_work" context_agent_id=context_agent.id exchange_type_id=0 exchange_id=x.id %}">{% trans "Change" %}</a> -->
@@ -597,16 +601,6 @@ hr {
                     </td>
                     <td>
                         {{ x.start_date|date:"Y-m-d" }}
-                    </td>
-                    <td>
-                        {{ x.exchange_type|show_name:context_agent|safe }}
-                        {% if x.join_request %}
-                            {% get_comment_count for x.join_request as ncom %}
-                            <a href="{% url "project_feedback" agent_id=context_agent.id join_request_id=x.join_request.id %}"
-                               class="btn-mini-icon"><i class="icon-comment" style="margin: 2px 3px 0px -1px;"></i>{{ ncom }}</a>
-                        {% else %}
-
-                        {% endif %}
                     </td>
                     <td class="agent">
                         {% if x.join_request %}
@@ -899,6 +893,7 @@ hr {
                 </tr>
             {% endif %}
 		{% endfor %}
+        {% endcomment %}
         </tbody>
         </table>
       {% endif %}
@@ -1290,44 +1285,59 @@ hr {
 
   $(document).ready(function(){
 
-    $("#exchanges").DataTable({
-        stateSave: true,
-        autoWidth: true,
-        order: [[1, 'desc']],
-        dom: '<"col"rf><"row no-gutters"<"bigbox"t>><"row"<"col"l><"col"p><"col"B>>', //'B<"clear">lfrtip',
-        buttons: [
-            'colvis',
-            {
-                extend: 'pdf',
-                exportOptions: {
-                    columns: ':visible'
-                }
-            },
-            {
-                extend: 'csv',
-                exportOptions: {
-                    columns: ':visible'
-                }
-            },
-        ],
-        "columnDefs": [
-            {
-                // The `data` parameter refers to the data for the cell (defined by the
-                // `data` option, which defaults to the column being worked with, in
-                // this case `data: 0`.
-                "render": function ( data, type, row ) {
-                    //arr = data.split(', ');
-                    //if (arr.length == 2){
-                    //    return arr[1]+', '+arr[0];
-                    //} else {
-                    //    return data +' ('+ row+')';
-                    //}
-                    return data
-                },
-                "targets": 1
+    $("#exchanges")
+        .on( 'processing.dt', function ( e, settings, processing ) {
+            $('#exchanges_processing').css('border', '0').css('top','16px').css('left','167px').css( 'display', processing ? 'block' : 'none' );
+            $('.table-condensed').attr('style', processing ? 'pointer-events:none; opacity:0.5;' : 'pointer-events:inherit; opacity:1;');
+            if(!processing){
+                //update_longs();
             }
-        ]
-    });
+        } )
+        .DataTable({
+            "stateSave": true,
+            "autoWidth": true,
+            "order": [[1, 'desc']],
+            "dom": '<"row no-gutters"<"col"ri><"col right"l>><"row no-gutters bigbox"t><"row no-gutters"<"col left"p><"col"B>>',//'irftBpl', //'B<"clear">lfrtip',
+            "buttons": [
+                'colvis',
+                {
+                    extend: 'pdf',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                },
+                {
+                    extend: 'csv',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                },
+            ],
+
+            "lengthMenu": [[5, 10, 50, 100, 500], [5, 10, 50, 100, 500]],
+
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "{% url 'exchange_list_json' agent_id=context_agent.id start=start end=end %}",
+                "type": "POST"
+            },
+            "language": {
+                "processing": "<img src='{% static 'img/loading.gif' %}' />"
+            },
+
+            "columns": [
+                { "orderable": false }, // actions
+                null, //{ "data": "exchange_date" },
+                null, //{ "data": "name" },
+                null, //{ "data": "requested_username" },
+                null, //{ "data": "type_of_user" },
+                null, //{ "data": "email_address" },
+                null, //{ "data": "phone_number",
+                null, //{ "data": "address",
+                null, //{ "data": "website",
+            ],
+        });
 
 
     $( "#help" ).toggle( function(){

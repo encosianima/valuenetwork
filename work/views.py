@@ -1571,7 +1571,7 @@ def run_fdc_scripts(request, agent):
                                 loger.info("- Created new association as FdC candidate: "+str(agas))
                                 messages.info(request, "- Created new association as FdC candidate: "+str(agas))
                 else:
-                    if user_agent == agent or user_agent in agent.managers or request.user.is_staff:
+                    if user_agent == agent or user_agent in agent.managers() or request.user.is_staff:
                         print("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
                         loger.info("- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
                         messages.warning(request, "- Found FdC shares of agent "+str(ag)+" (with a membership request) but not found any relation with FdC or its parent: SKIP repair")
@@ -5606,7 +5606,22 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
     Rtype_form = NewResourceTypeForm(agent=agent, data=request.POST or None)
     Stype_form = NewSkillTypeForm(agent=agent, data=request.POST or None)
 
-    exchanges_by_type = Exchange.objects.exchanges_by_type(agent)
+    #exchanges_by_type = Exchange.objects.exchanges_by_type(agent)
+    exsids = []
+    coms = agent.involved_in_commitments()
+    for com in coms:
+        if com.exchange:
+            exsids.append(com.exchange.id)
+        else:
+            print("+++ commitment has no exchange? "+str(com))
+    evts = agent.involved_in_events()
+    for evt in evts:
+        if evt.exchange:
+            exsids.append(evt.exchange.id)
+        else:
+            print("+++ event has no exchange? "+str(evt))
+    #print("+ + + "+str(exsids))
+    exchanges_by_type = Exchange.objects.filter(id__in=exsids).order_by('created_date')
 
     #import pdb; pdb.set_trace()
     if not request.method == "POST":
@@ -6149,12 +6164,12 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         total_transfers = [to for to in total_transfers if not to['unit'] == eachunit]
 
 
-    print("......... start slots_with_detail ..........")
-    loger.info("......... start slots_with_detail ..........")
-    for x in exchanges:
-        x.slots = x.slots_with_detail(agent)
-    print("......... end slots_with_detail ..........")
-    loger.info("......... end slots_with_detail ..........")
+    #print("......... start slots_with_detail ..........")
+    #loger.info("......... start slots_with_detail ..........")
+    #for x in exchanges:
+    #    x.slots = x.slots_with_detail(agent)
+    #print("......... end slots_with_detail ..........")
+    #loger.info("......... end slots_with_detail ..........")
 
     return render(request, "work/exchanges_all.html", {
         "exchanges": exchanges,
@@ -6177,7 +6192,342 @@ def exchanges_all(request, agent_id): #all types of exchanges for one context ag
         "Utype_tree": Ocp_Unit_Type.objects.filter(id__in=agent.used_units_ids(exchanges_by_type)), #all(),
         #"unit_types": unit_types,
         "ext_form": ext_form,
+        "start": start,
+        "end": end
     })
+
+
+class ExchangeListJson(BaseDatatableView):
+
+    # define the columns that will be returned
+    columns = ['actions', 'start_date', 'agent', 'give_qty', 'give_resource', 'give_lastdate', 'receive_qty', 'receive_resource', 'receive_lastdate']
+
+    order_columns = ['', 'start_date', 'agent', 'give_qty', 'give_resource', 'give_lastdate', 'receive_qty', 'receive_resource', 'receive_lastdate']
+
+    # set max limit of records returned, this is used to protect our site if someone tries to attack our site
+    # and make it return huge amount of data
+    max_display_length = 500
+
+    def get(self, request, agent_id, *args, **kwargs):
+        self.user_agent = request.user.agent.agent
+        if not hasattr(self, 'agent'):
+            agent_id = self.kwargs['agent_id']
+            self.agent = EconomicAgent.objects.get(id=agent_id)
+        if not hasattr(self, 'start'):
+            self.start = self.kwargs['start']
+        if not hasattr(self, 'end'):
+            self.end = self.kwargs['end']
+        if not hasattr(self, 'csrf_token_field'):
+            csrf_token = csrf.get_token(request)
+            self.csrf_token_field = '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf_token+'"> '
+        if not hasattr(self, 'com_content_type'):
+            self.com_content_type = ContentType.objects.get(model="joinrequest")
+        self.request = request
+        #print('GET self: '+str(self.__dict__))
+        return super().get(request, *args, **kwargs)
+
+    def get_initial_queryset(self):
+        exsids = []
+        coms = self.agent.involved_in_commitments()
+        for com in coms:
+            if com.exchange:
+                exsids.append(com.exchange.id)
+            else:
+                print("+++ commitment has no exchange? "+str(com))
+        evts = self.agent.involved_in_events()
+        for evt in evts:
+            if evt.exchange:
+                exsids.append(evt.exchange.id)
+            else:
+                print("+++ event has no exchange? "+str(evt))
+        #print("+ + + "+str(exsids))
+        return Exchange.objects.filter(id__in=exsids, start_date__range=[self.start, self.end]).order_by('created_date')
+
+
+    def filter_queryset(self, qs):
+
+        return qs
+
+    def render_column(self, row, column):
+        # We want to render user as a custom column
+        if column == 'actions':
+            row.actions += "JELOW"
+            return row.actions #escape('{0} {1}'.format(row.customer_firstname, row.customer_lastname))
+        else:
+            return super(ExchangeListJson, self).render_column(row, column)
+
+    def prepare_results(self, qs):
+        # prepare list with output column data
+        # queryset is already paginated here
+        #print('--- prepare results (start) ----') #cols: '+str(self.columns))
+
+        json_data = []
+
+        for ex in qs:
+            ex.slots = ex.slots_with_detail(self.agent)
+
+            # calculate the actions table cell to speedup the template
+            ex.actions = ''
+            ex.otheragent = ''
+            ex.give_qty = ''
+            ex.give_resource = ''
+            ex.give_lastdate = ''
+            ex.receive_qty = ''
+            ex.receive_resource = ''
+            ex.receive_lastdate = ''
+
+            reqstatus = ex.status()
+            ex.actions += '<a href="'+reverse("exchange_logging_work", args=(self.agent.id, 0, ex.id))+'"'
+            ex.actions += ' class="'+str(reqstatus)+'" >'+str(reqstatus.title())+'</a> '
+
+            if self.request.user == ex.created_by or self.request.user.is_superuser:
+                if ex.is_deletable():
+                    ex.actions += '<form style="display: inline;" class="delete-form" id="deleteForm'+str(ex.id)+'"'
+                    ex.actions += ' action="'+reverse("delete_exchange", args=(ex.id,))+'" method="POST" >'
+                    ex.actions += self.csrf_token_field
+                    ex.actions += '<input type="hidden" id="next" name="next" value="exchanges-all" />'
+                    ex.actions += '<button style="display: inline;" class="btn btn-warning btn-mini" title="Delete exchange" >'
+                    ex.actions += 'X</button></form>'
+
+            req = None
+            if hasattr(ex, 'join_request') and ex.join_request:
+                req = ex.join_request
+                #chekpass = req.check_user_pass()
+                #payamount = req.payment_amount()
+                #totalshrs = req.total_shares()
+                #pendshrs = req.pending_shares()
+                #pendpays = req.pending_payments()
+                #subscres = req.subscription_resource()
+
+                ncom = len(Comment.objects.filter(content_type=self.com_content_type, object_pk=req.pk))
+                ex.actions += '<a class="btn btn-info btn-mini-icon" href="'+reverse('project_feedback', args=(self.agent.id, req.id))+'">'
+                ex.actions += '<i class="icon-comment" title="Feedback"></i><span class="small"> '+str(ncom)+'</span></a>&nbsp;'
+
+                if self.agent == req.project.agent:
+                    ex.otheragent = '<a href="'+reverse("members_agent", args=(req.agent.id,))+'" style="font-weight:bold;">'
+                    ex.otheragent += req.agent.name+'</a>'
+                else:
+                    ex.otheragent = '<a href="'+reverse("members_agent", args=(req.project.agent.id,))+'" style="font-weight:bold;">'
+                    ex.otheragent += req.project.agent.name+'</a>'
+            else:
+                txpay = ex.txpay()
+                if txpay:
+                    if txpay.to_agent() == self.agent:
+                        if txpay.from_agent():
+                            ex.otheragent = '<a href="'+reverse("members_agent", args=(txpay.from_agent().id,))+'" style="font-weight:bold;">'
+                            ex.otheragent += txpay.from_agent().name+'</a>'
+                        else:
+                            ex.otheragent = "?"
+                    elif txpay.to_agent():
+                        ex.otheragent = '<a href="'+reverse("members_agent", args=(txpay.to_agent().id,))+'" style="font-weight:bold;">'
+                        ex.otheragent += txpay.to_agent().name+'</a>'
+                    else:
+                        ex.otheragent = "?"
+                else:
+                    for ag in ex.related_agents():
+                        if ag and not ag == self.agent:
+                            ex.otheragent = '<a href="'+reverse("members_agent", args=(ag.id,))+'" style="font-weight:bold;">'
+                            ex.otheragent += ag.name+'</a> '
+                            #if not forloop.last:
+                            #    ex.otheragent += '<br/>'
+
+            if req and req.check_user_pass():
+                ex.otheragent += '<br /><span class="error">'+str(_("not verified"))+'</span>'
+
+
+            if ex.slots:
+                for slot in ex.slots:
+                    if self.agent in slot.agents_to:
+                        if slot.total_com_unit:
+                            ex.receive_qty += str(slot.total_com)
+                            ex.receive_resource += str(slot.total_com_unit)
+                        else:
+                            ex.receive_qty += str(slot.total_com)
+                            ex.receive_resource += '?'
+                        ex.receive_lastdate += '<span class="'+slot.status+'">&#9899;</span> '+str(slot.last_date)
+                    elif not slot.agents_to:
+                        if req:
+                            if self.agent == req.agent:
+                                ex.receive_qty += 'jr:'+str(req)
+                                ex.receive_resource += 'jr:'+str(req)
+                            elif self.agent == req.project.agent:
+                                ex.receive_qty += req.total_price()
+                                ex.receive_resource += req.payment_unit()
+                        elif ex.transfers.count() == 1:
+                            tx = ex.transfers.all()[0]
+                            if tx.to_agent == self.agent:
+                                ex.give_resource += '<span class="'+ex.status()+'">&#9899;</span>'
+                                if tx.quantity:
+                                    ex.give_resource += str(tx.quantity)
+                                    if tx.actual_quantity and not tx.actual_quantity == tx.quantity:
+                                        ex.give_resource += '('+str(tx.actual_quantity)+')'
+                                elif tx.value:
+                                    ex.give_resource += str(tx.value)
+                                    if tx.actual_value and not tx.actual_value == tx.value:
+                                        ex.give_resource += '('+str(tx.actual_value)+')'
+                                else:
+                                    ex.give_resource += 'n'
+
+                    if self.agent in slot.agents_from:
+                        if slot.total_com_unit:
+                            ex.give_qty += str(slot.total_com)
+                            ex.give_resource += str(slot.total_com_unit)
+                            if slot.rts:
+                                for rt in slot.rts:
+                                    ex.give_resource += ' rt:'+str(rt)
+                        else:
+                            ex.give_qty += str(slot.total_com)
+                            ex.give_resource += '?'
+                        ex.give_lastdate += '<span class="'+slot.status+'">&#9899;</span> '+str(slot.last_date)
+
+                    elif not slot.agents_from:
+                        if req:
+                            if self.agent == req.agent:
+                                ex.give_qty += 'jr:'+str(req)
+                                ex.give_resource += 'jr:'+str(req)
+                            elif self.agent == req.project.agent:
+                                ex.give_qty += req.payment_amount()
+                                ex.give_resource += str(req.project.shares_type())
+                            else:
+                                ex.give_qty += 'jr?:'+str(req)
+                                ex.give_resource += 'jr?:'+str(req)
+                        elif ex.transfers.count() == 1:
+                            tx = ex.transfers.all()[0]
+                            if tx.from_agent == self.agent:
+                                ex.give_resource += '<span class="'+ex.status()+'">&#9899;</span>'
+                                if tx.quantity:
+                                    ex.give_resource += str(tx.quantity)
+                                    if tx.actual_quantity and not tx.actual_quantity == tx.quantity:
+                                        ex.give_resource += '('+str(tx.actual_quantity)+')'
+                                elif tx.value:
+                                    ex.give_resource += str(tx.value)
+                                    if tx.actual_value and not tx.actual_value == tx.value:
+                                        ex.give_resource += '('+str(tx.actual_value)+')'
+                                else:
+                                    ex.give_resource += 'n'
+
+            elif ex.transfers.all():
+                ex.give_resource += 'tr!'
+                ex.receive_resource += 'tr!'
+                for tx in ex.transfers.all():
+                    if tx.from_agent == self.agent or req.project.agent == self.agent and not tx.from_agent:
+                        ex.give_resource += '<span class="'+tx.status()+'">&#9899;</span>'
+                        if tx.quantity:
+                            ex.give_qty += str(tx.quantity)
+                            if tx.actual_quantity and not tx.actual_quantity == tx.quantity:
+                                ex.give_qty += '('+str(tx.actual_quantity)+')'
+                        elif tx.value:
+                            ex.give_qty += str(tx.value)
+                            if tx.actual_value and not tx.actual_value == tx.value:
+                                ex.give_qty += '('+str(tx.actual_value)+')'
+                        elif req:
+                            ex.give_qty += str(req.payment_amount())
+                        else:
+                            ex.give_qty += 'x'
+                        if tx.resource:
+                            if tx.resource.resource_type.ocp_artwork_type.is_account():
+                                if tx.resource.resource_type.unit.name == 'Each':
+                                    ex.give_resource += str(tx.resource.resource_type.unit_of_price)
+                                else:
+                                    ex.give_resource += str(tx.resource.resource_type.unit)
+                            else:
+                                ex.give_resource += str(tx.resource)
+                        elif tx.resource_type:
+                            ex.give_resource += str(tx.resource_type)
+                        else:
+                            if tx.unit_of_quantity:
+                                ex.give_resource += 'u:'+str(tx.unit_of_quantity)
+                            elif tx.transfer_type.is_share():
+                                ex.give_resource += str(tx.transfer_type.is_share().resource_type)
+                            else:
+                                ex.give_resource += '? '+str(tx)
+                        if tx: # and not forloop.last:
+                            ex.give_resource += ' '
+                    elif tx.to_agent == self.agent or req.agent == self.agent and not tx.to_agent:
+                        ex.receive_resource += '<span class="'+tx.status()+'">&#9899;</span>'
+                        if tx.quantity:
+                            ex.receive_qty += str(tx.quantity)
+                            if tx.actual_quantity and not tx.actual_quantity == tx.quantity:
+                                ex.receive_qty += '('+str(tx.actual_quantity)+')'
+                        elif tx.value:
+                            ex.give_qty += str(tx.value)
+                            if tx.actual_value and not tx.actual_value == tx.value:
+                                ex.receive_qty += '('+str(tx.actual_value)+')'
+                        elif req:
+                            ex.receive_qty += str(req.payment_amount())
+                        else:
+                            ex.receive_qty += 'x'
+                        if tx.resource:
+                            if tx.resource.resource_type.ocp_artwork_type.is_account():
+                                if tx.resource.resource_type.unit.name == 'Each':
+                                    ex.receive_resource += str(tx.resource.resource_type.unit_of_price)
+                                else:
+                                    ex.receive_resource += str(tx.resource.resource_type.unit)
+                            else:
+                                ex.receive_resource += str(tx.resource)
+                        elif tx.resource_type:
+                            ex.receive_resource += str(tx.resource_type)
+                        else:
+                            if tx.unit_of_quantity:
+                                ex.receive_resource += 'u:'+str(tx.unit_of_quantity)
+                            elif tx.transfer_type.is_share():
+                                ex.receive_resource += str(tx.transfer_type.is_share().resource_type)
+                            else:
+                                ex.receive_resource += '? '+str(tx)
+                        if tx: # and not forloop.last:
+                            ex.receive_resource += ' '
+
+            else:
+                ex.give_qty += '?'
+                ex.receive_qty += '?'
+
+            if ex.work_events():
+                for event in ex.work_events():
+                    if event.from_agent == self.agent:
+                        if not ex.give_qty:
+                            ex.give_qty += str(remove_exponent(event.quantity))
+                        if not ex.give_resource:
+                            if event.unit_of_quantity:
+                                ex.give_resource += str(event.unit_of_quantity)+str(_(' of '))+str(event.resource_type) #+' EV: '+str(event.__dict__)
+                            else:
+                                ex.give_resource += str(event.resource_type) #+' EV: '+str(event.__dict__)
+                        if event.description:
+                            ex.give_resource += ': <em class="small" style="line-height:1rem; display:inline-block; opacity:0.7;">'+event.description+'</em>'
+                    elif event.to_agent == self.agent:
+                        if not ex.receive_qty:
+                            ex.receive_qty += str(remove_exponent(event.quantity))
+                        if not ex.receive_resource:
+                            if event.unit_of_quantity:
+                                ex.receive_resource += str(event.unit_of_quantity)+str(_(' of '))+str(event.resource_type) #'EV:'+str(event)
+                            else:
+                                ex.receive_resource += str(event.resource_type) #+' EV: '+str(event.__dict__)
+                        if event.description:
+                            ex.receive_resource += ': <em class="small" style="line-height:1rem; display:inline-block; opacity:0.7;">'+event.description+'</em>'
+
+
+            #print("------ end build actions ---")
+            camps = [
+                ex.actions,
+                ex.start_date.strftime("%Y-%m-%d"), # %H:%M  #escape(item.number),  # escape HTML for security reasons
+                ex.otheragent, #"{0} {1}".format(item.customer_firstname, item.customer_lastname)),  # escape HTML for security reasons
+                ex.give_qty,
+                ex.give_resource,
+                ex.give_lastdate,
+                ex.receive_qty,
+                ex.receive_resource,
+                ex.receive_lastdate
+            ]
+
+            json_data.append(camps)
+
+
+            #print("json_data: "+str(json_data))
+          # endfor
+        #print('--- prepare results (end) ----')
+
+        return json_data
+
+
 
 
 @login_required
