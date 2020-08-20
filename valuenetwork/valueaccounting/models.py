@@ -1539,7 +1539,7 @@ class EconomicAgent(models.Model):
                 if shr:
                     rt = shr.resource_type
               if not rt:
-                if tx.transfer_type == ex.ttpay() and ex.join_request:
+                if tx.transfer_type == ex.ttpay() and hasattr(ex, 'join_request') and ex.join_request:
                     #print("TX: "+str(ex.join_request.payment_unit()))
                     rt = ex.join_request.payment_unit_rt()
               if rt:
