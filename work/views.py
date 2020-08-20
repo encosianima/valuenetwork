@@ -1361,6 +1361,7 @@ def run_fdc_scripts(request, agent):
 
     print("............ start run_fdc_scripts ("+str(agent)+") .............")
     loger.info("............ start run_fdc_scripts ("+str(agent)+") .............")
+    user_agent = get_agent(request)
     acctyp = fdc.project.shares_account_type()
     shrtyp = fdc.project.shares_type()
     oldshr = EconomicResourceType.objects.membership_share()
