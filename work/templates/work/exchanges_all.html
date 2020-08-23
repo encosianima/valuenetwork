@@ -10,7 +10,7 @@
 {% block head_title %}{% trans "Exchanges" %}{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{% static 'css/jquery-ui.css' %}" /> <!-- https://code.jquery.com/ui/1.12.1/themes/base/ -->
 <link rel="stylesheet" href="{% static 'css/chosen.css' %}" />
 <link rel="stylesheet" href="{% static 'css/skin-lion/ui.fancytree.min.css' %}" />
 
@@ -163,6 +163,14 @@ th.give {
 
 small {
   font-size: 90%;
+}
+
+td.alignright {
+    text-align: right;
+}
+
+td {
+    line-height: 1.2em;
 }
 
 #exchangeTypeForm {
@@ -1265,16 +1273,18 @@ hr {
 {% block extra_script %}
 	<!-- <script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
   <script src="https://code.jquery.com/jquery-1.12.1.min.js"></script> -->
-  <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+
+  <script src="{% static 'js/jquery-ui.min.js' %}"></script> <!-- https://code.jquery.com/ui/1.12.1/jquery-ui.min.js -->
   <script src="{% static 'js/chosen.jquery.js' %}"></script>
   <script src="{% static 'js/jquery.fancytree-all.min.js' %}"></script>
-  <script src="{% static 'js/ocp-trees.js' %}"></script>
+  <script type="text/javascript" charset="utf8" src="{% static 'js/ocp-trees.js' %}"></script>
+  <script type="text/javascript" charset="utf8" src="{% static 'js/jquery.expander.min.js' %}"></script>
 
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.21/b-1.6.2/b-colvis-1.6.2/b-html5-1.6.2/r-2.2.5/datatables.min.css"/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/datatables.min.css' %}"/> <!-- https://cdn.datatables.net/v/bs4/dt-1.10.21/b-1.6.2/b-colvis-1.6.2/b-html5-1.6.2/r-2.2.5/ -->
 
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.21/b-1.6.2/b-colvis-1.6.2/b-html5-1.6.2/r-2.2.5/datatables.min.js"></script>
+<script type="text/javascript" src="{% static 'js/pdfmake.min.js' %}"></script> <!-- https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/ -->
+<script type="text/javascript" src="{% static 'js/vfs_fonts.js' %}"></script> <!-- https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/ -->
+<script type="text/javascript" src="{% static 'js/datatables.min.js' %}"></script> <!-- https://cdn.datatables.net/v/bs4/dt-1.10.21/b-1.6.2/b-colvis-1.6.2/b-html5-1.6.2/r-2.2.5/ -->
 
 {% endblock %}
 
@@ -1290,14 +1300,14 @@ hr {
             $('#exchanges_processing').css('border', '0').css('top','16px').css('left','167px').css( 'display', processing ? 'block' : 'none' );
             $('.table-condensed').attr('style', processing ? 'pointer-events:none; opacity:0.5;' : 'pointer-events:inherit; opacity:1;');
             if(!processing){
-                //update_longs();
+                update_longs();
             }
         } )
         .DataTable({
             "stateSave": true,
             "autoWidth": true,
             "order": [[1, 'desc']],
-            "dom": '<"row no-gutters"<"col"ri><"col right"l>><"row no-gutters bigbox"t><"row no-gutters"<"col left"p><"col"B>>',//'irftBpl', //'B<"clear">lfrtip',
+            "dom": '<"row no-gutters"<"col"ri><"col right alignright"l>><"row no-gutters bigbox"t><"row no-gutters"<"col left"p><"col"B>>',//'irftBpl', //'B<"clear">lfrtip',
             "buttons": [
                 'colvis',
                 {
@@ -1329,16 +1339,36 @@ hr {
             "columns": [
                 { "orderable": false }, // actions
                 null, //{ "data": "exchange_date" },
-                null, //{ "data": "name" },
-                null, //{ "data": "requested_username" },
-                null, //{ "data": "type_of_user" },
-                null, //{ "data": "email_address" },
-                null, //{ "data": "phone_number",
-                null, //{ "data": "address",
-                null, //{ "data": "website",
+                { "orderable": false,
+                  "type": "html" }, //{ "data": "agent" },
+                { className: "alignright",
+                  "orderable": false }, //{ "data": "give_qty" },
+                { className: "textlong",
+                  "orderable": false }, //{ "data": "give_resource" },
+                { "orderable": false }, //{ "data": "give_lastdate" },
+                { className: "alignright",
+                  "orderable": false }, //{ "data": "receive_qty",
+                { className: "textlong",
+                  "orderable": false }, //{ "data": "receive_resource",
+                { "orderable": false }, //{ "data": "receive_lastdate",
             ],
         });
 
+    function update_longs(){
+        $('.textlong').each(function(e) {
+            $(this).expander({
+                    slicePoint:       50,  // default is 100
+                    expandSpeed: 0,
+                    expandEffect: 'show',
+                    collapseSpeed: 0,
+                    collapseEffect: 'hide',
+                    expandPrefix:     ' ', // default is '... '
+                    expandText:       '&nbsp; <span style="font-weight:bold">+</span>', // default is 'read more'
+                    userCollapseText: '&nbsp; <span style="font-weight:bold">&ndash;</span>'  // default is 'read less'
+            });
+        });
+    };
+    update_longs();
 
     $( "#help" ).toggle( function(){
         $('#help-content').show("slide", { direction: "right" }, "slow" );
@@ -1348,7 +1378,7 @@ hr {
         $( "#help" ).text("Show Help");
     });
 
-		$('.date-entry').datepicker({ dateFormat: "yy-mm-dd" });
+	$('.datepicker').datepicker({ dateFormat: "yy-mm-dd" });
 
     $('#tabs').removeAttr('style').tabs({
       classes: {

@@ -6345,7 +6345,7 @@ class ExchangeListJson(BaseDatatableView):
                         else:
                             ex.receive_qty += str(slot.total_com)
                             ex.receive_resource += '?'
-                        ex.receive_lastdate += '<span class="'+slot.status+'">&#9899;</span> '+str(slot.last_date)
+                        ex.receive_lastdate += '<span class="'+slot.status+'">&#9899;</span>&nbsp;'+str(slot.last_date)+' '
                     elif not slot.agents_to:
                         if req:
                             if self.agent == req.agent:
@@ -6375,11 +6375,13 @@ class ExchangeListJson(BaseDatatableView):
                             ex.give_resource += str(slot.total_com_unit)
                             if slot.rts:
                                 for rt in slot.rts:
-                                    ex.give_resource += ' rt:'+str(rt)
+                                    if not ex.give_resource.lower() in str(rt).lower() and not str(rt).lower() in ex.give_resource.lower():
+                                        if not '<em' in str(ex.give_resource):
+                                            ex.give_resource += ' rt:'+str(rt)
                         else:
                             ex.give_qty += str(slot.total_com)
                             ex.give_resource += '?'
-                        ex.give_lastdate += '<span class="'+slot.status+'">&#9899;</span> '+str(slot.last_date)
+                        ex.give_lastdate += '<span class="'+slot.status+'">&#9899;</span>&nbsp;'+str(slot.last_date)+' '
 
                     elif not slot.agents_from:
                         if req:
@@ -6482,7 +6484,7 @@ class ExchangeListJson(BaseDatatableView):
                 ex.give_qty += '?'
                 ex.receive_qty += '?'
 
-            if ex.work_events():
+            '''if ex.work_events():
                 for event in ex.work_events():
                     if event.from_agent == self.agent:
                         if not ex.give_qty:
@@ -6493,7 +6495,7 @@ class ExchangeListJson(BaseDatatableView):
                             else:
                                 ex.give_resource += str(event.resource_type) #+' EV: '+str(event.__dict__)
                         if event.description:
-                            ex.give_resource += ': <em class="small" style="line-height:1rem; display:inline-block; opacity:0.7;">'+event.description+'</em>'
+                            ex.give_resource += ': <em class="inlist small">'+event.description+'</em>'
                     elif event.to_agent == self.agent:
                         if not ex.receive_qty:
                             ex.receive_qty += str(remove_exponent(event.quantity))
@@ -6503,8 +6505,8 @@ class ExchangeListJson(BaseDatatableView):
                             else:
                                 ex.receive_resource += str(event.resource_type) #+' EV: '+str(event.__dict__)
                         if event.description:
-                            ex.receive_resource += ': <em class="small" style="line-height:1rem; display:inline-block; opacity:0.7;">'+event.description+'</em>'
-
+                            ex.receive_resource += ': <em class="inlist small">'+event.description+'</em>'
+            '''
 
             #print("------ end build actions ---")
             camps = [

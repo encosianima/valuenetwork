@@ -2752,8 +2752,8 @@ class BalanceForm(forms.Form):
 
 
 class DateSelectionForm(forms.Form):
-    start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
-    end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry',}))
+    start_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry datepicker',}))
+    end_date = forms.DateField(widget=forms.TextInput(attrs={'class': 'input-small date-entry datepicker',}))
 
 
 class DueDateAndNameForm(forms.Form):
