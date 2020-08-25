@@ -26,7 +26,7 @@ TEMPLATE_DEBUG = DEBUG
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'valuenetwork.sqlite'
+        'NAME': 'ocp.sqlite'
     }
 }
 #for a server, you want a real database
