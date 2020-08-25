@@ -13,8 +13,8 @@ OCP v1.0 has been successfully tested with Python 3.7+ (stable in debian buster 
 
 3- Clone the repo and enter the project folder: ::
 
-    git clone https://github.com/FreedomCoop/valuenetwork.git
-    cd valuenetwork
+    git clone https://github.com/FreedomCoop/valuenetwork.git ocp
+    cd ocp
 
 4- Activate the virtual environment and upgrade pip: ::
 
@@ -96,20 +96,25 @@ You will be the only user who will need to do this.
 All other Agents and Users will be created during the membership process of any
 context agent upgraded to an OCP Project (with moderated access and with public
 visibility), once its custom register form is set-up in the fobi system and
-connected to the project with its form slug field:
+connected to the project with its form slug field. To do that:
 
+  - If not created yet, go to 'your projects' page and create the new project, 
+    your agent will become a coordinator of this project.
+  - Choose a 'moderated' joininng style (or 'shares') and a 'public' visibility 
+    to have an external register form for non-logged users.
   - Go to `/fobi` url and create a form with the name of the project. Be aware
     of the resulting 'slug' by checking the url of the link to read the form.
     That slug will be the main identifier of the project in the local_settings
     file objects.
   - Define only the custom fields (questions) used in the project. Remember
     that the main user fields are already requested by the OCP (individual or
-    group, first and second name, nickname/username, email, phone, address), so
+    group type, name and surname, nickname/username, email, phone, address and website), so
     focus only on the really custom questions for the project context, and
     follow a few rules described below.
+  - Add the DB Store handler in the fobi form 'handlers' tab. 
   - Once the form is ready, set its 'slug' in the project's 'Custom project
     url slug' field. Verify the project's connection with its form with the links to view
-    or edit that appear in the project's page. 
+    the form that appear in the project's page. 
   - Check the local_settings objects are properly defined with the project's fobi 'slug' as a key 
     for its options, and the project page shows the custom settings like the css and js rules, the 
     background image behind the logo image, etc.
@@ -139,14 +144,15 @@ Some fobi custom fields little rules, related the active services for a project:
         exchanges_types related the active payment gateways by clicking the
         button 'Create Shares Exchange Types'.
 
-  - If you're setting-up the Multicurrency system of Bank of the Commons:
-    - The local_settings MULTICURRENCY object must be defined with the
+
+If you're setting-up the Multicurrency system of Bank of the Commons:
+  - The local_settings MULTICURRENCY object must be defined with the
         proper API urls and the BotC API secret key given to your instance.
-    - The local_settings PROJECTS_LOGIN object for the project should include
+  - The local_settings PROJECTS_LOGIN object for the project should include
         the `multicurrency` option as an active service.
-    - For that project and their members will appear the option to connect
+  - For that project and their members will appear the option to connect
         with their existent BotC-Wallet account or create a new one from OCP.
-    - The connection with BotC-Wallet is still readonly, so to move money
+  - The connection with BotC-Wallet is still readonly, so to move money
         you still have to use the https://wallet.bankofthecommons.coop site.
 
 
