@@ -1,31 +1,27 @@
-This is a howto for installing ocp in a debian/ubuntu system.
+This howto is intended for installing Open Collaborative System in debian/ubuntu systems.
 
-The ocp now runs on Python3 like the electrumfair wallet.
+OCP runs on Python3 as well as the electrumfair wallet.
 
-#- Install dependencies in the system: ::
-#
-#    # sudo apt-get install virtualenv git libjpeg-dev zlib1g-dev build-essential gettext
-#    # sudo apt-get install python-setuptools python2.7-dev python-pil python-qt4
-
-- Install electrumfair and daemon dependencies in the system (python3): ::
+- 1. Install system dependencies: ::
 
     sudo apt-get install python3-setuptools python3-pyqt5 python3-pip python3-venv npm git libapache2-mod-wsgi-py3
 
-- If you want to add a Faircoin Wallet service: ::
+- **If you want to add a Faircoin Wallet service, do it as follows: ::
 
     sudo pip3 install https://download.faircoin.world/electrum/ElectrumFair-3.0.5.tar.gz
     sudo pip install jsonrpclib
 
-- Create an electrumfair wallet (as 'wallet' user or root): ::
+- Create an electrumfair wallet (as 'wallet' user or as root): ::
 
     electrumfair create
 
-This gives you seed to keep in safe place, and ask for password to encript the wallet.
-All the electrumfair data will be created in /home/user/.electrumfair/ directory.
-Be carefull if you already have an electrum-fair wallet installed with the same user.
+This latter gives you **seed** to be kept in safe place, and ask for password to encrypt the wallet.
+All electrumfair data will be created and stored in /home/user/.electrumfair/ directory.
+Be careful if you already have an electrum-fair wallet installed with the same user, because it will be overwritten.
 
-- Download from github and copy daemon sample files: ::
+- Create an installation directory to download and copy daemon sample files : ::
 
+    mkdir [installation dir]   # e.g., "ocp"   
     cd [installation dir]
     git clone https://github.com/FreedomCoop/valuenetwork.git
     cd valuenetwork
@@ -43,10 +39,10 @@ Be carefull if you already have an electrum-fair wallet installed with the same 
     sudo ./faircoin/daemon/daemon_service status
 
 If daemon runs ok, *daemon_service status* returns *Running*.
-For ocp instances in production, better to move daemon_service to */etc/init.d/* and daemon.conf to */etc/*
+For ocp instances in production, it's better to move daemon_service to */etc/init.d/* and daemon.conf to */etc/*
 
 
-- With the 'ocp' user, create virtual enviroment, update pip and setuptools: ::
+- 2. With the 'ocp' user, create virtual enviroment, update pip and setuptools: ::
 
     cd [installation dir]
     python3 -m venv py3
@@ -81,6 +77,20 @@ For ocp instances in production, better to move daemon_service to */etc/init.d/*
     cp -r ocp/static/js/* ../static/js/
     cp -r ocp/static/img/* ../static/img/
 
+If working on a local development environment, then: ::
+./manage.py collectstatic
+
+To run a test you’ll need a chromedrive version using chrome/chromium version on your system:
+
+https://chromedriver.chromium.org/downloads
+
+Once unzipped copy the binary overriding chromedriver version in install_ /py3/lib64 following this route:
+
+install_directory/py3/lib64/python3.7/site-packages/chromedriver_binary/
+
+or /py3/lib, if no 64 binary:
+
+install_directory/py3/lib/python3.7/site-packages/chromedriver_binary/
 
 - To check all and run the tests: ::
 
